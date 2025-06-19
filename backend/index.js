@@ -47,18 +47,19 @@ app.post('/api/upload', (req, res) => {
     VALUES (?, ?, ?, ?, ?, ?)
   `);
 
-  const transaction = db.transaction((datos) => {
-    for (const l of datos) {
-      insert.run(
-        l['Referencia'] || '',
-        l['Marca'] || '',
-        l['Proveedor'] || '',
-        parseInt(l['Costo Empresa']) || 0,
-        parseInt(l['Precio Cliente']) || 0,
-        parseInt(l['Stock']) || 0
-      );
-    }
-  });
+ const transaction = db.transaction((datos) => {
+  for (const l of datos) {
+    insert.run(
+      l['Referencia'] || '',
+      l['Marca'] || '',
+      l['Proveedor'] || '',
+      parseInt(l['Costo Empresa']) || 0,
+      parseInt(l['Precio Cliente']) || 0,
+      parseInt(l['Cantidad']) || 0   // 👈 CORREGIDO
+    );
+  }
+});
+
 
   try {
     transaction(datos);

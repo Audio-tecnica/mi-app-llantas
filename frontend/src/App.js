@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import './index.css';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 function App() {
   const [llantas, setLlantas] = useState([]);
@@ -11,7 +11,7 @@ function App() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios.get('https://mi-backend-llantas.onrender.com/api/llantas')
+    axios.get('https://mi-app-llantas-1.onrender.com/api/llantas')
       .then(res => setLlantas(res.data))
       .catch(() => setMensaje({ texto: 'Error al cargar llantas', tipo: 'error' }));
   }, []);
@@ -24,13 +24,30 @@ function App() {
 
   return (
     <div className="p-4 max-w-5xl mx-auto">
+      {/* ✅ Botón para subir archivo */}
+      <div className="mb-4 flex justify-end">
+        <Link to="/subir" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          Subir archivo
+        </Link>
+      </div>
+
       <h1 className="text-xl font-bold mb-4">Consulta de Llantas</h1>
 
       {mensaje.texto && <div className="mb-4 text-red-500">{mensaje.texto}</div>}
 
       <div className="mb-4 flex gap-4">
-        <input type="text" value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar..." className="border p-2 rounded w-full" />
-        <select value={marcaSeleccionada} onChange={e => setMarcaSeleccionada(e.target.value)} className="border p-2 rounded">
+        <input
+          type="text"
+          value={busqueda}
+          onChange={e => setBusqueda(e.target.value)}
+          placeholder="Buscar..."
+          className="border p-2 rounded w-full"
+        />
+        <select
+          value={marcaSeleccionada}
+          onChange={e => setMarcaSeleccionada(e.target.value)}
+          className="border p-2 rounded"
+        >
           <option value="">Todas las marcas</option>
           {marcasUnicas.map(m => <option key={m} value={m}>{m}</option>)}
         </select>

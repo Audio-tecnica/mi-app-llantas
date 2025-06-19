@@ -6,29 +6,32 @@ const Database = require('better-sqlite3');
 
 const app = express();
 const db = new Database('llantas.db');
+const PORT = process.env.PORT || 10000;
 
 // Middleware
 app.use(fileUpload());
 app.use(cors({
-  origin: 'https://mi-app-llantas.vercel.app' // Cambia si tu frontend tiene otro dominio
+  origin: 'https://mi-app-llantas.vercel.app', // cambia si tu frontend usa otro dominio
 }));
 app.use(express.json());
 
 // Crear tabla si no existe
-db.prepare(`CREATE TABLE IF NOT EXISTS llantas (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  referencia TEXT,
-  marca TEXT,
-  proveedor TEXT,
-  costo_empresa INTEGER,
-  precio_cliente INTEGER,
-  stock INTEGER
-)`).run();
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS llantas (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    referencia TEXT,
+    marca TEXT,
+    proveedor TEXT,
+    costo_empresa INTEGER,
+    precio_cliente INTEGER,
+    stock INTEGER
+  )
+`).run();
 
-// Endpoint para subir archivo Excel
+// Subida de archivo Excel
 app.post('/api/upload', (req, res) => {
   if (!req.files || !req.files.file) {
-    return res.status(400).send('No se subió ningún archivo');
+    return res.status(400).json({ error: 'No se subió ningún archivo' });
   }
 
   const archivo = req.files.file;
@@ -36,46 +39,48 @@ app.post('/api/upload', (req, res) => {
   const hoja = workbook.Sheets[workbook.SheetNames[0]];
   const datos = xlsx.utils.sheet_to_json(hoja);
 
-  // Limpiar tabla antes de importar nuevos datos
+  // Limpiar la tabla
   db.prepare('DELETE FROM llantas').run();
 
-  const insert = db.prepare(`INSERT INTO llantas (referencia, marca, proveedor, costo_empresa, precio_cliente, stock)
-    VALUES (?, ?, ?, ?, ?, ?)`);
+  const insert = db.prepare(`
+    INSERT INTO llantas (referencia, marca, proveedor, costo_empresa, precio_cliente, stock)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `);
 
-  const transaction = db.transaction((rows) => {
-    for (const l of rows) {
+  const transaction = db.transaction((datos) => {
+    for (const l of datos) {
       insert.run(
-        l.referencia || '',
-        l.marca || '',
-        l.proveedor || '',
-        parseInt(l.costo_empresa) || 0,
-        parseInt(l.precio_cliente) || 0,
-        parseInt(l.stock) || 0
+        l['Referencia'] || '',
+        l['Marca'] || '',
+        l['Proveedor'] || '',
+        parseInt(l['Costo Empresa']) || 0,
+        parseInt(l['Precio Cliente']) || 0,
+        parseInt(l['Stock']) || 0
       );
     }
   });
 
   try {
     transaction(datos);
-    res.send('Archivo cargado correctamente');
+    res.json({ message: 'Archivo cargado correctamente' });
   } catch (e) {
-    console.error('Error al importar datos:', e);
-    res.status(500).send('Error al procesar el archivo');
+    console.error('Error al importar:', e);
+    res.status(500).json({ error: 'Error al importar los datos' });
   }
 });
 
-// Endpoint para obtener los datos
+// Endpoint para consultar llantas
 app.get('/api/llantas', (req, res) => {
   try {
     const llantas = db.prepare('SELECT * FROM llantas').all();
     res.json(llantas);
-  } catch (err) {
-    res.status(500).json({ error: 'Error al obtener los datos' });
+  } catch (e) {
+    console.error('Error al obtener llantas:', e);
+    res.status(500).json({ error: 'Error al obtener las llantas' });
   }
 });
 
 // Iniciar servidor
-const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en puerto ${PORT}`);
 });

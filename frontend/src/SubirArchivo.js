@@ -21,18 +21,28 @@ function SubirArchivo() {
     }
 
     const formData = new FormData();
-    formData.append('file', archivo);
+    formData.append('file', archivo); // 👈 clave 'file' debe coincidir con backend
 
     try {
-      axios.post('https://mi-app-llantas-1.onrender.com/api/upload', ...)
+      await axios.post('https://mi-app-llantas.onrender.com/api/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
       setMensaje({ texto: 'Archivo cargado correctamente ✅', tipo: 'success' });
 
-    // Redirecciona luego de 1.5 segundos
-    setTimeout(() => {
-       navigate('/'); // navegación suave
-       window.location.reload(); // fuerza recarga si algo falla
-    }, 1500);
+      // Redirecciona luego de 1.5 segundos
+      setTimeout(() => {
+        navigate('/'); // navegación suave
+        window.location.reload(); // fuerza recarga si algo falla
+      }, 1500);
 
+    } catch (error) {
+      console.error(error);
+      setMensaje({ texto: 'Error al subir el archivo ❌', tipo: 'error' });
+    }
+  };
 
   return (
     <div className="p-4 max-w-xl mx-auto">
@@ -55,6 +65,7 @@ function SubirArchivo() {
 }
 
 export default SubirArchivo;
+
 
 
 

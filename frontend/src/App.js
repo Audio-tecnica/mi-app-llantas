@@ -11,13 +11,13 @@ function App() {
   const navigate = useNavigate();
 
   useEffect(() => {
-       axios.get('https://mi-app-llantas-1.onrender.com/api/llantas') // ✅ dominio actualizado
+    axios.get('https://mi-app-llantas.onrender.com/api/llantas')
       .then(res => setLlantas(res.data))
       .catch(() => setMensaje({ texto: 'Error al cargar llantas', tipo: 'error' }));
   }, []);
 
   const marcasUnicas = [...new Set(llantas.map(l => l.marca))];
-  const filtradas = llantas.filter(l => 
+  const filtradas = llantas.filter(l =>
     l.referencia.toLowerCase().includes(busqueda.toLowerCase()) &&
     (!marcaSeleccionada || l.marca === marcaSeleccionada)
   );
@@ -78,3 +78,4 @@ function App() {
 }
 
 export default App;
+

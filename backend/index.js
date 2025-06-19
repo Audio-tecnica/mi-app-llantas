@@ -39,6 +39,8 @@ app.post('/api/upload', (req, res) => {
   const hoja = workbook.Sheets[workbook.SheetNames[0]];
   const datos = xlsx.utils.sheet_to_json(hoja);
 
+  console.log("✅ Datos del archivo:", datos); // 👈 Para verificar nombres de columnas
+
   // Limpiar la tabla
   db.prepare('DELETE FROM llantas').run();
 
@@ -47,25 +49,24 @@ app.post('/api/upload', (req, res) => {
     VALUES (?, ?, ?, ?, ?, ?)
   `);
 
- const transaction = db.transaction((datos) => {
-  for (const l of datos) {
-    insert.run(
-      l['Referencia'] || '',
-      l['Marca'] || '',
-      l['Proveedor'] || '',
-      parseInt(l['Costo Empresa']) || 0,
-      parseInt(l['Precio Cliente']) || 0,
-      parseInt(l['Cantidad']) || 0   // 👈 CORREGIDO
-    );
-  }
-});
-
+  const transaction = db.transaction((datos) => {
+    for (const l of datos) {
+      insert.run(
+        l['Referencia'] || '',
+        l['Marca'] || '',
+        l['Proveedor'] || '',
+        parseInt(l['Costo Empresa']) || 0,
+        parseInt(l['Precio Cliente']) || 0,
+        parseInt(l['Cantidad']) || 0
+      );
+    }
+  });
 
   try {
     transaction(datos);
     res.json({ message: 'Archivo cargado correctamente' });
   } catch (e) {
-    console.error('Error al importar:', e);
+    console.error('❌ Error al importar:', e);
     res.status(500).json({ error: 'Error al importar los datos' });
   }
 });
@@ -76,12 +77,14 @@ app.get('/api/llantas', (req, res) => {
     const llantas = db.prepare('SELECT * FROM llantas').all();
     res.json(llantas);
   } catch (e) {
-    console.error('Error al obtener llantas:', e);
+    console.error('❌ Error al obtener llantas:', e);
     res.status(500).json({ error: 'Error al obtener las llantas' });
   }
 });
 
 // Iniciar servidor
 app.listen(PORT, () => {
-  console.log(`Servidor escuchando en puerto ${PORT}`);
+  console.log(`🚀 Servidor escuchando en puerto ${PORT}`);
 });
+
+

@@ -11,7 +11,7 @@ function App() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios.get('https://mi-app-llantas-1.onrender.com/api/llantas')
+       axios.get('https://mi-app-llantas-1.onrender.com/api/llantas') // ✅ dominio actualizado
       .then(res => setLlantas(res.data))
       .catch(() => setMensaje({ texto: 'Error al cargar llantas', tipo: 'error' }));
   }, []);

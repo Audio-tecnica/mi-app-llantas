@@ -143,7 +143,8 @@ function App() {
                   <td className="p-2">{ll.proveedor}</td>
                   <td className="p-2 text-blue-600">${ll.costo_empresa.toLocaleString()}</td>
                   <td className="p-2 text-green-600 font-semibold">${ll.precio_cliente.toLocaleString()}</td>
-                  <td className="p-2">{ll.stock}</td>
+                  <td className={`p-2 text-center ${ll.stock === 0 ? 'text-red-600 font-semibold' : ''}`}>{ll.stock === 0 ? 'Sin stock' : ll.stock}
+                   </td>
                 </tr>
               ))}
               {filtradas.length === 0 && (

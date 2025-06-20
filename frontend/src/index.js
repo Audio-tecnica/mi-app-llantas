@@ -1,10 +1,10 @@
-// index.js
+// src/index.js
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import App from './App';
 import SubirArchivo from './SubirArchivo';
-import Protegido from './Login'; // O el nombre del componente que hace el control de acceso
+import Protegido from './Login';
 import './index.css';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -12,12 +12,9 @@ root.render(
   <BrowserRouter>
     <Routes>
       <Route path="/" element={<App />} />
-      <Route path="/subir" element={
-        <Protegido>
-          <SubirArchivo />
-        </Protegido>
-      } />
+      <Route path="/subir" element={<Protegido><SubirArchivo /></Protegido>} />
     </Routes>
   </BrowserRouter>
 );
+
 

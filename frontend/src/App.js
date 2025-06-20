@@ -1,5 +1,7 @@
+// src/App.js
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 import './index.css';
 
 function App() {
@@ -37,8 +39,13 @@ function App() {
   );
 
   return (
-    <div className="max-w-7xl mx-auto p-4 font-sans">
-      <h1 className="text-2xl font-bold mb-6">🛞 Catálogo de Llantas</h1>
+    <div className="max-w-7xl mx-auto p-4">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">🛞 Llantas Audio Tecnica</h1>
+        <Link to="/subir" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          Subir archivo
+        </Link>
+      </div>
 
       {mensaje && <div className="text-red-500 mb-4">{mensaje}</div>}
 
@@ -82,15 +89,15 @@ function App() {
         </div>
 
         {/* Resultados */}
-        <div className="md:col-span-3 overflow-x-auto">
+        <div className="md:col-span-3">
           <table className="w-full border text-sm">
             <thead className="bg-gray-100">
               <tr>
                 <th className="p-2 border">Referencia</th>
                 <th className="p-2 border">Marca</th>
                 <th className="p-2 border">Proveedor</th>
-                <th className="p-2 border text-blue-600">Costo Empresa</th>
-                <th className="p-2 border text-green-600">Precio Cliente</th>
+                <th className="p-2 border">Costo Empresa</th>
+                <th className="p-2 border">Precio Cliente</th>
                 <th className="p-2 border">Stock</th>
               </tr>
             </thead>
@@ -100,13 +107,15 @@ function App() {
                   <td className="p-2">{ll.referencia}</td>
                   <td className="p-2">{ll.marca}</td>
                   <td className="p-2">{ll.proveedor}</td>
-                  <td className="p-2 text-blue-700 font-medium">${ll.costo_empresa.toLocaleString()}</td>
-                  <td className="p-2 text-green-700 font-semibold">${ll.precio_cliente.toLocaleString()}</td>
+                  <td className="p-2 text-blue-600">${ll.costo_empresa.toLocaleString()}</td>
+                  <td className="p-2 text-green-600 font-semibold">${ll.precio_cliente.toLocaleString()}</td>
                   <td className="p-2">{ll.stock}</td>
                 </tr>
               ))}
               {filtradas.length === 0 && (
-                <tr><td colSpan="6" className="text-center py-4 text-gray-500">No se encontraron llantas</td></tr>
+                <tr>
+                  <td colSpan="6" className="text-center py-4 text-gray-500">No se encontraron llantas</td>
+                </tr>
               )}
             </tbody>
           </table>
@@ -117,6 +126,7 @@ function App() {
 }
 
 export default App;
+
 
 
 

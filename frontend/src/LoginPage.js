@@ -1,4 +1,3 @@
-// src/LoginPage.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -15,22 +14,22 @@ function LoginPage() {
       localStorage.setItem('acceso', PASSWORD);
       navigate('/');
     } else {
-      setError('Contraseña incorrecta');
+      setError('Contraseña incorrecta ❌');
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow-md w-80">
-        <h2 className="text-lg font-bold mb-4 text-center">🔒 Ingreso</h2>
+    <div className="flex items-center justify-center h-screen bg-gray-100">
+      <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow-md w-full max-w-sm">
+        <h2 className="text-xl font-bold mb-4">🔐 Ingresar</h2>
         <input
           type="password"
           placeholder="Contraseña"
           value={input}
-          onChange={(e) => setInput(e.target.value)}
-          className="w-full p-2 border rounded mb-3"
+          onChange={e => setInput(e.target.value)}
+          className="w-full mb-4 p-2 border rounded"
         />
-        {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+        {error && <div className="text-red-500 mb-2">{error}</div>}
         <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
           Entrar
         </button>
@@ -40,3 +39,4 @@ function LoginPage() {
 }
 
 export default LoginPage;
+

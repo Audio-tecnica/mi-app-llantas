@@ -1,4 +1,3 @@
-// src/Protegido.js
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 
@@ -15,5 +14,6 @@ function Protegido({ children }) {
 }
 
 export default Protegido;
+
 
 

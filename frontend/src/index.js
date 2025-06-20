@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter, Routes, Route } from 'react-router-dom'; // ✅ ESTE IMPORTA TODO
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import App from './App';
 import SubirArchivo from './SubirArchivo';
 import Protegido from './Protegido';
@@ -17,6 +17,7 @@ root.render(
     </Routes>
   </BrowserRouter>
 );
+
 
 
 

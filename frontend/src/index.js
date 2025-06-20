@@ -1,4 +1,3 @@
-// src/index.js
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
@@ -11,7 +10,7 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <BrowserRouter>
     <Routes>
-      <Route path="/" element={<App />} />
+      <Route path="/" element={<Protegido><App /></Protegido>} />
       <Route path="/subir" element={<Protegido><SubirArchivo /></Protegido>} />
     </Routes>
   </BrowserRouter>

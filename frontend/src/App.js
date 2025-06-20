@@ -39,7 +39,18 @@ function App() {
   );
 
   return (
-    <div className="max-w-7xl mx-auto p-4">
+    <div className="max-w-7xl mx-auto p-4 relative">
+      {/* Botón cerrar sesión */}
+      <button
+        onClick={() => {
+          localStorage.removeItem('acceso');
+          window.location.reload();
+        }}
+        className="absolute top-4 right-4 bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+      >
+        Cerrar sesión
+      </button>
+
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">🛞 Llantas Audio Tecnica</h1>
         <Link to="/subir" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
@@ -86,6 +97,20 @@ function App() {
             <option value="">Todos</option>
             {rines.map(r => <option key={r}>{r}</option>)}
           </select>
+
+          {/* Botón limpiar filtros */}
+          <button
+            onClick={() => {
+              setBusqueda('');
+              setMarcaSeleccionada('');
+              setAncho('');
+              setPerfil('');
+              setRin('');
+            }}
+            className="w-full mt-2 bg-gray-200 hover:bg-gray-300 text-sm text-black py-1 rounded"
+          >
+            Limpiar filtros
+          </button>
         </div>
 
         {/* Resultados */}
@@ -126,6 +151,7 @@ function App() {
 }
 
 export default App;
+
 
 
 

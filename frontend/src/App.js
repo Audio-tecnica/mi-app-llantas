@@ -95,6 +95,7 @@ function App() {
                 <th className="p-2 border">Marca</th>
                 <th className="p-2 border">Proveedor</th>
                 <th className="p-2 border">Precio Cliente</th>
+                <th className="p-2 border">Costo Empresa</th>
                 <th className="p-2 border">Stock</th>
               </tr>
             </thead>
@@ -104,6 +105,7 @@ function App() {
                   <td className="p-2">{ll.referencia}</td>
                   <td className="p-2">{ll.marca}</td>
                   <td className="p-2">{ll.proveedor}</td>
+                  <td className="p-2 text-gray-500 font-semibold">${ll.costo_empresa.toLocaleString()}</td>
                   <td className="p-2 text-green-600 font-semibold">${ll.precio_cliente.toLocaleString()}</td>
                   <td className="p-2">{ll.stock}</td>
                 </tr>

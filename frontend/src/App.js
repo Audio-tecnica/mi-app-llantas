@@ -94,8 +94,8 @@ function App() {
                 <th className="p-2 border">Referencia</th>
                 <th className="p-2 border">Marca</th>
                 <th className="p-2 border">Proveedor</th>
-                <th className="p-2 border">Precio Cliente</th>
                 <th className="p-2 border">Costo Empresa</th>
+                <th className="p-2 border">Precio Cliente</th>
                 <th className="p-2 border">Stock</th>
               </tr>
             </thead>

@@ -52,12 +52,12 @@ app.post('/api/upload', (req, res) => {
   const transaction = db.transaction((datos) => {
     for (const l of datos) {
       insert.run(
-        l['Referencia'] || '',
-        l['Marca'] || '',
-        l['Proveedor'] || '',
-        parseInt(l['Costo Empresa']) || 0,
-        parseInt(l['Precio Cliente']) || 0,
-        parseInt(l['Cantidad']) || 0
+        l['referencia'] || '',
+        l['marca'] || '',
+        l['proveedor'] || '',
+        parseInt(l['costo_empresa']) || 0,
+        parseInt(l['precio_cliente']) || 0,
+        parseInt(l['stock']) || 0
       );
     }
   });

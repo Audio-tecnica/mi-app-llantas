@@ -39,23 +39,24 @@ function App() {
   );
 
   return (
-    <div className="max-w-7xl mx-auto p-4 relative">
-      {/* Botón cerrar sesión */}
-      <button
-        onClick={() => {
-          localStorage.removeItem('acceso');
-          window.location.reload();
-        }}
-        className="absolute top-4 right-4 bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
-      >
-        Cerrar sesión
-      </button>
-
+    <div className="max-w-7xl mx-auto p-4">
+      {/* Encabezado y botones */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">🛞 Llantas Audio Tecnica</h1>
-        <Link to="/subir" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-          Subir archivo
-        </Link>
+        <div className="flex gap-2">
+          <Link to="/subir" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            Subir archivo
+          </Link>
+          <button
+            onClick={() => {
+              localStorage.removeItem('acceso');
+              window.location.href = '/login';
+            }}
+            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+          >
+            Cerrar sesión
+          </button>
+        </div>
       </div>
 
       {mensaje && <div className="text-red-500 mb-4">{mensaje}</div>}
@@ -82,16 +83,19 @@ function App() {
               <option key={m} value={m}>{m}</option>
             ))}
           </select>
+
           <label className="block text-sm mb-1">Ancho</label>
           <select value={ancho} onChange={e => setAncho(e.target.value)} className="w-full mb-3 p-2 border rounded">
             <option value="">Todos</option>
             {anchos.map(a => <option key={a}>{a}</option>)}
           </select>
+
           <label className="block text-sm mb-1">Perfil</label>
           <select value={perfil} onChange={e => setPerfil(e.target.value)} className="w-full mb-3 p-2 border rounded">
             <option value="">Todos</option>
             {perfiles.map(p => <option key={p}>{p}</option>)}
           </select>
+
           <label className="block text-sm mb-1">Rin</label>
           <select value={rin} onChange={e => setRin(e.target.value)} className="w-full mb-3 p-2 border rounded">
             <option value="">Todos</option>
@@ -151,6 +155,7 @@ function App() {
 }
 
 export default App;
+
 
 
 

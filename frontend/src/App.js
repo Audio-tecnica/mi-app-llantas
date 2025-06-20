@@ -20,15 +20,20 @@ function App() {
   }, []);
 
   const marcasUnicas = [...new Set(llantas.map(l => l.marca))];
-  const referencias = llantas.map(l => l.referencia);
+  const anchos = [];
+  const perfiles = [];
+  const rines = [];
 
-  const getParte = (indice) => referencias
-    .map(ref => ref.split(/[ \/R]/)[indice])
-    .filter((v, i, a) => v && a.indexOf(v) === i);
+  llantas.forEach(l => {
+  const partes = l.referencia.split(/[ /R]/).filter(Boolean);
+  if (partes.length >= 3) {
+    if (!anchos.includes(partes[0])) anchos.push(partes[0]);
+    if (!perfiles.includes(partes[1])) perfiles.push(partes[1]);
+    if (!rines.includes(partes[2])) rines.push(partes[2]);
+  }
+});
 
-  const anchos = getParte(0);
-  const perfiles = getParte(1);
-  const rines = getParte(2);
+
 
   const filtradas = llantas.filter(l =>
     l.referencia.toLowerCase().includes(busqueda.toLowerCase()) &&

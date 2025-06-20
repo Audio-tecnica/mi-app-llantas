@@ -6,7 +6,13 @@ const PASSWORD = 'at2025';
 
 function Protegido({ children }) {
   const acceso = localStorage.getItem('acceso');
-  return acceso === PASSWORD ? children : <Navigate to="/login" />;
+
+  if (acceso === PASSWORD) {
+    return children;
+  }
+
+  return <Navigate to="/login" />;
 }
 
 export default Protegido;
+

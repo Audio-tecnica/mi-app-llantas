@@ -27,18 +27,24 @@ app.use(express.json());
 
 // 🔧 Crear tabla si no existe
 async function crearTabla() {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS llantas (
-      id SERIAL PRIMARY KEY,
-      referencia TEXT,
-      marca TEXT,
-      proveedor TEXT,
-      costo_empresa INTEGER,
-      precio_cliente INTEGER,
-      stock INTEGER
-    )
-  `);
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS llantas (
+        id SERIAL PRIMARY KEY,
+        referencia TEXT,
+        marca TEXT,
+        proveedor TEXT,
+        costo_empresa INTEGER,
+        precio_cliente INTEGER,
+        stock INTEGER
+      )
+    `);
+    console.log('✅ Tabla "llantas" verificada o creada');
+  } catch (e) {
+    console.error('❌ Error al crear tabla:', e);
+  }
 }
+
 crearTabla();
 
 // 📤 Subir archivo Excel

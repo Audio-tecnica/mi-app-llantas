@@ -8,9 +8,11 @@ const app = express();
 const PORT = process.env.PORT || 10000;
 
 // 🔗 Conexión a PostgreSQL (REEMPLAZA con tu cadena real si es diferente)
-const pool = new Pool({
-  connectionString: 'postgresql://postgres:Audio.2025*ñ@db.xihejxjynnsxcrdxvtng.supabase.co:5432/postgres',
-  ssl: { rejectUnauthorized: false }
+  const pool = new Pool({
+  connectionString: 'postgresql://postgres.xihejxjynnsxcrdxvtng:[Audio.2025*ñ]@aws-0-us-east-1.pooler.supabase.com:5432/postgres',
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 // 🛠️ Middleware

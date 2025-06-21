@@ -5,7 +5,7 @@ const xlsx = require('xlsx');
 const Database = require('better-sqlite3');
 
 const app = express();
-const db = new Database('llantas.db');
+const db = new Database('persistencia/llantas.db');
 const PORT = process.env.PORT || 10000;
 
 // Middleware

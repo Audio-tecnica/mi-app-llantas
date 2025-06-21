@@ -12,6 +12,7 @@ function App() {
   const [perfil, setPerfil] = useState('');
   const [rin, setRin] = useState('');
   const [mensaje, setMensaje] = useState('');
+  const [stockEditado, setStockEditado] = useState({});
 
   useEffect(() => {
     axios.get('https://mi-app-llantas.onrender.com/api/llantas')
@@ -25,15 +26,13 @@ function App() {
   const rines = [];
 
   llantas.forEach(l => {
-  const partes = l.referencia.split(/[ /R]/).filter(Boolean);
-  if (partes.length >= 3) {
-    if (!anchos.includes(partes[0])) anchos.push(partes[0]);
-    if (!perfiles.includes(partes[1])) perfiles.push(partes[1]);
-    if (!rines.includes(partes[2])) rines.push(partes[2]);
-  }
-});
-
-
+    const partes = l.referencia.split(/[ /R]/).filter(Boolean);
+    if (partes.length >= 3) {
+      if (!anchos.includes(partes[0])) anchos.push(partes[0]);
+      if (!perfiles.includes(partes[1])) perfiles.push(partes[1]);
+      if (!rines.includes(partes[2])) rines.push(partes[2]);
+    }
+  });
 
   const filtradas = llantas.filter(l =>
     l.referencia.toLowerCase().includes(busqueda.toLowerCase()) &&
@@ -53,14 +52,13 @@ function App() {
             Subir archivo
           </Link>
           <button
-             onClick={() => {
-             localStorage.removeItem('acceso');
-             window.location.href = '/login';
-           }}
-           className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+            onClick={() => {
+              localStorage.removeItem('acceso');
+              window.location.href = '/login';
+            }}
+            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
             Cerrar sesión
           </button>
-
         </div>
       </div>
 
@@ -143,8 +141,37 @@ function App() {
                   <td className="p-2">{ll.proveedor}</td>
                   <td className="p-2 text-blue-600">${ll.costo_empresa.toLocaleString()}</td>
                   <td className="p-2 text-green-600 font-semibold">${ll.precio_cliente.toLocaleString()}</td>
-                  <td className={`p-2 text-center ${ll.stock === 0 ? 'text-red-600 font-semibold' : ''}`}>{ll.stock === 0 ? 'Sin stock' : ll.stock}
-                   </td>
+                  <td className="p-2 flex justify-center items-center gap-2">
+                    <input
+                      type="number"
+                      min="0"
+                      value={stockEditado[ll.id] ?? ll.stock}
+                      onChange={e => setStockEditado({ ...stockEditado, [ll.id]: e.target.value })}
+                      className="w-16 p-1 border rounded text-center"
+                    />
+                    <button
+                      onClick={async () => {
+                        const nuevoStock = parseInt(stockEditado[ll.id]);
+                        if (!isNaN(nuevoStock)) {
+                          try {
+                            await fetch('https://mi-app-llantas.onrender.com/api/stock', {
+                              method: 'PUT',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ id: ll.id, stock: nuevoStock })
+                            });
+                            setLlantas(prev =>
+                              prev.map(item => item.id === ll.id ? { ...item, stock: nuevoStock } : item)
+                            );
+                          } catch (err) {
+                            alert('❌ Error al actualizar el stock');
+                          }
+                        }
+                      }}
+                      className="text-white bg-green-600 hover:bg-green-700 px-2 py-1 rounded text-sm"
+                    >
+                      Guardar
+                    </button>
+                  </td>
                 </tr>
               ))}
               {filtradas.length === 0 && (

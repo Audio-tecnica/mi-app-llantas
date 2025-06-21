@@ -7,16 +7,11 @@ const { Pool } = require('pg');
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// ✅ Conexión PostgreSQL (usa tu URI real entre comillas)
+// 🔗 Conexión a PostgreSQL (REEMPLAZA con tu cadena real si es diferente)
 const pool = new Pool({
   connectionString: 'postgresql://postgres:Audio.2025*ñ@db.xihejxjynnsxcrdxvtng.supabase.co:5432/postgres',
   ssl: { rejectUnauthorized: false }
 });
-
-// ✅ Verificación de conexión
-pool.connect()
-  .then(() => console.log('✅ Conectado correctamente a PostgreSQL'))
-  .catch(err => console.error('❌ Error al conectar a PostgreSQL:', err));
 
 // 🛠️ Middleware
 app.use(fileUpload());
@@ -25,7 +20,7 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// 🔧 Crear tabla si no existe
+// 🧱 Crear tabla si no existe
 async function crearTabla() {
   try {
     await pool.query(`
@@ -41,13 +36,12 @@ async function crearTabla() {
     `);
     console.log('✅ Tabla "llantas" verificada o creada');
   } catch (e) {
-    console.error('❌ Error al crear tabla:', e);
+    console.error('❌ Error al crear la tabla:', e);
   }
 }
-
 crearTabla();
 
-// 📤 Subir archivo Excel
+// 📤 Subida de archivo Excel
 app.post('/api/upload', async (req, res) => {
   if (!req.files || !req.files.file) {
     return res.status(400).json({ error: 'No se subió ningún archivo' });
@@ -84,7 +78,7 @@ app.post('/api/upload', async (req, res) => {
   }
 });
 
-// 📥 Consultar llantas
+// 📥 Consulta de llantas
 app.get('/api/llantas', async (req, res) => {
   try {
     const { rows } = await pool.query('SELECT * FROM llantas');
@@ -99,6 +93,7 @@ app.get('/api/llantas', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Servidor escuchando en puerto ${PORT}`);
 });
+
 
 
 

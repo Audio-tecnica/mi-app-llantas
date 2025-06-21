@@ -9,8 +9,8 @@ const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// 📁 Ruta persistente
-const dbFolder = process.env.PERSIST_DIR || './persistencia';
+// 📁 Ruta persistente oficial en Render
+const dbFolder = '/var/data';
 const dbPath = path.join(dbFolder, 'llantas.db');
 
 // ✅ Crear la carpeta si no existe
@@ -24,7 +24,7 @@ const db = new Database(dbPath);
 // 🛠️ Middleware
 app.use(fileUpload());
 app.use(cors({
-  origin: 'https://mi-app-llantas.vercel.app', // ajusta si cambia tu frontend
+  origin: 'https://mi-app-llantas.vercel.app',
 }));
 app.use(express.json());
 
@@ -98,5 +98,6 @@ app.get('/api/llantas', (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Servidor escuchando en puerto ${PORT}`);
 });
+
 
 

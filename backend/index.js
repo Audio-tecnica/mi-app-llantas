@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 10000;
 
 // ✅ Conexión PostgreSQL (usa tu URI real entre comillas)
 const pool = new Pool({
-  connectionString: 'postgresql://postgres:[Audio.2025*ñ]@db.xihejxjynnsxcrdxvtng.supabase.co:5432/postgres',
+  connectionString: 'postgresql://postgres:Audio.2025*ñ@db.xihejxjynnsxcrdxvtng.supabase.co:5432/postgres',
   ssl: { rejectUnauthorized: false }
 });
 

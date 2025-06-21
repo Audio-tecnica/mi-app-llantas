@@ -7,15 +7,15 @@ const { Pool } = require('pg');
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// 🔗 Conexión a PostgreSQL (usa tu URI de Supabase)
+// ✅ Conexión PostgreSQL (usa tu URI real entre comillas)
 const pool = new Pool({
-  connectionString: 'postgresql://postgres:%5BAudio.2025*ñ%5D@db.xihejxjynnsxcrdxvtng.supabase.co:5432/postgres',
-  ssl: {
-    rejectUnauthorized: false
-  }
+  connectionString: 'postgresql://postgres:[Audio.2025*ñ]@db.xihejxjynnsxcrdxvtng.supabase.co:5432/postgres',
+  ssl: { rejectUnauthorized: false }
 });
+
+// ✅ Verificación de conexión
 pool.connect()
-  .then(() => console.log('✅ Conectado a PostgreSQL'))
+  .then(() => console.log('✅ Conectado correctamente a PostgreSQL'))
   .catch(err => console.error('❌ Error al conectar a PostgreSQL:', err));
 
 // 🛠️ Middleware
@@ -41,7 +41,7 @@ async function crearTabla() {
 }
 crearTabla();
 
-// 📤 Subir archivo
+// 📤 Subir archivo Excel
 app.post('/api/upload', async (req, res) => {
   if (!req.files || !req.files.file) {
     return res.status(400).json({ error: 'No se subió ningún archivo' });
@@ -93,6 +93,7 @@ app.get('/api/llantas', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Servidor escuchando en puerto ${PORT}`);
 });
+
 
 
 

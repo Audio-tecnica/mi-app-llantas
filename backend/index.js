@@ -5,7 +5,18 @@ const xlsx = require('xlsx');
 const Database = require('better-sqlite3');
 
 const app = express();
-const db = new Database('persistencia/llantas.db');
+const path = require('path');
+const fs = require('fs');
+
+// Crear carpeta persistente si no existe
+const dbFolder = '/var/data';
+if (!fs.existsSync(dbFolder)) {
+  fs.mkdirSync(dbFolder, { recursive: true });
+}
+
+const dbPath = path.join(dbFolder, 'llantas.db');
+const db = new Database(dbPath);
+
 const PORT = process.env.PORT || 10000;
 
 // Middleware

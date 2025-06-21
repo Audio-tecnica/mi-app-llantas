@@ -41,6 +41,26 @@ async function crearTabla() {
     console.error('❌ Error al crear la tabla:', e);
   }
 }
+
+// Nuevo endpoint para actualizar stock
+app.put('/api/llantas/:id/stock', async (req, res) => {
+  const id = req.params.id;
+  const { stock } = req.body;
+
+  if (isNaN(stock)) {
+    return res.status(400).json({ error: 'Stock inválido' });
+  }
+
+  try {
+    await pool.query('UPDATE llantas SET stock = $1 WHERE id = $2', [stock, id]);
+    res.json({ message: 'Stock actualizado correctamente' });
+  } catch (error) {
+    console.error('❌ Error al actualizar stock:', error);
+    res.status(500).json({ error: 'Error al actualizar el stock' });
+  }
+});
+
+
 crearTabla();
 
 // 📤 Subida de archivo Excel

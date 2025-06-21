@@ -9,26 +9,24 @@ const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// 📁 Ruta persistente oficial en Render
-const dbFolder = '/var/data';
+// ✅ Ruta persistente local para Render gratuito
+const dbFolder = path.join(__dirname, 'persistencia');
 const dbPath = path.join(dbFolder, 'llantas.db');
 
-// ✅ Crear la carpeta si no existe
 if (!fs.existsSync(dbFolder)) {
   fs.mkdirSync(dbFolder, { recursive: true });
 }
 
-// 📦 Inicializar base de datos en ruta persistente
 const db = new Database(dbPath);
 
-// 🛠️ Middleware
+// Middleware
 app.use(fileUpload());
 app.use(cors({
-  origin: 'https://mi-app-llantas.vercel.app',
+  origin: 'https://mi-app-llantas.vercel.app', // actualiza si tu frontend cambia
 }));
 app.use(express.json());
 
-// 🗃️ Crear tabla si no existe
+// Crear tabla si no existe
 db.prepare(`
   CREATE TABLE IF NOT EXISTS llantas (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,7 +39,7 @@ db.prepare(`
   )
 `).run();
 
-// 📤 Subida de archivo Excel
+// Subida de archivo Excel
 app.post('/api/upload', (req, res) => {
   if (!req.files || !req.files.file) {
     return res.status(400).json({ error: 'No se subió ningún archivo' });
@@ -83,7 +81,7 @@ app.post('/api/upload', (req, res) => {
   }
 });
 
-// 📥 Consulta de llantas
+// Consulta llantas
 app.get('/api/llantas', (req, res) => {
   try {
     const llantas = db.prepare('SELECT * FROM llantas').all();
@@ -94,10 +92,10 @@ app.get('/api/llantas', (req, res) => {
   }
 });
 
-// 🚀 Iniciar servidor
 app.listen(PORT, () => {
   console.log(`🚀 Servidor escuchando en puerto ${PORT}`);
 });
+
 
 
 

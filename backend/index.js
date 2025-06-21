@@ -9,11 +9,7 @@ const path = require('path');
 const fs = require('fs');
 
 // Crear carpeta persistente si no existe
-const dbFolder = '/var/data';
-if (!fs.existsSync(dbFolder)) {
-  fs.mkdirSync(dbFolder, { recursive: true });
-}
-
+const dbFolder = process.env.PERSIST_DIR || './persistencia';
 const dbPath = path.join(dbFolder, 'llantas.db');
 const db = new Database(dbPath);
 

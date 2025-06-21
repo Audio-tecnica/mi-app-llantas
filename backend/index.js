@@ -3,26 +3,32 @@ const fileUpload = require('express-fileupload');
 const cors = require('cors');
 const xlsx = require('xlsx');
 const Database = require('better-sqlite3');
-
-const app = express();
 const path = require('path');
 const fs = require('fs');
 
-// Crear carpeta persistente si no existe
-const dbFolder = process.env.PERSIST_DIR || './persistencia';
-const dbPath = path.join(dbFolder, 'llantas.db');
-const db = new Database(dbPath);
-
+const app = express();
 const PORT = process.env.PORT || 10000;
 
-// Middleware
+// 📁 Ruta persistente
+const dbFolder = process.env.PERSIST_DIR || './persistencia';
+const dbPath = path.join(dbFolder, 'llantas.db');
+
+// ✅ Crear la carpeta si no existe
+if (!fs.existsSync(dbFolder)) {
+  fs.mkdirSync(dbFolder, { recursive: true });
+}
+
+// 📦 Inicializar base de datos en ruta persistente
+const db = new Database(dbPath);
+
+// 🛠️ Middleware
 app.use(fileUpload());
 app.use(cors({
-  origin: 'https://mi-app-llantas.vercel.app', // cambia si tu frontend usa otro dominio
+  origin: 'https://mi-app-llantas.vercel.app', // ajusta si cambia tu frontend
 }));
 app.use(express.json());
 
-// Crear tabla si no existe
+// 🗃️ Crear tabla si no existe
 db.prepare(`
   CREATE TABLE IF NOT EXISTS llantas (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -35,7 +41,7 @@ db.prepare(`
   )
 `).run();
 
-// Subida de archivo Excel
+// 📤 Subida de archivo Excel
 app.post('/api/upload', (req, res) => {
   if (!req.files || !req.files.file) {
     return res.status(400).json({ error: 'No se subió ningún archivo' });
@@ -46,9 +52,8 @@ app.post('/api/upload', (req, res) => {
   const hoja = workbook.Sheets[workbook.SheetNames[0]];
   const datos = xlsx.utils.sheet_to_json(hoja);
 
-  console.log("✅ Datos del archivo:", datos); // 👈 Para verificar nombres de columnas
+  console.log("✅ Datos del archivo:", datos);
 
-  // Limpiar la tabla
   db.prepare('DELETE FROM llantas').run();
 
   const insert = db.prepare(`
@@ -78,7 +83,7 @@ app.post('/api/upload', (req, res) => {
   }
 });
 
-// Endpoint para consultar llantas
+// 📥 Consulta de llantas
 app.get('/api/llantas', (req, res) => {
   try {
     const llantas = db.prepare('SELECT * FROM llantas').all();
@@ -89,7 +94,7 @@ app.get('/api/llantas', (req, res) => {
   }
 });
 
-// Iniciar servidor
+// 🚀 Iniciar servidor
 app.listen(PORT, () => {
   console.log(`🚀 Servidor escuchando en puerto ${PORT}`);
 });

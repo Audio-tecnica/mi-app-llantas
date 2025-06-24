@@ -1,4 +1,3 @@
-// backend/index.js
 const express = require('express');
 const fileUpload = require('express-fileupload');
 const cors = require('cors');
@@ -8,17 +7,20 @@ const { Pool } = require('pg');
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// Conexión PostgreSQL
+// 🔗 Conexión a PostgreSQL
 const pool = new Pool({
-  connectionString: 'postgresql://postgres.xihejxjynnsxcrdxvtng:Audio.2025*\u00f1@aws-0-us-east-1.pooler.supabase.com:5432/postgres',
+  connectionString: 'postgresql://postgres.xihejxjynnsxcrdxvtng:Audio.2025*ñ@aws-0-us-east-1.pooler.supabase.com:5432/postgres',
   ssl: { rejectUnauthorized: false }
 });
 
+// 🛠️ Middleware
 app.use(fileUpload());
-app.use(cors({ origin: 'https://mi-app-llantas.vercel.app' }));
+app.use(cors({
+  origin: 'https://mi-app-llantas.vercel.app',
+}));
 app.use(express.json());
 
-// Crear tabla si no existe
+// 🧱 Crear tabla si no existe
 async function crearTabla() {
   try {
     await pool.query(`
@@ -39,9 +41,11 @@ async function crearTabla() {
 }
 crearTabla();
 
-// Subir archivo Excel
+// 📤 Subida de archivo Excel
 app.post('/api/upload', async (req, res) => {
-  if (!req.files || !req.files.file) return res.status(400).json({ error: 'No se subió ningún archivo' });
+  if (!req.files || !req.files.file) {
+    return res.status(400).json({ error: 'No se subió ningún archivo' });
+  }
 
   const archivo = req.files.file;
   const workbook = xlsx.read(archivo.data, { type: 'buffer' });
@@ -51,8 +55,10 @@ app.post('/api/upload', async (req, res) => {
   try {
     await pool.query('DELETE FROM llantas');
 
-    const query = `INSERT INTO llantas (referencia, marca, proveedor, costo_empresa, precio_cliente, stock)
-                   VALUES ($1, $2, $3, $4, $5, $6)`;
+    const query = `
+      INSERT INTO llantas (referencia, marca, proveedor, costo_empresa, precio_cliente, stock)
+      VALUES ($1, $2, $3, $4, $5, $6)
+    `;
 
     for (const l of datos) {
       await pool.query(query, [
@@ -72,7 +78,7 @@ app.post('/api/upload', async (req, res) => {
   }
 });
 
-// Obtener llantas
+// 📥 Consultar llantas
 app.get('/api/llantas', async (req, res) => {
   try {
     const { rows } = await pool.query('SELECT * FROM llantas');
@@ -83,26 +89,42 @@ app.get('/api/llantas', async (req, res) => {
   }
 });
 
-// Actualizar una llanta
+// ✅ Actualizar stock o cualquier campo del item
 app.post('/api/editar-llanta', async (req, res) => {
   const { id, referencia, marca, proveedor, costo_empresa, precio_cliente, stock } = req.body;
 
   try {
-    await pool.query(
-      `UPDATE llantas SET referencia = $1, marca = $2, proveedor = $3, costo_empresa = $4,
-       precio_cliente = $5, stock = $6 WHERE id = $7`,
-      [referencia, marca, proveedor, costo_empresa, precio_cliente, stock, id]
-    );
+    await pool.query(`
+      UPDATE llantas
+      SET referencia = $1,
+          marca = $2,
+          proveedor = $3,
+          costo_empresa = $4,
+          precio_cliente = $5,
+          stock = $6
+      WHERE id = $7
+    `, [
+      referencia,
+      marca,
+      proveedor,
+      parseInt(costo_empresa) || 0,
+      parseInt(precio_cliente) || 0,
+      parseInt(stock) || 0,
+      id
+    ]);
+
     res.json({ success: true });
   } catch (e) {
-    console.error('❌ Error al editar llanta:', e);
-    res.status(500).json({ error: 'Error al editar llanta' });
+    console.error('❌ Error al actualizar item:', e);
+    res.status(500).json({ error: 'Error al actualizar item' });
   }
 });
 
+// 🚀 Iniciar servidor
 app.listen(PORT, () => {
   console.log(`🚀 Servidor escuchando en puerto ${PORT}`);
 });
+
 
 
 

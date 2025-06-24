@@ -184,12 +184,12 @@ function App() {
                     <tr key={index} className="text-center">
                       {modoEdicion === ll.id ? (
                         <>
-                          <td className="p-2"><input className="border px-1" value={ll.referencia} onChange={e => { const nuevas = [...llantas]; nuevas[index].referencia = e.target.value; setLlantas(nuevas); }} /></td>
-                          <td className="p-2"><input className="border px-1" value={ll.marca} onChange={e => { const nuevas = [...llantas]; nuevas[index].marca = e.target.value; setLlantas(nuevas); }} /></td>
-                          <td className="p-2"><input className="border px-1" value={ll.proveedor} onChange={e => { const nuevas = [...llantas]; nuevas[index].proveedor = e.target.value; setLlantas(nuevas); }} /></td>
-                          <td className="p-2 text-blue-600"><input type="number" className="border px-1" value={ll.costo_empresa} onChange={e => { const nuevas = [...llantas]; nuevas[index].costo_empresa = e.target.value; setLlantas(nuevas); }} /></td>
-                          <td className="p-2 text-green-600"><input type="number" className="border px-1" value={ll.precio_cliente} onChange={e => { const nuevas = [...llantas]; nuevas[index].precio_cliente = e.target.value; setLlantas(nuevas); }} /></td>
-                          <td className="p-2"><input type="number" className="border px-1" value={ll.stock} onChange={e => { const nuevas = [...llantas]; nuevas[index].stock = e.target.value; setLlantas(nuevas); }} /></td>
+                          <td className="p-2"><input className="border px-1" value={ll.referencia} onChange={e => setLlantas(llantas.map((item, i) => i === index ? { ...item, referencia: e.target.value } : item))} /></td>
+                          <td className="p-2"><input className="border px-1" value={ll.marca} onChange={e => setLlantas(llantas.map((item, i) => i === index ? { ...item, marca: e.target.value } : item))} /></td>
+                          <td className="p-2"><input className="border px-1" value={ll.proveedor} onChange={e => setLlantas(llantas.map((item, i) => i === index ? { ...item, proveedor: e.target.value } : item))} /></td>
+                          <td className="p-2 text-blue-600"><input type="number" className="border px-1" value={ll.costo_empresa} onChange={e => setLlantas(llantas.map((item, i) => i === index ? { ...item, costo_empresa: e.target.value } : item))} /></td>
+                          <td className="p-2 text-green-600"><input type="number" className="border px-1" value={ll.precio_cliente} onChange={e => setLlantas(llantas.map((item, i) => i === index ? { ...item, precio_cliente: e.target.value } : item))} /></td>
+                          <td className="p-2"><input type="number" className="border px-1" value={ll.stock} onChange={e => setLlantas(llantas.map((item, i) => i === index ? { ...item, stock: e.target.value } : item))} /></td>
                           <td className="p-2 flex gap-1 justify-center">
                             <button onClick={() => handleGuardar(ll)} className="bg-blue-500 text-white px-2 rounded">Guardar</button>
                             <button onClick={() => setModoEdicion(null)} className="bg-gray-300 px-2 rounded">Cancelar</button>
@@ -226,6 +226,7 @@ function App() {
 }
 
 export default App;
+
 
 
 

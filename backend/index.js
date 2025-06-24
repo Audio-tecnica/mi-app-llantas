@@ -1,3 +1,4 @@
+// backend/index.js
 const express = require('express');
 const fileUpload = require('express-fileupload');
 const cors = require('cors');
@@ -7,22 +8,17 @@ const { Pool } = require('pg');
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// 🔗 Conexión a PostgreSQL (REEMPLAZA con tu cadena real si es diferente)
-  const pool = new Pool({
-  connectionString: 'postgresql://postgres.xihejxjynnsxcrdxvtng:Audio.2025*ñ@aws-0-us-east-1.pooler.supabase.com:5432/postgres',
-  ssl: {
-    rejectUnauthorized: false
-  }
+// Conexión PostgreSQL
+const pool = new Pool({
+  connectionString: 'postgresql://postgres.xihejxjynnsxcrdxvtng:Audio.2025*\u00f1@aws-0-us-east-1.pooler.supabase.com:5432/postgres',
+  ssl: { rejectUnauthorized: false }
 });
 
-// 🛠️ Middleware
 app.use(fileUpload());
-app.use(cors({
-  origin: 'https://mi-app-llantas.vercel.app',
-}));
+app.use(cors({ origin: 'https://mi-app-llantas.vercel.app' }));
 app.use(express.json());
 
-// 🧱 Crear tabla si no existe
+// Crear tabla si no existe
 async function crearTabla() {
   try {
     await pool.query(`
@@ -41,50 +37,11 @@ async function crearTabla() {
     console.error('❌ Error al crear la tabla:', e);
   }
 }
-
-// Nuevo endpoint para actualizar stock
-app.put('/api/llantas/:id/stock', async (req, res) => {
-  const id = req.params.id;
-  const { stock } = req.body;
-
-  if (isNaN(stock)) {
-    return res.status(400).json({ error: 'Stock inválido' });
-  }
-
-  try {
-    await pool.query('UPDATE llantas SET stock = $1 WHERE id = $2', [stock, id]);
-    res.json({ message: 'Stock actualizado correctamente' });
-  } catch (error) {
-    console.error('❌ Error al actualizar stock:', error);
-    res.status(500).json({ error: 'Error al actualizar el stock' });
-  }
-});
-
-app.post('/api/agregar-llanta', async (req, res) => {
-  const { referencia, marca, proveedor, costo_empresa, precio_cliente, stock } = req.body;
-
-  try {
-    await pool.query(`
-      INSERT INTO llantas (referencia, marca, proveedor, costo_empresa, precio_cliente, stock)
-      VALUES ($1, $2, $3, $4, $5, $6)
-    `, [referencia, marca, proveedor, costo_empresa, precio_cliente, stock]);
-
-    res.json({ message: 'Llantas agregada correctamente' });
-  } catch (error) {
-    console.error('❌ Error al agregar llanta:', error);
-    res.status(500).json({ error: 'Error al agregar llanta' });
-  }
-});
-
-
-
 crearTabla();
 
-// 📤 Subida de archivo Excel
+// Subir archivo Excel
 app.post('/api/upload', async (req, res) => {
-  if (!req.files || !req.files.file) {
-    return res.status(400).json({ error: 'No se subió ningún archivo' });
-  }
+  if (!req.files || !req.files.file) return res.status(400).json({ error: 'No se subió ningún archivo' });
 
   const archivo = req.files.file;
   const workbook = xlsx.read(archivo.data, { type: 'buffer' });
@@ -94,10 +51,8 @@ app.post('/api/upload', async (req, res) => {
   try {
     await pool.query('DELETE FROM llantas');
 
-    const query = `
-      INSERT INTO llantas (referencia, marca, proveedor, costo_empresa, precio_cliente, stock)
-      VALUES ($1, $2, $3, $4, $5, $6)
-    `;
+    const query = `INSERT INTO llantas (referencia, marca, proveedor, costo_empresa, precio_cliente, stock)
+                   VALUES ($1, $2, $3, $4, $5, $6)`;
 
     for (const l of datos) {
       await pool.query(query, [
@@ -117,7 +72,7 @@ app.post('/api/upload', async (req, res) => {
   }
 });
 
-// 📥 Consulta de llantas
+// Obtener llantas
 app.get('/api/llantas', async (req, res) => {
   try {
     const { rows } = await pool.query('SELECT * FROM llantas');
@@ -128,10 +83,27 @@ app.get('/api/llantas', async (req, res) => {
   }
 });
 
-// 🚀 Iniciar servidor
+// Actualizar una llanta
+app.post('/api/editar-llanta', async (req, res) => {
+  const { id, referencia, marca, proveedor, costo_empresa, precio_cliente, stock } = req.body;
+
+  try {
+    await pool.query(
+      `UPDATE llantas SET referencia = $1, marca = $2, proveedor = $3, costo_empresa = $4,
+       precio_cliente = $5, stock = $6 WHERE id = $7`,
+      [referencia, marca, proveedor, costo_empresa, precio_cliente, stock, id]
+    );
+    res.json({ success: true });
+  } catch (e) {
+    console.error('❌ Error al editar llanta:', e);
+    res.status(500).json({ error: 'Error al editar llanta' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`🚀 Servidor escuchando en puerto ${PORT}`);
 });
+
 
 
 

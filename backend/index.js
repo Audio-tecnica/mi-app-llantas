@@ -60,6 +60,23 @@ app.put('/api/llantas/:id/stock', async (req, res) => {
   }
 });
 
+app.post('/api/agregar-llanta', async (req, res) => {
+  const { referencia, marca, proveedor, costo_empresa, precio_cliente, stock } = req.body;
+
+  try {
+    await pool.query(`
+      INSERT INTO llantas (referencia, marca, proveedor, costo_empresa, precio_cliente, stock)
+      VALUES ($1, $2, $3, $4, $5, $6)
+    `, [referencia, marca, proveedor, costo_empresa, precio_cliente, stock]);
+
+    res.json({ message: 'Llantas agregada correctamente' });
+  } catch (error) {
+    console.error('❌ Error al agregar llanta:', error);
+    res.status(500).json({ error: 'Error al agregar llanta' });
+  }
+});
+
+
 
 crearTabla();
 

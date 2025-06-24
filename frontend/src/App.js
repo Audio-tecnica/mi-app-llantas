@@ -42,6 +42,59 @@ function App() {
     (!perfil || l.referencia.includes(perfil)) &&
     (!rin || l.referencia.includes(rin))
   );
+  <div className="bg-white p-4 rounded shadow-md border mb-6">
+  <h2 className="text-lg font-semibold mb-3">Agregar nueva llanta</h2>
+  <div className="grid grid-cols-2 md:grid-cols-6 gap-2 text-sm">
+    {['referencia', 'marca', 'proveedor', 'costo_empresa', 'precio_cliente', 'stock'].map(campo => (
+      <input
+        key={campo}
+        type={campo.includes('costo') || campo.includes('precio') || campo === 'stock' ? 'number' : 'text'}
+        placeholder={campo.replace('_', ' ')}
+        value={nuevaLlanta[campo]}
+        onChange={(e) => setNuevaLlanta({ ...nuevaLlanta, [campo]: e.target.value })}
+        className="p-2 border rounded"
+      />
+    ))}
+  </div>
+  <button
+    onClick={async () => {
+      try {
+        await axios.post('https://mi-app-llantas.onrender.com/api/agregar-llanta', nuevaLlanta);
+        setMensaje('Llanta agregada ✅');
+        setNuevaLlanta({
+          referencia: '',
+          marca: '',
+          proveedor: '',
+          costo_empresa: '',
+          precio_cliente: '',
+          stock: '',
+        });
+        // Recargar lista
+        const res = await axios.get('https://mi-app-llantas.onrender.com/api/llantas');
+        setLlantas(res.data);
+        setTimeout(() => setMensaje(''), 2000);
+      } catch (e) {
+        setMensaje('Error al agregar llanta ❌');
+        setTimeout(() => setMensaje(''), 2000);
+      }
+    }}
+    className="mt-3 bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded text-sm"
+  >
+    Guardar nueva llanta
+  </button>
+</div>
+
+
+  // Añade al inicio del componente App
+  const [nuevaLlanta, setNuevaLlanta] = useState({
+  referencia: '',
+  marca: '',
+  proveedor: '',
+  costo_empresa: '',
+  precio_cliente: '',
+  stock: '',
+});
+
 
   return (
     <div className="max-w-7xl mx-auto p-4">

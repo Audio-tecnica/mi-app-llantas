@@ -71,6 +71,12 @@ function App() {
     }
   };
 
+  const actualizarCampo = (id, campo, valor) => {
+    setLlantas(prev =>
+      prev.map(l => (l.id === id ? { ...l, [campo]: valor } : l))
+    );
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
@@ -146,78 +152,56 @@ function App() {
           {cargando ? (
             <div className="text-center py-8 text-gray-500">⏳ Cargando llantas...</div>
           ) : (
-            <>
-              <button
-                onClick={() => setNuevoItem({ referencia: '', marca: '', proveedor: '', costo_empresa: 0, precio_cliente: 0, stock: 0 })}
-                className="mb-2 bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
-              >
-                + Agregar llanta
-              </button>
-              <table className="w-full border text-sm">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="p-2 border">Referencia</th>
-                    <th className="p-2 border">Marca</th>
-                    <th className="p-2 border">Proveedor</th>
-                    <th className="p-2 border">Costo</th>
-                    <th className="p-2 border">Precio</th>
-                    <th className="p-2 border">Stock</th>
-                    <th className="p-2 border">Acciones</th>
+            <table className="w-full border text-sm">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="p-2 border">Referencia</th>
+                  <th className="p-2 border">Marca</th>
+                  <th className="p-2 border">Proveedor</th>
+                  <th className="p-2 border">Costo</th>
+                  <th className="p-2 border">Precio</th>
+                  <th className="p-2 border">Stock</th>
+                  <th className="p-2 border">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtradas.map((ll, index) => (
+                  <tr key={ll.id || index} className="text-center">
+                    {modoEdicion === ll.id ? (
+                      <>
+                        <td className="p-2"><input className="border px-1" value={ll.referencia} onChange={e => actualizarCampo(ll.id, 'referencia', e.target.value)} /></td>
+                        <td className="p-2"><input className="border px-1" value={ll.marca} onChange={e => actualizarCampo(ll.id, 'marca', e.target.value)} /></td>
+                        <td className="p-2"><input className="border px-1" value={ll.proveedor} onChange={e => actualizarCampo(ll.id, 'proveedor', e.target.value)} /></td>
+                        <td className="p-2"><input type="number" className="border px-1" value={ll.costo_empresa} onChange={e => actualizarCampo(ll.id, 'costo_empresa', e.target.value)} /></td>
+                        <td className="p-2"><input type="number" className="border px-1" value={ll.precio_cliente} onChange={e => actualizarCampo(ll.id, 'precio_cliente', e.target.value)} /></td>
+                        <td className="p-2"><input type="number" className="border px-1" value={ll.stock} onChange={e => actualizarCampo(ll.id, 'stock', e.target.value)} /></td>
+                        <td className="p-2">
+                          <button onClick={() => handleGuardar(ll)} className="bg-blue-600 text-white px-2 rounded mr-1">Guardar</button>
+                          <button onClick={() => setModoEdicion(null)} className="bg-gray-300 px-2 rounded">Cancelar</button>
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="p-2">{ll.referencia}</td>
+                        <td className="p-2">{ll.marca}</td>
+                        <td className="p-2">{ll.proveedor}</td>
+                        <td className="p-2 text-blue-600">${ll.costo_empresa?.toLocaleString()}</td>
+                        <td className="p-2 text-green-600 font-semibold">${ll.precio_cliente?.toLocaleString()}</td>
+                        <td className={`p-2 ${ll.stock === 0 ? 'text-red-600 font-semibold' : ''}`}>{ll.stock === 0 ? 'Sin stock' : ll.stock}</td>
+                        <td className="p-2">
+                          <button onClick={() => setModoEdicion(ll.id)} className="bg-yellow-400 px-2 py-0.5 rounded text-sm">Editar</button>
+                        </td>
+                      </>
+                    )}
                   </tr>
-                </thead>
-                <tbody>
-                  {nuevoItem && (
-                    <tr className="text-center">
-                      <td className="p-2"><input className="border px-1" value={nuevoItem.referencia} onChange={e => setNuevoItem({ ...nuevoItem, referencia: e.target.value })} /></td>
-                      <td className="p-2"><input className="border px-1" value={nuevoItem.marca} onChange={e => setNuevoItem({ ...nuevoItem, marca: e.target.value })} /></td>
-                      <td className="p-2"><input className="border px-1" value={nuevoItem.proveedor} onChange={e => setNuevoItem({ ...nuevoItem, proveedor: e.target.value })} /></td>
-                      <td className="p-2"><input type="number" className="border px-1" value={nuevoItem.costo_empresa} onChange={e => setNuevoItem({ ...nuevoItem, costo_empresa: e.target.value })} /></td>
-                      <td className="p-2"><input type="number" className="border px-1" value={nuevoItem.precio_cliente} onChange={e => setNuevoItem({ ...nuevoItem, precio_cliente: e.target.value })} /></td>
-                      <td className="p-2"><input type="number" className="border px-1" value={nuevoItem.stock} onChange={e => setNuevoItem({ ...nuevoItem, stock: e.target.value })} /></td>
-                      <td className="p-2 flex gap-1 justify-center">
-                        <button onClick={handleAgregar} className="bg-green-500 text-white px-2 rounded">Guardar</button>
-                        <button onClick={() => setNuevoItem(null)} className="bg-gray-300 px-2 rounded">Cancelar</button>
-                      </td>
-                    </tr>
-                  )}
-                  {filtradas.map((ll, index) => (
-                    <tr key={index} className="text-center">
-                      {modoEdicion === ll.id ? (
-                        <>
-                          <td className="p-2"><input className="border px-1" value={ll.referencia} onChange={e => setLlantas(llantas.map((item, i) => i === index ? { ...item, referencia: e.target.value } : item))} /></td>
-                          <td className="p-2"><input className="border px-1" value={ll.marca} onChange={e => setLlantas(llantas.map((item, i) => i === index ? { ...item, marca: e.target.value } : item))} /></td>
-                          <td className="p-2"><input className="border px-1" value={ll.proveedor} onChange={e => setLlantas(llantas.map((item, i) => i === index ? { ...item, proveedor: e.target.value } : item))} /></td>
-                          <td className="p-2 text-blue-600"><input type="number" className="border px-1" value={ll.costo_empresa} onChange={e => setLlantas(llantas.map((item, i) => i === index ? { ...item, costo_empresa: e.target.value } : item))} /></td>
-                          <td className="p-2 text-green-600"><input type="number" className="border px-1" value={ll.precio_cliente} onChange={e => setLlantas(llantas.map((item, i) => i === index ? { ...item, precio_cliente: e.target.value } : item))} /></td>
-                          <td className="p-2"><input type="number" className="border px-1" value={ll.stock} onChange={e => setLlantas(llantas.map((item, i) => i === index ? { ...item, stock: e.target.value } : item))} /></td>
-                          <td className="p-2 flex gap-1 justify-center">
-                            <button onClick={() => handleGuardar(ll)} className="bg-blue-500 text-white px-2 rounded">Guardar</button>
-                            <button onClick={() => setModoEdicion(null)} className="bg-gray-300 px-2 rounded">Cancelar</button>
-                          </td>
-                        </>
-                      ) : (
-                        <>
-                          <td className="p-2">{ll.referencia}</td>
-                          <td className="p-2">{ll.marca}</td>
-                          <td className="p-2">{ll.proveedor}</td>
-                          <td className="p-2 text-blue-600">${ll.costo_empresa.toLocaleString()}</td>
-                          <td className="p-2 text-green-600 font-semibold">${ll.precio_cliente.toLocaleString()}</td>
-                          <td className={`p-2 ${ll.stock === 0 ? 'text-red-600 font-semibold' : ''}`}>{ll.stock === 0 ? 'Sin stock' : ll.stock}</td>
-                          <td className="p-2">
-                            <button onClick={() => setModoEdicion(ll.id)} className="bg-yellow-400 px-2 py-0.5 rounded text-sm">Editar</button>
-                          </td>
-                        </>
-                      )}
-                    </tr>
-                  ))}
-                  {filtradas.length === 0 && (
-                    <tr>
-                      <td colSpan="7" className="text-center py-4 text-gray-500">No se encontraron llantas</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </>
+                ))}
+                {filtradas.length === 0 && (
+                  <tr>
+                    <td colSpan="7" className="text-center py-4 text-gray-500">No se encontraron llantas</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           )}
         </div>
       </div>
@@ -226,6 +210,8 @@ function App() {
 }
 
 export default App;
+
+
 
 
 

@@ -43,39 +43,32 @@ function App() {
     (!rin || l.referencia.includes(rin))
   );
 
-  const guardarEdicion = async (item) => {
-    try {
-      await axios.post('https://mi-app-llantas.onrender.com/api/actualizar-stock', {
-        id: item.id,
-        stock: parseInt(item.stock),
-        referencia: item.referencia,
-        marca: item.marca,
-        proveedor: item.proveedor,
-        costo_empresa: item.costo_empresa,
-        precio_cliente: item.precio_cliente
-      });
-      setModoEdicion(null);
-      setMensaje('Cambios guardados ✅');
-      setTimeout(() => setMensaje(''), 2000);
-    } catch {
-      setMensaje('Error al guardar ❌');
-      setTimeout(() => setMensaje(''), 2000);
-    }
-  };
+const guardarEdicion = async (item) => {
+  try {
+    const res = await axios.post('https://mi-app-llantas.onrender.com/api/actualizar-stock', {
+      id: item.id,
+      stock: parseInt(item.stock),
+      referencia: item.referencia,
+      marca: item.marca,
+      proveedor: item.proveedor,
+      costo_empresa: parseInt(item.costo_empresa),
+      precio_cliente: parseInt(item.precio_cliente)
+    });
 
-  const agregarItem = async () => {
-    try {
-      await axios.post('https://mi-app-llantas.onrender.com/api/agregar-item', nuevoItem);
-      const { data } = await axios.get('https://mi-app-llantas.onrender.com/api/llantas');
-      setLlantas(data);
-      setNuevoItem(null);
-      setMensaje('Ítem agregado ✅');
-      setTimeout(() => setMensaje(''), 2000);
-    } catch {
-      setMensaje('Error al agregar ítem ❌');
-      setTimeout(() => setMensaje(''), 2000);
+    if (res.status === 200) {
+      setMensaje('Cambios guardados ✅');
+      setModoEdicion(null);
+    } else {
+      throw new Error('Error inesperado');
     }
-  };
+  } catch (e) {
+    console.error(e);
+    setMensaje('Error al guardar ❌');
+  } finally {
+    setTimeout(() => setMensaje(''), 2500);
+  }
+};
+
 
   return (
     <div className="max-w-7xl mx-auto p-4">

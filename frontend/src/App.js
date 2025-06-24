@@ -42,59 +42,6 @@ function App() {
     (!perfil || l.referencia.includes(perfil)) &&
     (!rin || l.referencia.includes(rin))
   );
-  <div className="bg-white p-4 rounded shadow-md border mb-6">
-  <h2 className="text-lg font-semibold mb-3">Agregar nueva llanta</h2>
-  <div className="grid grid-cols-2 md:grid-cols-6 gap-2 text-sm">
-    {['referencia', 'marca', 'proveedor', 'costo_empresa', 'precio_cliente', 'stock'].map(campo => (
-      <input
-        key={campo}
-        type={campo.includes('costo') || campo.includes('precio') || campo === 'stock' ? 'number' : 'text'}
-        placeholder={campo.replace('_', ' ')}
-        value={nuevaLlanta[campo]}
-        onChange={(e) => setNuevaLlanta({ ...nuevaLlanta, [campo]: e.target.value })}
-        className="p-2 border rounded"
-      />
-    ))}
-  </div>
-  <button
-    onClick={async () => {
-      try {
-        await axios.post('https://mi-app-llantas.onrender.com/api/agregar-llanta', nuevaLlanta);
-        setMensaje('Llanta agregada ✅');
-        setNuevaLlanta({
-          referencia: '',
-          marca: '',
-          proveedor: '',
-          costo_empresa: '',
-          precio_cliente: '',
-          stock: '',
-        });
-        // Recargar lista
-        const res = await axios.get('https://mi-app-llantas.onrender.com/api/llantas');
-        setLlantas(res.data);
-        setTimeout(() => setMensaje(''), 2000);
-      } catch (e) {
-        setMensaje('Error al agregar llanta ❌');
-        setTimeout(() => setMensaje(''), 2000);
-      }
-    }}
-    className="mt-3 bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded text-sm"
-  >
-    Guardar nueva llanta
-  </button>
-</div>
-
-
-  // Añade al inicio del componente App
-  const [nuevaLlanta, setNuevaLlanta] = useState({
-  referencia: '',
-  marca: '',
-  proveedor: '',
-  costo_empresa: '',
-  precio_cliente: '',
-  stock: '',
-});
-
 
   return (
     <div className="max-w-7xl mx-auto p-4">
@@ -194,45 +141,12 @@ function App() {
                     <td className="p-2">{ll.proveedor}</td>
                     <td className="p-2 text-blue-600">${ll.costo_empresa.toLocaleString()}</td>
                     <td className="p-2 text-green-600 font-semibold">${ll.precio_cliente.toLocaleString()}</td>
-                    <td className="p-2">
-                      <div className="flex items-center justify-center gap-1">
-                        <input
-                          type="number"
-                          value={ll.stock}
-                          onChange={(e) => {
-                            const nuevas = [...llantas];
-                            nuevas[index].stock = e.target.value;
-                            setLlantas(nuevas);
-                          }}
-                          className="w-14 text-center border border-gray-300 rounded px-1 py-0.5 text-sm"
-                        />
-                        <button
-                          onClick={async () => {
-                            try {
-                              await axios.post('https://mi-app-llantas.onrender.com/api/actualizar-stock', {
-                                id: ll.id,
-                                stock: parseInt(ll.stock),
-                              });
-                              setMensaje('Stock actualizado ✅');
-                              setTimeout(() => setMensaje(''), 2000);
-                            } catch {
-                              setMensaje('Error al actualizar stock ❌');
-                              setTimeout(() => setMensaje(''), 2000);
-                            }
-                          }}
-                          className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-0.5 rounded text-xs"
-                        >
-                          Guardar
-                        </button>
-                      </div>
-                    </td>
+                    <td className={`p-2 ${ll.stock === 0 ? 'text-red-600 font-semibold' : ''}`}>{ll.stock === 0 ? 'Sin stock' : ll.stock}</td>
                   </tr>
                 ))}
                 {filtradas.length === 0 && (
                   <tr>
-                    <td colSpan="6" className="text-center py-4 text-gray-500">
-                      No se encontraron llantas
-                    </td>
+                    <td colSpan="6" className="text-center py-4 text-gray-500">No se encontraron llantas</td>
                   </tr>
                 )}
               </tbody>
@@ -245,6 +159,7 @@ function App() {
 }
 
 export default App;
+
 
 
 

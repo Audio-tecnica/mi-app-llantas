@@ -125,6 +125,31 @@ app.listen(PORT, () => {
   console.log(`🚀 Servidor escuchando en puerto ${PORT}`);
 });
 
+// ✅ Agregar nueva llanta
+app.post('/api/agregar-llanta', async (req, res) => {
+  const { referencia, marca, proveedor, costo_empresa, precio_cliente, stock } = req.body;
+
+  try {
+    await pool.query(`
+      INSERT INTO llantas (referencia, marca, proveedor, costo_empresa, precio_cliente, stock)
+      VALUES ($1, $2, $3, $4, $5, $6)
+    `, [
+      referencia || '',
+      marca || '',
+      proveedor || '',
+      parseInt(costo_empresa) || 0,
+      parseInt(precio_cliente) || 0,
+      parseInt(stock) || 0
+    ]);
+
+    res.json({ success: true });
+  } catch (e) {
+    console.error('❌ Error al agregar item:', e);
+    res.status(500).json({ error: 'Error al agregar item' });
+  }
+});
+
+
 
 
 

@@ -12,20 +12,22 @@ function App() {
   const [perfil, setPerfil] = useState('');
   const [rin, setRin] = useState('');
   const [mensaje, setMensaje] = useState('');
+  const [editando, setEditando] = useState(null);
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
     axios.get('https://mi-app-llantas.onrender.com/api/llantas')
-      .then(res => setLlantas(res.data.map(l => ({ ...l, editando: false }))))
+      .then(res => setLlantas(res.data))
       .catch(() => setMensaje('Error al cargar llantas ❌'))
       .finally(() => setCargando(false));
   }, []);
 
   const marcasUnicas = [...new Set(llantas.map(l => l.marca))];
   const anchos = [], perfiles = [], rines = [];
+
   llantas.forEach(l => {
-    const partes = l.referencia.split(/[ /R]/).filter(Boolean);
-    if (partes.length >= 3) {
+    const partes = l.referencia?.split(/[ /R]/).filter(Boolean);
+    if (partes?.length >= 3) {
       if (!anchos.includes(partes[0])) anchos.push(partes[0]);
       if (!perfiles.includes(partes[1])) perfiles.push(partes[1]);
       if (!rines.includes(partes[2])) rines.push(partes[2]);
@@ -40,36 +42,41 @@ function App() {
     (!rin || l.referencia.includes(rin))
   );
 
-  const guardarItem = async (item) => {
+  const actualizarCampo = (index, campo, valor) => {
+    const nuevas = [...llantas];
+    nuevas[index][campo] = valor;
+    setLlantas(nuevas);
+  };
+
+  const guardarCambios = async (llanta, index) => {
     try {
-      if (item.nuevo) {
-        const res = await axios.post('https://mi-app-llantas.onrender.com/api/crear', item);
-        setLlantas(prev => prev.map(ll => ll === item ? { ...res.data, editando: false } : ll));
-      } else {
-        await axios.post('https://mi-app-llantas.onrender.com/api/actualizar', item);
-        setLlantas(prev => prev.map(ll => ll.id === item.id ? { ...item, editando: false } : ll));
-      }
-      setMensaje('✅ Guardado correctamente');
-    } catch (err) {
-      setMensaje('❌ Error al guardar');
+      const url = llanta.id
+        ? 'https://mi-app-llantas.onrender.com/api/actualizar-item'
+        : 'https://mi-app-llantas.onrender.com/api/agregar-item';
+
+      await axios.post(url, llanta);
+      setMensaje('Guardado correctamente ✅');
+      setEditando(null);
+      const res = await axios.get('https://mi-app-llantas.onrender.com/api/llantas');
+      setLlantas(res.data);
+    } catch {
+      setMensaje('Error al guardar ❌');
     } finally {
       setTimeout(() => setMensaje(''), 2000);
     }
   };
 
-  const agregarItem = () => {
-    const nuevoItem = {
-      id: Date.now(),
-      referencia: '',
-      marca: '',
-      proveedor: '',
-      costo_empresa: 0,
-      precio_cliente: 0,
-      stock: 0,
-      nuevo: true,
-      editando: true
-    };
-    setLlantas([nuevoItem, ...llantas]);
+  const cancelarEdicion = (index) => {
+    const nuevas = [...llantas];
+    if (!nuevas[index].id) {
+      nuevas.splice(index, 1); // eliminar si era nuevo
+    } else {
+      axios.get('https://mi-app-llantas.onrender.com/api/llantas')
+        .then(res => setLlantas(res.data))
+        .catch(() => setMensaje('Error al restaurar ❌'));
+    }
+    setEditando(null);
+    setLlantas(nuevas);
   };
 
   return (
@@ -78,11 +85,14 @@ function App() {
         <h1 className="text-2xl font-bold">🛞 Llantas Audio Tecnica</h1>
         <div className="flex gap-2">
           <Link to="/subir" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Subir archivo</Link>
-          <button onClick={() => { localStorage.removeItem('acceso'); window.location.href = '/login'; }} className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Cerrar sesión</button>
+          <button onClick={() => {
+            localStorage.removeItem('acceso');
+            window.location.href = '/login';
+          }} className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Cerrar sesión</button>
         </div>
       </div>
 
-      {mensaje && <div className="text-center mb-4 text-blue-600 font-medium">{mensaje}</div>}
+      {mensaje && <div className="text-center text-red-600 font-semibold mb-2">❌ {mensaje}</div>}
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white p-4 rounded shadow-md border md:col-span-1">
@@ -108,12 +118,22 @@ function App() {
             <option value="">Todos</option>
             {rines.map(r => <option key={r}>{r}</option>)}
           </select>
-          <button onClick={() => { setBusqueda(''); setMarcaSeleccionada(''); setAncho(''); setPerfil(''); setRin(''); }} className="w-full mt-2 bg-gray-200 hover:bg-gray-300 text-sm text-black py-1 rounded">Limpiar filtros</button>
+          <button onClick={() => {
+            setBusqueda('');
+            setMarcaSeleccionada('');
+            setAncho('');
+            setPerfil('');
+            setRin('');
+          }} className="w-full mt-2 bg-gray-200 hover:bg-gray-300 text-sm py-1 rounded">Limpiar filtros</button>
         </div>
 
         <div className="md:col-span-3">
           <div className="mb-4 text-right">
-            <button onClick={agregarItem} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">➕ Agregar llanta</button>
+            <button onClick={() => setLlantas([...llantas, {
+              referencia: '', marca: '', proveedor: '', costo_empresa: 0, precio_cliente: 0, stock: 0
+            }])} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+              + Agregar llanta
+            </button>
           </div>
           {cargando ? (
             <div className="text-center text-gray-500">⏳ Cargando llantas...</div>
@@ -134,29 +154,28 @@ function App() {
                 {filtradas.map((ll, index) => (
                   <tr key={index} className="border-t text-center">
                     <td className="p-2">
-                      {ll.editando ? <input value={ll.referencia} onChange={e => editarCampo(index, 'referencia', e.target.value)} className="border px-1 w-full" /> : ll.referencia}
+                      <input type="text" value={ll.referencia} onChange={e => actualizarCampo(index, 'referencia', e.target.value)} className="w-full border rounded px-1" />
                     </td>
                     <td className="p-2">
-                      {ll.editando ? <input value={ll.marca} onChange={e => editarCampo(index, 'marca', e.target.value)} className="border px-1 w-full" /> : ll.marca}
+                      <input type="text" value={ll.marca} onChange={e => actualizarCampo(index, 'marca', e.target.value)} className="w-full border rounded px-1" />
                     </td>
                     <td className="p-2">
-                      {ll.editando ? <input value={ll.proveedor} onChange={e => editarCampo(index, 'proveedor', e.target.value)} className="border px-1 w-full" /> : ll.proveedor}
+                      <input type="text" value={ll.proveedor} onChange={e => actualizarCampo(index, 'proveedor', e.target.value)} className="w-full border rounded px-1" />
                     </td>
                     <td className="p-2">
-                      {ll.editando ? <input type="number" value={ll.costo_empresa} onChange={e => editarCampo(index, 'costo_empresa', e.target.value)} className="border px-1 w-full" /> : `$${ll.costo_empresa.toLocaleString()}`}
+                      <input type="number" value={ll.costo_empresa} onChange={e => actualizarCampo(index, 'costo_empresa', e.target.value)} className="w-full border rounded px-1" />
                     </td>
                     <td className="p-2">
-                      {ll.editando ? <input type="number" value={ll.precio_cliente} onChange={e => editarCampo(index, 'precio_cliente', e.target.value)} className="border px-1 w-full" /> : `$${ll.precio_cliente.toLocaleString()}`}
-                    </td>
-                    <td className={`p-2 ${ll.stock === 0 ? 'text-red-600 font-semibold' : ''}`}>
-                      {ll.editando ? <input type="number" value={ll.stock} onChange={e => editarCampo(index, 'stock', e.target.value)} className="border px-1 w-full" /> : (ll.stock === 0 ? 'Sin stock' : ll.stock)}
+                      <input type="number" value={ll.precio_cliente} onChange={e => actualizarCampo(index, 'precio_cliente', e.target.value)} className="w-full border rounded px-1" />
                     </td>
                     <td className="p-2">
-                      {ll.editando ? (
-                        <button onClick={() => guardarItem(ll)} className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-sm">Guardar</button>
-                      ) : (
-                        <button onClick={() => setLlantas(prev => prev.map((l, i) => i === index ? { ...l, editando: true } : l))} className="bg-gray-300 hover:bg-gray-400 px-2 py-1 rounded text-sm">Editar</button>
-                      )}
+                      <input type="number" value={ll.stock} onChange={e => actualizarCampo(index, 'stock', e.target.value)} className="w-full border rounded px-1 text-center" />
+                    </td>
+                    <td className="p-2">
+                      <div className="flex justify-center gap-1">
+                        <button onClick={() => guardarCambios(ll, index)} className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-0.5 rounded text-xs">Guardar</button>
+                        <button onClick={() => cancelarEdicion(index)} className="bg-gray-300 hover:bg-gray-400 text-black px-2 py-0.5 rounded text-xs">Cancelar</button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -172,15 +191,10 @@ function App() {
       </div>
     </div>
   );
-
-  function editarCampo(index, campo, valor) {
-    const nuevas = [...llantas];
-    nuevas[index][campo] = valor;
-    setLlantas(nuevas);
-  }
 }
 
 export default App;
+
 
 
 

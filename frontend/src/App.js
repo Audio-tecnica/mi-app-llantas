@@ -145,52 +145,54 @@ function App() {
               </tr>
             </thead>
             <tbody>
-              {filtradas.map((ll, index) => (
-                <tr key={index} className="border-t text-center">
-                  <td className="p-2">{ll.referencia}</td>
-                  <td className="p-2">{ll.marca}</td>
-                  <td className="p-2">{ll.proveedor}</td>
-                  <td className="p-2 text-blue-600">${ll.costo_empresa.toLocaleString()}</td>
-                  <td className="p-2 text-green-600 font-semibold">${ll.precio_cliente.toLocaleString()}</td>
-                  <td className="p-2 flex justify-center items-center gap-2">
-                    <input
-                      type="number"
-                      min="0"
-                      value={stockEditado[ll.id] ?? ll.stock}
-                      onChange={e => setStockEditado({ ...stockEditado, [ll.id]: e.target.value })}
-                      className="w-16 p-1 border rounded text-center"
-                    />
-                    <button
-                      onClick={async () => {
-                        const nuevoStock = parseInt(stockEditado[ll.id]);
-                        if (!isNaN(nuevoStock)) {
-                          try {
-                            await fetch('https://mi-app-llantas.onrender.com/api/stock', {
-                              method: 'PUT',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ id: ll.id, stock: nuevoStock })
-                            });
-                            setLlantas(prev =>
-                              prev.map(item => item.id === ll.id ? { ...item, stock: nuevoStock } : item)
-                            );
-                          } catch (err) {
-                            alert('❌ Error al actualizar el stock');
-                          }
-                        }
-                      }}
-                      className="text-white bg-green-600 hover:bg-green-700 px-2 py-1 rounded text-sm"
-                    >
-                      Guardar
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {filtradas.length === 0 && (
-                <tr>
-                  <td colSpan="6" className="text-center py-4 text-gray-500">No se encontraron llantas</td>
-                </tr>
-              )}
-            </tbody>
+      {filtradas.map((ll, index) => (
+      <tr key={index} className="border-t text-center">
+      <td className="p-2">{ll.referencia}</td>
+      <td className="p-2">{ll.marca}</td>
+      <td className="p-2">{ll.proveedor}</td>
+      <td className="p-2 text-blue-600">${ll.costo_empresa.toLocaleString()}</td>
+      <td className="p-2 text-green-600 font-semibold">${ll.precio_cliente.toLocaleString()}</td>
+      <td className="p-2">
+        <input
+          type="number"
+          value={ll.stock}
+          onChange={(e) => {
+            const nuevas = [...llantas];
+            nuevas[index].stock = e.target.value;
+            setLlantas(nuevas);
+          }}
+          className="w-16 text-center border border-gray-300 rounded px-1 py-0.5 text-sm"
+        />
+        <button
+          onClick={async () => {
+            try {
+              await axios.post('https://mi-app-llantas.onrender.com/api/actualizar-stock', {
+                id: ll.id,
+                stock: parseInt(ll.stock),
+              });
+              setMensaje('Stock actualizado ✅');
+              setTimeout(() => setMensaje(''), 2000);
+            } catch {
+              setMensaje('Error al actualizar stock ❌');
+              setTimeout(() => setMensaje(''), 2000);
+            }
+          }}
+          className="ml-1 bg-blue-500 hover:bg-blue-600 text-white px-2 py-0.5 rounded text-xs"
+        >
+          Guardar
+        </button>
+      </td>
+    </tr>
+  ))}
+  {filtradas.length === 0 && (
+    <tr>
+      <td colSpan="6" className="text-center py-4 text-gray-500">
+        No se encontraron llantas
+      </td>
+    </tr>
+  )}
+</tbody>
+
           </table>
         </div>
       </div>

@@ -13,11 +13,14 @@ function App() {
   const [rin, setRin] = useState('');
   const [mensaje, setMensaje] = useState('');
   const [stockEditado, setStockEditado] = useState({});
+  const [cargando, setCargando] = useState(true);
+
 
   useEffect(() => {
     axios.get('https://mi-app-llantas.onrender.com/api/llantas')
-      .then(res => setLlantas(res.data))
-      .catch(() => setMensaje('Error al cargar llantas ❌'));
+     .then(res => setLlantas(res.data))
+     .catch(() => setMensaje('Error al cargar llantas ❌'))
+     .finally(() => setCargando(false));
   }, []);
 
   const marcasUnicas = [...new Set(llantas.map(l => l.marca))];
@@ -121,6 +124,14 @@ function App() {
         </div>
 
         {/* Resultados */}
+            {cargando ? (
+              <div className="text-center col-span-3 text-gray-500">⏳ Cargando llantas...</div>
+            ) : (
+              <table className="w-full border text-sm">
+               {/* ... */}
+              </table>
+            )}
+
         <div className="md:col-span-3">
           <table className="w-full border text-sm">
             <thead className="bg-gray-100">

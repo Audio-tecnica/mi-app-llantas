@@ -12,15 +12,13 @@ function App() {
   const [perfil, setPerfil] = useState('');
   const [rin, setRin] = useState('');
   const [mensaje, setMensaje] = useState('');
-  const [stockEditado, setStockEditado] = useState({});
   const [cargando, setCargando] = useState(true);
-
 
   useEffect(() => {
     axios.get('https://mi-app-llantas.onrender.com/api/llantas')
-     .then(res => setLlantas(res.data))
-     .catch(() => setMensaje('Error al cargar llantas ❌'))
-     .finally(() => setCargando(false));
+      .then(res => setLlantas(res.data))
+      .catch(() => setMensaje('Error al cargar llantas ❌'))
+      .finally(() => setCargando(false));
   }, []);
 
   const marcasUnicas = [...new Set(llantas.map(l => l.marca))];
@@ -47,7 +45,6 @@ function App() {
 
   return (
     <div className="max-w-7xl mx-auto p-4">
-      {/* Encabezado y botones */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">🛞 Llantas Audio Tecnica</h1>
         <div className="flex gap-2">
@@ -68,7 +65,6 @@ function App() {
       {mensaje && <div className="text-red-500 mb-4">{mensaje}</div>}
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {/* Filtros */}
         <div className="bg-white p-4 rounded shadow-md border md:col-span-1">
           <h2 className="text-lg font-semibold mb-3">Filtros</h2>
           <input
@@ -108,7 +104,6 @@ function App() {
             {rines.map(r => <option key={r}>{r}</option>)}
           </select>
 
-          {/* Botón limpiar filtros */}
           <button
             onClick={() => {
               setBusqueda('');
@@ -123,77 +118,73 @@ function App() {
           </button>
         </div>
 
-        {/* Resultados */}
-            {cargando ? (
-              <div className="text-center col-span-3 text-gray-500">⏳ Cargando llantas...</div>
-            ) : (
-              <table className="w-full border text-sm">
-               {/* ... */}
-              </table>
-            )}
-
         <div className="md:col-span-3">
-          <table className="w-full border text-sm">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="p-2 border">Referencia</th>
-                <th className="p-2 border">Marca</th>
-                <th className="p-2 border">Proveedor</th>
-                <th className="p-2 border">Costo Empresa</th>
-                <th className="p-2 border">Precio Cliente</th>
-                <th className="p-2 border">Stock</th>
-              </tr>
-            </thead>
-            <tbody>
-      {filtradas.map((ll, index) => (
-      <tr key={index} className="border-t text-center">
-      <td className="p-2">{ll.referencia}</td>
-      <td className="p-2">{ll.marca}</td>
-      <td className="p-2">{ll.proveedor}</td>
-      <td className="p-2 text-blue-600">${ll.costo_empresa.toLocaleString()}</td>
-      <td className="p-2 text-green-600 font-semibold">${ll.precio_cliente.toLocaleString()}</td>
-      <td className="p-2">
-        <input
-          type="number"
-          value={ll.stock}
-          onChange={(e) => {
-            const nuevas = [...llantas];
-            nuevas[index].stock = e.target.value;
-            setLlantas(nuevas);
-          }}
-          className="w-16 text-center border border-gray-300 rounded px-1 py-0.5 text-sm"
-        />
-        <button
-          onClick={async () => {
-            try {
-              await axios.post('https://mi-app-llantas.onrender.com/api/actualizar-stock', {
-                id: ll.id,
-                stock: parseInt(ll.stock),
-              });
-              setMensaje('Stock actualizado ✅');
-              setTimeout(() => setMensaje(''), 2000);
-            } catch {
-              setMensaje('Error al actualizar stock ❌');
-              setTimeout(() => setMensaje(''), 2000);
-            }
-          }}
-          className="ml-1 bg-blue-500 hover:bg-blue-600 text-white px-2 py-0.5 rounded text-xs"
-        >
-          Guardar
-        </button>
-      </td>
-    </tr>
-  ))}
-  {filtradas.length === 0 && (
-    <tr>
-      <td colSpan="6" className="text-center py-4 text-gray-500">
-        No se encontraron llantas
-      </td>
-    </tr>
-  )}
-</tbody>
-
-          </table>
+          {cargando ? (
+            <div className="text-center text-gray-500">⏳ Cargando llantas...</div>
+          ) : (
+            <table className="w-full border text-sm">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="p-2 border">Referencia</th>
+                  <th className="p-2 border">Marca</th>
+                  <th className="p-2 border">Proveedor</th>
+                  <th className="p-2 border">Costo Empresa</th>
+                  <th className="p-2 border">Precio Cliente</th>
+                  <th className="p-2 border">Stock</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtradas.map((ll, index) => (
+                  <tr key={index} className="border-t text-center">
+                    <td className="p-2">{ll.referencia}</td>
+                    <td className="p-2">{ll.marca}</td>
+                    <td className="p-2">{ll.proveedor}</td>
+                    <td className="p-2 text-blue-600">${ll.costo_empresa.toLocaleString()}</td>
+                    <td className="p-2 text-green-600 font-semibold">${ll.precio_cliente.toLocaleString()}</td>
+                    <td className="p-2">
+                      <div className="flex items-center justify-center gap-1">
+                        <input
+                          type="number"
+                          value={ll.stock}
+                          onChange={(e) => {
+                            const nuevas = [...llantas];
+                            nuevas[index].stock = e.target.value;
+                            setLlantas(nuevas);
+                          }}
+                          className="w-14 text-center border border-gray-300 rounded px-1 py-0.5 text-sm"
+                        />
+                        <button
+                          onClick={async () => {
+                            try {
+                              await axios.post('https://mi-app-llantas.onrender.com/api/actualizar-stock', {
+                                id: ll.id,
+                                stock: parseInt(ll.stock),
+                              });
+                              setMensaje('Stock actualizado ✅');
+                              setTimeout(() => setMensaje(''), 2000);
+                            } catch {
+                              setMensaje('Error al actualizar stock ❌');
+                              setTimeout(() => setMensaje(''), 2000);
+                            }
+                          }}
+                          className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-0.5 rounded text-xs"
+                        >
+                          Guardar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {filtradas.length === 0 && (
+                  <tr>
+                    <td colSpan="6" className="text-center py-4 text-gray-500">
+                      No se encontraron llantas
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     </div>
@@ -201,6 +192,7 @@ function App() {
 }
 
 export default App;
+
 
 
 

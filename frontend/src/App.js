@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react'; 
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import * as XLSX from 'xlsx';
 import './index.css';
 
 function App() {
@@ -80,6 +81,13 @@ function App() {
     }
   };
 
+  const exportarExcel = () => {
+    const ws = XLSX.utils.json_to_sheet(llantas);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Llantas');
+    XLSX.writeFile(wb, 'inventario_llantas.xlsx');
+  };
+
   const actualizarCampo = (id, campo, valor) => {
     setLlantas(prev => prev.map(l => (l.id === id ? { ...l, [campo]: valor } : l)));
   };
@@ -90,6 +98,7 @@ function App() {
         <h1 className="text-2xl font-bold">🛞 Llantas Audio Tecnica</h1>
         <div className="flex gap-2">
           <Link to="/subir" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Subir archivo</Link>
+          <button onClick={exportarExcel} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Exportar Excel</button>
           <button onClick={() => { localStorage.removeItem('acceso'); window.location.href = '/login'; }} className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Cerrar sesión</button>
         </div>
       </div>
@@ -195,6 +204,7 @@ function App() {
 }
 
 export default App;
+
 
 
 

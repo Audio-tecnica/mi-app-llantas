@@ -81,7 +81,7 @@ app.post('/api/upload', async (req, res) => {
 // 📥 Consultar llantas
 app.get('/api/llantas', async (req, res) => {
   try {
-    const { rows } = await pool.query('SELECT * FROM llantas');
+    const { rows } = await pool.query('SELECT * FROM llantas ORDER BY id DESC');
     res.json(rows);
   } catch (e) {
     console.error('❌ Error al obtener llantas:', e);
@@ -89,7 +89,7 @@ app.get('/api/llantas', async (req, res) => {
   }
 });
 
-// ✅ Actualizar stock o cualquier campo del item
+// ✅ Editar llanta
 app.post('/api/editar-llanta', async (req, res) => {
   const { id, referencia, marca, proveedor, costo_empresa, precio_cliente, stock } = req.body;
 
@@ -120,12 +120,7 @@ app.post('/api/editar-llanta', async (req, res) => {
   }
 });
 
-// 🚀 Iniciar servidor
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor escuchando en puerto ${PORT}`);
-});
-
-// ✅ Agregar nueva llanta
+// ➕ Agregar nueva llanta
 app.post('/api/agregar-llanta', async (req, res) => {
   const { referencia, marca, proveedor, costo_empresa, precio_cliente, stock } = req.body;
 
@@ -147,6 +142,24 @@ app.post('/api/agregar-llanta', async (req, res) => {
     console.error('❌ Error al agregar item:', e);
     res.status(500).json({ error: 'Error al agregar item' });
   }
+});
+
+// 🗑️ Eliminar llanta
+app.delete('/api/eliminar-llanta/:id', async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    await pool.query('DELETE FROM llantas WHERE id = $1', [id]);
+    res.json({ success: true });
+  } catch (e) {
+    console.error('❌ Error al eliminar item:', e);
+    res.status(500).json({ error: 'Error al eliminar item' });
+  }
+});
+
+// 🚀 Iniciar servidor
+app.listen(PORT, () => {
+  console.log(`🚀 Servidor escuchando en puerto ${PORT}`);
 });
 
 

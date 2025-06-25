@@ -16,12 +16,12 @@ function App() {
   const [nuevoItem, setNuevoItem] = useState({ referencia: '', marca: '', proveedor: '', costo_empresa: '', precio_cliente: '', stock: '' });
   const [cargando, setCargando] = useState(true);
   const [orden, setOrden] = useState({ campo: '', asc: true });
+  const [seleccionadas, setSeleccionadas] = useState([]);
 
-  // ⏱️ Expiración de sesión automática (15 minutos)
   useEffect(() => {
     const acceso = localStorage.getItem('acceso');
     const timestamp = localStorage.getItem('timestamp');
-    const maxTiempo = 15 * 60 * 1000; // 15 minutos
+    const maxTiempo = 15 * 60 * 1000;
 
     if (!acceso || !timestamp || Date.now() - parseInt(timestamp) > maxTiempo) {
       localStorage.removeItem('acceso');
@@ -29,10 +29,8 @@ function App() {
       window.location.href = '/login';
     }
 
-    // Reiniciar timestamp en cada carga
     localStorage.setItem('timestamp', Date.now());
 
-    // Auto logout tras 15 minutos sin actividad
     const timer = setTimeout(() => {
       localStorage.removeItem('acceso');
       localStorage.removeItem('timestamp');
@@ -51,7 +49,6 @@ function App() {
 
   const marcasUnicas = [...new Set(llantas.map(l => l.marca))];
   const anchos = [], perfiles = [], rines = [];
-
   llantas.forEach(l => {
     const partes = l.referencia?.split(/[ /R]/).filter(Boolean);
     if (partes?.length >= 3) {
@@ -107,6 +104,26 @@ function App() {
       setMensaje('Error al eliminar ❌');
       setTimeout(() => setMensaje(''), 2000);
     }
+  };
+
+  const handleEliminarMultiples = async () => {
+    if (!window.confirm('¿Eliminar todos los seleccionados?')) return;
+    try {
+      for (const id of seleccionadas) {
+        await axios.post('https://mi-app-llantas.onrender.com/api/eliminar-llanta', { id });
+      }
+      setLlantas(prev => prev.filter(l => !seleccionadas.includes(l.id)));
+      setSeleccionadas([]);
+      setMensaje('Llantas eliminadas ✅');
+      setTimeout(() => setMensaje(''), 2000);
+    } catch {
+      setMensaje('Error eliminando ❌');
+      setTimeout(() => setMensaje(''), 2000);
+    }
+  };
+
+  const toggleSeleccion = (id) => {
+    setSeleccionadas(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   };
 
   const handleAgregar = async () => {

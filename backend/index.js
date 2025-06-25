@@ -15,9 +15,7 @@ const pool = new Pool({
 
 // 🛠️ Middleware
 app.use(fileUpload());
-app.use(cors({
-  origin: 'https://mi-app-llantas.vercel.app',
-}));
+app.use(cors({ origin: 'https://mi-app-llantas.vercel.app' }));
 app.use(express.json());
 
 // 🧱 Crear tabla si no existe
@@ -81,7 +79,7 @@ app.post('/api/upload', async (req, res) => {
 // 📥 Consultar llantas
 app.get('/api/llantas', async (req, res) => {
   try {
-    const { rows } = await pool.query('SELECT * FROM llantas ORDER BY id DESC');
+    const { rows } = await pool.query('SELECT * FROM llantas');
     res.json(rows);
   } catch (e) {
     console.error('❌ Error al obtener llantas:', e);
@@ -89,10 +87,9 @@ app.get('/api/llantas', async (req, res) => {
   }
 });
 
-// ✅ Editar llanta
+// ✅ Editar ítem existente
 app.post('/api/editar-llanta', async (req, res) => {
   const { id, referencia, marca, proveedor, costo_empresa, precio_cliente, stock } = req.body;
-
   try {
     await pool.query(`
       UPDATE llantas
@@ -112,7 +109,6 @@ app.post('/api/editar-llanta', async (req, res) => {
       parseInt(stock) || 0,
       id
     ]);
-
     res.json({ success: true });
   } catch (e) {
     console.error('❌ Error al actualizar item:', e);
@@ -120,10 +116,9 @@ app.post('/api/editar-llanta', async (req, res) => {
   }
 });
 
-// ➕ Agregar nueva llanta
+// ✅ Agregar ítem nuevo
 app.post('/api/agregar-llanta', async (req, res) => {
   const { referencia, marca, proveedor, costo_empresa, precio_cliente, stock } = req.body;
-
   try {
     await pool.query(`
       INSERT INTO llantas (referencia, marca, proveedor, costo_empresa, precio_cliente, stock)
@@ -136,7 +131,6 @@ app.post('/api/agregar-llanta', async (req, res) => {
       parseInt(precio_cliente) || 0,
       parseInt(stock) || 0
     ]);
-
     res.json({ success: true });
   } catch (e) {
     console.error('❌ Error al agregar item:', e);
@@ -144,7 +138,7 @@ app.post('/api/agregar-llanta', async (req, res) => {
   }
 });
 
-// ✅ Eliminar llanta
+// ✅ Eliminar ítem
 app.post('/api/eliminar-llanta', async (req, res) => {
   const { id } = req.body;
   try {
@@ -155,7 +149,6 @@ app.post('/api/eliminar-llanta', async (req, res) => {
     res.status(500).json({ error: 'Error al eliminar item' });
   }
 });
-
 
 // 🚀 Iniciar servidor
 app.listen(PORT, () => {

@@ -5,7 +5,6 @@ import './index.css';
 
 function App() {
   const [llantas, setLlantas] = useState([]);
-  const [seleccionadas, setSeleccionadas] = useState([]);
   const [busqueda, setBusqueda] = useState('');
   const [marcaSeleccionada, setMarcaSeleccionada] = useState('');
   const [ancho, setAncho] = useState('');
@@ -17,6 +16,31 @@ function App() {
   const [nuevoItem, setNuevoItem] = useState({ referencia: '', marca: '', proveedor: '', costo_empresa: '', precio_cliente: '', stock: '' });
   const [cargando, setCargando] = useState(true);
   const [orden, setOrden] = useState({ campo: '', asc: true });
+
+  // ⏱️ Expiración de sesión automática (15 minutos)
+  useEffect(() => {
+    const acceso = localStorage.getItem('acceso');
+    const timestamp = localStorage.getItem('timestamp');
+    const maxTiempo = 15 * 60 * 1000; // 15 minutos
+
+    if (!acceso || !timestamp || Date.now() - parseInt(timestamp) > maxTiempo) {
+      localStorage.removeItem('acceso');
+      localStorage.removeItem('timestamp');
+      window.location.href = '/login';
+    }
+
+    // Reiniciar timestamp en cada carga
+    localStorage.setItem('timestamp', Date.now());
+
+    // Auto logout tras 15 minutos sin actividad
+    const timer = setTimeout(() => {
+      localStorage.removeItem('acceso');
+      localStorage.removeItem('timestamp');
+      window.location.href = '/login';
+    }, maxTiempo);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     axios.get('https://mi-app-llantas.onrender.com/api/llantas')
@@ -85,20 +109,6 @@ function App() {
     }
   };
 
-  const handleEliminarMultiples = async () => {
-    if (!window.confirm('¿Eliminar llantas seleccionadas?')) return;
-    try {
-      await Promise.all(seleccionadas.map(id => axios.post('https://mi-app-llantas.onrender.com/api/eliminar-llanta', { id })));
-      setLlantas(prev => prev.filter(l => !seleccionadas.includes(l.id)));
-      setSeleccionadas([]);
-      setMensaje('Llantas eliminadas ✅');
-      setTimeout(() => setMensaje(''), 2000);
-    } catch {
-      setMensaje('Error al eliminar múltiples ❌');
-      setTimeout(() => setMensaje(''), 2000);
-    }
-  };
-
   const handleAgregar = async () => {
     try {
       await axios.post('https://mi-app-llantas.onrender.com/api/agregar-llanta', nuevoItem);
@@ -116,10 +126,6 @@ function App() {
 
   const actualizarCampo = (id, campo, valor) => {
     setLlantas(prev => prev.map(l => (l.id === id ? { ...l, [campo]: valor } : l)));
-  };
-
-  const toggleSeleccion = (id) => {
-    setSeleccionadas(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   };
 
   return (

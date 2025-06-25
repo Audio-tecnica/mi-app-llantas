@@ -5,6 +5,7 @@ import './index.css';
 
 function App() {
   const [llantas, setLlantas] = useState([]);
+  const [seleccionadas, setSeleccionadas] = useState([]);
   const [busqueda, setBusqueda] = useState('');
   const [marcaSeleccionada, setMarcaSeleccionada] = useState('');
   const [ancho, setAncho] = useState('');
@@ -26,6 +27,7 @@ function App() {
 
   const marcasUnicas = [...new Set(llantas.map(l => l.marca))];
   const anchos = [], perfiles = [], rines = [];
+
   llantas.forEach(l => {
     const partes = l.referencia?.split(/[ /R]/).filter(Boolean);
     if (partes?.length >= 3) {
@@ -35,22 +37,6 @@ function App() {
     }
   });
 
-  const ordenarPor = (campo) => {
-    const asc = orden.campo === campo ? !orden.asc : true;
-    const copia = [...llantas];
-    copia.sort((a, b) => {
-      if (typeof a[campo] === 'number') {
-        return asc ? a[campo] - b[campo] : b[campo] - a[campo];
-      } else {
-        return asc
-          ? (a[campo] || '').localeCompare(b[campo] || '')
-          : (b[campo] || '').localeCompare(a[campo] || '');
-      }
-    });
-    setLlantas(copia);
-    setOrden({ campo, asc });
-  };
-
   const filtradas = llantas.filter(l =>
     l.referencia?.toLowerCase().includes(busqueda.toLowerCase()) &&
     (!marcaSeleccionada || l.marca === marcaSeleccionada) &&
@@ -58,6 +44,21 @@ function App() {
     (!perfil || l.referencia.includes(perfil)) &&
     (!rin || l.referencia.includes(rin))
   );
+
+  const ordenarPor = (campo) => {
+    const asc = orden.campo === campo ? !orden.asc : true;
+    const ordenadas = [...filtradas].sort((a, b) => {
+      if (typeof a[campo] === 'number') {
+        return asc ? a[campo] - b[campo] : b[campo] - a[campo];
+      } else {
+        return asc
+          ? a[campo]?.toString().localeCompare(b[campo]?.toString())
+          : b[campo]?.toString().localeCompare(a[campo]?.toString());
+      }
+    });
+    setLlantas(ordenadas);
+    setOrden({ campo, asc });
+  };
 
   const handleGuardar = async (llanta) => {
     try {
@@ -84,6 +85,20 @@ function App() {
     }
   };
 
+  const handleEliminarMultiples = async () => {
+    if (!window.confirm('¿Eliminar llantas seleccionadas?')) return;
+    try {
+      await Promise.all(seleccionadas.map(id => axios.post('https://mi-app-llantas.onrender.com/api/eliminar-llanta', { id })));
+      setLlantas(prev => prev.filter(l => !seleccionadas.includes(l.id)));
+      setSeleccionadas([]);
+      setMensaje('Llantas eliminadas ✅');
+      setTimeout(() => setMensaje(''), 2000);
+    } catch {
+      setMensaje('Error al eliminar múltiples ❌');
+      setTimeout(() => setMensaje(''), 2000);
+    }
+  };
+
   const handleAgregar = async () => {
     try {
       await axios.post('https://mi-app-llantas.onrender.com/api/agregar-llanta', nuevoItem);
@@ -103,6 +118,10 @@ function App() {
     setLlantas(prev => prev.map(l => (l.id === id ? { ...l, [campo]: valor } : l)));
   };
 
+  const toggleSeleccion = (id) => {
+    setSeleccionadas(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
@@ -110,7 +129,8 @@ function App() {
         <div className="flex gap-2">
           <Link to="/subir" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Subir archivo</Link>
           <button onClick={() => setMostrarModal(true)} className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800">Agregar ítem</button>
-          <button onClick={() => { localStorage.removeItem('acceso'); window.location.href = '/login'; }} className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Cerrar sesión</button>
+          <button onClick={handleEliminarMultiples} disabled={seleccionadas.length === 0} className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Eliminar seleccionados</button>
+          <button onClick={() => { localStorage.removeItem('acceso'); window.location.href = '/login'; }} className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Cerrar sesión</button>
         </div>
       </div>
 
@@ -148,17 +168,20 @@ function App() {
             <table className="w-full border text-sm">
               <thead className="bg-gray-100">
                 <tr>
-                  {['referencia', 'marca', 'proveedor', 'costo_empresa', 'precio_cliente', 'stock'].map(campo => (
-                    <th key={campo} className="p-2 border cursor-pointer" onClick={() => ordenarPor(campo)}>
-                      {campo.charAt(0).toUpperCase() + campo.slice(1).replace('_', ' ')} {orden.campo === campo ? (orden.asc ? '↑' : '↓') : ''}
-                    </th>
-                  ))}
+                  <th className="p-2 border"></th>
+                  <th className="p-2 border cursor-pointer" onClick={() => ordenarPor('referencia')}>Referencia</th>
+                  <th className="p-2 border cursor-pointer" onClick={() => ordenarPor('marca')}>Marca</th>
+                  <th className="p-2 border cursor-pointer" onClick={() => ordenarPor('proveedor')}>Proveedor</th>
+                  <th className="p-2 border cursor-pointer" onClick={() => ordenarPor('costo_empresa')}>Costo</th>
+                  <th className="p-2 border cursor-pointer" onClick={() => ordenarPor('precio_cliente')}>Precio</th>
+                  <th className="p-2 border cursor-pointer" onClick={() => ordenarPor('stock')}>Stock</th>
                   <th className="p-2 border">Acción</th>
                 </tr>
               </thead>
               <tbody>
                 {filtradas.map(ll => (
-                  <tr key={ll.id} className="text-center border-t">
+                  <tr key={ll.id} className="text-center border-t even:bg-gray-50">
+                    <td className="p-1"><input type="checkbox" checked={seleccionadas.includes(ll.id)} onChange={() => toggleSeleccion(ll.id)} /></td>
                     {modoEdicion === ll.id ? (
                       <>
                         <td className="p-1"><input value={ll.referencia} onChange={e => actualizarCampo(ll.id, 'referencia', e.target.value)} className="w-full border rounded text-sm p-1" /></td>
@@ -219,6 +242,7 @@ function App() {
 }
 
 export default App;
+
 
 
 

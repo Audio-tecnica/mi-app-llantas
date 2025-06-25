@@ -15,6 +15,7 @@ function App() {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [nuevoItem, setNuevoItem] = useState({ referencia: '', marca: '', proveedor: '', costo_empresa: '', precio_cliente: '', stock: '' });
   const [cargando, setCargando] = useState(true);
+  const [orden, setOrden] = useState({ campo: '', asc: true });
 
   useEffect(() => {
     axios.get('https://mi-app-llantas.onrender.com/api/llantas')
@@ -25,7 +26,6 @@ function App() {
 
   const marcasUnicas = [...new Set(llantas.map(l => l.marca))];
   const anchos = [], perfiles = [], rines = [];
-
   llantas.forEach(l => {
     const partes = l.referencia?.split(/[ /R]/).filter(Boolean);
     if (partes?.length >= 3) {
@@ -34,6 +34,22 @@ function App() {
       if (!rines.includes(partes[2])) rines.push(partes[2]);
     }
   });
+
+  const ordenarPor = (campo) => {
+    const asc = orden.campo === campo ? !orden.asc : true;
+    const copia = [...llantas];
+    copia.sort((a, b) => {
+      if (typeof a[campo] === 'number') {
+        return asc ? a[campo] - b[campo] : b[campo] - a[campo];
+      } else {
+        return asc
+          ? (a[campo] || '').localeCompare(b[campo] || '')
+          : (b[campo] || '').localeCompare(a[campo] || '');
+      }
+    });
+    setLlantas(copia);
+    setOrden({ campo, asc });
+  };
 
   const filtradas = llantas.filter(l =>
     l.referencia?.toLowerCase().includes(busqueda.toLowerCase()) &&
@@ -100,7 +116,6 @@ function App() {
 
       {mensaje && <div className="text-center text-blue-700 font-semibold mb-4">❗{mensaje}</div>}
 
-      {/* Filtros */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white p-4 rounded shadow-md border md:col-span-1">
           <h2 className="text-lg font-semibold mb-3">Filtros</h2>
@@ -128,18 +143,16 @@ function App() {
           <button onClick={() => { setBusqueda(''); setMarcaSeleccionada(''); setAncho(''); setPerfil(''); setRin(''); }} className="w-full mt-2 bg-gray-200 hover:bg-gray-300 text-sm text-black py-1 rounded">Limpiar filtros</button>
         </div>
 
-        {/* Tabla */}
         <div className="md:col-span-3">
           {cargando ? <div className="text-center py-10 text-gray-500">⏳ Cargando llantas...</div> : (
             <table className="w-full border text-sm">
               <thead className="bg-gray-100">
                 <tr>
-                  <th className="p-2 border">Referencia</th>
-                  <th className="p-2 border">Marca</th>
-                  <th className="p-2 border">Proveedor</th>
-                  <th className="p-2 border">Costo</th>
-                  <th className="p-2 border">Precio</th>
-                  <th className="p-2 border">Stock</th>
+                  {['referencia', 'marca', 'proveedor', 'costo_empresa', 'precio_cliente', 'stock'].map(campo => (
+                    <th key={campo} className="p-2 border cursor-pointer" onClick={() => ordenarPor(campo)}>
+                      {campo.charAt(0).toUpperCase() + campo.slice(1).replace('_', ' ')} {orden.campo === campo ? (orden.asc ? '↑' : '↓') : ''}
+                    </th>
+                  ))}
                   <th className="p-2 border">Acción</th>
                 </tr>
               </thead>
@@ -181,7 +194,6 @@ function App() {
         </div>
       </div>
 
-      {/* Modal para agregar */}
       {mostrarModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded p-6 w-full max-w-md">
@@ -207,6 +219,7 @@ function App() {
 }
 
 export default App;
+
 
 
 

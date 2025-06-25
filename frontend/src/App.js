@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react'; 
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import * as XLSX from 'xlsx';
 import './index.css';
 
 function App() {
@@ -12,6 +13,7 @@ function App() {
   const [rin, setRin] = useState('');
   const [mensaje, setMensaje] = useState('');
   const [modoEdicion, setModoEdicion] = useState(null);
+  const [mostrarModal, setMostrarModal] = useState(false);
   const [nuevoItem, setNuevoItem] = useState({ referencia: '', marca: '', proveedor: '', costo_empresa: '', precio_cliente: '', stock: '' });
   const [cargando, setCargando] = useState(true);
 
@@ -24,6 +26,7 @@ function App() {
 
   const marcasUnicas = [...new Set(llantas.map(l => l.marca))];
   const anchos = [], perfiles = [], rines = [];
+
   llantas.forEach(l => {
     const partes = l.referencia?.split(/[ /R]/).filter(Boolean);
     if (partes?.length >= 3) {
@@ -71,6 +74,7 @@ function App() {
       await axios.post('https://mi-app-llantas.onrender.com/api/agregar-llanta', nuevoItem);
       const { data } = await axios.get('https://mi-app-llantas.onrender.com/api/llantas');
       setLlantas(data);
+      setMostrarModal(false);
       setNuevoItem({ referencia: '', marca: '', proveedor: '', costo_empresa: '', precio_cliente: '', stock: '' });
       setMensaje('Llanta agregada ✅');
       setTimeout(() => setMensaje(''), 2000);
@@ -78,6 +82,13 @@ function App() {
       setMensaje('Error al agregar ❌');
       setTimeout(() => setMensaje(''), 2000);
     }
+  };
+
+  const exportarExcel = () => {
+    const ws = XLSX.utils.json_to_sheet(llantas);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Llantas');
+    XLSX.writeFile(wb, 'inventario_llantas.xlsx');
   };
 
   const actualizarCampo = (id, campo, valor) => {
@@ -90,12 +101,15 @@ function App() {
         <h1 className="text-2xl font-bold">🛞 Llantas Audio Tecnica</h1>
         <div className="flex gap-2">
           <Link to="/subir" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Subir archivo</Link>
+          <button onClick={exportarExcel} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Exportar</button>
+          <button onClick={() => setMostrarModal(true)} className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800">Agregar ítem</button>
           <button onClick={() => { localStorage.removeItem('acceso'); window.location.href = '/login'; }} className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Cerrar sesión</button>
         </div>
       </div>
 
       {mensaje && <div className="text-center text-blue-700 font-semibold mb-4">❗{mensaje}</div>}
 
+      {/* Filtros */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white p-4 rounded shadow-md border md:col-span-1">
           <h2 className="text-lg font-semibold mb-3">Filtros</h2>
@@ -123,24 +137,9 @@ function App() {
           <button onClick={() => { setBusqueda(''); setMarcaSeleccionada(''); setAncho(''); setPerfil(''); setRin(''); }} className="w-full mt-2 bg-gray-200 hover:bg-gray-300 text-sm text-black py-1 rounded">Limpiar filtros</button>
         </div>
 
+        {/* Tabla */}
         <div className="md:col-span-3">
-          <div className="flex justify-end mb-2">
-            <button onClick={handleAgregar} className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">➕ Agregar ítem</button>
-          </div>
-          <div className="grid grid-cols-6 gap-2 mb-4">
-            {Object.keys(nuevoItem).map(key => (
-              <input
-                key={key}
-                placeholder={key.replace('_', ' ')}
-                value={nuevoItem[key]}
-                onChange={(e) => setNuevoItem({ ...nuevoItem, [key]: e.target.value })}
-                className="border p-1 text-sm rounded"
-              />
-            ))}
-          </div>
-          {cargando ? (
-            <div className="text-center py-10 text-gray-500">⏳ Cargando llantas...</div>
-          ) : (
+          {cargando ? <div className="text-center py-10 text-gray-500">⏳ Cargando llantas...</div> : (
             <table className="w-full border text-sm">
               <thead className="bg-gray-100">
                 <tr>
@@ -154,7 +153,7 @@ function App() {
                 </tr>
               </thead>
               <tbody>
-                {filtradas.map((ll) => (
+                {filtradas.map(ll => (
                   <tr key={ll.id} className="text-center border-t">
                     {modoEdicion === ll.id ? (
                       <>
@@ -190,11 +189,34 @@ function App() {
           )}
         </div>
       </div>
+
+      {/* Modal para agregar */}
+      {mostrarModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Agregar nueva llanta</h2>
+            {['referencia', 'marca', 'proveedor', 'costo_empresa', 'precio_cliente', 'stock'].map(campo => (
+              <input
+                key={campo}
+                placeholder={campo.replace('_', ' ')}
+                value={nuevoItem[campo]}
+                onChange={e => setNuevoItem({ ...nuevoItem, [campo]: e.target.value })}
+                className="w-full mb-3 p-2 border rounded"
+              />
+            ))}
+            <div className="flex justify-end gap-2">
+              <button onClick={handleAgregar} className="bg-blue-600 text-white px-4 py-2 rounded">Guardar</button>
+              <button onClick={() => setMostrarModal(false)} className="bg-gray-400 text-white px-4 py-2 rounded">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 export default App;
+
 
 
 

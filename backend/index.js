@@ -144,10 +144,9 @@ app.post('/api/agregar-llanta', async (req, res) => {
   }
 });
 
-// 🗑️ Eliminar llanta
-app.delete('/api/eliminar-llanta/:id', async (req, res) => {
-  const id = req.params.id;
-
+// ✅ Eliminar llanta
+app.post('/api/eliminar-llanta', async (req, res) => {
+  const { id } = req.body;
   try {
     await pool.query('DELETE FROM llantas WHERE id = $1', [id]);
     res.json({ success: true });
@@ -156,6 +155,7 @@ app.delete('/api/eliminar-llanta/:id', async (req, res) => {
     res.status(500).json({ error: 'Error al eliminar item' });
   }
 });
+
 
 // 🚀 Iniciar servidor
 app.listen(PORT, () => {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react'; 
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import './index.css';
@@ -12,7 +12,7 @@ function App() {
   const [rin, setRin] = useState('');
   const [mensaje, setMensaje] = useState('');
   const [modoEdicion, setModoEdicion] = useState(null);
-  const [nuevoItem, setNuevoItem] = useState(null);
+  const [nuevoItem, setNuevoItem] = useState({ referencia: '', marca: '', proveedor: '', costo_empresa: '', precio_cliente: '', stock: '' });
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
@@ -23,10 +23,7 @@ function App() {
   }, []);
 
   const marcasUnicas = [...new Set(llantas.map(l => l.marca))];
-  const anchos = [];
-  const perfiles = [];
-  const rines = [];
-
+  const anchos = [], perfiles = [], rines = [];
   llantas.forEach(l => {
     const partes = l.referencia?.split(/[ /R]/).filter(Boolean);
     if (partes?.length >= 3) {
@@ -70,12 +67,11 @@ function App() {
   };
 
   const handleAgregar = async () => {
-    if (!nuevoItem) return;
     try {
       await axios.post('https://mi-app-llantas.onrender.com/api/agregar-llanta', nuevoItem);
       const { data } = await axios.get('https://mi-app-llantas.onrender.com/api/llantas');
       setLlantas(data);
-      setNuevoItem(null);
+      setNuevoItem({ referencia: '', marca: '', proveedor: '', costo_empresa: '', precio_cliente: '', stock: '' });
       setMensaje('Llanta agregada ✅');
       setTimeout(() => setMensaje(''), 2000);
     } catch {
@@ -85,9 +81,7 @@ function App() {
   };
 
   const actualizarCampo = (id, campo, valor) => {
-    setLlantas(prev =>
-      prev.map(l => (l.id === id ? { ...l, [campo]: valor } : l))
-    );
+    setLlantas(prev => prev.map(l => (l.id === id ? { ...l, [campo]: valor } : l)));
   };
 
   return (
@@ -95,17 +89,8 @@ function App() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">🛞 Llantas Audio Tecnica</h1>
         <div className="flex gap-2">
-          <Link to="/subir" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-            Subir archivo
-          </Link>
-          <button
-            onClick={() => {
-              localStorage.removeItem('acceso');
-              window.location.href = '/login';
-            }}
-            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-            Cerrar sesión
-          </button>
+          <Link to="/subir" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Subir archivo</Link>
+          <button onClick={() => { localStorage.removeItem('acceso'); window.location.href = '/login'; }} className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Cerrar sesión</button>
         </div>
       </div>
 
@@ -135,18 +120,24 @@ function App() {
             <option value="">Todos</option>
             {rines.map(r => <option key={r}>{r}</option>)}
           </select>
-          <button onClick={() => {
-            setBusqueda('');
-            setMarcaSeleccionada('');
-            setAncho('');
-            setPerfil('');
-            setRin('');
-          }} className="w-full mt-2 bg-gray-200 hover:bg-gray-300 text-sm text-black py-1 rounded">
-            Limpiar filtros
-          </button>
+          <button onClick={() => { setBusqueda(''); setMarcaSeleccionada(''); setAncho(''); setPerfil(''); setRin(''); }} className="w-full mt-2 bg-gray-200 hover:bg-gray-300 text-sm text-black py-1 rounded">Limpiar filtros</button>
         </div>
 
         <div className="md:col-span-3">
+          <div className="flex justify-end mb-2">
+            <button onClick={handleAgregar} className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">➕ Agregar ítem</button>
+          </div>
+          <div className="grid grid-cols-6 gap-2 mb-4">
+            {Object.keys(nuevoItem).map(key => (
+              <input
+                key={key}
+                placeholder={key.replace('_', ' ')}
+                value={nuevoItem[key]}
+                onChange={(e) => setNuevoItem({ ...nuevoItem, [key]: e.target.value })}
+                className="border p-1 text-sm rounded"
+              />
+            ))}
+          </div>
           {cargando ? (
             <div className="text-center py-10 text-gray-500">⏳ Cargando llantas...</div>
           ) : (
@@ -204,6 +195,7 @@ function App() {
 }
 
 export default App;
+
 
 
 

@@ -47,16 +47,19 @@ function App() {
       .finally(() => setCargando(false));
   }, []);
 
-  const marcasUnicas = [...new Set(llantas.map(l => l.marca))];
-  const anchos = [], perfiles = [], rines = [];
-  llantas.forEach(l => {
+// Después de calcular 'filtradas', agregamos esto:
+    const marcasUnicas = [...new Set(filtradas.map(l => l.marca))];
+    const anchos = [], perfiles = [], rines = [];
+
+  filtradas.forEach(l => {
     const partes = l.referencia?.split(/[ /R]/).filter(Boolean);
     if (partes?.length >= 3) {
-      if (!anchos.includes(partes[0])) anchos.push(partes[0]);
-      if (!perfiles.includes(partes[1])) perfiles.push(partes[1]);
-      if (!rines.includes(partes[2])) rines.push(partes[2]);
-    }
-  });
+    if (!anchos.includes(partes[0])) anchos.push(partes[0]);
+    if (!perfiles.includes(partes[1])) perfiles.push(partes[1]);
+    if (!rines.includes(partes[2])) rines.push(partes[2]);
+  }
+});
+
 
   const filtradas = llantas.filter(l =>
     l.referencia?.toLowerCase().includes(busqueda.toLowerCase()) &&

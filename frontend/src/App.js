@@ -18,25 +18,23 @@ function App() {
   const [orden, setOrden] = useState({ campo: '', asc: true });
   const [seleccionadas, setSeleccionadas] = useState([]);
 
+  // Expiración de sesión automática
   useEffect(() => {
     const acceso = localStorage.getItem('acceso');
     const timestamp = localStorage.getItem('timestamp');
-    const maxTiempo = 15 * 60 * 1000;
+    const maxTiempo = 15 * 60 * 1000; // 15 minutos
 
     if (!acceso || !timestamp || Date.now() - parseInt(timestamp) > maxTiempo) {
       localStorage.removeItem('acceso');
       localStorage.removeItem('timestamp');
       window.location.href = '/login';
     }
-
     localStorage.setItem('timestamp', Date.now());
-
     const timer = setTimeout(() => {
       localStorage.removeItem('acceso');
       localStorage.removeItem('timestamp');
       window.location.href = '/login';
     }, maxTiempo);
-
     return () => clearTimeout(timer);
   }, []);
 
@@ -47,20 +45,6 @@ function App() {
       .finally(() => setCargando(false));
   }, []);
 
-// Después de calcular 'filtradas', agregamos esto:
-    const marcasUnicas = [...new Set(filtradas.map(l => l.marca))];
-    const anchos = [], perfiles = [], rines = [];
-
-  filtradas.forEach(l => {
-    const partes = l.referencia?.split(/[ /R]/).filter(Boolean);
-    if (partes?.length >= 3) {
-    if (!anchos.includes(partes[0])) anchos.push(partes[0]);
-    if (!perfiles.includes(partes[1])) perfiles.push(partes[1]);
-    if (!rines.includes(partes[2])) rines.push(partes[2]);
-  }
-});
-
-
   const filtradas = llantas.filter(l =>
     l.referencia?.toLowerCase().includes(busqueda.toLowerCase()) &&
     (!marcaSeleccionada || l.marca === marcaSeleccionada) &&
@@ -68,6 +52,11 @@ function App() {
     (!perfil || l.referencia.includes(perfil)) &&
     (!rin || l.referencia.includes(rin))
   );
+
+  const marcasUnicas = [...new Set(filtradas.map(l => l.marca))];
+  const anchos = [...new Set(filtradas.map(l => l.referencia?.split(/[ /R]/)[0]).filter(Boolean))];
+  const perfiles = [...new Set(filtradas.map(l => l.referencia?.split(/[ /R]/)[1]).filter(Boolean))];
+  const rines = [...new Set(filtradas.map(l => l.referencia?.split(/[ /R]/)[2]).filter(Boolean))];
 
   const ordenarPor = (campo) => {
     const asc = orden.campo === campo ? !orden.asc : true;
@@ -82,6 +71,30 @@ function App() {
     });
     setLlantas(ordenadas);
     setOrden({ campo, asc });
+  };
+
+  const actualizarCampo = (id, campo, valor) => {
+    setLlantas(prev => prev.map(l => (l.id === id ? { ...l, [campo]: valor } : l)));
+  };
+
+  const toggleSeleccion = (id) => {
+    setSeleccionadas(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const handleEliminarMultiples = async () => {
+    if (!window.confirm('¿Eliminar todos los seleccionados?')) return;
+    try {
+      for (const id of seleccionadas) {
+        await axios.post('https://mi-app-llantas.onrender.com/api/eliminar-llanta', { id });
+      }
+      setLlantas(prev => prev.filter(l => !seleccionadas.includes(l.id)));
+      setSeleccionadas([]);
+      setMensaje('Llantas eliminadas ✅');
+      setTimeout(() => setMensaje(''), 2000);
+    } catch {
+      setMensaje('Error al eliminar ❌');
+      setTimeout(() => setMensaje(''), 2000);
+    }
   };
 
   const handleGuardar = async (llanta) => {
@@ -109,26 +122,6 @@ function App() {
     }
   };
 
-  const handleEliminarMultiples = async () => {
-    if (!window.confirm('¿Eliminar todos los seleccionados?')) return;
-    try {
-      for (const id of seleccionadas) {
-        await axios.post('https://mi-app-llantas.onrender.com/api/eliminar-llanta', { id });
-      }
-      setLlantas(prev => prev.filter(l => !seleccionadas.includes(l.id)));
-      setSeleccionadas([]);
-      setMensaje('Llantas eliminadas ✅');
-      setTimeout(() => setMensaje(''), 2000);
-    } catch {
-      setMensaje('Error eliminando ❌');
-      setTimeout(() => setMensaje(''), 2000);
-    }
-  };
-
-  const toggleSeleccion = (id) => {
-    setSeleccionadas(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
-  };
-
   const handleAgregar = async () => {
     try {
       await axios.post('https://mi-app-llantas.onrender.com/api/agregar-llanta', nuevoItem);
@@ -142,10 +135,6 @@ function App() {
       setMensaje('Error al agregar ❌');
       setTimeout(() => setMensaje(''), 2000);
     }
-  };
-
-  const actualizarCampo = (id, campo, valor) => {
-    setLlantas(prev => prev.map(l => (l.id === id ? { ...l, [campo]: valor } : l)));
   };
 
   return (

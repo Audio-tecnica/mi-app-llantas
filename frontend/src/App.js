@@ -156,6 +156,7 @@ function App() {
 
   return (
     <div className="max-w-7xl mx-auto p-4">
+      {/* Encabezado */}
       <div className="flex flex-wrap justify-between items-center gap-2 mb-6">
         <h1 className="text-2xl font-bold">🛞 Llantas Audio Tecnica</h1>
         <div className="flex flex-wrap gap-2">
@@ -169,8 +170,9 @@ function App() {
       {mensaje && <div className="text-center text-blue-700 font-semibold mb-4">❗{mensaje}</div>}
       <div className="text-sm text-gray-700 mb-2">Mostrando {filtradas.length} resultados</div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white p-4 rounded shadow-md border md:col-span-1">
+      <div className="flex flex-row flex-wrap md:flex-nowrap gap-6">
+        {/* Filtros */}
+        <div className="bg-white p-4 rounded shadow-md border w-full md:w-1/4 min-w-[280px]">
           <h2 className="text-lg font-semibold mb-3">Filtros</h2>
           <input type="text" placeholder="Buscar referencia..." value={busqueda} onChange={e => setBusqueda(e.target.value)} className="w-full mb-3 p-2 border rounded" />
           <label className="block text-sm mb-1">Marca</label>
@@ -196,17 +198,86 @@ function App() {
           <button onClick={() => { setBusqueda(''); setMarcaSeleccionada(''); setAncho(''); setPerfil(''); setRin(''); }} className="w-full mt-2 bg-gray-200 hover:bg-gray-300 text-sm text-black py-1 rounded">Limpiar filtros</button>
         </div>
 
-        <div className="md:col-span-3 overflow-auto">
-          <div className="min-w-[600px]">
-            {/* Aquí iría la tabla (sin cambios) */}
-          </div>
+        {/* Tabla de resultados */}
+        <div className="w-full md:w-3/4 overflow-x-auto">
+          <table className="w-full text-sm border">
+            <thead className="bg-gray-100">
+              <tr>
+                <th></th>
+                <th onClick={() => ordenarPor('referencia')} className="cursor-pointer p-2">Referencia</th>
+                <th onClick={() => ordenarPor('marca')} className="cursor-pointer p-2">Marca</th>
+                <th onClick={() => ordenarPor('proveedor')} className="cursor-pointer p-2">Proveedor</th>
+                <th onClick={() => ordenarPor('costo_empresa')} className="cursor-pointer p-2">Costo</th>
+                <th onClick={() => ordenarPor('precio_cliente')} className="cursor-pointer p-2">Precio</th>
+                <th onClick={() => ordenarPor('stock')} className="cursor-pointer p-2">Stock</th>
+                <th className="p-2">Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtradas.map(ll => (
+                <tr key={ll.id} className={`text-center border-t even:bg-gray-50 ${ll.stock % 2 !== 0 ? 'bg-red-100' : ''}`}>
+                  <td className="p-1"><input type="checkbox" checked={seleccionadas.includes(ll.id)} onChange={() => toggleSeleccion(ll.id)} /></td>
+                  {modoEdicion === ll.id ? (
+                    <>
+                      <td><input value={ll.referencia} onChange={e => actualizarCampo(ll.id, 'referencia', e.target.value)} className="w-full border rounded text-sm p-1" /></td>
+                      <td><input value={ll.marca} onChange={e => actualizarCampo(ll.id, 'marca', e.target.value)} className="w-full border rounded text-sm p-1" /></td>
+                      <td><input value={ll.proveedor} onChange={e => actualizarCampo(ll.id, 'proveedor', e.target.value)} className="w-full border rounded text-sm p-1" /></td>
+                      <td><input type="number" value={ll.costo_empresa} onChange={e => actualizarCampo(ll.id, 'costo_empresa', e.target.value)} className="w-full border rounded text-sm p-1" /></td>
+                      <td><input type="number" value={ll.precio_cliente} onChange={e => actualizarCampo(ll.id, 'precio_cliente', e.target.value)} className="w-full border rounded text-sm p-1" /></td>
+                      <td><input type="number" value={ll.stock} onChange={e => actualizarCampo(ll.id, 'stock', e.target.value)} className="w-full border rounded text-sm p-1" /></td>
+                      <td className="flex gap-1 justify-center">
+                        <button onClick={() => handleGuardar(ll)} className="bg-blue-500 text-white px-2 py-1 text-xs rounded">Guardar</button>
+                        <button onClick={() => setModoEdicion(null)} className="bg-gray-300 text-black px-2 py-1 text-xs rounded">Cancelar</button>
+                      </td>
+                    </>
+                  ) : (
+                    <>
+                      <td>{ll.referencia}</td>
+                      <td>{ll.marca}</td>
+                      <td>{ll.proveedor}</td>
+                      <td className="text-blue-600">${ll.costo_empresa.toLocaleString()}</td>
+                      <td className="text-green-600">${ll.precio_cliente.toLocaleString()}</td>
+                      <td className={ll.stock === 0 ? 'text-red-600' : ''}>{ll.stock === 0 ? 'Sin stock' : ll.stock}</td>
+                      <td className="flex gap-1 justify-center">
+                        <button onClick={() => setModoEdicion(ll.id)} className="bg-gray-200 hover:bg-gray-300 px-2 py-1 text-xs rounded">Editar</button>
+                        <button onClick={() => handleEliminar(ll.id)} className="bg-red-500 text-white hover:bg-red-600 px-2 py-1 text-xs rounded">Eliminar</button>
+                      </td>
+                    </>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
+
+      {/* Modal para nuevo ítem */}
+      {mostrarModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Agregar nueva llanta</h2>
+            {['referencia', 'marca', 'proveedor', 'costo_empresa', 'precio_cliente', 'stock'].map(campo => (
+              <input
+                key={campo}
+                placeholder={campo.replace('_', ' ')}
+                value={nuevoItem[campo]}
+                onChange={e => setNuevoItem({ ...nuevoItem, [campo]: e.target.value })}
+                className="w-full mb-3 p-2 border rounded"
+              />
+            ))}
+            <div className="flex justify-end gap-2">
+              <button onClick={handleAgregar} className="bg-blue-600 text-white px-4 py-2 rounded">Guardar</button>
+              <button onClick={() => setMostrarModal(false)} className="bg-gray-400 text-white px-4 py-2 rounded">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 export default App;
+
 
 
 

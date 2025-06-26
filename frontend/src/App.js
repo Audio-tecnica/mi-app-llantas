@@ -156,23 +156,38 @@ function App() {
 
   return (
     <div className="max-w-7xl mx-auto p-4">
-      <div className="text-center text-gray-500 text-sm mb-4">
-        {cargando && '⏳ Cargando llantas...'}
-        {mensaje && <div className="text-blue-700 font-semibold">{mensaje}</div>}
+      <div className="flex flex-wrap justify-between items-center gap-2 mb-6">
+        <h1 className="text-2xl font-bold">🛞 Llantas Audio Tecnica</h1>
+        <div className="flex flex-wrap gap-2">
+          <Link to="/subir" className="bg-blue-600 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-700">Subir archivo</Link>
+          <button onClick={() => setMostrarModal(true)} className="bg-gray-700 text-white px-3 py-1.5 rounded text-sm hover:bg-gray-800">Agregar ítem</button>
+          <button onClick={handleEliminarMultiples} disabled={seleccionadas.length === 0} className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700">Eliminar seleccionados</button>
+          <button onClick={() => { localStorage.removeItem('acceso'); window.location.href = '/login'; }} className="bg-red-500 text-white px-3 py-1.5 rounded text-sm hover:bg-red-600">Cerrar sesión</button>
+        </div>
       </div>
-      {/* Aquí continúan filtros + tabla, igual que antes */}
 
-      {/* Modal de agregar ítem */}
+      {mensaje && <div className="text-center text-blue-700 font-semibold mb-4">❗{mensaje}</div>}
+      {cargando ? (
+        <div className="text-center py-10 text-gray-500">⏳ Cargando llantas...</div>
+      ) : (
+        <>
+          <div className="text-sm text-gray-700 mb-2">Mostrando {filtradas.length} resultados</div>
+          <div className="flex flex-row gap-6 flex-nowrap overflow-auto">
+            {/* Aquí van filtros y tabla, sin cambios */}
+          </div>
+        </>
+      )}
+
       {mostrarModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded shadow-md w-full max-w-md">
-            <h2 className="text-lg font-bold mb-4">Agregar nueva llanta</h2>
-            {Object.keys(nuevoItem).map((key) => (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Agregar nueva llanta</h2>
+            {['referencia', 'marca', 'proveedor', 'costo_empresa', 'precio_cliente', 'stock'].map(campo => (
               <input
-                key={key}
-                placeholder={key.replace('_', ' ')}
-                value={nuevoItem[key]}
-                onChange={e => setNuevoItem({ ...nuevoItem, [key]: e.target.value })}
+                key={campo}
+                placeholder={campo.replace('_', ' ')}
+                value={nuevoItem[campo]}
+                onChange={e => setNuevoItem({ ...nuevoItem, [campo]: e.target.value })}
                 className="w-full mb-3 p-2 border rounded"
               />
             ))}
@@ -188,6 +203,7 @@ function App() {
 }
 
 export default App;
+
 
 
 

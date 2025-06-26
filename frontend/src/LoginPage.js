@@ -12,6 +12,7 @@ function LoginPage() {
     e.preventDefault();
     if (input === PASSWORD) {
       localStorage.setItem('acceso', PASSWORD);
+      localStorage.setItem('timestamp', Date.now()); // ✅ esta línea es clave
       navigate('/');
     } else {
       setError('Contraseña incorrecta ❌');
@@ -39,4 +40,5 @@ function LoginPage() {
 }
 
 export default LoginPage;
+
 

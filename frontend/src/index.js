@@ -6,6 +6,7 @@ import SubirArchivo from './SubirArchivo';
 import Protegido from './Protegido';
 import LoginPage from './LoginPage';
 import './index.css';
+import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -18,6 +19,7 @@ root.render(
   </BrowserRouter>
 );
 
+serviceWorkerRegistration.register();
 
 
 

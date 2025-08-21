@@ -167,34 +167,9 @@ function App() {
           <button onClick={handleEliminarMultiples} disabled={seleccionadas.length === 0} className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700">Eliminar seleccionados</button>
           <button onClick={() => { localStorage.removeItem('acceso'); window.location.href = '/login'; }} className="bg-red-500 text-white px-3 py-1.5 rounded text-sm hover:bg-red-600">Cerrar sesión</button>
          <button onClick={() => window.open('/lista_llantar.pdf', '_blank')}className="bg-green-600 text-white px-4 py-2 rounded">Lista llantar</button>
-             
         </div>
       </div>
 
-      {/* Modal del PDF */}
-      {showPDF && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded w-11/12 md:w-3/4 h-5/6 p-4 flex flex-col">
-            {/* Botón cerrar */}
-            <button
-              onClick={() => setShowPDF(false)}
-              className="self-end mb-2 px-3 py-1 bg-red-500 text-white rounded"
-            >
-              Cerrar
-            </button>
-
-            {/* PDF dentro de iframe */}
-            <iframe
-              src="/lista_llantar.pdf"
-              className="flex-1 w-full border"
-              title="Lista llantar"
-            ></iframe>
-          </div>
-        </div>
-        )}
-        </div> 
-       );
-      }       
       {mensaje && <div className="text-center text-blue-700 font-semibold mb-4">❗{mensaje}</div>}
       {cargando ? (
         <div className="text-center py-10 text-gray-500">⏳ Cargando llantas...</div>
@@ -306,7 +281,10 @@ function App() {
           </div>
         </div>
       )}
-    
+    </div>
+  );
+}
+
 export default App;
 
  

@@ -2,8 +2,11 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import './index.css';
+import { Eye, EyeOff } from "lucide-react"; 
+
 
 function App() {
+  const [mostrarCosto, setMostrarCosto] = useState(false);
   const [llantas, setLlantas] = useState([]);
   const [busqueda, setBusqueda] = useState('');
   const [marcaSeleccionada, setMarcaSeleccionada] = useState('');
@@ -208,7 +211,11 @@ function App() {
                     <th onClick={() => ordenarPor('referencia')} className="cursor-pointer p-2">Referencia</th>
                     <th onClick={() => ordenarPor('marca')} className="cursor-pointer p-2">Marca</th>
                     <th onClick={() => ordenarPor('proveedor')} className="cursor-pointer p-2">Proveedor</th>
-                    <th onClick={() => ordenarPor('costo_empresa')} className="cursor-pointer p-2">Costo</th>
+                    <th onClick={() => ordenarPor('costo_empresa')} className="cursor-pointer p-2">Costo
+                        <button onClick={(e) => { e.stopPropagation(); setMostrarCosto(!mostrarCosto); }}className="ml-2 text-blue-600">
+                          {mostrarCosto ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                    </th>
                     <th onClick={() => ordenarPor('precio_cliente')} className="cursor-pointer p-2">Precio</th>
                     <th onClick={() => ordenarPor('stock')} className="cursor-pointer p-2">Stock</th>
                     <th className="p-2">Acción</th>
@@ -236,7 +243,7 @@ function App() {
                           <td>{ll.referencia}</td>
                           <td>{ll.marca}</td>
                           <td>{ll.proveedor}</td>
-                          <td className="text-blue-600">${ll.costo_empresa.toLocaleString()}</td>
+                          <td className="text-blue-600">{mostrarCosto ? `$${ll.costo_empresa.toLocaleString()}` : '•••••'}</td>
                           <td className="text-green-600">${ll.precio_cliente.toLocaleString()}</td>
                           <td className={ll.stock === 0 ? 'text-red-600' : ''}>{ll.stock === 0 ? 'Sin stock' : ll.stock}</td>
                           <td className="flex gap-1 justify-center">

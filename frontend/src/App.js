@@ -167,8 +167,6 @@ function App() {
           <button onClick={handleEliminarMultiples} disabled={seleccionadas.length === 0} className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700">Eliminar seleccionados</button>
           <button onClick={() => { localStorage.removeItem('acceso'); window.location.href = '/login'; }} className="bg-red-500 text-white px-3 py-1.5 rounded text-sm hover:bg-red-600">Cerrar sesión</button>
           <button onClick={() => window.open('/lista_12_agosto.pdf', '_blank')}className="bg-blue-600 text-white px-4 py-2 rounded">Lista llantar</button>
-          <button onClick={() => window.location.href = "/historial"} className="bg-blue-500 text-white px-4 py-2 rounded-lg">Ver historial</button>
-
         </div>
       </div>
 

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { Eye, EyeOff } from "lucide-react"; 
+import Historial from "./Historial";
 import './index.css';
 
 
@@ -20,6 +21,7 @@ function App() {
   const [cargando, setCargando] = useState(true);
   const [orden, setOrden] = useState({ campo: '', asc: true });
   const [seleccionadas, setSeleccionadas] = useState([]);
+  const [mostrarHistorial, setMostrarHistorial] = useState(false);
 
   useEffect(() => {
     const acceso = localStorage.getItem('acceso');
@@ -166,10 +168,15 @@ function App() {
           <button onClick={() => setMostrarModal(true)} className="bg-gray-700 text-white px-3 py-1.5 rounded text-sm hover:bg-gray-800">Agregar ítem</button>
           <button onClick={handleEliminarMultiples} disabled={seleccionadas.length === 0} className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700">Eliminar seleccionados</button>
           <button onClick={() => { localStorage.removeItem('acceso'); window.location.href = '/login'; }} className="bg-red-500 text-white px-3 py-1.5 rounded text-sm hover:bg-red-600">Cerrar sesión</button>
-          <button onClick={() => window.open('/lista_12_agosto.pdf', '_blank')}className="bg-blue-600 text-white px-4 py-2 rounded">Lista Llantar</button>
+          <button onClick={() => window.open('/lista_12_agosto.pdf', '_blank')}className="bg-blue-600 text-white px-4 py-2 rounded">Lista llantar</button>
+          <button onClick={() => setMostrarHistorial(!mostrarHistorial)}className="px-4 py-2 bg-blue-500 text-white rounded">{mostrarHistorial ? "Ocultar Historial" : "Ver Historial"}</button>
         </div>
-      </div>
+   </div>
 
+      {mostrarHistorial && (<div className="mb-6 border rounded p-4 bg-gray-50">
+                           <h2 className="text-lg font-bold mb-2">📑 Historial de cambios</h2><Historial /></div>
+      )}
+      
       {mensaje && <div className="text-center text-blue-700 font-semibold mb-4">❗{mensaje}</div>}
       {cargando ? (
         <div className="text-center py-10 text-gray-500">⏳ Cargando llantas...</div>

@@ -18,6 +18,7 @@ app.use(fileUpload());
 app.use(cors({ origin: 'https://mi-app-llantas.vercel.app' }));
 app.use(express.json());
 
+
 // 🧱 Crear tabla si no existe
 async function crearTabla() {
   try {
@@ -150,10 +151,38 @@ app.post('/api/eliminar-llanta', async (req, res) => {
   }
 });
 
+// Guardar acción en historial
+app.post("/api/historial", async (req, res) => {
+  const { usuario, accion, detalle } = req.body;
+  try {
+    const result = await pool.query(
+      "INSERT INTO historial (usuario, accion, detalle) VALUES ($1, $2, $3) RETURNING *",
+      [usuario, accion, detalle]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("Error guardando historial:", err);
+    res.status(500).json({ error: "Error guardando historial" });
+  }
+});
+
+// Obtener historial
+app.get("/api/historial", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM historial ORDER BY fecha DESC");
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error obteniendo historial:", err);
+    res.status(500).json({ error: "Error obteniendo historial" });
+  }
+});
+
+
 // 🚀 Iniciar servidor
 app.listen(PORT, () => {
   console.log(`🚀 Servidor escuchando en puerto ${PORT}`);
 });
+
 
 
 

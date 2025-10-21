@@ -175,19 +175,41 @@ const filtradas = llantas.filter(l => {
         <>
           <div className="text-sm text-gray-700 mb-2">Mostrando {filtradas.length} resultados</div>
           <div className="flex flex-row gap-6 flex-nowrap overflow-auto">
-            <div className="bg-white p-4 rounded shadow-md border min-w-[280px] w-[280px] flex-shrink-0">
-              <h2 className="text-lg font-semibold mb-3">Filtros</h2>
-              <input type="text" placeholder="Buscar referencia..." value={busqueda} onChange={e => setBusqueda(e.target.value)} className="w-full mb-3 p-2 border rounded" />
-              <label className="block text-sm mb-1">Marca</label>
-              <select value={marcaSeleccionada} onChange={e => setMarcaSeleccionada(e.target.value)} className="w-full mb-3 p-2 border rounded">
-                <option value="">Todas</option>
-                {marcasUnicas.map(m => <option key={m} value={m}>{m}</option>)}
-              </select>
-              <button onClick={() => { setBusqueda(''); setMarcaSeleccionada(''); }} className="w-full mt-2 bg-gray-200 hover:bg-gray-300 text-sm text-black py-1 rounded">Limpiar filtros</button>
-            </div>
+            <div className="bg-white p-4 rounded shadow-md border mb-6">
+  <h2 className="text-lg font-semibold mb-3">Filtros</h2>
 
-            <div className="flex-1 overflow-auto">
-              <table className="w-full border text-sm">
+  <div className="flex flex-col md:flex-row gap-3">
+    <input
+      type="text"
+      placeholder="Buscar referencia..."
+      value={busqueda}
+      onChange={e => setBusqueda(e.target.value)}
+      className="flex-1 p-2 border rounded shadow-sm focus:ring-2 focus:ring-green-400 outline-none"
+    />
+
+    <select
+      value={marcaSeleccionada}
+      onChange={e => setMarcaSeleccionada(e.target.value)}
+      className="flex-1 p-2 border rounded"
+    >
+      <option value="">Todas las marcas</option>
+      {marcasUnicas.map(m => (
+        <option key={m} value={m}>{m}</option>
+      ))}
+    </select>
+
+    <button
+      onClick={() => { setBusqueda(''); setMarcaSeleccionada(''); }}
+      className="bg-gray-200 hover:bg-gray-300 text-sm text-black py-2 px-4 rounded"
+    >
+      Limpiar filtros
+    </button>
+  </div>
+</div>
+
+           {/* 📋 Tabla de resultados abajo */}
+           <div className="overflow-auto">
+           <table className="w-full border text-sm">
                 <thead className="bg-gray-100">
                   <tr>
                     <th></th>

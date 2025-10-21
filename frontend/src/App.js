@@ -175,7 +175,7 @@ const filtradas = llantas.filter(l => {
         <>
           <div className="text-sm text-gray-700 mb-2">Mostrando {filtradas.length} resultados</div>
           <div className="bg-white p-5 rounded-2xl shadow-lg border flex flex-col gap-4">
-           <h2 className="text-xl font-semibold text-gray-800 border-b pb-2">Filtros</h2>
+           <h2 className="text-lg font-semibold">Filtros</h2>
 
            <div className="block text-sm font-medium text-gray-600 mb-1">
             <input type="text" placeholder="Buscar referencia..." value={busqueda} onChange={e => setBusqueda(e.target.value)} className="w-full p-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 outline-none" />
@@ -184,7 +184,7 @@ const filtradas = llantas.filter(l => {
                 <option value="">Todas las marcas</option>
                 {marcasUnicas.map(m => <option key={m} value={m}>{m}</option>)}
               </select>
-              <button onClick={() => { setBusqueda(''); setMarcaSeleccionada(''); }} className="w-auto self-center px-4 bg-gray-100 hover:bg-gray-200 text-sm text-gray-700 font-medium py-1.5 rounded-md transition">Limpiar filtros</button>
+              <button onClick={() => { setBusqueda(''); setMarcaSeleccionada(''); }} className="-full bg-gray-100 hover:bg-gray-200 text-sm text-gray-700 font-medium py-2 rounded-lg transition">Limpiar filtros</button>
             </div>
 
             <div className="flex-1 overflow-auto">

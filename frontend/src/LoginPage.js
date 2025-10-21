@@ -27,7 +27,7 @@ function LoginPage() {
         justifyContent: 'center',
         alignItems: 'center',
         backgroundImage: "url('/logoLogin.jpg')",
-        backgroundSize: 'auto 200px',
+        backgroundSize: 'auto 50px',
         backgroundPosition: 'top',
         backgroundRepeat: 'no-repeat'
       }}

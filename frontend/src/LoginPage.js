@@ -20,7 +20,7 @@ function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-100">
+    <div className="flex items-center justify-center h-screen bg-[url('/rinuki.jpg')] bg-cover bg-center">
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow-md w-full max-w-sm">
         <h2 className="text-xl font-bold mb-4">🔐 Ingresar</h2>
         <input

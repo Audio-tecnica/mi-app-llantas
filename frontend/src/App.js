@@ -21,7 +21,7 @@ function App() {
   useEffect(() => {
     const acceso = localStorage.getItem('acceso');
     const timestamp = localStorage.getItem('timestamp');
-    const maxTiempo = 15 * 60 * 1000;
+    const maxTiempo = 60 * 60 * 1000;
 
     if (!acceso || !timestamp || Date.now() - parseInt(timestamp) > maxTiempo) {
       localStorage.removeItem('acceso');

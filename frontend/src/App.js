@@ -182,10 +182,12 @@ const filtradas = llantas.filter(l => {
               <label className="block text-sm font-medium text-gray-600 mb-1">Marca</label>
               <select value={marcaSeleccionada} onChange={e => setMarcaSeleccionada(e.target.value)} className="w-full p-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 outline-none">
                 <option value="">Todas las marcas</option>
+                
                 {marcasUnicas.map(m => <option key={m} value={m}>{m}</option>)}
               </select>
+              <div className="flex justify-center mt-8 mb-2">
               <button onClick={() => { setBusqueda(''); setMarcaSeleccionada(''); }} className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-md transition">Limpiar filtros</button>
-            </div>
+              </div></div>
 
             <div className="flex-1 overflow-auto">
               <table className="w-full border text-sm">

@@ -67,13 +67,17 @@ function App() {
     }
   });
 
-  const filtradas = llantas.filter(l =>
-    l.referencia?.toLowerCase().includes(busqueda.toLowerCase()) &&
-    (!marcaSeleccionada || l.marca === marcaSeleccionada) &&
-    (!ancho || l.referencia.includes(ancho)) &&
-    (!perfil || l.referencia.includes(perfil)) &&
-    (!rin || l.referencia.includes(rin))
-  );
+  const filtradas = llantas.filter(l => {
+  const coincideBusqueda = l.referencia?.toLowerCase().includes(busqueda.toLowerCase());
+  const coincideMarca = !marcaSeleccionada || l.marca === marcaSeleccionada;
+  const coincideAncho = !ancho || l.referencia.includes(ancho);
+  const coincidePerfil = !perfil || l.referencia.includes(perfil);
+  const coincideRin = !rin || l.referencia.includes(rin);
+  const esEditando = modoEdicion === l.id;
+
+  return (coincideBusqueda && coincideMarca && coincideAncho && coincidePerfil && coincideRin) || esEditando;
+});
+
 
   const ordenarPor = (campo) => {
     const asc = orden.campo === campo ? !orden.asc : true;

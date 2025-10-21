@@ -166,18 +166,6 @@ app.post("/api/historial", async (req, res) => {
   }
 });
 
-// Obtener historial
-app.get("/api/historial", async (req, res) => {
-  try {
-    const result = await pool.query("SELECT * FROM historial ORDER BY fecha DESC");
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Error obteniendo historial:", err);
-    res.status(500).json({ error: "Error obteniendo historial" });
-  }
-});
-
-
 // 🚀 Iniciar servidor
 app.listen(PORT, () => {
   console.log(`🚀 Servidor escuchando en puerto ${PORT}`);

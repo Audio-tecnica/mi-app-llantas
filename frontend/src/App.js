@@ -10,9 +10,6 @@ function App() {
   const [llantas, setLlantas] = useState([]);
   const [busqueda, setBusqueda] = useState('');
   const [marcaSeleccionada, setMarcaSeleccionada] = useState('');
-  const [ancho, setAncho] = useState('');
-  const [perfil, setPerfil] = useState('');
-  const [rin, setRin] = useState('');
   const [mensaje, setMensaje] = useState('');
   const [modoEdicion, setModoEdicion] = useState(null);
   const [mostrarModal, setMostrarModal] = useState(false);
@@ -189,22 +186,7 @@ function App() {
                 <option value="">Todas</option>
                 {marcasUnicas.map(m => <option key={m} value={m}>{m}</option>)}
               </select>
-              <label className="block text-sm mb-1">Ancho</label>
-              <select value={ancho} onChange={e => setAncho(e.target.value)} className="w-full mb-3 p-2 border rounded">
-                <option value="">Todos</option>
-                {anchos.map(a => <option key={a}>{a}</option>)}
-              </select>
-              <label className="block text-sm mb-1">Perfil</label>
-              <select value={perfil} onChange={e => setPerfil(e.target.value)} className="w-full mb-3 p-2 border rounded">
-                <option value="">Todos</option>
-                {perfiles.map(p => <option key={p}>{p}</option>)}
-              </select>
-              <label className="block text-sm mb-1">Rin</label>
-              <select value={rin} onChange={e => setRin(e.target.value)} className="w-full mb-3 p-2 border rounded">
-                <option value="">Todos</option>
-                {rines.map(r => <option key={r}>{r}</option>)}
-              </select>
-              <button onClick={() => { setBusqueda(''); setMarcaSeleccionada(''); setAncho(''); setPerfil(''); setRin(''); }} className="w-full mt-2 bg-gray-200 hover:bg-gray-300 text-sm text-black py-1 rounded">Limpiar filtros</button>
+              <button onClick={() => { setBusqueda(''); setMarcaSeleccionada(''); }} className="w-full mt-2 bg-gray-200 hover:bg-gray-300 text-sm text-black py-1 rounded">Limpiar filtros</button>
             </div>
 
             <div className="flex-1 overflow-auto">

@@ -160,7 +160,7 @@ const filtradas = llantas.filter(l => {
       <div className="flex justify-between items-center mb-6 flex-wrap gap-2">
         <img src="/logoLogin.jpg" className="h-13 w-48" />
         <div className="flex flex-wrap gap-2">
-          <Link to="/subir" className="bg-blue-600 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-700">Subir archivo</Link>
+          <Link to="/subir" className="bg-blue-600 text-white px-4 py-1.5 rounded text-sm hover:bg-blue-700">Subir archivo</Link>
           <button onClick={() => setMostrarModal(true)} className="bg-gray-700 text-white px-3 py-1.5 rounded text-sm hover:bg-gray-800">Agregar ítem</button>
           <button onClick={handleEliminarMultiples} disabled={seleccionadas.length === 0} className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700">Eliminar seleccionados</button>
           <button onClick={() => { localStorage.removeItem('acceso'); window.location.href = '/login'; }} className="bg-red-500 text-white px-3 py-1.5 rounded text-sm hover:bg-red-600">Cerrar sesión</button>

@@ -22,13 +22,14 @@ function LoginPage() {
   return (
     <div
       style={{
-        height: '100vh',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundImage: "url('/rinuki.jpg')",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
+      //height: '100vh',
+      //display: 'flex',
+      // justifyContent: 'center',
+      //alignItems: 'center',
+        backgroundImage: "url('/logoLogin.jpg')",
+        backgroundSize: 'auto 200px',
+        backgroundPosition: 'top',
+        backgroundRepeat: 'no-repeat'
       }}
     >
       <form onSubmit={handleSubmit} className="bg-white/50 p-8 rounded shadow-md w-full max-w-sm">

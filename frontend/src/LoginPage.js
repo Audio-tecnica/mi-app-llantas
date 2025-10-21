@@ -22,10 +22,10 @@ function LoginPage() {
   return (
     <div
       style={{
-      //height: '100vh',
-      //display: 'flex',
-      // justifyContent: 'center',
-      //alignItems: 'center',
+        height: '100vh',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
         backgroundImage: "url('/logoLogin.jpg')",
         backgroundSize: 'auto 200px',
         backgroundPosition: 'top',

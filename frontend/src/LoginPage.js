@@ -20,7 +20,17 @@ function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-[url('/rinuki.jpg')] bg-cover bg-center">
+    <div
+      style={{
+        height: '100vh',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundImage: "url('/rinuki.jpg')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow-md w-full max-w-sm">
         <h2 className="text-xl font-bold mb-4">🔐 Ingresar</h2>
         <input
@@ -40,5 +50,6 @@ function LoginPage() {
 }
 
 export default LoginPage;
+
 
 

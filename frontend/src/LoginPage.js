@@ -32,7 +32,7 @@ function LoginPage() {
         backgroundRepeat: 'no-repeat'
       }}
     >
-      <form onSubmit={handleSubmit} className="bg-white/50 p-8 rounded shadow-md w-full max-w-sm">
+      <form onSubmit={handleSubmit} className="bg-slate-100 p-8 rounded shadow-md w-full max-w-sm">
         <h2 className="text-xl font-bold mb-4">🔐 Ingresar</h2>
         <input
           type="password"

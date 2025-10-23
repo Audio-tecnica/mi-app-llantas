@@ -28,7 +28,7 @@ function LoginPage() {
         alignItems: 'center',
         backgroundImage: "url('/logowp.PNG')",
         backgroundSize: 'auto 90px',
-        backgroundPosition: '50% 40%',
+        backgroundPosition: '50% 80%',
         backgroundRepeat: 'no-repeat'
       }}
     >

@@ -24,7 +24,7 @@ function LoginPage() {
     <div className="flex justify-between items-center mb-6 flex-wrap gap-2">
     {/* Contenedor para el logo con fondo blanco */}
     <div className="bg-white p-4 rounded-lg shadow-lg">
-      <img src="/logoLogin.jpg" className="h-13 w-48" alt="Logo" />
+      <img src="/logoLogin.png" className="h-13 w-48" alt="Logo" />
     </div></div>
   
       <form onSubmit={handleSubmit} className="bg-white/20 p-8 rounded shadow-md w-full max-w-sm">

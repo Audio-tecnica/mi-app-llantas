@@ -194,7 +194,7 @@ const filtradas = llantas.filter(l => {
 
             <div className="flex-1 overflow-auto">
               <table className="w-full border text-sm">
-                <thead className="bg-gray-100">
+                <thead className="bg-blue-100">
                   <tr>
                     <th></th>
                     <th onClick={() => ordenarPor('referencia')} className="cursor-pointer p-2">Referencia</th>

@@ -30,7 +30,7 @@ function App() {
   useEffect(() => {
     const acceso = localStorage.getItem('acceso');
     const timestamp = localStorage.getItem('timestamp');
-    const maxTiempo = 15 * 60 * 1000;
+    const maxTiempo = 60 * 60 * 1000;
 
     if (!acceso || !timestamp || Date.now() - parseInt(timestamp) > maxTiempo) {
       localStorage.removeItem('acceso');
@@ -182,44 +182,20 @@ function App() {
   return (
     <div className="max-w-7xl mx-auto p-4">
       <div className="flex justify-between items-center mb-6 flex-wrap gap-2">
-        <img src="/logoLogin.jpg" className="h-13 w-48" />
+        <img src="/logoLogin.png" className="h-13 w-48" />
         <div className="flex flex-wrap gap-2">
           {/*<Link to="/subir" className="bg-blue-600 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-700"> Subir archivo</Link>*/}
-          <button onClick={() => setMostrarModal(true)} className="bg-gray-700 text-white px-3 py-1.5 rounded text-sm hover:bg-gray-800">
-            Agregar ítem
-          </button>
-          <button
-            onClick={handleEliminarMultiples}
-            disabled={seleccionadas.length === 0}
-            className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700"
-          >
-            Eliminar seleccionados
-          </button>
-          <button
-            onClick={() => {
-              localStorage.removeItem('acceso');
-              window.location.href = '/login';
-            }}
-            className="bg-red-500 text-white px-3 py-1.5 rounded text-sm hover:bg-red-600"
-          >
-            Cerrar sesión
-          </button>
-          <button
-            onClick={() => window.open('/lista_llantar.pdf', '_blank')}
-            className="bg-green-600 text-white px-4 py-2 rounded"
-          >
-            Lista llantar
-          </button>
+          <button onClick={() => setMostrarModal(true)} className="bg-gray-700 text-white px-3 py-1.5 rounded text-sm hover:bg-gray-800">Agregar ítem</button>
+          <button onClick={handleEliminarMultiples} disabled={seleccionadas.length === 0}className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700">Eliminar seleccionados</button>
+          <button onClick={() => {localStorage.removeItem('acceso');window.location.href = '/login';}}
+            className="bg-red-500 text-white px-3 py-1.5 rounded text-sm hover:bg-red-600">Cerrar sesión</button>
+          <button onClick={() => window.open('/lista_llantar.pdf', '_blank')}
+            className="bg-green-600 text-white px-4 py-2 rounded">Lista llantar</button>
         </div>
       </div>
 
-      {mensaje && (
-        <div className="text-center text-blue-700 font-semibold mb-4">
-          ❗{mensaje}
-        </div>
-      )}
-
-
+      {mensaje && (<div className="text-center text-blue-700 font-semibold mb-4"> ❗{mensaje}
+        </div>)}
         {cargando ? (
           <div className="text-center py-10 text-gray-500">⏳ Cargando llantas...</div>
         ) : (

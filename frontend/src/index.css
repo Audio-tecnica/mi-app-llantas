@@ -6,7 +6,6 @@
 body {
   font-family: 'Inter', sans-serif; /* Fuente moderna */
   background-color: #ffffff; /* Fondo muy suave para la página */
-  background-image: "url('/rinuki.jpg')";
 }
 
 /* Para botones que se usan en toda la app */

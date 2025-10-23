@@ -189,7 +189,7 @@ const filtradas = llantas.filter(l => {
               </select>
               <div className="flex justify-center mt-10">
               <button onClick={() => { setBusqueda(''); setMarcaSeleccionada(''); }} 
-                  className="px-8 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 focus:ring-2 focus:ring-orange-400 transition ease-in-out duration-300">Limpiar filtros</button>
+                  className="px-8 py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700 focus:ring-2 focus:ring-orange-400 transition ease-in-out duration-300">Limpiar filtros</button>
               </div></div>
 
             <div className="flex-1 overflow-auto">

@@ -20,18 +20,13 @@ function LoginPage() {
   };
 
   return (
-    <div
-      style={{
-        height: '100vh',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundImage: "url('/logoLogin.png')",
-        backgroundSize: 'auto 90px',
-        backgroundPosition: '50% 10%',
-        backgroundRepeat: 'no-repeat'
-      }}
-    >
+    <div className="max-w-7xl mx-auto p-4">
+    <div className="flex justify-between items-center mb-6 flex-wrap gap-2">
+    {/* Contenedor para el logo con fondo blanco */}
+    <div className="bg-white p-4 rounded-lg shadow-lg">
+      <img src="/logoLogin.jpg" className="h-13 w-48" alt="Logo" />
+    </div></div>
+  
       <form onSubmit={handleSubmit} className="bg-white/20 p-8 rounded shadow-md w-full max-w-sm">
         <h2 className="text-xl font-bold mb-4">🔐 Ingresar</h2>
         <input

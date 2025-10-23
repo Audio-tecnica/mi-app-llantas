@@ -194,31 +194,31 @@ const filtradas = llantas.filter(l => {
                 <thead className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
                   <tr>
                     <th></th>
-                    <th onClick={() => ordenarPor('referencia')} className="py-3 px-4 text-left cursor-pointer">Referencia</th>
-                    <th onClick={() => ordenarPor('marca')} className="py-3 px-4 text-left cursor-pointer">Marca</th>
-                    <th onClick={() => ordenarPor('proveedor')} className="py-3 px-4 text-left cursor-pointer">Proveedor</th>
-                    <th onClick={() => ordenarPor('costo_empresa')} className="py-3 px-4 text-left cursor-pointer">Costo
+                    <th onClick={() => ordenarPor('referencia')} className="p-3 text-left cursor-pointer hover:bg-gray-200">Referencia</th>
+                    <th onClick={() => ordenarPor('marca')} className="p-3 text-left cursor-pointer hover:bg-gray-200">Marca</th>
+                    <th onClick={() => ordenarPor('proveedor')} className="p-3 text-left cursor-pointer hover:bg-gray-200">Proveedor</th>
+                    <th onClick={() => ordenarPor('costo_empresa')} className="p-3 text-left cursor-pointer hover:bg-gray-200">Costo
                         <button onClick={(e) => { e.stopPropagation(); setMostrarCosto(!mostrarCosto); }}className="bg-blue-600 text-white px-6 py-3 rounded-xl shadow-lg hover:bg-blue-700 transform hover:scale-105 transition ease-in-out duration-200">
                           {mostrarCosto ? <EyeOff size={16} /> : <Eye size={16} />}
                         </button>
                     </th>
-                    <th onClick={() => ordenarPor('precio_cliente')} className="py-3 px-4 text-left cursor-pointer">Precio</th>
-                    <th onClick={() => ordenarPor('stock')} className="py-3 px-4 text-left cursor-pointer">Stock</th>
+                    <th onClick={() => ordenarPor('precio_cliente')} className="p-3 text-left cursor-pointer hover:bg-gray-200">Precio</th>
+                    <th onClick={() => ordenarPor('stock')} className="p-3 text-left cursor-pointer hover:bg-gray-200">Stock</th>
                     <th className="p-2">Acción</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filtradas.map(ll => (
-                    <tr key={ll.id} className={`bg-white hover:bg-gray-100 transition-all duration-300 ${ll.stock % 2 !== 0 ? 'bg-red-100' : ''}`}>
-                      <td className="py-3 px-4"><input type="checkbox" checked={seleccionadas.includes(ll.id)} onChange={() => toggleSeleccion(ll.id)} /></td>
+                    <tr key={ll.id} className={`border-t even:bg-gray-50 hover:bg-gray-100 ${ll.stock % 2 !== 0 ? 'bg-red-100' : ''}`}>
+                      <td className="p-3"><input type="checkbox" checked={seleccionadas.includes(ll.id)} onChange={() => toggleSeleccion(ll.id)} /></td>
                       {modoEdicion === ll.id ? (
                         <>
-                          <td><input value={ll.referencia} onChange={e => actualizarCampo(ll.id, 'referencia', e.target.value)} className="py-3 px-4" /></td>
-                          <td><input value={ll.marca} onChange={e => actualizarCampo(ll.id, 'marca', e.target.value)} className="py-3 px-4" /></td>
-                          <td><input value={ll.proveedor} onChange={e => actualizarCampo(ll.id, 'proveedor', e.target.value)} className="py-3 px-4" /></td>
-                          <td><input type="number" value={ll.costo_empresa} onChange={e => actualizarCampo(ll.id, 'costo_empresa', e.target.value)} className="py-3 px-4" /></td>
-                          <td><input type="number" value={ll.precio_cliente} onChange={e => actualizarCampo(ll.id, 'precio_cliente', e.target.value)} className="py-3 px-4" /></td>
-                          <td><input type="number" value={ll.stock} onChange={e => actualizarCampo(ll.id, 'stock', e.target.value)} className="py-3 px-4" /></td>
+                          <td><input value={ll.referencia} onChange={e => actualizarCampo(ll.id, 'referencia', e.target.value)} className="p-3" /></td>
+                          <td><input value={ll.marca} onChange={e => actualizarCampo(ll.id, 'marca', e.target.value)} className="p-3" /></td>
+                          <td><input value={ll.proveedor} onChange={e => actualizarCampo(ll.id, 'proveedor', e.target.value)} className="p-3" /></td>
+                          <td><input type="number" value={ll.costo_empresa} onChange={e => actualizarCampo(ll.id, 'costo_empresa', e.target.value)} className="p-3" /></td>
+                          <td><input type="number" value={ll.precio_cliente} onChange={e => actualizarCampo(ll.id, 'precio_cliente', e.target.value)} className="p-3" /></td>
+                          <td><input type="number" value={ll.stock} onChange={e => actualizarCampo(ll.id, 'stock', e.target.value)} className="p-3" /></td>
                           <td className="flex gap-1 justify-center">
                             <button onClick={() => handleGuardar(ll)} className="bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600bg-blue-600 text-white px-6 py-3 rounded-xl shadow-lg hover:bg-blue-700 transform hover:scale-105 transition ease-in-out duration-200">Guardar</button>
                             <button onClick={() => setModoEdicion(null)} className="bg-blue-600 text-white px-6 py-3 rounded-xl shadow-lg hover:bg-blue-700 transform hover:scale-105 transition ease-in-out duration-200">Cancelar</button>

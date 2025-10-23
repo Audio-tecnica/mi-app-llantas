@@ -160,7 +160,7 @@ const filtradas = llantas.filter(l => {
       <div className="flex justify-between items-center mb-6 flex-wrap gap-2">
         <div className="bg-white p-4 rounded-lg shadow-lg">
            <img src="/logoLogin.jpg" className="h-13 w-48" alt="Logo" />
-        </div>
+          </div>
 
           {/*<Link to="/subir" className="bg-blue-600 text-white px-4 py-2 rounded">Subir archivo</Link>*/} {/*PAUSADO EL LINK DE SUBIR ARCHIVO*/}
           <button onClick={() => setMostrarModal(true)} className="bg-gray-700 text-white px-3 py-1.5 rounded text-sm hover:bg-gray-800">Agregar ítem</button>
@@ -168,9 +168,10 @@ const filtradas = llantas.filter(l => {
           <button onClick={() => { localStorage.removeItem('acceso'); window.location.href = '/login'; }} className="bg-red-500 text-white px-3 py-1.5 rounded text-sm hover:bg-red-600">Cerrar sesión</button>
          <button onClick={() => window.open('/lista_llantar.pdf', '_blank')}className="bg-green-600 text-white px-4 py-2 rounded">Lista llantar</button>
         </div>
-      </div>
+    </div>
 
-      {mensaje && <div className="text-center text-blue-700 font-semibold mb-4">❗{mensaje}</div>}
+      {mensaje &&( <div className="text-center text-blue-700 font-semibold mb-4">❗{mensaje} </div>)}
+
       {cargando ? (
         <div className="text-center py-10 text-gray-500">⏳ Cargando llantas...</div>
       ) : (
@@ -272,43 +273,6 @@ const filtradas = llantas.filter(l => {
           </div>
         </div>
       )}
-    </div>
-  );
+  
 }
-
 export default App;
-
- 
-
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

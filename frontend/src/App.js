@@ -221,7 +221,7 @@ function App() {
 
               <div className="flex-3 overflow-auto">
                 <table className="w-full border text-sm">
-                  <thead className="bg-gradient-to-r from-gray-300 to-orange-200 text-white">
+                  <thead className="bg-gradient-to-r from-gray-300 to-orange-200 text-black">
                     <tr>
                       <th></th>
                       <th onClick={() => ordenarPor('referencia')} className="cursor-pointer p-2">Referencia</th>

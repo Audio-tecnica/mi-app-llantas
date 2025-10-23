@@ -227,9 +227,9 @@ function App() {
                       <th onClick={() => ordenarPor('referencia')} className="cursor-pointer p-2">Referencia</th>
                       <th onClick={() => ordenarPor('marca')} className="cursor-pointer p-2">Marca</th>
                       <th onClick={() => ordenarPor('proveedor')} className="cursor-pointer p-2">Proveedor</th>
-                      <th onClick={() => ordenarPor('costo_empresa')} className="cursor-pointer p-2">Costo
-                          <button onClick={(e) => { e.stopPropagation(); setMostrarCosto(!mostrarCosto); }}className="ml-2 text-blue-500">
-                            {mostrarCosto ? <EyeOff size={15} /> : <Eye size={15} />}
+                      <th onClick={() => ordenarPor('costo_empresa')} className="cursor-pointer p-2"> Costo - 
+                          <button onClick={(e) => { e.stopPropagation(); setMostrarCosto(!mostrarCosto); }}className="ml-1 text-blue-600">
+                            {mostrarCosto ? <EyeOff size={16} /> : <Eye size={16} />}
                           </button>
                       </th>
                       <th onClick={() => ordenarPor('precio_cliente')} className="cursor-pointer p-2">Precio</th>

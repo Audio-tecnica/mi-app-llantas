@@ -219,9 +219,9 @@ function App() {
                     className="px-8 py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700 focus:ring-2 focus:ring-orange-400 transition ease-in-out duration-300">Limpiar filtros</button>
                 </div></div>
 
-              <div className="flex-1 overflow-auto">
+              <div className="flex-2 overflow-auto">
                 <table className="w-full border text-sm">
-                  <thead className="bg-gradient-to-r from-gray-500 to-orange-600 text-white">
+                  <thead className="bg-gradient-to-r from-gray-400 to-orange-500 text-white">
                     <tr>
                       <th></th>
                       <th onClick={() => ordenarPor('referencia')} className="cursor-pointer p-2">Referencia</th>

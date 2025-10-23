@@ -221,14 +221,14 @@ function App() {
 
               <div className="flex-1 overflow-auto">
                 <table className="w-full border text-sm">
-                  <thead className="bg-gradient-to-r from-gray-600 to-orange-700 text-white">
+                  <thead className="bg-gradient-to-r from-gray-600 to-orange-100 text-white">
                     <tr>
                       <th></th>
                       <th onClick={() => ordenarPor('referencia')} className="cursor-pointer p-2">Referencia</th>
                       <th onClick={() => ordenarPor('marca')} className="cursor-pointer p-2">Marca</th>
                       <th onClick={() => ordenarPor('proveedor')} className="cursor-pointer p-2">Proveedor</th>
                       <th onClick={() => ordenarPor('costo_empresa')} className="cursor-pointer p-2">Costo
-                          <button onClick={(e) => { e.stopPropagation(); setMostrarCosto(!mostrarCosto); }}className="ml-2 text-blue-600">
+                          <button onClick={(e) => { e.stopPropagation(); setMostrarCosto(!mostrarCosto); }}className="ml-2 text-white-600">
                             {mostrarCosto ? <EyeOff size={16} /> : <Eye size={16} />}
                           </button>
                       </th>

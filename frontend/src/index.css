@@ -1,23 +1,22 @@
-/* Configuración base de Tailwind */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
-  font-family: 'Inter', sans-serif; /* Fuente moderna */
-  background-color:"bg-gradient-to-r from-white-500 to-orange-600"; /* Fondo muy suave para la página */
+  font-family: 'Inter', sans-serif;
+  /* Usamos la clase de Tailwind para aplicar el fondo degradado */
+  background: linear-gradient(to right, #ffffff, #f97316); /* De blanco a naranja (naranja tailwind) */
 }
 
-/* Para botones que se usan en toda la app */
 button {
   transition: transform 0.2s ease-in-out, background-color 0.3s ease-in-out;
 }
 
-/* Estilo de fondo para los modales */
 .modal-backdrop {
   background-color: rgba(0, 0, 0, 0.5);
   transition: opacity 0.2s ease-in-out;
 }
+
 
 
 

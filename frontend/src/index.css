@@ -1,6 +1,24 @@
+/* Configuración base de Tailwind */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+  font-family: 'Inter', sans-serif; /* Fuente moderna */
+  background-color: #f4f7fc; /* Fondo muy suave para la página */
+}
+
+/* Para botones que se usan en toda la app */
+button {
+  transition: transform 0.2s ease-in-out, background-color 0.3s ease-in-out;
+}
+
+/* Estilo de fondo para los modales */
+.modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+  transition: opacity 0.2s ease-in-out;
+}
+
 
 
 

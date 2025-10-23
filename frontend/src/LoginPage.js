@@ -26,9 +26,9 @@ function LoginPage() {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundImage: "url('/logoLogin.jpg')",
+        backgroundImage: "url('/logowp.png')",
         backgroundSize: 'auto 90px',
-        backgroundPosition: '50% 5%',
+        backgroundPosition: '50% 40%',
         backgroundRepeat: 'no-repeat'
       }}
     >

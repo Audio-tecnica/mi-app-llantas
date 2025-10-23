@@ -7,6 +7,8 @@ import './index.css';
 function App() {
   const [mostrarCosto, setMostrarCosto] = useState(false);
   const [llantas, setLlantas] = useState([]);
+  const [busquedasRecientes, setBusquedasRecientes] = useState(
+         JSON.parse(localStorage.getItem('busquedasRecientes')) || []);
   const [busqueda, setBusqueda] = useState('');
   const [marcaSeleccionada, setMarcaSeleccionada] = useState('');
   const [ancho, setAncho] = useState('');
@@ -22,7 +24,7 @@ function App() {
     costo_empresa: '',
     precio_cliente: '',
     stock: ''
-  });
+  }); 
   const [cargando, setCargando] = useState(true);
   const [orden, setOrden] = useState({ campo: '', asc: true });
   const [seleccionadas, setSeleccionadas] = useState([]);
@@ -31,6 +33,11 @@ function App() {
     const acceso = localStorage.getItem('acceso');
     const timestamp = localStorage.getItem('timestamp');
     const maxTiempo = 60 * 60 * 1000;
+
+    useEffect(() => {
+     const recientes = JSON.parse(localStorage.getItem('busquedasRecientes') || '[]');
+     setBusquedasRecientes(recientes);
+    }, []);
 
     if (!acceso || !timestamp || Date.now() - parseInt(timestamp) > maxTiempo) {
       localStorage.removeItem('acceso');
@@ -204,29 +211,77 @@ function App() {
             <div className="bg-white p-6 rounded-3xl shadow-xl border mb-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-6">Ingrese su busqueda</h2>
 
-            <div className="mb-4">
-              <input type="text" placeholder="Buscar referencia..." value={busqueda}
-              
-              onChange={e => {const valor = e.target.value;setBusqueda(valor);
-                    if (valor.length > 2) {const recientes = JSON.parse(localStorage.getItem('busquedasRecientes') || '[]');
-                        if (!recientes.includes(valor)) {const nuevas = [valor, ...recientes].slice(0, 5); // Máximo 5 últimas
-                          localStorage.setItem('busquedasRecientes', JSON.stringify(nuevas));
-                          }
-                       }
-                    }}
+       <div className="mb-4">
+  {/* Campo de búsqueda */}
+  <input
+    type="text"
+    placeholder="Buscar referencia..."
+    value={busqueda}
+    onChange={e => {
+      const valor = e.target.value;
+      setBusqueda(valor);
 
-              className="w-full p-4 border-2 border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-300" />
-                <label className="block text-sm font-medium text-gray-600 mb-2">Marca</label>
-                <select value={marcaSeleccionada} onChange={e => setMarcaSeleccionada(e.target.value)} 
-                    className="w-full p-4 border-2 border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-300">
-                  <option value="">Todas las marcas</option>
-                  
-                  {marcasUnicas.map(m => <option key={m} value={m}>{m}</option>)}
-                </select>
-                <div className="flex justify-center mt-10">
-                <button onClick={() => { setBusqueda(''); setMarcaSeleccionada(''); }} 
-                    className="px-8 py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700 focus:ring-2 focus:ring-orange-400 transition ease-in-out duration-300">Limpiar filtros</button>
-                </div></div>
+      if (valor.length > 2) {
+        const recientes = JSON.parse(localStorage.getItem('busquedasRecientes')) || [];
+        if (!recientes.includes(valor)) {
+          const nuevas = [valor, ...recientes].slice(0, 5); // máximo 5 recientes
+          localStorage.setItem('busquedasRecientes', JSON.stringify(nuevas));
+          setBusquedasRecientes(nuevas);
+        }
+      }
+    }}
+    className="w-full p-2 border rounded"
+  />
+
+  {/* Lista de búsquedas recientes */}
+  {busquedasRecientes.length > 0 && (
+    <div className="mt-2 text-sm text-gray-700">
+      <p className="font-semibold mb-1">Búsquedas recientes:</p>
+      <div className="flex flex-wrap gap-2">
+        {busquedasRecientes.map((b, i) => (
+          <button
+            key={i}
+            onClick={() => setBusqueda(b)}
+            className="bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded"
+          >
+            {b}
+          </button>
+        ))}
+      </div>
+    </div>
+  )}
+
+  {/* Filtro por marca */}
+  <div className="mt-4">
+    <label className="block text-sm font-medium text-gray-600 mb-2">Marca</label>
+    <select
+      value={marcaSeleccionada}
+      onChange={e => setMarcaSeleccionada(e.target.value)}
+      className="w-full p-4 border-2 border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-300"
+    >
+      <option value="">Todas las marcas</option>
+      {marcasUnicas.map(m => (
+        <option key={m} value={m}>
+          {m}
+        </option>
+      ))}
+    </select>
+  </div>
+
+  {/* Botón limpiar filtros */}
+  <div className="flex justify-center mt-6">
+    <button
+      onClick={() => {
+        setBusqueda('');
+        setMarcaSeleccionada('');
+      }}
+      className="px-8 py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700 focus:ring-2 focus:ring-orange-400 transition ease-in-out duration-300"
+    >
+      Limpiar filtros
+    </button>
+  </div>
+</div>
+
 
               <div className="flex-3 overflow-auto">
                 <table className="w-full border text-sm">

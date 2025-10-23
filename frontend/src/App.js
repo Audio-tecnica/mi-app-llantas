@@ -174,19 +174,19 @@ const filtradas = llantas.filter(l => {
       ) : (
         <>
           <div className="text-sm text-gray-700 mb-2">Mostrando {filtradas.length} resultados</div>
-          <div className="bg-white p-5 rounded-2xl shadow-lg border mb-4">
-           <h2 className="text-xl font-semibold text-gray-800 border-b pb-2">Filtros</h2>
+          <div className="bg-white p-6 rounded-3xl shadow-xl border mb-6">
+           <h2 className="text-xl font-semibold text-gray-800 mb-6">Filtros</h2>
 
-           <div className="block text-sm font-medium text-gray-600 mb-1">
-            <input type="text" placeholder="Buscar referencia..." value={busqueda} onChange={e => setBusqueda(e.target.value)} className="w-full p-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 outline-none" />
-              <label className="block text-sm font-medium text-gray-600 mb-1">Marca</label>
-              <select value={marcaSeleccionada} onChange={e => setMarcaSeleccionada(e.target.value)} className="w-full p-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 outline-none">
+           <div className="mb-6">
+            <input type="text" placeholder="Buscar referencia..." value={busqueda} onChange={e => setBusqueda(e.target.value)} className="w-full p-4 border-2 border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-300" />
+              <label className="block text-sm font-medium text-gray-600 mb-2">Marca</label>
+              <select value={marcaSeleccionada} onChange={e => setMarcaSeleccionada(e.target.value)} className="w-full p-4 border-2 border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-300">
                 <option value="">Todas las marcas</option>
                 
                 {marcasUnicas.map(m => <option key={m} value={m}>{m}</option>)}
               </select>
-              <div className="bg-blue-600 text-white px-6 py-3 rounded-xl shadow-lg hover:bg-blue-700 transform hover:scale-105 transition ease-in-out duration-200">
-              <button onClick={() => { setBusqueda(''); setMarcaSeleccionada(''); }} className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-md transition">Limpiar filtros</button>
+              <div className="flex justify-center">
+              <button onClick={() => { setBusqueda(''); setMarcaSeleccionada(''); }} className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 focus:ring-2 focus:ring-blue-400 transition ease-in-out duration-200">Limpiar filtros</button>
               </div></div>
 
             <div className="flex-1 overflow-auto">

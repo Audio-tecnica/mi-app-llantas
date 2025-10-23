@@ -5,7 +5,7 @@
 body {
   font-family: 'Inter', sans-serif;
   /* Gradiente de arriba hacia abajo */
-  background: linear-gradient(to bottom, #ffffff, #f97316); /* De blanco a naranja */
+  background: linear-gradient(to bottom, #ffffff, #ffaa6d); /* De blanco a naranja */
 }
 
 button {

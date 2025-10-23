@@ -174,7 +174,7 @@ const filtradas = llantas.filter(l => {
       ) : (
         <>
           <div className="text-sm text-gray-700 mb-2">Mostrando {filtradas.length} resultados</div>
-          <div className="bg-white p-5 rounded-2xl shadow-lg border flex flex-col gap-4">
+          <div className="bg-white p-5 rounded-2xl shadow-lg border mb-4">
            <h2 className="text-xl font-semibold text-gray-800 border-b pb-2">Filtros</h2>
 
            <div className="block text-sm font-medium text-gray-600 mb-1">

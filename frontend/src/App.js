@@ -186,12 +186,12 @@ const filtradas = llantas.filter(l => {
                 {marcasUnicas.map(m => <option key={m} value={m}>{m}</option>)}
               </select>
               <div className="flex justify-center mt-8 mb-2">
-              <button onClick={() => { setBusqueda(''); setMarcaSeleccionada(''); }} className="bg-blue-600 text-white px-6 py-3 rounded-xl shadow-lg hover:bg-blue-700 transform hover:scale-105 transition ease-in-out duration-200">Limpiar filtros</button>
+              <button onClick={() => { setBusqueda(''); setMarcaSeleccionada(''); }} className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-md transition">Limpiar filtros</button>
               </div></div>
 
             <div className="flex-1 overflow-auto">
-              <table className="w-full border-collapse text-sm">
-                <thead className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+              <table className="w-full border-separate border-spacing-2 text-sm">
+                <thead className="bg-gray-100">
                   <tr>
                     <th></th>
                     <th onClick={() => ordenarPor('referencia')} className="p-3 text-left cursor-pointer hover:bg-gray-200">Referencia</th>
@@ -221,7 +221,7 @@ const filtradas = llantas.filter(l => {
                           <td><input type="number" value={ll.stock} onChange={e => actualizarCampo(ll.id, 'stock', e.target.value)} className="p-3" /></td>
                           <td className="flex gap-1 justify-center">
                             <button onClick={() => handleGuardar(ll)} className="bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600bg-blue-600 text-white px-6 py-3 rounded-xl shadow-lg hover:bg-blue-700 transform hover:scale-105 transition ease-in-out duration-200">Guardar</button>
-                            <button onClick={() => setModoEdicion(null)} className="bg-blue-600 text-white px-6 py-3 rounded-xl shadow-lg hover:bg-blue-700 transform hover:scale-105 transition ease-in-out duration-200">Cancelar</button>
+                            <button onClick={() => setModoEdicion(null)} className="bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600">Cancelar</button>
                           </td>
                         </>
                       ) : (

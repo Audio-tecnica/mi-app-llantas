@@ -26,7 +26,7 @@ function LoginPage() {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundImage: "url('/logoLogin.jpg')",
+        backgroundImage: "url('/logoLogin.png')",
         backgroundSize: 'auto 90px',
         backgroundPosition: '50% 35%',
         backgroundRepeat: 'no-repeat'

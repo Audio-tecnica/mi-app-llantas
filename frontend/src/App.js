@@ -175,7 +175,7 @@ const filtradas = llantas.filter(l => {
         <>
           <div className="text-sm text-gray-700 mb-2">Mostrando {filtradas.length} resultados</div>
           <div className="bg-white p-6 rounded-3xl shadow-xl border mb-6">
-           <h2 className="text-xl font-semibold text-gray-800 mb-6">Filtros</h2>
+           <h2 className="text-xl font-semibold text-gray-800 mb-6">Ingrese su busqueda</h2>
 
            <div className="mb-4">
             <input type="text" placeholder="Buscar referencia..." value={busqueda} onChange={e => setBusqueda(e.target.value)}

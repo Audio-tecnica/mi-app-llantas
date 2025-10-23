@@ -261,8 +261,6 @@ function App() {
                            <button onClick={() =>window.open(`https://www.llantar.com.co/collections/llantas?q=${encodeURIComponent(ll.referencia)}`,'_blank') }
                               className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-xs">Ver</button>
                                </td>
-
-                            <td>{ll.referencia}</td>
                             <td>{ll.marca}</td>
                             <td>{ll.proveedor}</td>
                             <td className="text-blue-600">{mostrarCosto ? `$${ll.costo_empresa.toLocaleString()}` : '•••••'}</td>

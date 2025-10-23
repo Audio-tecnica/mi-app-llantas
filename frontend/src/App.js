@@ -205,8 +205,17 @@ function App() {
             <h2 className="text-xl font-semibold text-gray-800 mb-6">Ingrese su busqueda</h2>
 
             <div className="mb-4">
-              <input type="text" placeholder="Buscar referencia..." value={busqueda} onChange={e => setBusqueda(e.target.value)}
-                  className="w-full p-4 border-2 border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-300" />
+              <input type="text" placeholder="Buscar referencia..." value={busqueda}
+              
+              onChange={e => {const valor = e.target.value;setBusqueda(valor);
+                    if (valor.length > 2) {const recientes = JSON.parse(localStorage.getItem('busquedasRecientes') || '[]');
+                        if (!recientes.includes(valor)) {const nuevas = [valor, ...recientes].slice(0, 5); // Máximo 5 últimas
+                          localStorage.setItem('busquedasRecientes', JSON.stringify(nuevas));
+                          }
+                       }
+                    }}
+
+                className="w-full p-4 border-2 border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-300" />
                 <label className="block text-sm font-medium text-gray-600 mb-2">Marca</label>
                 <select value={marcaSeleccionada} onChange={e => setMarcaSeleccionada(e.target.value)} 
                     className="w-full p-4 border-2 border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-300">

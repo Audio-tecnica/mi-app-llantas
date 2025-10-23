@@ -190,7 +190,7 @@ function App() {
           <button onClick={() => {localStorage.removeItem('acceso');window.location.href = '/login';}}
             className="bg-red-500 text-white px-3 py-1.5 rounded text-sm hover:bg-red-600">Cerrar sesión</button>
           <button onClick={() => window.open('/lista_llantar.pdf', '_blank')}
-            className="bg-green-600 text-white px-4 py-2 rounded">Lista llantar</button>
+            className="bg-yelow-500 text-white px-3 py-1.5 rounded text-sm hover:bg-yelow-600">Lista llantar</button>
         </div>
       </div>
 

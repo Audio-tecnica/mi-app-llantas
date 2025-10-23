@@ -215,7 +215,7 @@ function App() {
                        }
                     }}
 
-                className="w-full p-4 border-2 border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-300" />
+              className="w-full p-4 border-2 border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-300" />
                 <label className="block text-sm font-medium text-gray-600 mb-2">Marca</label>
                 <select value={marcaSeleccionada} onChange={e => setMarcaSeleccionada(e.target.value)} 
                     className="w-full p-4 border-2 border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-300">

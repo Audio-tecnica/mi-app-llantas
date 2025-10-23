@@ -223,8 +223,6 @@ function App() {
            }
          }}
          className="w-full p-2 border rounded"/>
-
-            {/* Lista de búsquedas recientes */}
             {busquedasRecientes.length > 0 && (
             <div className="mt-2 text-sm text-gray-700">
             <p className="font-semibold mb-1">Búsquedas recientes:</p>

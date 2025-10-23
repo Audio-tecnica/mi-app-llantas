@@ -7,7 +7,8 @@ import './index.css';
 function App() {
   const [mostrarCosto, setMostrarCosto] = useState(false);
   const [llantas, setLlantas] = useState([]);
-  const [busquedasRecientes, setBusquedasRecientes] = useState
+  const [busquedasRecientes, setBusquedasRecientes] = useState(
+     JSON.parse(localStorage.getItem('busquedasRecientes')) || []);
   const [busqueda, setBusqueda] = useState('');
   const [marcaSeleccionada, setMarcaSeleccionada] = useState('');
   const [ancho, setAncho] = useState('');

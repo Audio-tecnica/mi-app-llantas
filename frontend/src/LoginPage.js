@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import FaceLogin from "./FaceLogin";
 
 const PASSWORD = 'at2025';
 

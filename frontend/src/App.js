@@ -221,13 +221,13 @@ function App() {
                 <p className="font-semibold mb-1">Búsquedas recientes:</p>
                 <div className="flex flex-wrap gap-2">
                 {busquedasRecientes.map((b, i) => (
-        <button key={i} onClick={() => setBusqueda(b)}
-          className="bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded">{b}
-        </button>
-            ))}
-         </div>
-       </div>
-      )}
+                <button key={i} onClick={() => setBusqueda(b)}
+                className="bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded">{b}
+                </button>
+               ))}
+            </div>
+          </div>
+         )}
               <label className="block text-sm font-medium text-gray-600 mb-2 mt-4">Marca</label>
               <select
                 value={marcaSeleccionada}

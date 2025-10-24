@@ -33,6 +33,22 @@ function App() {
     setBusquedasRecientes(recientes);
     }, []);
 
+     // 🔹 1. Si no hay internet, cargar desde caché
+  useEffect(() => {
+    const cached = JSON.parse(localStorage.getItem("llantasCache") || "[]");
+    if (!navigator.onLine && cached.length > 0) {
+      setLlantas(cached);
+      console.log("Cargando datos desde caché (modo offline)");
+    }
+  }, []);
+
+  // 🔹 2. Cada vez que cambian las llantas, guardarlas en caché
+  useEffect(() => {
+    if (llantas.length > 0) {
+      localStorage.setItem("llantasCache", JSON.stringify(llantas));
+    }
+  }, [llantas]);
+
 
   // 🔒 Verificación de sesión
   useEffect(() => {

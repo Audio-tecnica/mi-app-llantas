@@ -7,14 +7,13 @@ const PASSWORD = 'at2025';
 function LoginPage() {
   const [input, setInput] = useState('');
   const [error, setError] = useState('');
-  const [mostrarFaceLogin, setMostrarFaceLogin] = useState(false); // ✅ agregado
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (input === PASSWORD) {
       localStorage.setItem('acceso', PASSWORD);
-      localStorage.setItem('timestamp', Date.now());
+      localStorage.setItem('timestamp', Date.now()); // ✅ esta línea es clave
       navigate('/');
     } else {
       setError('Contraseña incorrecta ❌');
@@ -22,18 +21,19 @@ function LoginPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen gap-4">
-      {mostrarFaceLogin ? (
-        <FaceLogin onSuccess={() => navigate("/app")} />
-      ) : (
-        <button
-          onClick={() => setMostrarFaceLogin(true)}
-          className="bg-green-600 text-white px-4 py-2 rounded"
-        >
-          Ingresar con reconocimiento facial
-        </button>
-      )}
-
+    <div
+      style={{
+        height: '100vh',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundImage: "url('/logowp.PNG')",
+        backgroundSize: 'auto 150px',
+        backgroundPosition: '50% 20%',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      
       <form onSubmit={handleSubmit} className="bg-white/20 p-8 rounded shadow-md w-full max-w-sm">
         <h2 className="text-xl font-bold mb-4">🔐 Ingresar</h2>
         <input

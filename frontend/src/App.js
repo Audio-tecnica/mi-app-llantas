@@ -8,6 +8,7 @@ function App() {
   const [mostrarCosto, setMostrarCosto] = useState(false);
   const [llantas, setLlantas] = useState([]);
   const [busqueda, setBusqueda] = useState('');
+  const [busquedasRecientes, setBusquedasRecientes] = useState([]);
   const [marcaSeleccionada, setMarcaSeleccionada] = useState('');
   const [ancho, setAncho] = useState('');
   const [perfil, setPerfil] = useState('');
@@ -50,6 +51,11 @@ function App() {
 
     return () => clearTimeout(timer);
   }, []);
+ 
+    useEffect(() => {
+    const recientes = JSON.parse(localStorage.getItem('busquedasRecientes') || '[]');
+    setBusquedasRecientes(recientes);
+    }, []);
 
   // 📦 Cargar llantas
   useEffect(() => {
@@ -199,9 +205,29 @@ function App() {
                 placeholder="Buscar referencia..."
                 value={busqueda}
                 onChange={e => setBusqueda(e.target.value)}
-                className="w-full p-4 border-2 border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-300"
-              />
-
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && busqueda.trim()) {
+                  let nuevas = [busqueda, ...busquedasRecientes.filter(b => b !== busqueda)];
+                  if (nuevas.length > 5) nuevas = nuevas.slice(0, 5); // máximo 5
+                  setBusquedasRecientes(nuevas);
+                  localStorage.setItem('busquedasRecientes', JSON.stringify(nuevas));
+                   }
+                 }}
+              
+              
+              className="w-full p-4 border-2 border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-300"/>
+               {busquedasRecientes.length > 0 && (
+                <div className="mt-2 text-sm text-gray-700">
+                <p className="font-semibold mb-1">Búsquedas recientes:</p>
+                <div className="flex flex-wrap gap-2">
+                {busquedasRecientes.map((b, i) => (
+        <button key={i} onClick={() => setBusqueda(b)}
+          className="bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded">{b}
+        </button>
+            ))}
+         </div>
+       </div>
+      )}
               <label className="block text-sm font-medium text-gray-600 mb-2 mt-4">Marca</label>
               <select
                 value={marcaSeleccionada}

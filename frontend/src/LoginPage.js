@@ -20,17 +20,6 @@ function LoginPage() {
     }
   };
 
-  {mostrarFaceLogin ? (
-  <FaceLogin onSuccess={() => navigate("/app")} />
-   ) : (
-  <button
-    onClick={() => setMostrarFaceLogin(true)}
-    className="bg-green-600 text-white px-4 py-2 rounded"
-     >
-    Ingresar con reconocimiento facial
-    </button>
-  )}
-
   return (
     <div
       style={{
@@ -44,6 +33,16 @@ function LoginPage() {
         backgroundRepeat: 'no-repeat'
       }}
     >
+        {mostrarFaceLogin ? (
+  <FaceLogin onSuccess={() => navigate("/app")} />
+   ) : (
+  <button
+    onClick={() => setMostrarFaceLogin(true)}
+    className="bg-green-600 text-white px-4 py-2 rounded"
+     >
+    Ingresar con reconocimiento facial
+    </button>
+  )}
       <form onSubmit={handleSubmit} className="bg-white/20 p-8 rounded shadow-md w-full max-w-sm">
         <h2 className="text-xl font-bold mb-4">🔐 Ingresar</h2>
         <input

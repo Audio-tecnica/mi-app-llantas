@@ -77,11 +77,11 @@ function App() {
    
   // 📦 Cargar llantas
   useEffect(() => {
-    axios.get('https://mi-app-llantas.onrender.com/api/llantas')
-      .then(res => setLlantas(res.data))
-      .catch(() => setMensaje('Error al cargar llantas ❌'))
-      .finally(() => setCargando(false));
-  }, []);
+  axios.get('https://mi-app-llantas.onrender.com/api/llantas')
+    .then(res => setLlantas(res.data))
+    .catch(() => setMensaje('⚠️ No hay conexión con el servidor. Verifica tu red.'))
+    .finally(() => setCargando(false));
+}, []);
 
   // 📋 Filtros y marcas
   const marcasUnicas = [...new Set(llantas.map(l => l.marca))];

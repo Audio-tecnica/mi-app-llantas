@@ -8,6 +8,7 @@ import LoginPage from './LoginPage';
 import './index.css';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <BrowserRouter>
@@ -19,16 +20,11 @@ root.render(
   </BrowserRouter>
 );
 
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker
-      .register("/service-worker.js")
-      .then(() => console.log("Service Worker registrado correctamente."))
-      .catch(err => console.log("Error al registrar el Service Worker:", err));
-  });
-}
-
+// 👇 Esto ya registra el SW correctamente
 serviceWorkerRegistration.register();
+
+
+
 
 
 

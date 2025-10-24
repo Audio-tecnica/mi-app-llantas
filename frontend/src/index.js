@@ -19,6 +19,15 @@ root.render(
   </BrowserRouter>
 );
 
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("/service-worker.js")
+      .then(() => console.log("Service Worker registrado correctamente."))
+      .catch(err => console.log("Error al registrar el Service Worker:", err));
+  });
+}
+
 serviceWorkerRegistration.register();
 
 

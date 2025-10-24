@@ -28,6 +28,12 @@ function App() {
   const [orden, setOrden] = useState({ campo: '', asc: true });
   const [seleccionadas, setSeleccionadas] = useState([]);
 
+    useEffect(() => {
+    const recientes = JSON.parse(localStorage.getItem('busquedasRecientes') || '[]');
+    setBusquedasRecientes(recientes);
+    }, []);
+
+
   // 🔒 Verificación de sesión
   useEffect(() => {
     const acceso = localStorage.getItem('acceso');
@@ -52,11 +58,7 @@ function App() {
     return () => clearTimeout(timer);
   }, []);
  
-    useEffect(() => {
-    const recientes = JSON.parse(localStorage.getItem('busquedasRecientes') || '[]');
-    setBusquedasRecientes(recientes);
-    }, []);
-
+   
   // 📦 Cargar llantas
   useEffect(() => {
     axios.get('https://mi-app-llantas.onrender.com/api/llantas')

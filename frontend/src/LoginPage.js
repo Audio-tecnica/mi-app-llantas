@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import FaceLogin from "./FaceLogin";
 
 const PASSWORD = 'at2025';
 
@@ -18,6 +19,17 @@ function LoginPage() {
       setError('Contraseña incorrecta ❌');
     }
   };
+
+  {mostrarFaceLogin ? (
+  <FaceLogin onSuccess={() => navigate("/app")} />
+   ) : (
+  <button
+    onClick={() => setMostrarFaceLogin(true)}
+    className="bg-green-600 text-white px-4 py-2 rounded"
+     >
+    Ingresar con reconocimiento facial
+    </button>
+  )}
 
   return (
     <div

@@ -316,19 +316,31 @@ const cerrarComparador = () => {
                         </>
                       ) : (
                         <>
-                          <td className="p-1"> 
-                            <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
-                            <span className="text-center">{ll.referencia}</span>
-                            <div className="flex gap-2">
-                            <button onClick={() => window.open(`https://www.llantar.com.co/collections/llantas?q=${encodeURIComponent(ll.referencia)}`,'_blank'
-                              )
-                             }
-                           className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-xs"> Llantar</button>
-                           <button onClick={() => abrirComparador(ll.referencia)} className="bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700 text-xs">Comparar
-                           </button>
-                           </div>
-                         </div>
-                         </td>
+                        <td className="p-2 text-center">
+  <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
+    <span className="font-medium text-gray-800">{ll.referencia}</span>
+    <div className="flex gap-1">
+      <button
+        onClick={() =>
+          window.open(
+            `https://www.llantar.com.co/collections/llantas?q=${encodeURIComponent(ll.referencia)}`,
+            '_blank'
+          )
+        }
+        className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-xs"
+      >
+        Ver
+      </button>
+      <button
+        onClick={() => abrirComparador(ll.referencia)}
+        className="bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700 text-xs"
+      >
+        Comparar
+      </button>
+    </div>
+  </div>
+</td>
+
 
                 
                           <td>{ll.marca}</td>

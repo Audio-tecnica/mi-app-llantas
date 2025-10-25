@@ -395,7 +395,10 @@ const cerrarComparador = () => {
             { nombre: 'Llantar', url: `https://www.llantar.com.co/search?q=${encodeURIComponent(referenciaSeleccionada)}` },
             { nombre: 'Virtual Llantas', url: `https://www.virtualllantas.com.co/catalogsearch/result/?q=${encodeURIComponent(referenciaSeleccionada)}` },
             { nombre: 'Tu Llanta', url: `https://www.tullanta.com/search?q=${encodeURIComponent(referenciaSeleccionada)}` },
-           // { nombre: 'Google', url: `https://www.google.com/search?q=${encodeURIComponent(referenciaSeleccionada + ' llantas Colombia')}` },
+            { nombre: 'Neumarket', url: `https://www.neumarket.com.co/catalogsearch/result/?q=${encodeURIComponent(referenciaSeleccionada)}` },
+            { nombre: 'MercadoLibre', url: `https://www.mercadolibre.com.co/search?as_word=${encodeURIComponent(referenciaSeleccionada)}` },
+            { nombre: 'Autopartes', url: `https://www.autopartes.com.co/search?q=${encodeURIComponent(referenciaSeleccionada)}` },
+            { nombre: 'Google', url: `https://www.google.com/search?q=${encodeURIComponent(referenciaSeleccionada + ' llantas Colombia')}` },
           ].map((sitio) => (
             <tr key={sitio.nombre}>
               <td className="border px-2 py-1 font-medium text-gray-700">{sitio.nombre}</td>

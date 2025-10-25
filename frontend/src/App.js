@@ -316,14 +316,20 @@ const cerrarComparador = () => {
                         </>
                       ) : (
                         <>
-                          <td className="p-1 flex items-center justify-center gap-2">
-                            <span>{ll.referencia}</span>
-                            <button onClick={() => window.open(`https://www.llantar.com.co/collections/llantas?q=${encodeURIComponent(ll.referencia)}`, '_blank')} className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-xs">
-                            Llantar</button>
-                              {/* NUEVO: Botón Comparar precios (abre modal interno) */}
-                               <button onClick={() => abrirComparador(ll.referencia)} className="bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700 text-xs">
-                                  Comparar</button></td>
-                          
+                          <td className="p-1"> 
+                            <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
+                            <span className="text-center">{ll.referencia}</span>
+                            <div className="flex gap-2">
+                            <button onClick={() => window.open(`https://www.llantar.com.co/collections/llantas?q=${encodeURIComponent(ll.referencia)}`,'_blank'
+                              )
+                             }
+                           className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-xs"> Llantar</button>
+                           <button onClick={() => abrirComparador(ll.referencia)} className="bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700 text-xs">Comparar
+                           </button>
+                           </div>
+                         </div>
+                         </td>
+
                 
                           <td>{ll.marca}</td>
                           <td>{ll.proveedor}</td>

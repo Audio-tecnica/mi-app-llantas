@@ -25,15 +25,18 @@ function App() {
     stock: ''
   });
 
+  
   // estado para el comparador
 const [comparadorAbierto, setComparadorAbierto] = useState(false);
 const [referenciaSeleccionada, setReferenciaSeleccionada] = useState('');
 
-// funciones para abrir / cerrar modal comparador
 const abrirComparador = (referencia) => {
-  setReferenciaSeleccionada(referencia);
-  setComparadorAbierto(true);
+  const url = `https://www.google.com/search?q=${encodeURIComponent(
+    referencia + " site:llantar.com.co OR site:virtualllantas.com OR site:tullanta.com"
+  )}`;
+  window.open(url, "_blank");
 };
+
 
 const cerrarComparador = () => {
   setComparadorAbierto(false);
@@ -316,10 +319,11 @@ const cerrarComparador = () => {
                         </>
                       ) : (
                         <>
-                        <td className="p-2 text-center">
+        <td className="p-2 text-center">
   <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
     <span className="font-medium text-gray-800">{ll.referencia}</span>
     <div className="flex gap-1">
+      {/* Botón para ver la llanta en Llantar */}
       <button
         onClick={() =>
           window.open(
@@ -331,6 +335,8 @@ const cerrarComparador = () => {
       >
         Ver
       </button>
+
+      {/* Botón para comparar precios */}
       <button
         onClick={() => abrirComparador(ll.referencia)}
         className="bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700 text-xs"
@@ -340,6 +346,7 @@ const cerrarComparador = () => {
     </div>
   </div>
 </td>
+
 
 
                 

@@ -5,6 +5,9 @@ function Accesorios() {
   const navigate = useNavigate();
   const [accesorios, setAccesorios] = useState([]);
   const [filtros, setFiltros] = useState({ categoria: "", nombre: "" });
+  const [editandoId, setEditandoId] = useState(null);
+  const [mensaje, setMensaje] = useState("");
+  const [mostrarModal, setMostrarModal] = useState(false);
   const [nuevoAccesorio, setNuevoAccesorio] = useState({
     nombre: "",
     categoria: "",
@@ -12,8 +15,6 @@ function Accesorios() {
     precio: "",
     stock: "",
   });
-  const [editandoId, setEditandoId] = useState(null);
-  const [mensaje, setMensaje] = useState("");
 
   // 🔹 Cargar accesorios
   useEffect(() => {
@@ -41,6 +42,7 @@ function Accesorios() {
       const data = await res.json();
       setAccesorios([data, ...accesorios]);
       setNuevoAccesorio({ nombre: "", categoria: "", costo: "", precio: "", stock: "" });
+      setMostrarModal(false);
       setMensaje("✅ Accesorio agregado correctamente");
       setTimeout(() => setMensaje(""), 2500);
     } else {
@@ -85,9 +87,10 @@ function Accesorios() {
   };
 
   // 🔹 Filtrar accesorios
-  const accesoriosFiltrados = accesorios.filter((a) =>
-    a.nombre.toLowerCase().includes(filtros.nombre.toLowerCase()) &&
-    a.categoria.toLowerCase().includes(filtros.categoria.toLowerCase())
+  const accesoriosFiltrados = accesorios.filter(
+    (a) =>
+      a.nombre.toLowerCase().includes(filtros.nombre.toLowerCase()) &&
+      a.categoria.toLowerCase().includes(filtros.categoria.toLowerCase())
   );
 
   return (
@@ -125,55 +128,15 @@ function Accesorios() {
 
       {/* 🔸 Sección principal */}
       <div className="flex-1 p-6">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6">
-          Gestión de Accesorios
-        </h1>
-
-        {/* 🧾 Formulario */}
-        <div className="grid grid-cols-5 gap-2 mb-4">
-          <input
-            type="text"
-            placeholder="Nombre"
-            value={nuevoAccesorio.nombre}
-            onChange={(e) => setNuevoAccesorio({ ...nuevoAccesorio, nombre: e.target.value })}
-            className="border p-2 rounded"
-          />
-          <input
-            type="text"
-            placeholder="Categoría"
-            value={nuevoAccesorio.categoria}
-            onChange={(e) => setNuevoAccesorio({ ...nuevoAccesorio, categoria: e.target.value })}
-            className="border p-2 rounded"
-          />
-          <input
-            type="number"
-            placeholder="Costo"
-            value={nuevoAccesorio.costo}
-            onChange={(e) => setNuevoAccesorio({ ...nuevoAccesorio, costo: e.target.value })}
-            className="border p-2 rounded"
-          />
-          <input
-            type="number"
-            placeholder="Precio"
-            value={nuevoAccesorio.precio}
-            onChange={(e) => setNuevoAccesorio({ ...nuevoAccesorio, precio: e.target.value })}
-            className="border p-2 rounded"
-          />
-          <input
-            type="number"
-            placeholder="Stock"
-            value={nuevoAccesorio.stock}
-            onChange={(e) => setNuevoAccesorio({ ...nuevoAccesorio, stock: e.target.value })}
-            className="border p-2 rounded"
-          />
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-gray-800">Gestión de Accesorios</h1>
+          <button
+            onClick={() => setMostrarModal(true)}
+            className="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded shadow-md transition"
+          >
+            ➕ Agregar accesorio
+          </button>
         </div>
-
-        <button
-          onClick={agregarAccesorio}
-          className="mb-6 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-500"
-        >
-          ➕ Agregar accesorio
-        </button>
 
         {/* 🟢 Mensaje de confirmación */}
         {mensaje && (
@@ -182,7 +145,7 @@ function Accesorios() {
           </div>
         )}
 
-        {/* 📋 Tabla sin ID */}
+        {/* 📋 Tabla */}
         <div className="overflow-x-auto bg-white rounded-lg shadow-md">
           <table className="w-full border-collapse">
             <thead className="bg-gray-100 text-gray-700">
@@ -292,6 +255,68 @@ function Accesorios() {
             </tbody>
           </table>
         </div>
+
+        {/* 🪟 Modal para agregar accesorio */}
+        {mostrarModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg">
+              <h2 className="text-xl font-semibold mb-4 text-gray-700">Agregar nuevo accesorio</h2>
+
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <input
+                  type="text"
+                  placeholder="Nombre"
+                  value={nuevoAccesorio.nombre}
+                  onChange={(e) => setNuevoAccesorio({ ...nuevoAccesorio, nombre: e.target.value })}
+                  className="border p-2 rounded"
+                />
+                <input
+                  type="text"
+                  placeholder="Categoría"
+                  value={nuevoAccesorio.categoria}
+                  onChange={(e) => setNuevoAccesorio({ ...nuevoAccesorio, categoria: e.target.value })}
+                  className="border p-2 rounded"
+                />
+                <input
+                  type="number"
+                  placeholder="Costo"
+                  value={nuevoAccesorio.costo}
+                  onChange={(e) => setNuevoAccesorio({ ...nuevoAccesorio, costo: e.target.value })}
+                  className="border p-2 rounded"
+                />
+                <input
+                  type="number"
+                  placeholder="Precio"
+                  value={nuevoAccesorio.precio}
+                  onChange={(e) => setNuevoAccesorio({ ...nuevoAccesorio, precio: e.target.value })}
+                  className="border p-2 rounded"
+                />
+                <input
+                  type="number"
+                  placeholder="Stock"
+                  value={nuevoAccesorio.stock}
+                  onChange={(e) => setNuevoAccesorio({ ...nuevoAccesorio, stock: e.target.value })}
+                  className="border p-2 rounded col-span-2"
+                />
+              </div>
+
+              <div className="flex justify-end space-x-2">
+                <button
+                  onClick={() => setMostrarModal(false)}
+                  className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={agregarAccesorio}
+                  className="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded"
+                >
+                  Guardar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

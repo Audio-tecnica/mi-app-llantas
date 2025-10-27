@@ -1,184 +1,155 @@
-import React, { useState, useEffect } from "react";
-import { ArrowLeft, Plus, X } from "lucide-react";
+const express = require('express');
+const fileUpload = require('express-fileupload');
+const cors = require('cors');
+const xlsx = require('xlsx');
+const { Pool } = require('pg');
 
-export default function Accesorios() {
-  const [accesorios, setAccesorios] = useState([]);
-  const [filtro, setFiltro] = useState("");
-  const [mostrarModal, setMostrarModal] = useState(false);
-  const [nuevo, setNuevo] = useState({ nombre: "", categoria: "", costo: "", precio: "", stock: "" });
+const app = express();
+const PORT = process.env.PORT || 10000;
 
-  useEffect(() => {
-    obtenerAccesorios();
-  }, []);
+// 🔗 Conexión a PostgreSQL (usa tu cadena correcta)
+const pool = new Pool({
+  connectionString: 'postgresql://postgres.xihejxjynnsxcrdxvtng:Audio.2025*ñ@aws-0-us-east-1.pooler.supabase.com:5432/postgres',
+  ssl: { rejectUnauthorized: false }
+});
 
-  const obtenerAccesorios = async () => {
-    try {
-      const res = await fetch("https://mi-app-llantas.onrender.com/accesorios");
-      const data = await res.json();
-      setAccesorios(data);
-    } catch (error) {
-      console.error("Error al obtener accesorios", error);
-    }
-  };
+// 🛠️ Middleware
+app.use(fileUpload());
+app.use(cors({ origin: 'https://mi-app-llantas.vercel.app' }));
+app.use(express.json());
 
-  const agregarAccesorio = async () => {
-    try {
-      const res = await fetch("https://mi-app-llantas.onrender.com/accesorios/agregar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(nuevo),
-      });
+// 🧱 Crear tabla si no existe
+async function crearTabla() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS llantas (
+        id SERIAL PRIMARY KEY,
+        referencia TEXT,
+        marca TEXT,
+        proveedor TEXT,
+        costo_empresa INTEGER,
+        precio_cliente INTEGER,
+        stock INTEGER
+      )
+    `);
 
-      if (res.ok) {
-        setMostrarModal(false);
-        obtenerAccesorios();
-        alert("✅ Accesorio agregado correctamente");
-      } else {
-        alert("❌ Error al guardar el accesorio");
-      }
-    } catch (error) {
-      alert("Error al conectar con el servidor");
-    }
-  };
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS accesorios (
+        id SERIAL PRIMARY KEY,
+        nombre VARCHAR(100) NOT NULL,
+        categoria VARCHAR(100),
+        costo DECIMAL(10,2),
+        precio DECIMAL(10,2),
+        stock INT
+      )
+    `);
 
-  const accesoriosFiltrados = accesorios.filter(
-    (a) =>
-      a.nombre?.toLowerCase().includes(filtro.toLowerCase()) ||
-      a.categoria?.toLowerCase().includes(filtro.toLowerCase())
-  );
-
-  return (
-    <div className="flex min-h-screen bg-gray-100">
-      {/* Sidebar */}
-      <div className="w-64 bg-white shadow-md p-4 flex flex-col">
-        <button
-          onClick={() => (window.location.href = "/")}
-          className="flex items-center gap-2 text-gray-700 hover:text-blue-600 font-semibold mb-4"
-        >
-          <ArrowLeft size={18} /> Volver a Llantas
-        </button>
-
-        <input
-          type="text"
-          placeholder="Buscar por nombre o categoría"
-          value={filtro}
-          onChange={(e) => setFiltro(e.target.value)}
-          className="border rounded-md p-2 mb-4 w-full"
-        />
-
-        <button
-          onClick={() => setMostrarModal(true)}
-          className="bg-green-600 text-white font-semibold py-2 px-3 rounded-lg hover:bg-green-700 flex items-center justify-center gap-2"
-        >
-          <Plus size={18} /> Agregar accesorio
-        </button>
-      </div>
-
-      {/* Tabla */}
-      <div className="flex-1 p-6">
-        <h1 className="text-2xl font-bold mb-6">Gestión de Accesorios</h1>
-        <div className="overflow-x-auto bg-white rounded-lg shadow">
-          <table className="w-full text-left">
-            <thead className="bg-gray-200 text-gray-700">
-              <tr>
-                <th className="p-3">Nombre</th>
-                <th className="p-3">Categoría</th>
-                <th className="p-3 text-blue-600">Costo</th>
-                <th className="p-3 text-green-600">Precio</th>
-                <th className="p-3">Stock</th>
-              </tr>
-            </thead>
-            <tbody>
-              {accesoriosFiltrados.length > 0 ? (
-                accesoriosFiltrados.map((a, i) => (
-                  <tr key={i} className="border-t hover:bg-gray-50">
-                    <td className="p-3">{a.nombre}</td>
-                    <td className="p-3">{a.categoria}</td>
-                    <td className="p-3 text-blue-600 font-semibold">${a.costo}</td>
-                    <td className="p-3 text-green-600 font-semibold">${a.precio}</td>
-                    <td className="p-3">{a.stock}</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="5" className="text-center p-4 text-gray-500">
-                    No hay accesorios registrados
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Modal */}
-      {mostrarModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-96 relative">
-            <button
-              onClick={() => setMostrarModal(false)}
-              className="absolute top-3 right-3 text-gray-500 hover:text-red-600"
-            >
-              <X size={20} />
-            </button>
-            <h2 className="text-lg font-bold mb-4">Agregar Accesorio</h2>
-
-            <input
-              type="text"
-              placeholder="Nombre"
-              className="border p-2 mb-3 rounded-md w-full"
-              value={nuevo.nombre}
-              onChange={(e) => setNuevo({ ...nuevo, nombre: e.target.value })}
-            />
-            <input
-              type="text"
-              placeholder="Categoría"
-              className="border p-2 mb-3 rounded-md w-full"
-              value={nuevo.categoria}
-              onChange={(e) => setNuevo({ ...nuevo, categoria: e.target.value })}
-            />
-            <input
-              type="number"
-              placeholder="Costo"
-              className="border p-2 mb-3 rounded-md w-full"
-              value={nuevo.costo}
-              onChange={(e) => setNuevo({ ...nuevo, costo: e.target.value })}
-            />
-            <input
-              type="number"
-              placeholder="Precio"
-              className="border p-2 mb-3 rounded-md w-full"
-              value={nuevo.precio}
-              onChange={(e) => setNuevo({ ...nuevo, precio: e.target.value })}
-            />
-            <input
-              type="number"
-              placeholder="Stock"
-              className="border p-2 mb-3 rounded-md w-full"
-              value={nuevo.stock}
-              onChange={(e) => setNuevo({ ...nuevo, stock: e.target.value })}
-            />
-
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setMostrarModal(false)}
-                className="px-3 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={agregarAccesorio}
-                className="px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-              >
-                Guardar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+    console.log('✅ Tablas "llantas" y "accesorios" verificadas o creadas');
+  } catch (e) {
+    console.error('❌ Error al crear tablas:', e);
+  }
 }
+crearTabla();
+
+// ======================================
+// 📤 Subida de archivo Excel (llantas)
+// ======================================
+app.post('/api/upload', async (req, res) => {
+  if (!req.files || !req.files.file) {
+    return res.status(400).json({ error: 'No se subió ningún archivo' });
+  }
+
+  const archivo = req.files.file;
+  const workbook = xlsx.read(archivo.data, { type: 'buffer' });
+  const hoja = workbook.Sheets[workbook.SheetNames[0]];
+  const datos = xlsx.utils.sheet_to_json(hoja);
+
+  try {
+    await pool.query('DELETE FROM llantas');
+    const query = `
+      INSERT INTO llantas (referencia, marca, proveedor, costo_empresa, precio_cliente, stock)
+      VALUES ($1, $2, $3, $4, $5, $6)
+    `;
+    for (const l of datos) {
+      await pool.query(query, [
+        l['referencia'] || '',
+        l['marca'] || '',
+        l['proveedor'] || '',
+        parseInt(l['costo_empresa']) || 0,
+        parseInt(l['precio_cliente']) || 0,
+        parseInt(l['stock']) || 0
+      ]);
+    }
+    res.json({ message: 'Archivo cargado correctamente' });
+  } catch (e) {
+    console.error('❌ Error al importar:', e);
+    res.status(500).json({ error: 'Error al importar los datos' });
+  }
+});
+
+// ======================================
+// 📥 Consultar llantas
+// ======================================
+app.get('/api/llantas', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM llantas');
+    res.json(rows);
+  } catch (e) {
+    console.error('❌ Error al obtener llantas:', e);
+    res.status(500).json({ error: 'Error al obtener las llantas' });
+  }
+});
+
+// ======================================
+// ✅ Agregar, editar y eliminar llantas
+// ======================================
+app.post('/api/agregar-llanta', async (req, res) => {
+  const { referencia, marca, proveedor, costo_empresa, precio_cliente, stock } = req.body;
+  try {
+    await pool.query(
+      'INSERT INTO llantas (referencia, marca, proveedor, costo_empresa, precio_cliente, stock) VALUES ($1, $2, $3, $4, $5, $6)',
+      [referencia || '', marca || '', proveedor || '', costo_empresa || 0, precio_cliente || 0, stock || 0]
+    );
+    res.json({ success: true });
+  } catch (e) {
+    console.error('❌ Error al agregar llanta:', e);
+    res.status(500).json({ error: 'Error al agregar llanta' });
+  }
+});
+
+// ======================================
+// 🧰 RUTAS PARA ACCESORIOS
+// ======================================
+app.get('/accesorios', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM accesorios ORDER BY nombre ASC');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('❌ Error al obtener accesorios:', error);
+    res.status(500).send('Error al obtener los accesorios');
+  }
+});
+
+app.post('/accesorios/agregar', async (req, res) => {
+  const { nombre, categoria, costo, precio, stock } = req.body;
+  try {
+    await pool.query(
+      'INSERT INTO accesorios (nombre, categoria, costo, precio, stock) VALUES ($1, $2, $3, $4, $5)',
+      [nombre, categoria, costo, precio, stock]
+    );
+    res.status(200).send('Accesorio agregado');
+  } catch (error) {
+    console.error('❌ Error al guardar accesorio:', error);
+    res.status(500).send('Error al guardar el accesorio');
+  }
+});
+
+// ======================================
+// 🚀 Iniciar servidor
+// ======================================
+app.listen(PORT, () => {
+  console.log(`🚀 Servidor escuchando en puerto ${PORT}`);
+});
 
 
 

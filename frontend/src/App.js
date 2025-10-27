@@ -219,7 +219,7 @@ const cerrarComparador = () => {
           <button onClick={() => setMostrarModal(true)} className="bg-gray-700 text-white px-3 py-1.5 rounded text-sm hover:bg-gray-800">Agregar ítem</button>
           <button onClick={handleEliminarMultiples} disabled={seleccionadas.length === 0} className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700">Eliminar seleccionados</button>
           <button onClick={() => { localStorage.removeItem('acceso'); window.location.href = '/login'; }} className="bg-red-500 text-white px-3 py-1.5 rounded text-sm hover:bg-red-600">Cerrar sesión</button>
-          <button onClick={() => window.open('/lista_llantar.pdf', '_blank')} className="bg-black-500 text-white px-5 py-1.5 rounded text-sm hover:bg-black-600">Lista llantar</button>
+          <button onClick={() => window.open('/lista_llantar.pdf', '_blank')} className="bg-blue-500 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-600">Lista llantar</button>
         </div>
       </div>
 

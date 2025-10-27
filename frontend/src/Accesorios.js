@@ -11,14 +11,17 @@ function Accesorios() {
     stock: ""
   });
   const [editandoId, setEditandoId] = useState(null);
+  const [filtro, setFiltro] = useState("");
   const navigate = useNavigate();
+
+  const API_URL = "https://mi-app-llantas.onrender.com/api/accesorios";
 
   // 🔹 Cargar accesorios desde el backend
   useEffect(() => {
-    fetch("/api/accesorios")
+    fetch(API_URL)
       .then(res => res.json())
       .then(data => setAccesorios(data))
-      .catch(err => console.error("Error cargando accesorios:", err));
+      .catch(() => alert("⚠️ No hay conexión con el servidor o la red"));
   }, []);
 
   // 🔹 Guardar nuevo accesorio
@@ -29,7 +32,7 @@ function Accesorios() {
       return;
     }
 
-    const res = await fetch("/api/accesorios", {
+    const res = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(nuevoAccesorio),
@@ -47,7 +50,7 @@ function Accesorios() {
   // ✏️ Guardar edición
   const guardarEdicion = async (id) => {
     const accesorio = accesorios.find(a => a.id === id);
-    const res = await fetch(`/api/accesorios/${id}`, {
+    const res = await fetch(`${API_URL}/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(accesorio),
@@ -65,7 +68,7 @@ function Accesorios() {
   // ❌ Eliminar accesorio
   const eliminarAccesorio = async (id) => {
     if (!window.confirm("¿Seguro que deseas eliminar este accesorio?")) return;
-    const res = await fetch(`/api/accesorios/${id}`, { method: "DELETE" });
+    const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
     if (res.ok) setAccesorios(accesorios.filter(a => a.id !== id));
   };
 
@@ -73,6 +76,12 @@ function Accesorios() {
   const manejarCambio = (id, campo, valor) => {
     setAccesorios(accesorios.map(a => (a.id === id ? { ...a, [campo]: valor } : a)));
   };
+
+  // 🔍 Filtro rápido por nombre o categoría
+  const accesoriosFiltrados = accesorios.filter(a =>
+    a.nombre.toLowerCase().includes(filtro.toLowerCase()) ||
+    a.categoria.toLowerCase().includes(filtro.toLowerCase())
+  );
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -85,6 +94,15 @@ function Accesorios() {
       </button>
 
       <h1 className="text-3xl font-bold mb-6 text-gray-800">Gestión de Accesorios</h1>
+
+      {/* 🔎 Filtro de búsqueda */}
+      <input
+        type="text"
+        placeholder="Buscar por nombre o categoría..."
+        value={filtro}
+        onChange={(e) => setFiltro(e.target.value)}
+        className="mb-4 border p-2 rounded w-full md:w-1/3"
+      />
 
       {/* 🧾 Formulario para agregar */}
       <div className="grid grid-cols-5 gap-2 mb-4">
@@ -147,14 +165,14 @@ function Accesorios() {
             </tr>
           </thead>
           <tbody>
-            {accesorios.length === 0 ? (
+            {accesoriosFiltrados.length === 0 ? (
               <tr>
                 <td colSpan="7" className="text-center p-4 text-gray-500">
                   No hay accesorios registrados
                 </td>
               </tr>
             ) : (
-              accesorios.map((a) => (
+              accesoriosFiltrados.map((a) => (
                 <tr key={a.id} className="hover:bg-gray-50">
                   <td className="border p-2 text-center">{a.id}</td>
 
@@ -257,5 +275,6 @@ function Accesorios() {
 }
 
 export default Accesorios;
+
 
 

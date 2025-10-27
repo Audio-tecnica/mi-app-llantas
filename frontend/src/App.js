@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Eye, EyeOff } from "lucide-react";
 import { Link } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 import './index.css';
 
 function App() {
   const [mostrarCosto, setMostrarCosto] = useState(false);
+  const navigate = useNavigate();
   const [llantas, setLlantas] = useState([]);
   const [busqueda, setBusqueda] = useState('');
   const [busquedasRecientes, setBusquedasRecientes] = useState([]);
@@ -223,6 +225,17 @@ const cerrarComparador = () => {
         </div>
       </div>
 
+        <div className="p-4">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold text-gray-800">Inventario de Llantas</h1>
+        <button
+          onClick={() => navigate("/accesorios")}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500"
+        >
+          Ver Accesorios
+        </button>
+      </div>
+
       {/* Mensajes */}
       {mensaje && <div className="text-center text-blue-700 font-semibold mb-4">❗{mensaje}</div>}
 
@@ -279,6 +292,7 @@ const cerrarComparador = () => {
                 <button onClick={() => { setBusqueda(''); setMarcaSeleccionada(''); }} className="px-8 py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700">Limpiar filtros</button>
               </div>
             </div>
+            
 
             {/* Tabla */}
             <div className="overflow-auto">
@@ -429,6 +443,9 @@ const cerrarComparador = () => {
   </div>
    )}
  </div>
+  
+
+   </div>
   );
 }
 

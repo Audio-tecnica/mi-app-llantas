@@ -171,6 +171,60 @@ app.listen(PORT, () => {
   console.log(`🚀 Servidor escuchando en puerto ${PORT}`);
 });
 
+// ======================================
+// 🧰 RUTAS PARA ACCESORIOS
+// ======================================
+app.get('/api/accesorios', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM accesorios ORDER BY id DESC');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error al obtener accesorios:', error);
+    res.status(500).json({ error: 'Error al obtener accesorios' });
+  }
+});
+
+app.post('/api/accesorios', async (req, res) => {
+  try {
+    const { nombre, categoria, costo, precio, stock } = req.body;
+    const result = await pool.query(
+      'INSERT INTO accesorios (nombre, categoria, costo, precio, stock) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [nombre, categoria, costo, precio, stock]
+    );
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error al agregar accesorio:', error);
+    res.status(500).json({ error: 'Error al agregar accesorio' });
+  }
+});
+
+app.put('/api/accesorios/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nombre, categoria, costo, precio, stock } = req.body;
+    const result = await pool.query(
+      'UPDATE accesorios SET nombre=$1, categoria=$2, costo=$3, precio=$4, stock=$5 WHERE id=$6 RETURNING *',
+      [nombre, categoria, costo, precio, stock, id]
+    );
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error al actualizar accesorio:', error);
+    res.status(500).json({ error: 'Error al actualizar accesorio' });
+  }
+});
+
+app.delete('/api/accesorios/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await pool.query('DELETE FROM accesorios WHERE id = $1', [id]);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error al eliminar accesorio:', error);
+    res.status(500).json({ error: 'Error al eliminar accesorio' });
+  }
+});
+
+
 
 
 

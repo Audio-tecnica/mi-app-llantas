@@ -6,7 +6,10 @@ import SubirArchivo from './SubirArchivo';
 import Protegido from './Protegido';
 import LoginPage from './LoginPage';
 import './index.css';
-import * as serviceWorkerRegistration from './serviceWorkerRegistration';
+import * as serviceWorkerRegistration from './serviceWorkerRegistration';import Accesorios from './Accesorios';
+
+
+
 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -16,6 +19,7 @@ root.render(
       <Route path="/login" element={<LoginPage />} />
       <Route path="/" element={<Protegido><App /></Protegido>} />
       <Route path="/subir" element={<Protegido><SubirArchivo /></Protegido>} />
+      <Route path="/accesorios" element={<Protegido><Accesorios /></Protegido>} />
     </Routes>
   </BrowserRouter>
 );

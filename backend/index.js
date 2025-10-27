@@ -131,18 +131,19 @@ app.get('/accesorios', async (req, res) => {
 });
 
 app.post('/accesorios/agregar', async (req, res) => {
-  const { nombre, categoria, costo, precio, stock } = req.body;
   try {
-    await pool.query(
+    const { nombre, categoria, costo, precio, stock } = req.body;
+    const result = await db.query(
       'INSERT INTO accesorios (nombre, categoria, costo, precio, stock) VALUES ($1, $2, $3, $4, $5)',
       [nombre, categoria, costo, precio, stock]
     );
-    res.status(200).send('Accesorio agregado');
+    res.status(200).json({ message: 'Accesorio agregado correctamente' });
   } catch (error) {
-    console.error('❌ Error al guardar accesorio:', error);
-    res.status(500).send('Error al guardar el accesorio');
+    console.error('Error al agregar accesorio:', error);
+    res.status(500).json({ error: 'Error al agregar accesorio' });
   }
 });
+
 
 // ======================================
 // 🚀 Iniciar servidor

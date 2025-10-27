@@ -182,12 +182,11 @@ function Accesorios() {
           </div>
         )}
 
-        {/* 📋 Tabla */}
+        {/* 📋 Tabla sin ID */}
         <div className="overflow-x-auto bg-white rounded-lg shadow-md">
           <table className="w-full border-collapse">
             <thead className="bg-gray-100 text-gray-700">
               <tr>
-                <th className="p-2 border">ID</th>
                 <th className="p-2 border">Nombre</th>
                 <th className="p-2 border">Categoría</th>
                 <th className="p-2 border">Costo</th>
@@ -199,14 +198,13 @@ function Accesorios() {
             <tbody>
               {accesoriosFiltrados.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="text-center p-4 text-gray-500">
+                  <td colSpan="6" className="text-center p-4 text-gray-500">
                     No hay accesorios registrados
                   </td>
                 </tr>
               ) : (
                 accesoriosFiltrados.map((a) => (
                   <tr key={a.id} className="hover:bg-gray-50">
-                    <td className="border p-2 text-center">{a.id}</td>
                     <td className="border p-2">
                       {editandoId === a.id ? (
                         <input
@@ -300,7 +298,3 @@ function Accesorios() {
 }
 
 export default Accesorios;
-
-
-
-

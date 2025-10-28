@@ -92,16 +92,20 @@ app.get('/api/llantas', async (req, res) => {
 // ======================================
 // ✅ Agregar, editar y eliminar llantas
 // ======================================
-app.post('/api/agregar-llanta', async (req, res) => {
-  const { referencia, marca, proveedor, costo_empresa, precio_cliente, stock } = req.body;
+app.post('/api/editar-llanta', async (req, res) => {
+  const { id, referencia, marca, proveedor, costo_empresa, precio_cliente, stock } = req.body;
   try {
     const result = await pool.query(
-      'INSERT INTO llantas (referencia, marca, proveedor, costo_empresa, precio_cliente, stock) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *',
-      [referencia, marca, proveedor, costo_empresa, precio_cliente, stock]
+      `UPDATE llantas
+       SET referencia=$1, marca=$2, proveedor=$3, costo_empresa=$4, precio_cliente=$5, stock=$6
+       WHERE id=$7
+       RETURNING *`,
+      [referencia, marca, proveedor, costo_empresa, precio_cliente, stock, id]
     );
-    res.status(200).json(result.rows[0]); // ✅ Esto devuelve la llanta recién agregada
+    res.json(result.rows[0]); // DEVUELVE la llanta actualizada
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Error al agregar llanta' });
+    res.status(500).json({ error: 'Error al editar llanta' });
   }
 });
+

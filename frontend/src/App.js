@@ -158,17 +158,19 @@ const cerrarComparador = () => {
     }
   };
 
-  const handleGuardar = async (llanta) => {
-    try {
-      await axios.post('https://mi-app-llantas.onrender.com/api/editar-llanta', llanta);
-      setMensaje('Cambios guardados ✅');
-      setModoEdicion(null);
-      setTimeout(() => setMensaje(''), 2000);
-    } catch {
-      setMensaje('Error al guardar ❌');
-      setTimeout(() => setMensaje(''), 2000);
-    }
-  };
+ const handleGuardar = async (llanta) => {
+  try {
+    const { data } = await axios.post('https://mi-app-llantas.onrender.com/api/editar-llanta', llanta);
+    setLlantas(prev => prev.map(l => l.id === data.id ? data : l));
+    setMensaje('Cambios guardados ✅');
+    setModoEdicion(null);
+    setTimeout(() => setMensaje(''), 2000);
+  } catch {
+    setMensaje('Error al guardar ❌');
+    setTimeout(() => setMensaje(''), 2000);
+  }
+};
+
 
   const handleEliminar = async (id) => {
     if (!window.confirm('¿Estás seguro de eliminar esta llanta?')) return;

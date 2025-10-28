@@ -1,26 +1,23 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 
-const PASSWORD = 'at2025';
-const MAX_TIEMPO = 15 * 60 * 1000; // 15 minutos
-
-function Protegido({ children }) {
+const Protegido = ({ children }) => {
   const acceso = localStorage.getItem('acceso');
   const timestamp = localStorage.getItem('timestamp');
-  const expirado = !timestamp || Date.now() - parseInt(timestamp) > MAX_TIEMPO;
+  const maxTiempo = 120 * 60 * 1000; // 2 horas
+  const expirado = !acceso || !timestamp || Date.now() - parseInt(timestamp) > maxTiempo;
 
-  if (acceso === PASSWORD && !expirado) {
-    return children;
+  if (expirado) {
+    localStorage.removeItem('acceso');
+    localStorage.removeItem('timestamp');
+    return <Navigate to="/login" replace />;
   }
 
-  // Si está expirado, limpiamos localStorage
-  localStorage.removeItem('acceso');
-  localStorage.removeItem('timestamp');
-
-  return <Navigate to="/login" />;
-}
+  return children;
+};
 
 export default Protegido;
+
 
 
 

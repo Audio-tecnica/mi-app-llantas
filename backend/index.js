@@ -106,13 +106,13 @@ app.get('/api/llantas', async (req, res) => {
 app.post('/api/agregar-llanta', async (req, res) => {
   const { referencia, marca, proveedor, costo_empresa, precio_cliente, stock } = req.body;
   try {
-    await pool.query(
-      'INSERT INTO llantas (referencia, marca, proveedor, costo_empresa, precio_cliente, stock) VALUES ($1, $2, $3, $4, $5, $6)',
-      [referencia || '', marca || '', proveedor || '', costo_empresa || 0, precio_cliente || 0, stock || 0]
+    const result = await pool.query(
+      'INSERT INTO llantas (referencia, marca, proveedor, costo_empresa, precio_cliente, stock) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *',
+      [referencia, marca, proveedor, costo_empresa, precio_cliente, stock]
     );
-    res.json({ success: true });
-  } catch (e) {
-    console.error('❌ Error al agregar llanta:', e);
+    res.status(200).json(result.rows[0]); // ✅ Esto devuelve la llanta recién agregada
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Error al agregar llanta' });
   }
 });

@@ -183,27 +183,28 @@ const cerrarComparador = () => {
     }
   };
 
-  const handleAgregar = async () => {
-    try {
-      await axios.post('https://mi-app-llantas.onrender.com/api/agregar-llanta', nuevoItem);
-      const { data } = await axios.get('https://mi-app-llantas.onrender.com/api/llantas');
-      setLlantas(data);
-      setMostrarModal(false);
-      setNuevoItem({
-        referencia: '',
-        marca: '',
-        proveedor: '',
-        costo_empresa: '',
-        precio_cliente: '',
-        stock: ''
-      });
-      setMensaje('Llanta agregada ✅');
-      setTimeout(() => setMensaje(''), 2000);
-    } catch {
-      setMensaje('Error al agregar ❌');
-      setTimeout(() => setMensaje(''), 2000);
-    }
-  };
+const handleAgregar = async () => {
+  try {
+    const { data } = await axios.post('https://mi-app-llantas.onrender.com/api/agregar-llanta', nuevoItem);
+    setLlantas(prev => [data, ...prev]); // agregamos la nueva llanta directamente
+    setMostrarModal(false);
+    setNuevoItem({
+      referencia: '',
+      marca: '',
+      proveedor: '',
+      costo_empresa: '',
+      precio_cliente: '',
+      stock: ''
+    });
+    setMensaje('Llanta agregada ✅');
+    setTimeout(() => setMensaje(''), 2000);
+  } catch (error) {
+    console.error(error.response?.data || error.message);
+    setMensaje('Error al agregar ❌');
+    setTimeout(() => setMensaje(''), 2000);
+  }
+};
+
 
   const actualizarCampo = (id, campo, valor) => {
     setLlantas(prev =>

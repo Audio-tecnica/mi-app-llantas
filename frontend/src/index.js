@@ -15,7 +15,7 @@ root.render(
       <Route path="/" element={<Protegido><App /></Protegido>} />
       <Route path="/subir" element={<Protegido><SubirArchivo /></Protegido>} />
       <Route path="*" element={<LoginPage />} />
-      <Route path="/" element={<Navigate to="/login" replace />} />
+      
     </Routes>
   </HashRouter>
 );

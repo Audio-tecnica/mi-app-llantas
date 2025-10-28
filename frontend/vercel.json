@@ -1,6 +1,6 @@
 {
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/" }
+  "redirects": [
+    { "source": "/", "destination": "/#/login", "permanent": true }
   ]
 }
 

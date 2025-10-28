@@ -108,13 +108,13 @@ function Accesorios() {
           onClick={() => setMostrarModal(true)}
           className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-500"
         >
-          ➕ Agregar accesorio
+          ➕ Agregar Item
         </button>
       </div>
 
       {/* 🔹 Tabla principal */}
       <div className="flex-1 p-6">
-        <h1 className="text-3xl font-bold mb-6 text-gray-800">Gestión de Accesorios</h1>
+        <h1 className="text-3xl font-bold mb-6 text-gray-800">Tapetes</h1>
 
         <div className="overflow-x-auto bg-white shadow-md rounded-lg">
           <table className="w-full border-collapse">

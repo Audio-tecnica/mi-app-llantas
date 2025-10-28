@@ -120,30 +120,21 @@ app.post('/api/agregar-llanta', async (req, res) => {
 // ======================================
 // 🧰 RUTAS PARA ACCESORIOS
 // ======================================
-app.get('/accesorios', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT * FROM accesorios ORDER BY nombre ASC');
-    res.json(result.rows);
-  } catch (error) {
-    console.error('❌ Error al obtener accesorios:', error);
-    res.status(500).send('Error al obtener los accesorios');
-  }
-});
-
-app.post('/accesorios/agregar', async (req, res) => {
+app.post('/api/accesorios', async (req, res) => {
   try {
     const { nombre, categoria, costo, precio, stock } = req.body;
+
     const result = await db.query(
-      'INSERT INTO accesorios (nombre, categoria, costo, precio, stock) VALUES ($1, $2, $3, $4, $5)',
-      [nombre, categoria, costo, precio, stock]
+      'INSERT INTO accesorios (nombre, categoria, costo, precio, stock) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [nombre, categoria, Number(costo), Number(precio), Number(stock)]
     );
-    res.status(200).json({ message: 'Accesorio agregado correctamente' });
+
+    res.status(200).json(result.rows[0]); // ✅ Retorna el accesorio agregado
   } catch (error) {
-    console.error('Error al agregar accesorio:', error);
+    console.error(error);
     res.status(500).json({ error: 'Error al agregar accesorio' });
   }
 });
-
 
 // ======================================
 // 🚀 Iniciar servidor

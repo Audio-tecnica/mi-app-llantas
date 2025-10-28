@@ -93,7 +93,7 @@ useEffect(() => {
 
 // Si la sesión expiró, redirige con Navigate
 if (expirado) {
-  return <Navigate to="https://mi-app-llantas.vercel.app/login" replace />;
+  return <Navigate to="/login" replace />;
 }
 
 

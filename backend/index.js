@@ -15,7 +15,7 @@ const pool = new Pool({
 
 // 🛠️ Middleware
 app.use(fileUpload());
-app.use(cors({ origin: 'https://mi-app-llantas.vercel.app/loginS' }));
+app.use(cors({ origin: 'https://mi-app-llantas.vercel.app' }));
 app.use(express.json());
 
 // 🧱 Crear tabla si no existe

@@ -72,10 +72,16 @@ const cerrarComparador = () => {
 
 
   // 🔒 Verificación de sesión usando Navigate
-  const acceso = localStorage.getItem('acceso');
-  const timestamp = localStorage.getItem('timestamp');
-  const maxTiempo = 120 * 60 * 1000; // 2 horas
-  const expirado = !acceso || !timestamp || Date.now() - parseInt(timestamp) > maxTiempo;
+ const acceso = localStorage.getItem('acceso');
+const timestamp = parseInt(localStorage.getItem('timestamp')) || 0;
+const maxTiempo = 120 * 60 * 1000;
+
+if (!acceso || !timestamp || Date.now() - timestamp > maxTiempo) {
+  localStorage.removeItem('acceso');
+  localStorage.removeItem('timestamp');
+  window.location.href = '/login';
+  return null; // importante devolver null para no romper render
+}
 
   useEffect(() => {
     if (!expirado) {

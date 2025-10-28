@@ -33,18 +33,7 @@ async function crearTabla() {
       )
     `);
 
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS accesorios (
-        id SERIAL PRIMARY KEY,
-        nombre VARCHAR(100) NOT NULL,
-        categoria VARCHAR(100),
-        costo DECIMAL(10,2),
-        precio DECIMAL(10,2),
-        stock INT
-      )
-    `);
-
-    console.log('✅ Tablas "llantas" y "accesorios" verificadas o creadas');
+    console.log('✅ Tablas "llantas" verificadas o creadas');
   } catch (e) {
     console.error('❌ Error al crear tablas:', e);
   }

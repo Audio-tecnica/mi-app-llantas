@@ -109,3 +109,9 @@ app.post('/api/editar-llanta', async (req, res) => {
   }
 });
 
+// ======================================
+// 🟢 Levantar servidor
+// ======================================
+app.listen(PORT, () => {
+  console.log(`Servidor escuchando en puerto ${PORT}`);
+});

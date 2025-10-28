@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Eye, EyeOff } from "lucide-react";
 import { Link } from 'react-router-dom';
-import { Navigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import './index.css';
 
 function App() {
@@ -70,36 +70,33 @@ const cerrarComparador = () => {
     }
   }, [llantas]);
 
-
-  // 🔒 Verificación de sesión usando Navigate
- const acceso = localStorage.getItem('acceso');
+// 🔒 Verificación de sesión usando Navigate
+const acceso = localStorage.getItem('acceso');
 const timestamp = parseInt(localStorage.getItem('timestamp')) || 0;
 const maxTiempo = 120 * 60 * 1000;
+const expirado = !acceso || !timestamp || Date.now() - timestamp > maxTiempo;
 
-if (!acceso || !timestamp || Date.now() - timestamp > maxTiempo) {
-  localStorage.removeItem('acceso');
-  localStorage.removeItem('timestamp');
-  window.location.href = '/login';
-  return null; // importante devolver null para no romper render
-}
-
-  useEffect(() => {
-    if (!expirado) {
-      localStorage.setItem('timestamp', Date.now());
-      const timer = setTimeout(() => {
-        localStorage.removeItem('acceso');
-        localStorage.removeItem('timestamp');
-      }, maxTiempo);
-      return () => clearTimeout(timer);
-    } else {
+useEffect(() => {
+  if (!expirado) {
+    // Actualiza timestamp mientras la sesión está activa
+    localStorage.setItem('timestamp', Date.now());
+    const timer = setTimeout(() => {
       localStorage.removeItem('acceso');
       localStorage.removeItem('timestamp');
-    }
-  }, [expirado]);
-
-  if (expirado) {
-    return <Navigate to="/login" replace />;
+      window.location.href = '/login';
+    }, maxTiempo);
+    return () => clearTimeout(timer);
+  } else {
+    localStorage.removeItem('acceso');
+    localStorage.removeItem('timestamp');
   }
+}, [expirado]);
+
+// Si la sesión expiró, redirige con Navigate
+if (expirado) {
+  return <Navigate to="/login" replace />;
+}
+
 
  
    

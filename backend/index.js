@@ -102,7 +102,7 @@ app.post('/api/editar-llanta', async (req, res) => {
        RETURNING *`,
       [referencia, marca, proveedor, costo_empresa, precio_cliente, stock, id]
     );
-    res.json(result.rows[0]); // DEVUELVE la llanta actualizada
+    res.status(200).json(result.rows[0]); // ✅ DEVUELVE la llanta actualizada
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error al editar llanta' });

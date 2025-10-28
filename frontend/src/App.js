@@ -158,18 +158,20 @@ const cerrarComparador = () => {
     }
   };
 
- const handleGuardar = async (llanta) => {
+const handleGuardar = async (llanta) => {
   try {
     const { data } = await axios.post('https://mi-app-llantas.onrender.com/api/editar-llanta', llanta);
+    // Actualizamos el estado local con los datos que devuelve el backend
     setLlantas(prev => prev.map(l => l.id === data.id ? data : l));
     setMensaje('Cambios guardados ✅');
-    setModoEdicion(null);
+    setModoEdicion(null); // Cierra el modo edición
     setTimeout(() => setMensaje(''), 2000);
   } catch {
     setMensaje('Error al guardar ❌');
     setTimeout(() => setMensaje(''), 2000);
   }
 };
+
 
 
   const handleEliminar = async (id) => {

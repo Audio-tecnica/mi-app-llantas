@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Eye, EyeOff } from "lucide-react";
 import { Link } from 'react-router-dom';
-import { useNavigate } from "react-router-dom";
+import { Navigate } from 'react-router-dom';
 import './index.css';
 
 function App() {
@@ -71,29 +71,30 @@ const cerrarComparador = () => {
   }, [llantas]);
 
 
-  // 🔒 Verificación de sesión
+  // 🔒 Verificación de sesión usando Navigate
+  const acceso = localStorage.getItem('acceso');
+  const timestamp = localStorage.getItem('timestamp');
+  const maxTiempo = 120 * 60 * 1000; // 2 horas
+  const expirado = !acceso || !timestamp || Date.now() - parseInt(timestamp) > maxTiempo;
+
   useEffect(() => {
-    const acceso = localStorage.getItem('acceso');
-    const timestamp = localStorage.getItem('timestamp');
-    const maxTiempo = 120 * 60 * 1000; // 1 hora
-
-    if (!acceso || !timestamp || Date.now() - parseInt(timestamp) > maxTiempo) {
+    if (!expirado) {
+      localStorage.setItem('timestamp', Date.now());
+      const timer = setTimeout(() => {
+        localStorage.removeItem('acceso');
+        localStorage.removeItem('timestamp');
+      }, maxTiempo);
+      return () => clearTimeout(timer);
+    } else {
       localStorage.removeItem('acceso');
       localStorage.removeItem('timestamp');
-      window.location.href = '/login';
-      return;
     }
+  }, [expirado]);
 
-    localStorage.setItem('timestamp', Date.now());
+  if (expirado) {
+    return <Navigate to="/login" replace />;
+  }
 
-    const timer = setTimeout(() => {
-      localStorage.removeItem('acceso');
-      localStorage.removeItem('timestamp');
-      window.location.href = '/login';
-    }, maxTiempo);
-
-    return () => clearTimeout(timer);
-  }, []);
  
    
   // 📦 Cargar llantas

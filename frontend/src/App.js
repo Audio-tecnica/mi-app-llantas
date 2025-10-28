@@ -1,15 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Eye, EyeOff } from "lucide-react";
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import './index.css';
 
 function App() {
   const [mostrarCosto, setMostrarCosto] = useState(false);
-  const navigate = useNavigate();
   const [llantas, setLlantas] = useState([]);
   const [busqueda, setBusqueda] = useState('');
-  const [busquedasRecientes, setBusquedasRecientes] = useState([]);
   const [marcaSeleccionada, setMarcaSeleccionada] = useState('');
   const [ancho, setAncho] = useState('');
   const [perfil, setPerfil] = useState('');
@@ -25,87 +23,41 @@ function App() {
     precio_cliente: '',
     stock: ''
   });
-
-  
-  // estado para el comparador
-const [comparadorAbierto, setComparadorAbierto] = useState(false);
-const [referenciaSeleccionada, setReferenciaSeleccionada] = useState('');
-
-const abrirComparador = (referencia) => {
-  const url = `https://www.google.com/search?q=${encodeURIComponent(
-    referencia + " site:llantar.com.co OR site:virtualllantas.com OR site:tullanta.com"
-  )}`;
-  window.open(url, "_blank");
-};
-
-
-const cerrarComparador = () => {
-  setComparadorAbierto(false);
-  setReferenciaSeleccionada('');
-};
-
   const [cargando, setCargando] = useState(true);
   const [orden, setOrden] = useState({ campo: '', asc: true });
   const [seleccionadas, setSeleccionadas] = useState([]);
 
-    useEffect(() => {
-    const recientes = JSON.parse(localStorage.getItem('busquedasRecientes') || '[]');
-    setBusquedasRecientes(recientes);
-    }, []);
-
-     // 🔹 1. Si no hay internet, cargar desde caché
+  // 🔒 Verificación de sesión
   useEffect(() => {
-    const cached = JSON.parse(localStorage.getItem("llantasCache") || "[]");
-    if (!navigator.onLine && cached.length > 0) {
-      setLlantas(cached);
-      console.log("Cargando datos desde caché (modo offline)");
+    const acceso = localStorage.getItem('acceso');
+    const timestamp = localStorage.getItem('timestamp');
+    const maxTiempo = 60 * 60 * 1000; // 1 hora
+
+    if (!acceso || !timestamp || Date.now() - parseInt(timestamp) > maxTiempo) {
+      localStorage.removeItem('acceso');
+      localStorage.removeItem('timestamp');
+      window.location.href = '/login';
+      return;
     }
-  }, []);
 
-  // 🔹 2. Cada vez que cambian las llantas, guardarlas en caché
-  useEffect(() => {
-    if (llantas.length > 0) {
-      localStorage.setItem("llantasCache", JSON.stringify(llantas));
-    }
-  }, [llantas]);
-
-// 🔒 Verificación de sesión usando Navigate
-const acceso = localStorage.getItem('acceso');
-const timestamp = parseInt(localStorage.getItem('timestamp')) || 0;
-const maxTiempo = 120 * 60 * 1000;
-const expirado = !acceso || !timestamp || Date.now() - timestamp > maxTiempo;
-
-useEffect(() => {
-  if (!expirado) {
-    // Actualiza timestamp mientras la sesión está activa
     localStorage.setItem('timestamp', Date.now());
+
     const timer = setTimeout(() => {
       localStorage.removeItem('acceso');
       localStorage.removeItem('timestamp');
       window.location.href = '/login';
     }, maxTiempo);
+
     return () => clearTimeout(timer);
-  } else {
-    localStorage.removeItem('acceso');
-    localStorage.removeItem('timestamp');
-  }
-}, [expirado]);
+  }, []);
 
-// Si la sesión expiró, redirige con Navigate
-if (expirado) {
-  return <Navigate to="/login" replace />;
-}
-
-
- 
-   
   // 📦 Cargar llantas
   useEffect(() => {
-  axios.get('https://mi-app-llantas.onrender.com/api/llantas')
-    .then(res => setLlantas(res.data))
-    .catch(() => setMensaje('⚠️ No hay conexión con el servidor. Verifica tu red.'))
-    .finally(() => setCargando(false));
-}, []);
+    axios.get('https://mi-app-llantas.onrender.com/api/llantas')
+      .then(res => setLlantas(res.data))
+      .catch(() => setMensaje('Error al cargar llantas ❌'))
+      .finally(() => setCargando(false));
+  }, []);
 
   // 📋 Filtros y marcas
   const marcasUnicas = [...new Set(llantas.map(l => l.marca))];
@@ -161,21 +113,17 @@ if (expirado) {
     }
   };
 
-const handleGuardar = async (llanta) => {
-  try {
-    const { data } = await axios.post('https://mi-app-llantas.onrender.com/api/editar-llanta', llanta);
-    // Actualizamos el estado local con los datos que devuelve el backend
-    setLlantas(prev => prev.map(l => l.id === data.id ? data : l));
-    setMensaje('Cambios guardados ✅');
-    setModoEdicion(null); // Cierra el modo edición
-    setTimeout(() => setMensaje(''), 2000);
-  } catch {
-    setMensaje('Error al guardar ❌');
-    setTimeout(() => setMensaje(''), 2000);
-  }
-};
-
-
+  const handleGuardar = async (llanta) => {
+    try {
+      await axios.post('https://mi-app-llantas.onrender.com/api/editar-llanta', llanta);
+      setMensaje('Cambios guardados ✅');
+      setModoEdicion(null);
+      setTimeout(() => setMensaje(''), 2000);
+    } catch {
+      setMensaje('Error al guardar ❌');
+      setTimeout(() => setMensaje(''), 2000);
+    }
+  };
 
   const handleEliminar = async (id) => {
     if (!window.confirm('¿Estás seguro de eliminar esta llanta?')) return;
@@ -190,28 +138,27 @@ const handleGuardar = async (llanta) => {
     }
   };
 
-const handleAgregar = async () => {
-  try {
-    const { data } = await axios.post('https://mi-app-llantas.onrender.com/api/agregar-llanta', nuevoItem);
-    setLlantas(prev => [data, ...prev]); // agregamos la nueva llanta directamente
-    setMostrarModal(false);
-    setNuevoItem({
-      referencia: '',
-      marca: '',
-      proveedor: '',
-      costo_empresa: '',
-      precio_cliente: '',
-      stock: ''
-    });
-    setMensaje('Llanta agregada ✅');
-    setTimeout(() => setMensaje(''), 2000);
-  } catch (error) {
-    console.error(error.response?.data || error.message);
-    setMensaje('Error al agregar ❌');
-    setTimeout(() => setMensaje(''), 2000);
-  }
-};
-
+  const handleAgregar = async () => {
+    try {
+      await axios.post('https://mi-app-llantas.onrender.com/api/agregar-llanta', nuevoItem);
+      const { data } = await axios.get('https://mi-app-llantas.onrender.com/api/llantas');
+      setLlantas(data);
+      setMostrarModal(false);
+      setNuevoItem({
+        referencia: '',
+        marca: '',
+        proveedor: '',
+        costo_empresa: '',
+        precio_cliente: '',
+        stock: ''
+      });
+      setMensaje('Llanta agregada ✅');
+      setTimeout(() => setMensaje(''), 2000);
+    } catch {
+      setMensaje('Error al agregar ❌');
+      setTimeout(() => setMensaje(''), 2000);
+    }
+  };
 
   const actualizarCampo = (id, campo, valor) => {
     setLlantas(prev =>
@@ -229,14 +176,8 @@ const handleAgregar = async () => {
           <button onClick={() => setMostrarModal(true)} className="bg-gray-700 text-white px-3 py-1.5 rounded text-sm hover:bg-gray-800">Agregar ítem</button>
           <button onClick={handleEliminarMultiples} disabled={seleccionadas.length === 0} className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700">Eliminar seleccionados</button>
           <button onClick={() => { localStorage.removeItem('acceso'); window.location.href = '/login'; }} className="bg-red-500 text-white px-3 py-1.5 rounded text-sm hover:bg-red-600">Cerrar sesión</button>
-          <button onClick={() => window.open('/lista_llantar.pdf', '_blank')} className="bg-blue-500 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-600">Lista llantar</button>
+          <button onClick={() => window.open('/lista_llantar.pdf', '_blank')} className="bg-yellow-500 text-white px-3 py-1.5 rounded text-sm hover:bg-yellow-600">Lista llantar</button>
         </div>
-      </div>
-
-        <div className="p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-gray-800">Inventario de Llantas</h1>
-       
       </div>
 
       {/* Mensajes */}
@@ -258,29 +199,9 @@ const handleAgregar = async () => {
                 placeholder="Buscar referencia..."
                 value={busqueda}
                 onChange={e => setBusqueda(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && busqueda.trim()) {
-                  let nuevas = [busqueda, ...busquedasRecientes.filter(b => b !== busqueda)];
-                  if (nuevas.length > 5) nuevas = nuevas.slice(0, 5); // máximo 5
-                  setBusquedasRecientes(nuevas);
-                  localStorage.setItem('busquedasRecientes', JSON.stringify(nuevas));
-                   }
-                 }}
-              
-              
-              className="w-full p-4 border-2 border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-300"/>
-               {busquedasRecientes.length > 0 && (
-                <div className="mt-2 text-sm text-gray-700">
-                <p className="font-semibold mb-1">Búsquedas recientes:</p>
-                <div className="flex flex-wrap gap-2">
-                {busquedasRecientes.map((b, i) => (
-                <button key={i} onClick={() => setBusqueda(b)}
-                className="bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded">{b}
-                </button>
-               ))}
-            </div>
-          </div>
-         )}
+                className="w-full p-4 border-2 border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-300"
+              />
+
               <label className="block text-sm font-medium text-gray-600 mb-2 mt-4">Marca</label>
               <select
                 value={marcaSeleccionada}
@@ -295,7 +216,6 @@ const handleAgregar = async () => {
                 <button onClick={() => { setBusqueda(''); setMarcaSeleccionada(''); }} className="px-8 py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700">Limpiar filtros</button>
               </div>
             </div>
-            
 
             {/* Tabla */}
             <div className="overflow-auto">
@@ -336,23 +256,10 @@ const handleAgregar = async () => {
                         </>
                       ) : (
                         <>
-                        <td className="p-2 text-center">
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
-                        <span className="font-medium text-gray-800">{ll.referencia}</span>
-                        <div className="flex gap-1">
-                {/* Botón para ver la llanta en Llantar */}
-                     <button onClick={() => window.open( `https://www.llantar.com.co/collections/llantas?q=${encodeURIComponent(ll.referencia)}`,
-                     '_blank'
-                       )
-                      }
-                      className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-xs">Llantar</button>
-
-                 {/* Botón para comparar precios */}
-                   <button onClick={() => abrirComparador(ll.referencia)}
-                   className="bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700 text-xs">Comparar</button>
-                  </div>
-                 </div>
-                 </td>
+                          <td className="p-1 flex items-center justify-center gap-2">
+                            <span>{ll.referencia}</span>
+                            <button onClick={() => window.open(`https://www.llantar.com.co/collections/llantas?q=${encodeURIComponent(ll.referencia)}`, '_blank')} className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-xs">Ver</button>
+                          </td>
                           <td>{ll.marca}</td>
                           <td>{ll.proveedor}</td>
                           <td className="text-blue-600">{mostrarCosto ? `$${ll.costo_empresa.toLocaleString()}` : '•••••'}</td>
@@ -394,61 +301,7 @@ const handleAgregar = async () => {
           </div>
         </div>
       )}
-      {comparadorAbierto && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white rounded-lg p-6 w-[420px] shadow-lg max-h-[80vh] overflow-auto">
-      <h2 className="text-xl font-bold mb-4 text-center text-gray-800">
-        Comparar precios: {referenciaSeleccionada}
-      </h2>
-      <table className="w-full text-sm border border-gray-300 mb-4">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="border px-2 py-1">Página</th>
-            <th className="border px-2 py-1">Enlace</th>
-          </tr>
-        </thead>
-        <tbody>
-          {[
-            { nombre: 'Llantar', url: `https://www.llantar.com.co/search?q=${encodeURIComponent(referenciaSeleccionada)}` },
-            { nombre: 'Virtual Llantas', url: `https://www.virtualllantas.com.co/catalogsearch/result/?q=${encodeURIComponent(referenciaSeleccionada)}` },
-            { nombre: 'Tu Llanta', url: `https://www.tullanta.com/search?q=${encodeURIComponent(referenciaSeleccionada)}` },
-            { nombre: 'Neumarket', url: `https://www.neumarket.com.co/catalogsearch/result/?q=${encodeURIComponent(referenciaSeleccionada)}` },
-            { nombre: 'MercadoLibre', url: `https://www.mercadolibre.com.co/search?as_word=${encodeURIComponent(referenciaSeleccionada)}` },
-            { nombre: 'Autopartes', url: `https://www.autopartes.com.co/search?q=${encodeURIComponent(referenciaSeleccionada)}` },
-            { nombre: 'Google', url: `https://www.google.com/search?q=${encodeURIComponent(referenciaSeleccionada + ' llantas Colombia')}` },
-          ].map((sitio) => (
-            <tr key={sitio.nombre}>
-              <td className="border px-2 py-1 font-medium text-gray-700">{sitio.nombre}</td>
-              <td className="border px-2 py-1 text-center">
-                <a
-                  href={sitio.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 underline hover:text-blue-800"
-                >
-                  Ver precios
-                </a>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      <div className="text-center">
-        <button
-          onClick={cerrarComparador}
-          className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800"
-        >
-          Cerrar
-        </button>
-      </div>
     </div>
-  </div>
-   )}
- </div>
-  
-
-   </div>
   );
 }
 

@@ -31,28 +31,35 @@ function Accesorios() {
   );
 
   // 🟢 Agregar nuevo accesorio
-  const agregarAccesorio = async () => {
-    const { nombre, categoria, costo, precio, stock } = nuevoAccesorio;
-    if (!nombre || !categoria || !costo || !precio || !stock) {
-      alert("Por favor completa todos los campos");
-      return;
-    }
+ const agregarAccesorio = async () => {
+  const { nombre, categoria, costo, precio, stock } = nuevoAccesorio;
+  if (!nombre || !categoria || !costo || !precio || !stock) {
+    alert("Por favor completa todos los campos");
+    return;
+  }
 
-    const res = await fetch("/api/accesorios", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(nuevoAccesorio),
-    });
+  const res = await fetch("/api/accesorios", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      nombre,
+      categoria,
+      costo: Number(costo),
+      precio: Number(precio),
+      stock: Number(stock),
+    }),
+  });
 
-    if (res.ok) {
-      const data = await res.json();
-      setAccesorios([data, ...accesorios]);
-      setMostrarModal(false);
-      setNuevoAccesorio({ nombre: "", categoria: "", costo: "", precio: "", stock: "" });
-    } else {
-      alert("Error al guardar el accesorio");
-    }
-  };
+  if (res.ok) {
+    const data = await res.json(); // ahora sí será el objeto agregado
+    setAccesorios([data, ...accesorios]);
+    setMostrarModal(false);
+    setNuevoAccesorio({ nombre: "", categoria: "", costo: "", precio: "", stock: "" });
+  } else {
+    alert("Error al guardar el accesorio");
+  }
+};
+
 
   // ✏️ Guardar edición
   const guardarEdicion = async (id) => {

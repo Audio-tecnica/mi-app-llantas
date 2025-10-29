@@ -203,7 +203,7 @@ function App() {
                 placeholder="Buscar referencia..."
                 value={busqueda}
                 onChange={e => setBusqueda(e.target.value)}
-                className="w-full p-4 border-2 border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-300"
+                className="w-full p-4 border-3 border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-300"
               /> 
               <label className="block text-sm font-medium text-gray-600 mb-2 mt-4">Marca</label>
               <select

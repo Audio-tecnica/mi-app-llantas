@@ -15,6 +15,8 @@ function App() {
   const [mensaje, setMensaje] = useState('');
   const [modoEdicion, setModoEdicion] = useState(null);
   const [mostrarModal, setMostrarModal] = useState(false);
+  const [comparadorAbierto, setComparadorAbierto] = useState(false);
+  const [referenciaSeleccionada, setReferenciaSeleccionada] = useState('');
   const [nuevoItem, setNuevoItem] = useState({
     referencia: '',
     marca: '',
@@ -52,12 +54,21 @@ function App() {
   }, []);
 
   // 📦 Cargar llantas
-  useEffect(() => {
-    axios.get('https://mi-app-llantas.onrender.com/api/llantas')
-      .then(res => setLlantas(res.data))
-      .catch(() => setMensaje('Error al cargar llantas ❌'))
-      .finally(() => setCargando(false));
-  }, []);
+ useEffect(() => {
+  axios.get('https://mi-app-llantas.onrender.com/api/llantas') //https://cors-anywhere.herokuapp.com/
+    .then(res => setLlantas(res.data))
+    .catch(() => setMensaje('Error al cargar llantas ❌'))
+    .finally(() => setCargando(false));
+}, []);
+
+// funciones para abrir / cerrar modal comparador
+const abrirComparador = (referencia) => {
+  const url = `https://www.google.com/search?q=${encodeURIComponent(
+    referencia + " site:llantar.com.co OR site:virtualllantas.com OR site:tullanta.com"
+  )}`;
+  window.open(url, "_blank");
+};
+
 
   // 📋 Filtros y marcas
   const marcasUnicas = [...new Set(llantas.map(l => l.marca))];
@@ -203,13 +214,17 @@ function App() {
                 placeholder="Buscar referencia..."
                 value={busqueda}
                 onChange={e => setBusqueda(e.target.value)}
+<<<<<<< HEAD
                 className="w-full p-4 border-2 border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-300"
+=======
+                className="w-full p-3 border-2 border-orange-500 rounded-3xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-500"
+>>>>>>> pruebas
               /> 
               <label className="block text-sm font-medium text-gray-600 mb-2 mt-4">Marca</label>
               <select
                 value={marcaSeleccionada}
                 onChange={e => setMarcaSeleccionada(e.target.value)}
-                className="w-full p-4 border-2 border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-300"
+                className="w-full p-4 border-2 border-orange-300 rounded-xl shadow-sm focus:ring-2 focus:ring-orange-400 outline-none transition ease-in-out duration-300"
               >
                 <option value="">Todas las marcas</option>
                 {marcasUnicas.map(m => <option key={m} value={m}>{m}</option>)}
@@ -258,10 +273,15 @@ function App() {
                         </>
                       ) : (
                         <>
-                          <td className="p-1 flex items-center justify-center gap-2">
-                            <span>{ll.referencia}</span>
-                            <button onClick={() => window.open(`https://www.llantar.com.co/collections/llantas?q=${encodeURIComponent(ll.referencia)}`, '_blank')} className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-xs">Ver</button>
-                          </td>
+                         <td className="p-1 flex items-center justify-center gap-2"> <span>{ll.referencia}</span>
+
+                           {/* Botón que abre la búsqueda en Llantar */}
+                           <button onClick={() => window.open(`https://www.llantar.com.co/search?q=${encodeURIComponent(ll.referencia)}`, '_blank')}
+                            className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-xs">Llantar</button>
+
+                          {/* NUEVO: Botón Comparar precios (abre modal interno) */}<button onClick={() => abrirComparador(ll.referencia)}
+                            className="bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700 text-xs">
+                             Comparar</button></td> 
                           <td>{ll.marca}</td>
                           <td>{ll.proveedor}</td>
                           <td className="text-blue-600">{mostrarCosto ? `$${ll.costo_empresa.toLocaleString()}` : '•••••'}</td>
@@ -299,11 +319,64 @@ function App() {
             <div className="flex justify-end gap-2">
               <button onClick={handleAgregar} className="bg-blue-600 text-white px-4 py-2 rounded">Guardar</button>
               <button onClick={() => setMostrarModal(false)} className="bg-gray-400 text-white px-4 py-2 rounded">Cancelar</button>
+              {comparadorAbierto && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white rounded-lg p-6 w-[420px] shadow-lg max-h-[80vh] overflow-auto">
+      <h2 className="text-xl font-bold mb-4 text-center text-gray-800">
+        Comparar precios: {referenciaSeleccionada}
+      </h2>
+      <table className="w-full text-sm border border-gray-300 mb-4">
+        <thead>
+          <tr className="bg-gray-100">
+            <th className="border px-2 py-1">Página</th>
+            <th className="border px-2 py-1">Enlace</th>
+          </tr>
+        </thead>
+        <tbody>
+          {[
+            { nombre: 'Llantar', url: `https://www.llantar.com.co/search?q=${encodeURIComponent(referenciaSeleccionada)}` },
+            { nombre: 'Virtual Llantas', url: `https://www.virtualllantas.com.co/catalogsearch/result/?q=${encodeURIComponent(referenciaSeleccionada)}` },
+            { nombre: 'Tu Llanta', url: `https://www.tullanta.com/search?q=${encodeURIComponent(referenciaSeleccionada)}` },
+            { nombre: 'Neumarket', url: `https://www.neumarket.com.co/catalogsearch/result/?q=${encodeURIComponent(referenciaSeleccionada)}` },
+            { nombre: 'MercadoLibre', url: `https://www.mercadolibre.com.co/search?as_word=${encodeURIComponent(referenciaSeleccionada)}` },
+            { nombre: 'Autopartes', url: `https://www.autopartes.com.co/search?q=${encodeURIComponent(referenciaSeleccionada)}` },
+            { nombre: 'Google', url: `https://www.google.com/search?q=${encodeURIComponent(referenciaSeleccionada + ' llantas Colombia')}` },
+          ].map((sitio) => (
+            <tr key={sitio.nombre}>
+              <td className="border px-2 py-1 font-medium text-gray-700">{sitio.nombre}</td>
+              <td className="border px-2 py-1 text-center">
+                <a
+                  href={sitio.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 underline hover:text-blue-800"
+                >
+                  Ver precios
+                </a>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <div className="text-center">
+        <button
+          onClick={cerrarComparador}
+          className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800"
+        >
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+)}
             </div>
           </div>
         </div>
       )}
+      
     </div>
+    
   );
 }
 

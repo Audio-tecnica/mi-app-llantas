@@ -1,92 +1,109 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
-import { Link } from 'react-router-dom';
-import './index.css';
+import { Link } from "react-router-dom";
+import "./index.css";
 
 function App() {
   const [mostrarCosto, setMostrarCosto] = useState(false);
   const [llantas, setLlantas] = useState([]);
-  const [busqueda, setBusqueda] = useState('');
-  const [marcaSeleccionada, setMarcaSeleccionada] = useState('');
-  const [ancho, setAncho] = useState('');
-  const [perfil, setPerfil] = useState('');
-  const [rin, setRin] = useState('');
-  const [mensaje, setMensaje] = useState('');
+  const [busqueda, setBusqueda] = useState("");
+  const [marcaSeleccionada, setMarcaSeleccionada] = useState("");
+  const [ancho, setAncho] = useState("");
+  const [perfil, setPerfil] = useState("");
+  const [rin, setRin] = useState("");
+  const [mensaje, setMensaje] = useState("");
   const [modoEdicion, setModoEdicion] = useState(null);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [comparadorAbierto, setComparadorAbierto] = useState(false);
-  const [referenciaSeleccionada, setReferenciaSeleccionada] = useState('');
+  const [referenciaSeleccionada, setReferenciaSeleccionada] = useState("");
   const [nuevoItem, setNuevoItem] = useState({
-    referencia: '',
-    marca: '',
-    proveedor: '',
-    costo_empresa: '',
-    precio_cliente: '',
-    stock: ''
+    referencia: "",
+    marca: "",
+    proveedor: "",
+    costo_empresa: "",
+    precio_cliente: "",
+    stock: "",
   });
   const [cargando, setCargando] = useState(true);
-  const [orden, setOrden] = useState({ campo: '', asc: true });
+  const [orden, setOrden] = useState({ campo: "", asc: true });
   const [seleccionadas, setSeleccionadas] = useState([]);
+
+  // 🔹 Aquí va el hook que faltaba:
+  const [busquedasRecientes, setBusquedasRecientes] = useState(() => {
+    const guardadas = localStorage.getItem("busquedasRecientes");
+    return guardadas ? JSON.parse(guardadas) : [];
+  });
 
   // 🔒 Verificación de sesión
   useEffect(() => {
-    const acceso = localStorage.getItem('acceso');
-    const timestamp = localStorage.getItem('timestamp');
+    const acceso = localStorage.getItem("acceso");
+    const timestamp = localStorage.getItem("timestamp");
     const maxTiempo = 60 * 60 * 1000; // 1 hora
 
     if (!acceso || !timestamp || Date.now() - parseInt(timestamp) > maxTiempo) {
-      localStorage.removeItem('acceso');
-      localStorage.removeItem('timestamp');
-      window.location.href = '/login';
+      localStorage.removeItem("acceso");
+      localStorage.removeItem("timestamp");
+      window.location.href = "/login";
       return;
     }
 
-    localStorage.setItem('timestamp', Date.now());
+    localStorage.setItem("timestamp", Date.now());
 
     const timer = setTimeout(() => {
-      localStorage.removeItem('acceso');
-      localStorage.removeItem('timestamp');
-      window.location.href = '/login';
+      localStorage.removeItem("acceso");
+      localStorage.removeItem("timestamp");
+      window.location.href = "/login";
     }, maxTiempo);
 
     return () => clearTimeout(timer);
   }, []);
 
   // 📦 Cargar llantas
- useEffect(() => {
-  axios.get('https://mi-app-llantas.onrender.com/api/llantas') //https://cors-anywhere.herokuapp.com/
-    .then(res => setLlantas(res.data))
-    .catch(() => setMensaje('Error al cargar llantas ❌'))
-    .finally(() => setCargando(false));
-}, []);
+  useEffect(() => {
+    axios
+      .get(
+        "https://cors-anywhere.herokuapp.com/https://mi-app-llantas.onrender.com/api/llantas"
+      ) //https://cors-anywhere.herokuapp.com/
+      .then((res) => setLlantas(res.data))
+      .catch(() => setMensaje("Error al cargar llantas ❌"))
+      .finally(() => setCargando(false));
+  }, []);
 
-// funciones para abrir / cerrar modal comparador
-const abrirComparador = (referencia) => {
-  const url = `https://www.google.com/search?q=${encodeURIComponent(
-    referencia + " site:llantar.com.co OR site:virtualllantas.com OR site:tullanta.com"
-  )}`;
-  window.open(url, "_blank");
-};
-
+  // funciones para abrir / cerrar modal comparador
+  const abrirComparador = (referencia) => {
+    const url = `https://www.google.com/search?q=${encodeURIComponent(
+      referencia +
+        " site:llantar.com.co OR site:virtualllantas.com OR site:tullanta.com"
+    )}`;
+    window.open(url, "_blank");
+  };
 
   // 📋 Filtros y marcas
-  const marcasUnicas = [...new Set(llantas.map(l => l.marca))];
+  const marcasUnicas = [...new Set(llantas.map((l) => l.marca))];
 
-  const filtradas = llantas.filter(l => {
-    const coincideBusqueda = l.referencia?.toLowerCase().includes(busqueda.toLowerCase());
+  const filtradas = llantas.filter((l) => {
+    const coincideBusqueda = l.referencia
+      ?.toLowerCase()
+      .includes(busqueda.toLowerCase());
     const coincideMarca = !marcaSeleccionada || l.marca === marcaSeleccionada;
     const coincideAncho = !ancho || l.referencia.includes(ancho);
     const coincidePerfil = !perfil || l.referencia.includes(perfil);
     const coincideRin = !rin || l.referencia.includes(rin);
-    return coincideBusqueda && coincideMarca && coincideAncho && coincidePerfil && coincideRin;
+    return (
+      coincideBusqueda &&
+      coincideMarca &&
+      coincideAncho &&
+      coincidePerfil &&
+      coincideRin
+    );
   });
 
   // 🔃 Ordenar columnas
   const ordenarPor = (campo) => {
     const asc = orden.campo === campo ? !orden.asc : true;
     const ordenadas = [...filtradas].sort((a, b) => {
-      if (typeof a[campo] === 'number') {
+      if (typeof a[campo] === "number") {
         return asc ? a[campo] - b[campo] : b[campo] - a[campo];
       } else {
         return asc
@@ -100,81 +117,106 @@ const abrirComparador = (referencia) => {
 
   // ✅ Funciones CRUD
   const toggleSeleccion = (id) => {
-    setSeleccionadas(prev =>
-      prev.includes(id)
-        ? prev.filter(x => x !== id)
-        : [...prev, id]
+    setSeleccionadas((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   };
 
   const handleEliminarMultiples = async () => {
-    if (!window.confirm('¿Eliminar los ítems seleccionados?')) return;
+    if (!window.confirm("¿Eliminar los ítems seleccionados?")) return;
     try {
       for (let id of seleccionadas) {
-        await axios.post('https://mi-app-llantas.onrender.com/api/eliminar-llanta', { id });
+        await axios.post(
+          "https://mi-app-llantas.onrender.com/api/eliminar-llanta",
+          { id }
+        );
       }
-      const { data } = await axios.get('https://mi-app-llantas.onrender.com/api/llantas');
+      const { data } = await axios.get(
+        "https://mi-app-llantas.onrender.com/api/llantas"
+      );
       setLlantas(data);
       setSeleccionadas([]);
-      setMensaje('Ítems eliminados ✅');
-      setTimeout(() => setMensaje(''), 2000);
+      setMensaje("Ítems eliminados ✅");
+      setTimeout(() => setMensaje(""), 2000);
     } catch {
-      setMensaje('Error al eliminar ❌');
-      setTimeout(() => setMensaje(''), 2000);
+      setMensaje("Error al eliminar ❌");
+      setTimeout(() => setMensaje(""), 2000);
     }
   };
 
   const handleGuardar = async (llanta) => {
     try {
-      await axios.post('https://mi-app-llantas.onrender.com/api/editar-llanta', llanta);
-      setMensaje('Cambios guardados ✅');
+      await axios.post(
+        "https://mi-app-llantas.onrender.com/api/editar-llanta",
+        llanta
+      );
+      setMensaje("Cambios guardados ✅");
       setModoEdicion(null);
-      setTimeout(() => setMensaje(''), 2000);
+      setTimeout(() => setMensaje(""), 2000);
     } catch {
-      setMensaje('Error al guardar ❌');
-      setTimeout(() => setMensaje(''), 2000);
+      setMensaje("Error al guardar ❌");
+      setTimeout(() => setMensaje(""), 2000);
     }
   };
 
   const handleEliminar = async (id) => {
-    if (!window.confirm('¿Estás seguro de eliminar esta llanta?')) return;
+    if (!window.confirm("¿Estás seguro de eliminar esta llanta?")) return;
     try {
-      await axios.post('https://mi-app-llantas.onrender.com/api/eliminar-llanta', { id });
-      setLlantas(prev => prev.filter(l => l.id !== id));
-      setMensaje('Llanta eliminada ✅');
-      setTimeout(() => setMensaje(''), 2000);
+      await axios.post(
+        "https://mi-app-llantas.onrender.com/api/eliminar-llanta",
+        { id }
+      );
+      setLlantas((prev) => prev.filter((l) => l.id !== id));
+      setMensaje("Llanta eliminada ✅");
+      setTimeout(() => setMensaje(""), 2000);
     } catch {
-      setMensaje('Error al eliminar ❌');
-      setTimeout(() => setMensaje(''), 2000);
+      setMensaje("Error al eliminar ❌");
+      setTimeout(() => setMensaje(""), 2000);
     }
   };
 
   const handleAgregar = async () => {
     try {
-      await axios.post('https://mi-app-llantas.onrender.com/api/agregar-llanta', nuevoItem);
-      const { data } = await axios.get('https://mi-app-llantas.onrender.com/api/llantas');
+      await axios.post(
+        "https://mi-app-llantas.onrender.com/api/agregar-llanta",
+        nuevoItem
+      );
+      const { data } = await axios.get(
+        "https://mi-app-llantas.onrender.com/api/llantas"
+      );
       setLlantas(data);
       setMostrarModal(false);
       setNuevoItem({
-        referencia: '',
-        marca: '',
-        proveedor: '',
-        costo_empresa: '',
-        precio_cliente: '',
-        stock: ''
+        referencia: "",
+        marca: "",
+        proveedor: "",
+        costo_empresa: "",
+        precio_cliente: "",
+        stock: "",
       });
-      setMensaje('Llanta agregada ✅');
-      setTimeout(() => setMensaje(''), 2000);
+      setMensaje("Llanta agregada ✅");
+      setTimeout(() => setMensaje(""), 2000);
     } catch {
-      setMensaje('Error al agregar ❌');
-      setTimeout(() => setMensaje(''), 2000);
+      setMensaje("Error al agregar ❌");
+      setTimeout(() => setMensaje(""), 2000);
     }
   };
 
   const actualizarCampo = (id, campo, valor) => {
-    setLlantas(prev =>
-      prev.map(l => (l.id === id ? { ...l, [campo]: valor } : l))
+    setLlantas((prev) =>
+      prev.map((l) => (l.id === id ? { ...l, [campo]: valor } : l))
     );
+  };
+  const handleBusquedaChange = (e) => {
+    const valor = e.target.value;
+    setBusqueda(valor);
+
+    if (valor.trim() === "") return;
+
+    const nuevas = [valor, ...busquedasRecientes.filter((v) => v !== valor)];
+    const top5 = nuevas.slice(0, 5); // Guardar solo las 5 últimas
+    setBusquedasRecientes(top5);
+    localStorage.setItem("busquedasRecientes", JSON.stringify(top5));
   };
 
   // 🧩 Render principal
@@ -184,108 +226,350 @@ const abrirComparador = (referencia) => {
       <div className="flex justify-between items-center mb-6 flex-wrap gap-2">
         <img src="/logowp.PNG" className="h-13 w-48" />
         <div className="flex flex-wrap gap-2">
-          <button onClick={() => setMostrarModal(true)} className="bg-gray-700 text-white px-3 py-1.5 rounded text-sm hover:bg-gray-800">Agregar ítem</button>
-          <button onClick={handleEliminarMultiples} disabled={seleccionadas.length === 0} className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700">Eliminar seleccionados</button>
-          <button onClick={() => { localStorage.removeItem('acceso'); window.location.href = '/login'; }} className="bg-red-500 text-white px-3 py-1.5 rounded text-sm hover:bg-red-600">Cerrar sesión</button>
-          <button onClick={() => window.open('/lista_llantar.pdf', '_blank')} className="bg-blue-500 text-white px-3 py-1.5 rounded text-sm hover:bg--600">Lista llantar</button>
+          <button
+            onClick={() => setMostrarModal(true)}
+            className="bg-gray-700 text-white px-3 py-1.5 rounded text-sm hover:bg-gray-800"
+          >
+            Agregar ítem
+          </button>
+          <button
+            onClick={handleEliminarMultiples}
+            disabled={seleccionadas.length === 0}
+            className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700"
+          >
+            Eliminar seleccionados
+          </button>
+          <button
+            onClick={() => {
+              localStorage.removeItem("acceso");
+              window.location.href = "/login";
+            }}
+            className="bg-red-500 text-white px-3 py-1.5 rounded text-sm hover:bg-red-600"
+          >
+            Cerrar sesión
+          </button>
+          <button
+            onClick={() => window.open("/lista_llantar.pdf", "_blank")}
+            className="bg-blue-500 text-white px-3 py-1.5 rounded text-sm hover:bg--600"
+          >
+            Lista llantar
+          </button>
         </div>
       </div>
 
       {/* Mensajes */}
-      {mensaje && <div className="text-center text-blue-700 font-semibold mb-4">❗{mensaje}</div>}
+      {mensaje && (
+        <div className="text-center text-blue-700 font-semibold mb-4">
+          ❗{mensaje}
+        </div>
+      )}
 
       {/* Contenido principal */}
       {cargando ? (
-        <div className="text-center py-10 text-gray-500">⏳ Cargando llantas...</div>
+        <div className="text-center py-10 text-gray-500">
+          ⏳ Cargando llantas...
+        </div>
       ) : (
         <>
-          <div className="text-sm text-gray-700 mb-2">Mostrando {filtradas.length} resultados</div>
+          <div className="text-sm text-gray-700 mb-2">
+            Mostrando {filtradas.length} resultados
+          </div>
           <div className="bg-white p-6 rounded-3xl shadow-xl border mb-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-6">Ingrese su búsqueda</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-6">
+              Ingrese su búsqueda
+            </h2>
 
             {/* Filtros */}
             <div className="mb-4">
               <div className="flex justify-left mt-10">
-                <button onClick={() => { setBusqueda(''); setMarcaSeleccionada(''); }} className="px-5 py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700">Limpiar filtros</button>
+                <button
+                  onClick={() => {
+                    setBusqueda("");
+                    setMarcaSeleccionada("");
+                  }}
+                  className="px-5 py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700"
+                >
+                  Limpiar filtros
+                </button>
               </div>
             </div>
-              <input
-                type="text"
-                placeholder="Buscar referencia..."
-                value={busqueda}
-                onChange={e => setBusqueda(e.target.value)}
-                className="w-full p-3 border-2 border-orange-500 rounded-3xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-500"
-              /> 
-              <label className="block text-sm font-medium text-gray-600 mb-2 mt-4">Marca</label>
-              <select
-                value={marcaSeleccionada}
-                onChange={e => setMarcaSeleccionada(e.target.value)}
-                className="w-full p-4 border-2 border-orange-300 rounded-xl shadow-sm focus:ring-2 focus:ring-orange-400 outline-none transition ease-in-out duration-300"
-              >
-                <option value="">Todas las marcas</option>
-                {marcasUnicas.map(m => <option key={m} value={m}>{m}</option>)}
-              </select>
-               <div className="flex justify-center mt-10">
-               
+            <input
+              type="text"
+              placeholder="Buscar referencia..."
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && busqueda.trim() !== "") {
+                  // Crear nueva lista, quitando duplicados
+                  let nuevas = [
+                    busqueda,
+                    ...busquedasRecientes.filter((v) => v !== busqueda),
+                  ];
+                  // Mantener máximo 5, eliminando las más antiguas
+                  if (nuevas.length > 5) nuevas = nuevas.slice(0, 5);
+                  setBusquedasRecientes(nuevas);
+                  localStorage.setItem(
+                    "busquedasRecientes",
+                    JSON.stringify(nuevas)
+                  );
+                  setBusqueda(""); // Limpiar input
+                }
+              }}
+              className="w-full p-3 border-2 border-orange-500 rounded-3xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-500"
+            />
+
+            <label className="block text-sm font-medium text-gray-600 mb-2 mt-4">
+              Marca
+            </label>
+            <select
+              value={marcaSeleccionada}
+              onChange={(e) => setMarcaSeleccionada(e.target.value)}
+              className="w-full p-4 border-2 border-orange-300 rounded-xl shadow-sm focus:ring-2 focus:ring-orange-400 outline-none transition ease-in-out duration-300"
+            >
+              <option value="">Todas las marcas</option>
+              {marcasUnicas.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+            <div className="flex justify-center mt-10"></div>
+
+            {busquedasRecientes.length > 0 && (
+              <div className="mt-2">
+                <span className="text-sm text-gray-600 mr-2">
+                  Búsquedas recientes:
+                </span>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {busquedasRecientes.map((b, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setBusqueda(b)}
+                      className="px-3 py-1 bg-gray-200 text-gray-800 rounded-full text-sm hover:bg-orange-500 hover:text-white transition-colors duration-300"
+                    >
+                      {b}
+                    </button>
+                  ))}
+                </div>
               </div>
+            )}
 
-
+            <input></input>
             {/* Tabla */}
+
             <div className="overflow-auto">
               <table className="w-full border text-sm">
                 <thead className="bg-gradient-to-r from-gray-400 to-orange-300 text-black">
                   <tr>
                     <th></th>
-                    <th onClick={() => ordenarPor('referencia')} className="cursor-pointer p-2">Referencia</th>
-                    <th onClick={() => ordenarPor('marca')} className="cursor-pointer p-2">Marca</th>
-                    <th onClick={() => ordenarPor('proveedor')} className="cursor-pointer p-2">Proveedor</th>
-                    <th onClick={() => ordenarPor('costo_empresa')} className="cursor-pointer p-2">
+                    <th
+                      onClick={() => ordenarPor("referencia")}
+                      className="cursor-pointer p-2"
+                    >
+                      Referencia
+                    </th>
+                    <th
+                      onClick={() => ordenarPor("marca")}
+                      className="cursor-pointer p-2"
+                    >
+                      Marca
+                    </th>
+                    <th
+                      onClick={() => ordenarPor("proveedor")}
+                      className="cursor-pointer p-2"
+                    >
+                      Proveedor
+                    </th>
+                    <th
+                      onClick={() => ordenarPor("costo_empresa")}
+                      className="cursor-pointer p-2"
+                    >
                       Costo
-                      <button onClick={(e) => { e.stopPropagation(); setMostrarCosto(!mostrarCosto); }} className="ml-2 text-white-600">
-                        {mostrarCosto ? <EyeOff size={16} /> : <Eye size={16} />}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setMostrarCosto(!mostrarCosto);
+                        }}
+                        className="ml-2 text-white-600"
+                      >
+                        {mostrarCosto ? (
+                          <EyeOff size={16} />
+                        ) : (
+                          <Eye size={16} />
+                        )}
                       </button>
                     </th>
-                    <th onClick={() => ordenarPor('precio_cliente')} className="cursor-pointer p-2">Precio</th>
-                    <th onClick={() => ordenarPor('stock')} className="cursor-pointer p-2">Stock</th>
+                    <th
+                      onClick={() => ordenarPor("precio_cliente")}
+                      className="cursor-pointer p-2"
+                    >
+                      Precio
+                    </th>
+                    <th
+                      onClick={() => ordenarPor("stock")}
+                      className="cursor-pointer p-2"
+                    >
+                      Stock
+                    </th>
                     <th className="p-2">Acción</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filtradas.map(ll => (
-                    <tr key={ll.id} className="text-center border-t even:bg-gray-50">
-                      <td><input type="checkbox" checked={seleccionadas.includes(ll.id)} onChange={() => toggleSeleccion(ll.id)} /></td>
+                  {filtradas.map((ll) => (
+                    <tr
+                      key={ll.id}
+                      className="text-center border-t even:bg-gray-50"
+                    >
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={seleccionadas.includes(ll.id)}
+                          onChange={() => toggleSeleccion(ll.id)}
+                        />
+                      </td>
                       {modoEdicion === ll.id ? (
                         <>
-                          <td><input value={ll.referencia} onChange={e => actualizarCampo(ll.id, 'referencia', e.target.value)} className="w-full border rounded text-sm p-1" /></td>
-                          <td><input value={ll.marca} onChange={e => actualizarCampo(ll.id, 'marca', e.target.value)} className="w-full border rounded text-sm p-1" /></td>
-                          <td><input value={ll.proveedor} onChange={e => actualizarCampo(ll.id, 'proveedor', e.target.value)} className="w-full border rounded text-sm p-1" /></td>
-                          <td><input type="number" value={ll.costo_empresa} onChange={e => actualizarCampo(ll.id, 'costo_empresa', e.target.value)} className="w-full border rounded text-sm p-1" /></td>
-                          <td><input type="number" value={ll.precio_cliente} onChange={e => actualizarCampo(ll.id, 'precio_cliente', e.target.value)} className="w-full border rounded text-sm p-1" /></td>
-                          <td><input type="number" value={ll.stock} onChange={e => actualizarCampo(ll.id, 'stock', e.target.value)} className="w-full border rounded text-sm p-1" /></td>
+                          <td>
+                            <input
+                              value={ll.referencia}
+                              onChange={(e) =>
+                                actualizarCampo(
+                                  ll.id,
+                                  "referencia",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full border rounded text-sm p-1"
+                            />
+                          </td>
+                          <td>
+                            <input
+                              value={ll.marca}
+                              onChange={(e) =>
+                                actualizarCampo(ll.id, "marca", e.target.value)
+                              }
+                              className="w-full border rounded text-sm p-1"
+                            />
+                          </td>
+                          <td>
+                            <input
+                              value={ll.proveedor}
+                              onChange={(e) =>
+                                actualizarCampo(
+                                  ll.id,
+                                  "proveedor",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full border rounded text-sm p-1"
+                            />
+                          </td>
+                          <td>
+                            <input
+                              type="number"
+                              value={ll.costo_empresa}
+                              onChange={(e) =>
+                                actualizarCampo(
+                                  ll.id,
+                                  "costo_empresa",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full border rounded text-sm p-1"
+                            />
+                          </td>
+                          <td>
+                            <input
+                              type="number"
+                              value={ll.precio_cliente}
+                              onChange={(e) =>
+                                actualizarCampo(
+                                  ll.id,
+                                  "precio_cliente",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full border rounded text-sm p-1"
+                            />
+                          </td>
+                          <td>
+                            <input
+                              type="number"
+                              value={ll.stock}
+                              onChange={(e) =>
+                                actualizarCampo(ll.id, "stock", e.target.value)
+                              }
+                              className="w-full border rounded text-sm p-1"
+                            />
+                          </td>
                           <td className="flex gap-1 justify-center">
-                            <button onClick={() => handleGuardar(ll)} className="bg-blue-500 text-white px-2 py-1 text-xs rounded">Guardar</button>
-                            <button onClick={() => setModoEdicion(null)} className="bg-gray-300 text-black px-2 py-1 text-xs rounded">Cancelar</button>
+                            <button
+                              onClick={() => handleGuardar(ll)}
+                              className="bg-blue-500 text-white px-2 py-1 text-xs rounded"
+                            >
+                              Guardar
+                            </button>
+                            <button
+                              onClick={() => setModoEdicion(null)}
+                              className="bg-gray-300 text-black px-2 py-1 text-xs rounded"
+                            >
+                              Cancelar
+                            </button>
                           </td>
                         </>
                       ) : (
                         <>
-                         <td className="p-1 flex items-center justify-center gap-2"> <span>{ll.referencia}</span>
-
-                           {/* Botón que abre la búsqueda en Llantar */}
-                           <button onClick={() => window.open(`https://www.llantar.com.co/search?q=${encodeURIComponent(ll.referencia)}`, '_blank')}
-                            className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-xs">Llantar</button>
-
-                          {/* NUEVO: Botón Comparar precios (abre modal interno) */}<button onClick={() => abrirComparador(ll.referencia)}
-                            className="bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700 text-xs">
-                             Comparar</button></td> 
+                          <td className="p-1 flex items-center justify-center gap-2">
+                            {" "}
+                            <span>{ll.referencia}</span>
+                            {/* Botón que abre la búsqueda en Llantar */}
+                            <button
+                              onClick={() =>
+                                window.open(
+                                  `https://www.llantar.com.co/search?q=${encodeURIComponent(
+                                    ll.referencia
+                                  )}`,
+                                  "_blank"
+                                )
+                              }
+                              className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-xs"
+                            >
+                              Llantar
+                            </button>
+                            {/* NUEVO: Botón Comparar precios (abre modal interno) */}
+                            <button
+                              onClick={() => abrirComparador(ll.referencia)}
+                              className="bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700 text-xs"
+                            >
+                              Comparar
+                            </button>
+                          </td>
                           <td>{ll.marca}</td>
                           <td>{ll.proveedor}</td>
-                          <td className="text-blue-600">{mostrarCosto ? `$${ll.costo_empresa.toLocaleString()}` : '•••••'}</td>
-                          <td className="text-green-600">${ll.precio_cliente.toLocaleString()}</td>
-                          <td className={ll.stock === 0 ? 'text-red-600' : ''}>{ll.stock === 0 ? 'Sin stock' : ll.stock}</td>
+                          <td className="text-blue-600">
+                            {mostrarCosto
+                              ? `$${ll.costo_empresa.toLocaleString()}`
+                              : "•••••"}
+                          </td>
+                          <td className="text-green-600">
+                            ${ll.precio_cliente.toLocaleString()}
+                          </td>
+                          <td className={ll.stock === 0 ? "text-red-600" : ""}>
+                            {ll.stock === 0 ? "Sin stock" : ll.stock}
+                          </td>
                           <td className="flex gap-1 justify-center">
-                            <button onClick={() => setModoEdicion(ll.id)} className="bg-gray-200 hover:bg-gray-300 px-2 py-1 text-xs rounded">Editar</button>
-                            <button onClick={() => handleEliminar(ll.id)} className="bg-red-500 text-white hover:bg-red-600 px-2 py-1 text-xs rounded">Eliminar</button>
+                            <button
+                              onClick={() => setModoEdicion(ll.id)}
+                              className="bg-gray-200 hover:bg-gray-300 px-2 py-1 text-xs rounded"
+                            >
+                              Editar
+                            </button>
+                            <button
+                              onClick={() => handleEliminar(ll.id)}
+                              className="bg-red-500 text-white hover:bg-red-600 px-2 py-1 text-xs rounded"
+                            >
+                              Eliminar
+                            </button>
                           </td>
                         </>
                       )}
@@ -303,78 +587,131 @@ const abrirComparador = (referencia) => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">Agregar nueva llanta</h2>
-            {['referencia', 'marca', 'proveedor', 'costo_empresa', 'precio_cliente', 'stock'].map(campo => (
+            {[
+              "referencia",
+              "marca",
+              "proveedor",
+              "costo_empresa",
+              "precio_cliente",
+              "stock",
+            ].map((campo) => (
               <input
                 key={campo}
-                placeholder={campo.replace('_', ' ')}
+                placeholder={campo.replace("_", " ")}
                 value={nuevoItem[campo]}
-                onChange={e => setNuevoItem({ ...nuevoItem, [campo]: e.target.value })}
+                onChange={(e) =>
+                  setNuevoItem({ ...nuevoItem, [campo]: e.target.value })
+                }
                 className="w-full mb-3 p-2 border rounded"
               />
             ))}
             <div className="flex justify-end gap-2">
-              <button onClick={handleAgregar} className="bg-blue-600 text-white px-4 py-2 rounded">Guardar</button>
-              <button onClick={() => setMostrarModal(false)} className="bg-gray-400 text-white px-4 py-2 rounded">Cancelar</button>
+              <button
+                onClick={handleAgregar}
+                className="bg-blue-600 text-white px-4 py-2 rounded"
+              >
+                Guardar
+              </button>
+              <button
+                onClick={() => setMostrarModal(false)}
+                className="bg-gray-400 text-white px-4 py-2 rounded"
+              >
+                Cancelar
+              </button>
               {comparadorAbierto && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white rounded-lg p-6 w-[420px] shadow-lg max-h-[80vh] overflow-auto">
-      <h2 className="text-xl font-bold mb-4 text-center text-gray-800">
-        Comparar precios: {referenciaSeleccionada}
-      </h2>
-      <table className="w-full text-sm border border-gray-300 mb-4">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="border px-2 py-1">Página</th>
-            <th className="border px-2 py-1">Enlace</th>
-          </tr>
-        </thead>
-        <tbody>
-          {[
-            { nombre: 'Llantar', url: `https://www.llantar.com.co/search?q=${encodeURIComponent(referenciaSeleccionada)}` },
-            { nombre: 'Virtual Llantas', url: `https://www.virtualllantas.com.co/catalogsearch/result/?q=${encodeURIComponent(referenciaSeleccionada)}` },
-            { nombre: 'Tu Llanta', url: `https://www.tullanta.com/search?q=${encodeURIComponent(referenciaSeleccionada)}` },
-            { nombre: 'Neumarket', url: `https://www.neumarket.com.co/catalogsearch/result/?q=${encodeURIComponent(referenciaSeleccionada)}` },
-            { nombre: 'MercadoLibre', url: `https://www.mercadolibre.com.co/search?as_word=${encodeURIComponent(referenciaSeleccionada)}` },
-            { nombre: 'Autopartes', url: `https://www.autopartes.com.co/search?q=${encodeURIComponent(referenciaSeleccionada)}` },
-            { nombre: 'Google', url: `https://www.google.com/search?q=${encodeURIComponent(referenciaSeleccionada + ' llantas Colombia')}` },
-          ].map((sitio) => (
-            <tr key={sitio.nombre}>
-              <td className="border px-2 py-1 font-medium text-gray-700">{sitio.nombre}</td>
-              <td className="border px-2 py-1 text-center">
-                <a
-                  href={sitio.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 underline hover:text-blue-800"
-                >
-                  Ver precios
-                </a>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                  <div className="bg-white rounded-lg p-6 w-[420px] shadow-lg max-h-[80vh] overflow-auto">
+                    <h2 className="text-xl font-bold mb-4 text-center text-gray-800">
+                      Comparar precios: {referenciaSeleccionada}
+                    </h2>
+                    <table className="w-full text-sm border border-gray-300 mb-4">
+                      <thead>
+                        <tr className="bg-gray-100">
+                          <th className="border px-2 py-1">Página</th>
+                          <th className="border px-2 py-1">Enlace</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[
+                          {
+                            nombre: "Llantar",
+                            url: `https://www.llantar.com.co/search?q=${encodeURIComponent(
+                              referenciaSeleccionada
+                            )}`,
+                          },
+                          {
+                            nombre: "Virtual Llantas",
+                            url: `https://www.virtualllantas.com.co/catalogsearch/result/?q=${encodeURIComponent(
+                              referenciaSeleccionada
+                            )}`,
+                          },
+                          {
+                            nombre: "Tu Llanta",
+                            url: `https://www.tullanta.com/search?q=${encodeURIComponent(
+                              referenciaSeleccionada
+                            )}`,
+                          },
+                          {
+                            nombre: "Neumarket",
+                            url: `https://www.neumarket.com.co/catalogsearch/result/?q=${encodeURIComponent(
+                              referenciaSeleccionada
+                            )}`,
+                          },
+                          {
+                            nombre: "MercadoLibre",
+                            url: `https://www.mercadolibre.com.co/search?as_word=${encodeURIComponent(
+                              referenciaSeleccionada
+                            )}`,
+                          },
+                          {
+                            nombre: "Autopartes",
+                            url: `https://www.autopartes.com.co/search?q=${encodeURIComponent(
+                              referenciaSeleccionada
+                            )}`,
+                          },
+                          {
+                            nombre: "Google",
+                            url: `https://www.google.com/search?q=${encodeURIComponent(
+                              referenciaSeleccionada + " llantas Colombia"
+                            )}`,
+                          },
+                        ].map((sitio) => (
+                          <tr key={sitio.nombre}>
+                            <td className="border px-2 py-1 font-medium text-gray-700">
+                              {sitio.nombre}
+                            </td>
+                            <td className="border px-2 py-1 text-center">
+                              <a
+                                href={sitio.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 underline hover:text-blue-800"
+                              >
+                                Ver precios
+                              </a>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
 
-      <div className="text-center">
-        <button
-          onClick={cerrarComparador}
-          className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800"
-        >
-          Cerrar
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+                    <div className="text-center">
+                      <button
+                        onClick={cerrarComparador}
+                        className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800"
+                      >
+                        Cerrar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
       )}
-      
     </div>
-    
   );
 }
 
 export default App;
-

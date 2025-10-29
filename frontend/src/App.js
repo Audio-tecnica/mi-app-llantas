@@ -176,7 +176,7 @@ function App() {
           <button onClick={() => setMostrarModal(true)} className="bg-gray-700 text-white px-3 py-1.5 rounded text-sm hover:bg-gray-800">Agregar ítem</button>
           <button onClick={handleEliminarMultiples} disabled={seleccionadas.length === 0} className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700">Eliminar seleccionados</button>
           <button onClick={() => { localStorage.removeItem('acceso'); window.location.href = '/login'; }} className="bg-red-500 text-white px-3 py-1.5 rounded text-sm hover:bg-red-600">Cerrar sesión</button>
-          <button onClick={() => window.open('/lista_llantar.pdf', '_blank')} className="bg-yellow-500 text-white px-3 py-1.5 rounded text-sm hover:bg-yellow-600">Lista llantar</button>
+          <button onClick={() => window.open('/lista_llantar.pdf', '_blank')} className="bg-blue-500 text-white px-3 py-1.5 rounded text-sm hover:bg--600">Lista llantar</button>
         </div>
       </div>
 
@@ -194,14 +194,17 @@ function App() {
 
             {/* Filtros */}
             <div className="mb-4">
+              <div className="flex justify-left mt-10">
+                <button onClick={() => { setBusqueda(''); setMarcaSeleccionada(''); }} className="px-5 py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700">Limpiar filtros</button>
+              </div>
+            </div>
               <input
                 type="text"
                 placeholder="Buscar referencia..."
                 value={busqueda}
                 onChange={e => setBusqueda(e.target.value)}
                 className="w-full p-4 border-2 border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-300"
-              />
-
+              /> 
               <label className="block text-sm font-medium text-gray-600 mb-2 mt-4">Marca</label>
               <select
                 value={marcaSeleccionada}
@@ -211,11 +214,10 @@ function App() {
                 <option value="">Todas las marcas</option>
                 {marcasUnicas.map(m => <option key={m} value={m}>{m}</option>)}
               </select>
-
-              <div className="flex justify-center mt-10">
-                <button onClick={() => { setBusqueda(''); setMarcaSeleccionada(''); }} className="px-8 py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700">Limpiar filtros</button>
+               <div className="flex justify-center mt-10">
+               
               </div>
-            </div>
+
 
             {/* Tabla */}
             <div className="overflow-auto">

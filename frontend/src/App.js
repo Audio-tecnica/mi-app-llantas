@@ -214,11 +214,7 @@ const abrirComparador = (referencia) => {
                 placeholder="Buscar referencia..."
                 value={busqueda}
                 onChange={e => setBusqueda(e.target.value)}
-<<<<<<< HEAD
-                className="w-full p-4 border-2 border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-300"
-=======
                 className="w-full p-3 border-2 border-orange-500 rounded-3xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-500"
->>>>>>> pruebas
               /> 
               <label className="block text-sm font-medium text-gray-600 mb-2 mt-4">Marca</label>
               <select
@@ -229,8 +225,8 @@ const abrirComparador = (referencia) => {
                 <option value="">Todas las marcas</option>
                 {marcasUnicas.map(m => <option key={m} value={m}>{m}</option>)}
               </select>
-               <div className="flex justify-left mt-10">
-                
+               <div className="flex justify-center mt-10">
+               
               </div>
 
 

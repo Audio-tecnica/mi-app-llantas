@@ -214,8 +214,8 @@ function App() {
                 <option value="">Todas las marcas</option>
                 {marcasUnicas.map(m => <option key={m} value={m}>{m}</option>)}
               </select>
-               <div className="flex justify-center mt-10">
-               
+               <div className="flex justify-left mt-10">
+                <button onClick={() => { setBusqueda(''); setMarcaSeleccionada(''); }} className="px-5 py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700">Limpiar filtros</button>
               </div>
 
 

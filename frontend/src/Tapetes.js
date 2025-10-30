@@ -20,8 +20,8 @@ function Tapetes() {
     referencia: "",
     marca: "",
     proveedor: "",
-    costo_empresa: "",
-    precio_cliente: "",
+    costo: "",
+    precio: "",
     stock: "",
   });
   const [cargando, setCargando] = useState(true);
@@ -35,9 +35,7 @@ function Tapetes() {
   // 📦 Cargar tapetes
   useEffect(() => {
     axios
-      .get(
-        "https://mi-app-llantas.onrender.com/api/tapetes"
-      )
+      .get("https://mi-app-llantas.onrender.com/api/tapetes")
       .then((res) => setTapetes(res.data))
       .catch(() => setMensaje("Error al cargar tapetes ❌"))
       .finally(() => setCargando(false));
@@ -134,8 +132,9 @@ function Tapetes() {
     try {
       await axios.post(
         "https://mi-app-llantas.onrender.com/api/agregar-tapete",
-        nuevoItem
+        nuevoTapete
       );
+
       const { data } = await axios.get(
         "https://mi-app-llantas.onrender.com/api/tapetes"
       );
@@ -145,8 +144,8 @@ function Tapetes() {
         referencia: "",
         marca: "",
         proveedor: "",
-        costo_empresa: "",
-        precio_cliente: "",
+        costo: "",
+        precio: "",
         stock: "",
       });
       setMensaje("Tapete agregado ✅");
@@ -266,8 +265,8 @@ function Tapetes() {
                     <th onClick={() => ordenarPor("referencia")}>Referencia</th>
                     <th onClick={() => ordenarPor("marca")}>Marca</th>
                     <th onClick={() => ordenarPor("proveedor")}>Proveedor</th>
-                    <th onClick={() => ordenarPor("costo_empresa")}>Costo</th>
-                    <th onClick={() => ordenarPor("precio_cliente")}>Precio</th>
+                    <th onClick={() => ordenarPor("costo")}>Costo</th>
+                    <th onClick={() => ordenarPor("precio")}>Precio</th>
                     <th onClick={() => ordenarPor("stock")}>Stock</th>
                     <th>Acción</th>
                   </tr>
@@ -291,8 +290,8 @@ function Tapetes() {
                             "referencia",
                             "marca",
                             "proveedor",
-                            "costo_empresa",
-                            "precio_cliente",
+                            "costo",
+                            "precio",
                             "stock",
                           ].map((campo) => (
                             <td key={campo}>
@@ -327,11 +326,11 @@ function Tapetes() {
                           <td>{t.proveedor}</td>
                           <td className="text-blue-600">
                             {mostrarCosto
-                              ? `$${t.costo_empresa.toLocaleString()}`
+                              ? `$${t.costo.toLocaleString()}`
                               : "•••••"}
                           </td>
                           <td className="text-green-600">
-                            ${t.precio_cliente.toLocaleString()}
+                            ${t.precio.toLocaleString()}
                           </td>
                           <td className={t.stock === 0 ? "text-red-600" : ""}>
                             {t.stock === 0 ? "Sin stock" : t.stock}
@@ -370,8 +369,8 @@ function Tapetes() {
               "referencia",
               "marca",
               "proveedor",
-              "costo_empresa",
-              "precio_cliente",
+              "costo",
+              "precio",
               "stock",
             ].map((campo) => (
               <input

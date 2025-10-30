@@ -294,23 +294,24 @@ function Tapetes() {
 
                       {modoEdicion === t.id ? (
                         <>
-                          {["referencia", "marca", "tipo", "costo", "precio", "stock"].map(
-                            (campo) => (
-                              <td key={campo}>
-                                <input
-                                  value={t[campo]}
-                                  onChange={(e) =>
-                                    actualizarCampo(
-                                      t.id,
-                                      campo,
-                                      e.target.value
-                                    )
-                                  }
-                                  className="w-full border rounded text-sm p-1"
-                                />
-                              </td>
-                            )
-                          )}
+                          {[
+                            "referencia",
+                            "marca",
+                            "tipo",
+                            "costo",
+                            "precio",
+                            "stock",
+                          ].map((campo) => (
+                            <td key={campo}>
+                              <input
+                                value={t[campo]}
+                                onChange={(e) =>
+                                  actualizarCampo(t.id, campo, e.target.value)
+                                }
+                                className="w-full border rounded text-sm p-1"
+                              />
+                            </td>
+                          ))}
                           <td className="flex gap-1 justify-center">
                             <button
                               onClick={() => handleGuardar(t)}
@@ -338,12 +339,15 @@ function Tapetes() {
                                 })}`
                               : "•••••"}
                           </td>
-                          <td className="text-green-600">
-                            ${t.precio.toLocaleString()}
+                          <td className="text-green-600 font-semibold">
+                            {t.precio
+                              ? t.precio.toLocaleString("es-CO", {
+                                  style: "currency",
+                                  currency: "COP",
+                                })
+                              : "$0"}
                           </td>
-                          <td
-                            className={t.stock === 0 ? "text-red-600" : ""}
-                          >
+                          <td className={t.stock === 0 ? "text-red-600" : ""}>
                             {t.stock === 0 ? "Sin stock" : t.stock}
                           </td>
                           <td className="flex gap-1 justify-center">
@@ -376,19 +380,24 @@ function Tapetes() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">Agregar nuevo tapete</h2>
-            {["referencia", "marca", "proveedor", "costo", "precio", "stock"].map(
-              (campo) => (
-                <input
-                  key={campo}
-                  placeholder={campo.replace("_", " ")}
-                  value={nuevoItem[campo]}
-                  onChange={(e) =>
-                    setNuevoItem({ ...nuevoItem, [campo]: e.target.value })
-                  }
-                  className="w-full mb-3 p-2 border rounded"
-                />
-              )
-            )}
+            {[
+              "referencia",
+              "marca",
+              "proveedor",
+              "costo",
+              "precio",
+              "stock",
+            ].map((campo) => (
+              <input
+                key={campo}
+                placeholder={campo.replace("_", " ")}
+                value={nuevoItem[campo]}
+                onChange={(e) =>
+                  setNuevoItem({ ...nuevoItem, [campo]: e.target.value })
+                }
+                className="w-full mb-3 p-2 border rounded"
+              />
+            ))}
             <div className="flex justify-end gap-2">
               <button
                 onClick={handleAgregar}
@@ -411,4 +420,3 @@ function Tapetes() {
 }
 
 export default Tapetes;
-

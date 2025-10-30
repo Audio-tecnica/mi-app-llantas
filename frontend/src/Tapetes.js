@@ -340,13 +340,14 @@ function Tapetes() {
                               : "•••••"}
                           </td>
                           <td className="text-green-600 font-semibold">
-                            {t.precio
-                              ? t.precio.toLocaleString("es-CO", {
+                            {t.precio !== undefined && t.precio !== null
+                              ? Number(t.precio).toLocaleString("es-CO", {
                                   style: "currency",
                                   currency: "COP",
                                 })
                               : "$0"}
                           </td>
+
                           <td className={t.stock === 0 ? "text-red-600" : ""}>
                             {t.stock === 0 ? "Sin stock" : t.stock}
                           </td>

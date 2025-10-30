@@ -194,15 +194,7 @@ app.post('/api/agregar-tapete', async (req, res) => {
     await pool.query(`
       INSERT INTO tapetes (marca, referencia, proveedor, costo, precio, stock)
       VALUES ($1, $2, $3, $4, $5, $6)
-    `, [
-      marca || '',
-      referencia || '',
-      proveedor || 'Genérico',
-      parseFloat(costo) || 0,
-      parseFloat(precio) || 0,
-      parseInt(stock) || 0
-    ]);
-
+    `, [marca || '', referencia || '', proveedor || '', parseFloat(costo) || 0, parseFloat(precio) || 0, parseInt(stock) || 0]);
     res.json({ success: true });
   } catch (e) {
     console.error('❌ Error al agregar tapete:', e);
@@ -218,16 +210,7 @@ app.post('/api/editar-tapete', async (req, res) => {
       UPDATE tapetes
       SET marca=$1, referencia=$2, proveedor=$3, costo=$4, precio=$5, stock=$6
       WHERE id=$7
-    `, [
-      marca,
-      referencia,
-      proveedor,
-      parseFloat(costo) || 0,
-      parseFloat(precio) || 0,
-      parseInt(stock) || 0,
-      id
-    ]);
-
+    `, [marca, referencia, proveedor, parseFloat(costo) || 0, parseFloat(precio) || 0, parseInt(stock) || 0, id]);
     res.json({ success: true });
   } catch (e) {
     console.error('❌ Error al actualizar tapete:', e);
@@ -258,6 +241,7 @@ app.post('/api/actualizar-stock-tapete', async (req, res) => {
     res.status(500).json({ error: 'Error al actualizar stock' });
   }
 });
+
 
 
 

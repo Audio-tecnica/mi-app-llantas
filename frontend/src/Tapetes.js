@@ -1,27 +1,23 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
-import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import "./index.css";
 
 function Tapetes() {
   const [mostrarCosto, setMostrarCosto] = useState(false);
-  const navigate = useNavigate(); // 👈 AQUÍ SE DEFINE navigate
   const [tapetes, setTapetes] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [marcaSeleccionada, setMarcaSeleccionada] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [modoEdicion, setModoEdicion] = useState(null);
   const [mostrarModal, setMostrarModal] = useState(false);
-  const [comparadorAbierto, setComparadorAbierto] = useState(false);
-  const [referenciaSeleccionada, setReferenciaSeleccionada] = useState("");
   const [nuevoItem, setNuevoItem] = useState({
     referencia: "",
     marca: "",
     proveedor: "",
-    costo_empresa: "",
-    precio_cliente: "",
+    costo: "",
+    precio: "",
     stock: "",
   });
   const [cargando, setCargando] = useState(true);
@@ -32,18 +28,17 @@ function Tapetes() {
     return guardadas ? JSON.parse(guardadas) : [];
   });
 
-  // 📦 Cargar tapetes
+  const navigate = useNavigate();
+
+  // Cargar tapetes
   useEffect(() => {
     axios
-      .get(
-        "https://mi-app-llantas.onrender.com/api/tapetes"
-      )
+      .get("https://mi-app-llantas.onrender.com/api/tapetes") //https://cors-anywhere.herokuapp.com/
       .then((res) => setTapetes(res.data))
       .catch(() => setMensaje("Error al cargar tapetes ❌"))
       .finally(() => setCargando(false));
   }, []);
 
-  // 📋 Filtros y marcas
   const marcasUnicas = [...new Set(tapetes.map((t) => t.marca))];
 
   const filtradas = tapetes.filter((t) => {
@@ -54,23 +49,23 @@ function Tapetes() {
     return coincideBusqueda && coincideMarca;
   });
 
-  // 🔃 Ordenar columnas
   const ordenarPor = (campo) => {
     const asc = orden.campo === campo ? !orden.asc : true;
     const ordenadas = [...filtradas].sort((a, b) => {
-      if (typeof a[campo] === "number") {
-        return asc ? a[campo] - b[campo] : b[campo] - a[campo];
+      const va = a[campo];
+      const vb = b[campo];
+      if (typeof va === "number" && typeof vb === "number") {
+        return asc ? va - vb : vb - va;
       } else {
         return asc
-          ? a[campo]?.toString().localeCompare(b[campo]?.toString())
-          : b[campo]?.toString().localeCompare(a[campo]?.toString());
+          ? String(va ?? "").localeCompare(String(vb ?? ""))
+          : String(vb ?? "").localeCompare(String(va ?? ""));
       }
     });
     setTapetes(ordenadas);
     setOrden({ campo, asc });
   };
 
-  // ✅ CRUD
   const toggleSeleccion = (id) => {
     setSeleccionadas((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
@@ -101,9 +96,18 @@ function Tapetes() {
 
   const handleGuardar = async (tapete) => {
     try {
+      // backend espera campos: id, referencia, marca, proveedor, costo, precio, stock
       await axios.post(
         "https://mi-app-llantas.onrender.com/api/editar-tapete",
-        tapete
+        {
+          id: tapete.id,
+          referencia: tapete.referencia ?? "",
+          marca: tapete.marca ?? "",
+          proveedor: tapete.proveedor ?? "",
+          costo: Number(tapete.costo) || 0,
+          precio: Number(tapete.precio) || 0,
+          stock: Number(tapete.stock) || 0,
+        }
       );
       setMensaje("Cambios guardados ✅");
       setModoEdicion(null);
@@ -132,10 +136,20 @@ function Tapetes() {
 
   const handleAgregar = async () => {
     try {
+      const payload = {
+        referencia: nuevoItem.referencia || "",
+        marca: nuevoItem.marca || "",
+        proveedor: nuevoItem.proveedor || "",
+        costo: Number(nuevoItem.costo) || 0,
+        precio: Number(nuevoItem.precio) || 0,
+        stock: Number(nuevoItem.stock) || 0,
+      };
+
       await axios.post(
         "https://mi-app-llantas.onrender.com/api/agregar-tapete",
-        nuevoItem
+        payload
       );
+
       const { data } = await axios.get(
         "https://mi-app-llantas.onrender.com/api/tapetes"
       );
@@ -145,13 +159,14 @@ function Tapetes() {
         referencia: "",
         marca: "",
         proveedor: "",
-        costo_empresa: "",
-        precio_cliente: "",
+        costo: "",
+        precio: "",
         stock: "",
       });
       setMensaje("Tapete agregado ✅");
       setTimeout(() => setMensaje(""), 2000);
-    } catch {
+    } catch (e) {
+      console.error("❌ Error al agregar tapete:", e);
       setMensaje("Error al agregar ❌");
       setTimeout(() => setMensaje(""), 2000);
     }
@@ -163,11 +178,22 @@ function Tapetes() {
     );
   };
 
-  // 🧩 Render
+  const handleBusquedaChange = (e) => {
+    const valor = e.target.value;
+    setBusqueda(valor);
+
+    if (valor.trim() === "") return;
+
+    const nuevas = [valor, ...busquedasRecientes.filter((v) => v !== valor)];
+    const top5 = nuevas.slice(0, 5);
+    setBusquedasRecientes(top5);
+    localStorage.setItem("busquedasRecientesTapetes", JSON.stringify(top5));
+  };
+
   return (
-    <div className="max-w-7x2 mx-auto p-5 min-h-screen bg-gradient-to-b from-gray-300 to-orange-600">
+    <div className="max-w-7xl mx-auto p-5 min-h-screen bg-gradient-to-b from-gray-300 to-orange-600">
       <div className="flex justify-between items-center mb-6 flex-wrap gap-2">
-        <img src="/logowp.PNG" className="h-13 w-48" />
+        <img src="/logowp.PNG" className="h-13 w-48" alt="logo" />
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setMostrarModal(true)}
@@ -238,7 +264,7 @@ function Tapetes() {
               type="text"
               placeholder="Buscar referencia..."
               value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
+              onChange={handleBusquedaChange}
               className="w-full p-3 border-2 border-orange-500 rounded-3xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-500"
             />
 
@@ -263,13 +289,56 @@ function Tapetes() {
                 <thead className="bg-gradient-to-r from-gray-400 to-blue-300 text-black">
                   <tr>
                     <th></th>
-                    <th onClick={() => ordenarPor("referencia")}>Referencia</th>
-                    <th onClick={() => ordenarPor("marca")}>Marca</th>
-                    <th onClick={() => ordenarPor("proveedor")}>Proveedor</th>
-                    <th onClick={() => ordenarPor("costo_empresa")}>Costo</th>
-                    <th onClick={() => ordenarPor("precio_cliente")}>Precio</th>
-                    <th onClick={() => ordenarPor("stock")}>Stock</th>
-                    <th>Acción</th>
+                    <th
+                      onClick={() => ordenarPor("referencia")}
+                      className="cursor-pointer p-2"
+                    >
+                      Referencia
+                    </th>
+                    <th
+                      onClick={() => ordenarPor("marca")}
+                      className="cursor-pointer p-2"
+                    >
+                      Marca
+                    </th>
+                    <th
+                      onClick={() => ordenarPor("proveedor")}
+                      className="cursor-pointer p-2"
+                    >
+                      Proveedor
+                    </th>
+                    <th
+                      onClick={() => ordenarPor("costo")}
+                      className="cursor-pointer p-2"
+                    >
+                      Costo
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setMostrarCosto(!mostrarCosto);
+                        }}
+                        className="ml-2"
+                      >
+                        {mostrarCosto ? (
+                          <EyeOff size={16} />
+                        ) : (
+                          <Eye size={16} />
+                        )}
+                      </button>
+                    </th>
+                    <th
+                      onClick={() => ordenarPor("precio")}
+                      className="cursor-pointer p-2"
+                    >
+                      Precio
+                    </th>
+                    <th
+                      onClick={() => ordenarPor("stock")}
+                      className="cursor-pointer p-2"
+                    >
+                      Stock
+                    </th>
+                    <th className="p-2">Acción</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -285,19 +354,20 @@ function Tapetes() {
                           onChange={() => toggleSeleccion(t.id)}
                         />
                       </td>
+
                       {modoEdicion === t.id ? (
                         <>
                           {[
                             "referencia",
                             "marca",
                             "proveedor",
-                            "costo_empresa",
-                            "precio_cliente",
+                            "costo",
+                            "precio",
                             "stock",
                           ].map((campo) => (
                             <td key={campo}>
                               <input
-                                value={t[campo]}
+                                value={t[campo] ?? ""}
                                 onChange={(e) =>
                                   actualizarCampo(t.id, campo, e.target.value)
                                 }
@@ -325,16 +395,36 @@ function Tapetes() {
                           <td>{t.referencia}</td>
                           <td>{t.marca}</td>
                           <td>{t.proveedor}</td>
+
                           <td className="text-blue-600">
                             {mostrarCosto
-                              ? `$${t.costo_empresa.toLocaleString()}`
+                              ? `$${Number(t.costo ?? 0).toLocaleString(
+                                  "es-CO",
+                                  {
+                                    minimumFractionDigits: 0,
+                                    maximumFractionDigits: 0,
+                                  }
+                                )}`
                               : "•••••"}
                           </td>
+
                           <td className="text-green-600">
-                            ${t.precio_cliente.toLocaleString()}
+                            {t.precio !== undefined && t.precio !== null
+                              ? `$${Math.round(
+                                  Number(t.precio || 0)
+                                ).toLocaleString("es-CO", {
+                                  minimumFractionDigits: 0,
+                                  maximumFractionDigits: 0,
+                                })}`
+                              : "$0"}
                           </td>
-                          <td className={t.stock === 0 ? "text-red-600" : ""}>
-                            {t.stock === 0 ? "Sin stock" : t.stock}
+
+                          <td
+                            className={
+                              Number(t.stock) === 0 ? "text-red-600" : ""
+                            }
+                          >
+                            {Number(t.stock) === 0 ? "Sin stock" : t.stock}
                           </td>
                           <td className="flex gap-1 justify-center">
                             <button
@@ -361,7 +451,6 @@ function Tapetes() {
         </>
       )}
 
-      {/* Modal agregar tapete */}
       {mostrarModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded p-6 w-full max-w-md">
@@ -370,14 +459,14 @@ function Tapetes() {
               "referencia",
               "marca",
               "proveedor",
-              "costo_empresa",
-              "precio_cliente",
+              "costo",
+              "precio",
               "stock",
             ].map((campo) => (
               <input
                 key={campo}
                 placeholder={campo.replace("_", " ")}
-                value={nuevoItem[campo]}
+                value={nuevoItem[campo] ?? ""}
                 onChange={(e) =>
                   setNuevoItem({ ...nuevoItem, [campo]: e.target.value })
                 }

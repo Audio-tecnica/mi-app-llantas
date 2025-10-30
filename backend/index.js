@@ -172,6 +172,81 @@ app.listen(PORT, () => {
 });
 
 
+// 📦 --- TAPETES --- 📦
+
+// Crear tabla de tapetes si no existe
+async function crearTablaTapetes() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS tapetes (
+        id SERIAL PRIMARY KEY,
+        referencia TEXT,
+        marca TEXT,
+        proveedor TEXT,
+        costo INTEGER,
+        precio INTEGER,
+        stock INTEGER
+      )
+    `);
+    console.log('✅ Tabla "tapetes" verificada o creada');
+  } catch (e) {
+    console.error('❌ Error al crear la tabla tapetes:', e);
+  }
+}
+crearTablaTapetes();
+
+// Consultar tapetes
+app.get('/api/tapetes', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM tapetes');
+    res.json(rows);
+  } catch (e) {
+    console.error('❌ Error al obtener tapetes:', e);
+    res.status(500).json({ error: 'Error al obtener los tapetes' });
+  }
+});
+
+// Agregar tapete
+app.post('/api/agregar-tapete', async (req, res) => {
+  const { referencia, marca, proveedor, costo, precio, stock } = req.body;
+  try {
+    await pool.query(
+      'INSERT INTO tapetes (referencia, marca, proveedor, costo, precio, stock) VALUES ($1,$2,$3,$4,$5,$6)',
+      [referencia, marca, proveedor, parseInt(costo)||0, parseInt(precio)||0, parseInt(stock)||0]
+    );
+    res.json({ success: true });
+  } catch (e) {
+    console.error('❌ Error al agregar tapete:', e);
+    res.status(500).json({ error: 'Error al agregar tapete' });
+  }
+});
+
+// Editar tapete
+app.post('/api/editar-tapete', async (req, res) => {
+  const { id, referencia, marca, proveedor, costo, precio, stock } = req.body;
+  try {
+    await pool.query(
+      `UPDATE tapetes SET referencia=$1, marca=$2, proveedor=$3, costo=$4, precio=$5, stock=$6 WHERE id=$7`,
+      [referencia, marca, proveedor, parseInt(costo)||0, parseInt(precio)||0, parseInt(stock)||0, id]
+    );
+    res.json({ success: true });
+  } catch (e) {
+    console.error('❌ Error al editar tapete:', e);
+    res.status(500).json({ error: 'Error al editar tapete' });
+  }
+});
+
+// Eliminar tapete
+app.post('/api/eliminar-tapete', async (req, res) => {
+  const { id } = req.body;
+  try {
+    await pool.query('DELETE FROM tapetes WHERE id=$1', [id]);
+    res.json({ success: true });
+  } catch (e) {
+    console.error('❌ Error al eliminar tapete:', e);
+    res.status(500).json({ error: 'Error al eliminar tapete' });
+  }
+});
 
 
 

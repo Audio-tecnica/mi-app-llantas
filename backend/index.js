@@ -172,6 +172,77 @@ app.listen(PORT, () => {
 });
 
 
+// ========================== //
+//        TAPETES             //
+// ========================== //
+
+// 📥 Consultar tapetes
+app.get('/api/tapetes', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM tapetes ORDER BY id ASC');
+    res.json(rows);
+  } catch (e) {
+    console.error('❌ Error al obtener tapetes:', e);
+    res.status(500).json({ error: 'Error al obtener los tapetes' });
+  }
+});
+
+// ✅ Agregar tapete
+app.post('/api/agregar-tapete', async (req, res) => {
+  const { marca, referencia, tipo, costo, precio, stock } = req.body;
+  try {
+    await pool.query(`
+      INSERT INTO tapetes (marca, referencia, tipo, costo, precio, stock)
+      VALUES ($1, $2, $3, $4, $5, $6)
+    `, [marca || '', referencia || '', tipo || '', parseFloat(costo) || 0, parseFloat(precio) || 0, parseInt(stock) || 0]);
+    res.json({ success: true });
+  } catch (e) {
+    console.error('❌ Error al agregar tapete:', e);
+    res.status(500).json({ error: 'Error al agregar tapete' });
+  }
+});
+
+// ✅ Editar tapete
+app.post('/api/editar-tapete', async (req, res) => {
+  const { id, marca, referencia, tipo, costo, precio, stock } = req.body;
+  try {
+    await pool.query(`
+      UPDATE tapetes
+      SET marca=$1, referencia=$2, tipo=$3, costo=$4, precio=$5, stock=$6
+      WHERE id=$7
+    `, [marca, referencia, tipo, parseFloat(costo) || 0, parseFloat(precio) || 0, parseInt(stock) || 0, id]);
+    res.json({ success: true });
+  } catch (e) {
+    console.error('❌ Error al actualizar tapete:', e);
+    res.status(500).json({ error: 'Error al actualizar tapete' });
+  }
+});
+
+// ✅ Eliminar tapete
+app.post('/api/eliminar-tapete', async (req, res) => {
+  const { id } = req.body;
+  try {
+    await pool.query('DELETE FROM tapetes WHERE id = $1', [id]);
+    res.json({ success: true });
+  } catch (e) {
+    console.error('❌ Error al eliminar tapete:', e);
+    res.status(500).json({ error: 'Error al eliminar tapete' });
+  }
+});
+
+// ✅ Actualizar stock de tapete
+app.post('/api/actualizar-stock-tapete', async (req, res) => {
+  const { id, stock } = req.body;
+  try {
+    await pool.query('UPDATE tapetes SET stock = $1 WHERE id = $2', [parseInt(stock) || 0, id]);
+    res.json({ success: true });
+  } catch (e) {
+    console.error('❌ Error al actualizar stock de tapete:', e);
+    res.status(500).json({ error: 'Error al actualizar stock' });
+  }
+});
+
+
 
 
 

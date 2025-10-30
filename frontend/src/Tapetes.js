@@ -165,7 +165,11 @@ function Tapetes() {
 
   // 🧩 Render
   return (
+<<<<<<< HEAD
     <div className="max-w-7xl mx-auto p-4 min-h-screen bg-gradient-to-b from-gray-200 to-blue-100">
+=======
+    <div className="max-w-7x2 mx-auto p-5 min-h-screen bg-gradient-to-b from-gray-300 to-orange-600">
+>>>>>>> pruebas
       <div className="flex justify-between items-center mb-6 flex-wrap gap-2">
         <img src="/logowp.PNG" className="h-13 w-48" />
         <div className="flex flex-wrap gap-2">

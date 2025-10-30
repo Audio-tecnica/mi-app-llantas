@@ -189,18 +189,27 @@ app.get('/api/tapetes', async (req, res) => {
 
 // ✅ Agregar tapete
 app.post('/api/agregar-tapete', async (req, res) => {
-  const { marca, referencia, proveedor, costo, precio, stock } = req.body;
+  const { marca, referencia, tipo, costo, precio, stock, proveedor } = req.body;
   try {
     await pool.query(`
-      INSERT INTO tapetes (marca, referencia, proveedor, costo, precio, stock)
-      VALUES ($1, $2, $3, $4, $5, $6)
-    `, [marca || '', referencia || '', proveedor || '', parseFloat(costo) || 0, parseFloat(precio) || 0, parseInt(stock) || 0]);
+      INSERT INTO tapetes (marca, referencia, tipo, costo, precio, stock, proveedor)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `, [
+      marca || '',
+      referencia || '',
+      tipo || '',
+      parseFloat(costo) || 0,
+      parseFloat(precio) || 0,
+      parseInt(stock) || 0,
+      proveedor || ''
+    ]);
     res.json({ success: true });
   } catch (e) {
     console.error('❌ Error al agregar tapete:', e);
     res.status(500).json({ error: 'Error al agregar tapete' });
   }
 });
+
 
 // ✅ Editar tapete
 app.post('/api/editar-tapete', async (req, res) => {

@@ -278,12 +278,19 @@ function Tapetes() {
                 </option>
               ))}
             </select>
-
             <button
               onClick={() => setMostrarCosto(!mostrarCosto)}
-              className="mb-3 px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+              className="flex items-center gap-2 mb-3 px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
             >
-              {mostrarCosto ? "Ocultar costo" : "Mostrar costo"}
+              {mostrarCosto ? (
+                <>
+                  <EyeOff size={16} /> Ocultar costo
+                </>
+              ) : (
+                <>
+                  <Eye size={16} /> Mostrar costo
+                </>
+              )}
             </button>
 
             <div className="overflow-auto mt-6">
@@ -354,11 +361,16 @@ function Tapetes() {
                           <td>{t.marca}</td>
                           <td>{t.tipo || "—"}</td>
                           <td className="text-blue-600 font-semibold">
-                            {mostrarCosto
-                              ? `$${Number(t.costo).toLocaleString("es-CO", {
-                                  minimumFractionDigits: 2,
-                                })}`
-                              : "•••••"}
+                            {mostrarCosto ? (
+                              <span>
+                                $
+                                {Number(t.costo).toLocaleString("es-CO", {
+                                  minimumFractionDigits: 0,
+                                })}
+                              </span>
+                            ) : (
+                              <span className="tracking-widest">•••••</span>
+                            )}
                           </td>
 
                           <td className="text-green-600">

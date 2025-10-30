@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
+
 import "./index.css";
 
 function App() {
@@ -28,6 +30,8 @@ function App() {
   const [cargando, setCargando] = useState(true);
   const [orden, setOrden] = useState({ campo: "", asc: true });
   const [seleccionadas, setSeleccionadas] = useState([]);
+
+  const navigate = useNavigate();
 
   // 🔹 Aquí va el hook que faltaba:
   const [busquedasRecientes, setBusquedasRecientes] = useState(() => {
@@ -63,7 +67,7 @@ function App() {
   useEffect(() => {
     axios
       .get(
-        "https://cors-anywhere.herokuapp.com/https://mi-app-llantas.onrender.com/api/llantas"
+        "https://mi-app-llantas.onrender.com/api/llantas"
       ) //https://cors-anywhere.herokuapp.com/
       .then((res) => setLlantas(res.data))
       .catch(() => setMensaje("Error al cargar llantas ❌"))
@@ -271,28 +275,39 @@ function App() {
         </div>
       ) : (
         <>
+          {/* Filtros */}
+          <div className="mb-3">
+            <div className="flex justify-left mt-2">
+              <button
+                onClick={() => {
+                  setBusqueda("");
+                  setMarcaSeleccionada("");
+                }}
+                className="px-3 py-1 bg-orange-600 text-white rounded-xl hover:bg-orange-700"
+              >
+                Limpiar filtros
+              </button>
+            </div>
+          </div>
+
+           <div className="flex justify-end p-4">
+      <button
+        onClick={() => navigate("/tapetes")}
+        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+      >
+        Ir a Tapetes
+      </button>
+    </div>
+
           <div className="text-sm text-gray-700 mb-2">
             Mostrando {filtradas.length} resultados
           </div>
+
           <div className="bg-white p-6 rounded-3xl shadow-xl border mb-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-6">
               Ingrese su búsqueda
             </h2>
 
-            {/* Filtros */}
-            <div className="mb-4">
-              <div className="flex justify-left mt-10">
-                <button
-                  onClick={() => {
-                    setBusqueda("");
-                    setMarcaSeleccionada("");
-                  }}
-                  className="px-5 py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700"
-                >
-                  Limpiar filtros
-                </button>
-              </div>
-            </div>
             <input
               type="text"
               placeholder="Buscar referencia..."

@@ -130,11 +130,22 @@ function Tapetes() {
 
   const handleAgregar = async () => {
     try {
+      // Construimos el objeto con los nombres correctos
+      const nuevoTapeteFormateado = {
+        marca: nuevoItem.marca,
+        referencia: nuevoItem.referencia,
+        tipo: nuevoItem.proveedor || "", // 👈 usamos "proveedor" como tipo
+        costo: parseFloat(nuevoItem.costo) || 0,
+        precio: parseFloat(nuevoItem.precio) || 0,
+        stock: parseInt(nuevoItem.stock) || 0,
+      };
+
       await axios.post(
         "https://mi-app-llantas.onrender.com/api/agregar-tapete",
-        nuevoTapete
+        nuevoTapeteFormateado
       );
 
+      // Recargar lista
       const { data } = await axios.get(
         "https://mi-app-llantas.onrender.com/api/tapetes"
       );
@@ -150,7 +161,8 @@ function Tapetes() {
       });
       setMensaje("Tapete agregado ✅");
       setTimeout(() => setMensaje(""), 2000);
-    } catch {
+    } catch (e) {
+      console.error("❌ Error al agregar tapete:", e);
       setMensaje("Error al agregar ❌");
       setTimeout(() => setMensaje(""), 2000);
     }

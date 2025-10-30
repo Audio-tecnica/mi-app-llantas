@@ -99,10 +99,20 @@ function Tapetes() {
 
   const handleGuardar = async (tapete) => {
     try {
+      // 🔧 Aseguramos que el campo proveedor se guarde como "tipo"
+      const tapeteFormateado = {
+        ...tapete,
+        tipo: tapete.proveedor || tapete.tipo || "",
+        costo: parseFloat(tapete.costo) || 0,
+        precio: parseFloat(tapete.precio) || 0,
+        stock: parseInt(tapete.stock) || 0,
+      };
+
       await axios.post(
         "https://mi-app-llantas.onrender.com/api/editar-tapete",
-        tapete
+        tapeteFormateado
       );
+
       setMensaje("Cambios guardados ✅");
       setModoEdicion(null);
       setTimeout(() => setMensaje(""), 2000);
@@ -269,6 +279,13 @@ function Tapetes() {
               ))}
             </select>
 
+            <button
+              onClick={() => setMostrarCosto(!mostrarCosto)}
+              className="mb-3 px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+            >
+              {mostrarCosto ? "Ocultar costo" : "Mostrar costo"}
+            </button>
+
             <div className="overflow-auto mt-6">
               <table className="w-full border text-sm">
                 <thead className="bg-gradient-to-r from-gray-400 to-blue-300 text-black">
@@ -335,12 +352,15 @@ function Tapetes() {
                         <>
                           <td>{t.referencia}</td>
                           <td>{t.marca}</td>
-                          <td>{t.proveedor}</td>
-                          <td className="text-blue-600">
+                          <td>{t.tipo || "—"}</td>
+                          <td className="text-blue-600 font-semibold">
                             {mostrarCosto
-                              ? `$${t.costo.toLocaleString()}`
+                              ? `$${Number(t.costo).toLocaleString("es-CO", {
+                                  minimumFractionDigits: 2,
+                                })}`
                               : "•••••"}
                           </td>
+
                           <td className="text-green-600">
                             ${t.precio.toLocaleString()}
                           </td>

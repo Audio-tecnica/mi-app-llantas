@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
-import { Link } from "react-router-dom";
-import "./index.css";
+import { Link } from 'react-router-dom';
+import './index.css';
 
 function App() {
   const [mostrarCosto, setMostrarCosto] = useState(false);
@@ -28,12 +28,6 @@ function App() {
   const [cargando, setCargando] = useState(true);
   const [orden, setOrden] = useState({ campo: "", asc: true });
   const [seleccionadas, setSeleccionadas] = useState([]);
-
-  // 🔹 Aquí va el hook que faltaba:
-  const [busquedasRecientes, setBusquedasRecientes] = useState(() => {
-    const guardadas = localStorage.getItem("busquedasRecientes");
-    return guardadas ? JSON.parse(guardadas) : [];
-  });
 
   // 🔒 Verificación de sesión
   useEffect(() => {
@@ -271,86 +265,34 @@ function App() {
         </div>
       ) : (
         <>
-          <div className="text-sm text-gray-700 mb-2">
-            Mostrando {filtradas.length} resultados
-          </div>
+          <div className="text-sm text-gray-700 mb-2">Mostrando {filtradas.length} resultados</div>
           <div className="bg-white p-6 rounded-3xl shadow-xl border mb-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-6">
-              Ingrese su búsqueda
-            </h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-6">Ingrese su búsqueda</h2>
 
             {/* Filtros */}
             <div className="mb-4">
               <div className="flex justify-left mt-10">
-                <button
-                  onClick={() => {
-                    setBusqueda("");
-                    setMarcaSeleccionada("");
-                  }}
-                  className="px-5 py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700"
-                >
-                  Limpiar filtros
-                </button>
+                <button onClick={() => { setBusqueda(''); setMarcaSeleccionada(''); }} className="px-5 py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700">Limpiar filtros</button>
               </div>
             </div>
-            <input
-              type="text"
-              placeholder="Buscar referencia..."
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && busqueda.trim() !== "") {
-                  // Crear nueva lista, quitando duplicados
-                  let nuevas = [
-                    busqueda,
-                    ...busquedasRecientes.filter((v) => v !== busqueda),
-                  ];
-                  // Mantener máximo 5, eliminando las más antiguas
-                  if (nuevas.length > 5) nuevas = nuevas.slice(0, 5);
-                  setBusquedasRecientes(nuevas);
-                  localStorage.setItem(
-                    "busquedasRecientes",
-                    JSON.stringify(nuevas)
-                  );
-                  setBusqueda(""); // Limpiar input
-                }
-              }}
-              className="w-full p-3 border-2 border-orange-500 rounded-3xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-500"
-            />
-
-            <label className="block text-sm font-medium text-gray-600 mb-2 mt-4">
-              Marca
-            </label>
-            <select
-              value={marcaSeleccionada}
-              onChange={(e) => setMarcaSeleccionada(e.target.value)}
-              className="w-full p-4 border-2 border-orange-300 rounded-xl shadow-sm focus:ring-2 focus:ring-orange-400 outline-none transition ease-in-out duration-300"
-            >
-              <option value="">Todas las marcas</option>
-              {marcasUnicas.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
-            <div className="flex justify-center mt-10"></div>
-
-            {busquedasRecientes.length > 0 && (
-              <div className="mt-2">
-                <span className="text-sm text-gray-600 mr-2">
-                  Búsquedas recientes:
-                </span>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {busquedasRecientes.map((b, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setBusqueda(b)}
-                      className="px-3 py-1 bg-gray-200 text-gray-800 rounded-full text-sm hover:bg-orange-500 hover:text-white transition-colors duration-300"
-                    >
-                      {b}
-                    </button>
-                  ))}
-                </div>
+              <input
+                type="text"
+                placeholder="Buscar referencia..."
+                value={busqueda}
+                onChange={e => setBusqueda(e.target.value)}
+                className="w-full p-3 border-2 border-orange-500 rounded-3xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-500"
+              /> 
+              <label className="block text-sm font-medium text-gray-600 mb-2 mt-4">Marca</label>
+              <select
+                value={marcaSeleccionada}
+                onChange={e => setMarcaSeleccionada(e.target.value)}
+                className="w-full p-4 border-2 border-orange-300 rounded-xl shadow-sm focus:ring-2 focus:ring-orange-400 outline-none transition ease-in-out duration-300"
+              >
+                <option value="">Todas las marcas</option>
+                {marcasUnicas.map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+               <div className="flex justify-center mt-10">
+               
               </div>
             )}
 

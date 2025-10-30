@@ -5,6 +5,7 @@ import App from './App';
 import SubirArchivo from './SubirArchivo';
 import Protegido from './Protegido';
 import LoginPage from './LoginPage';
+import Tapetes from './Tapetes';
 import './index.css';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 
@@ -15,6 +16,7 @@ root.render(
       <Route path="/login" element={<LoginPage />} />
       <Route path="/" element={<Protegido><App /></Protegido>} />
       <Route path="/subir" element={<Protegido><SubirArchivo /></Protegido>} />
+      <Route path="/tapetes" element={<Protegido><Tapetes /></Protegido>} />
     </Routes>
   </BrowserRouter>
 );

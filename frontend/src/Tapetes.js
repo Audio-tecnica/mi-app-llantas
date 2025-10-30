@@ -1,21 +1,18 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./index.css";
 
 function Tapetes() {
   const [mostrarCosto, setMostrarCosto] = useState(false);
-  const navigate = useNavigate(); // 👈 AQUÍ SE DEFINE navigate
+  const navigate = useNavigate();
   const [tapetes, setTapetes] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [marcaSeleccionada, setMarcaSeleccionada] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [modoEdicion, setModoEdicion] = useState(null);
   const [mostrarModal, setMostrarModal] = useState(false);
-  const [comparadorAbierto, setComparadorAbierto] = useState(false);
-  const [referenciaSeleccionada, setReferenciaSeleccionada] = useState("");
   const [nuevoItem, setNuevoItem] = useState({
     referencia: "",
     marca: "",
@@ -27,10 +24,6 @@ function Tapetes() {
   const [cargando, setCargando] = useState(true);
   const [orden, setOrden] = useState({ campo: "", asc: true });
   const [seleccionadas, setSeleccionadas] = useState([]);
-  const [busquedasRecientes, setBusquedasRecientes] = useState(() => {
-    const guardadas = localStorage.getItem("busquedasRecientesTapetes");
-    return guardadas ? JSON.parse(guardadas) : [];
-  });
 
   // 📦 Cargar tapetes
   useEffect(() => {
@@ -41,7 +34,6 @@ function Tapetes() {
       .finally(() => setCargando(false));
   }, []);
 
-  // 📋 Filtros y marcas
   const marcasUnicas = [...new Set(tapetes.map((t) => t.marca))];
 
   const filtradas = tapetes.filter((t) => {
@@ -52,7 +44,6 @@ function Tapetes() {
     return coincideBusqueda && coincideMarca;
   });
 
-  // 🔃 Ordenar columnas
   const ordenarPor = (campo) => {
     const asc = orden.campo === campo ? !orden.asc : true;
     const ordenadas = [...filtradas].sort((a, b) => {
@@ -99,20 +90,10 @@ function Tapetes() {
 
   const handleGuardar = async (tapete) => {
     try {
-      // 🔧 Aseguramos que el campo proveedor se guarde como "tipo"
-      const tapeteFormateado = {
-        ...tapete,
-        tipo: tapete.proveedor || tapete.tipo || "",
-        costo: parseFloat(tapete.costo) || 0,
-        precio: parseFloat(tapete.precio) || 0,
-        stock: parseInt(tapete.stock) || 0,
-      };
-
       await axios.post(
         "https://mi-app-llantas.onrender.com/api/editar-tapete",
-        tapeteFormateado
+        tapete
       );
-
       setMensaje("Cambios guardados ✅");
       setModoEdicion(null);
       setTimeout(() => setMensaje(""), 2000);
@@ -140,11 +121,10 @@ function Tapetes() {
 
   const handleAgregar = async () => {
     try {
-      // Construimos el objeto con los nombres correctos
       const nuevoTapeteFormateado = {
         marca: nuevoItem.marca,
         referencia: nuevoItem.referencia,
-        tipo: nuevoItem.proveedor || "", // 👈 usamos "proveedor" como tipo
+        tipo: nuevoItem.proveedor || "",
         costo: parseFloat(nuevoItem.costo) || 0,
         precio: parseFloat(nuevoItem.precio) || 0,
         stock: parseInt(nuevoItem.stock) || 0,
@@ -155,7 +135,6 @@ function Tapetes() {
         nuevoTapeteFormateado
       );
 
-      // Recargar lista
       const { data } = await axios.get(
         "https://mi-app-llantas.onrender.com/api/tapetes"
       );
@@ -246,10 +225,6 @@ function Tapetes() {
             </button>
           </div>
 
-          <div className="text-sm text-gray-700 mb-2">
-            Mostrando {filtradas.length} resultados
-          </div>
-
           <div className="bg-white p-6 rounded-3xl shadow-xl border mb-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-6">
               Buscar tapete
@@ -278,20 +253,6 @@ function Tapetes() {
                 </option>
               ))}
             </select>
-            <button
-              onClick={() => setMostrarCosto(!mostrarCosto)}
-              className="flex items-center gap-2 mb-3 px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
-            >
-              {mostrarCosto ? (
-                <>
-                  <EyeOff size={16} /> Ocultar costo
-                </>
-              ) : (
-                <>
-                  <Eye size={16} /> Mostrar costo
-                </>
-              )}
-            </button>
 
             <div className="overflow-auto mt-6">
               <table className="w-full border text-sm">
@@ -300,8 +261,18 @@ function Tapetes() {
                     <th></th>
                     <th onClick={() => ordenarPor("referencia")}>Referencia</th>
                     <th onClick={() => ordenarPor("marca")}>Marca</th>
-                    <th onClick={() => ordenarPor("proveedor")}>Proveedor</th>
-                    <th onClick={() => ordenarPor("costo")}>Costo</th>
+                    <th onClick={() => ordenarPor("tipo")}>Proveedor</th>
+                    <th
+                      className="cursor-pointer"
+                      onClick={() => setMostrarCosto(!mostrarCosto)}
+                    >
+                      Costo{" "}
+                      {mostrarCosto ? (
+                        <EyeOff className="inline w-4 h-4" />
+                      ) : (
+                        <Eye className="inline w-4 h-4" />
+                      )}
+                    </th>
                     <th onClick={() => ordenarPor("precio")}>Precio</th>
                     <th onClick={() => ordenarPor("stock")}>Stock</th>
                     <th>Acción</th>
@@ -320,26 +291,26 @@ function Tapetes() {
                           onChange={() => toggleSeleccion(t.id)}
                         />
                       </td>
+
                       {modoEdicion === t.id ? (
                         <>
-                          {[
-                            "referencia",
-                            "marca",
-                            "proveedor",
-                            "costo",
-                            "precio",
-                            "stock",
-                          ].map((campo) => (
-                            <td key={campo}>
-                              <input
-                                value={t[campo]}
-                                onChange={(e) =>
-                                  actualizarCampo(t.id, campo, e.target.value)
-                                }
-                                className="w-full border rounded text-sm p-1"
-                              />
-                            </td>
-                          ))}
+                          {["referencia", "marca", "tipo", "costo", "precio", "stock"].map(
+                            (campo) => (
+                              <td key={campo}>
+                                <input
+                                  value={t[campo]}
+                                  onChange={(e) =>
+                                    actualizarCampo(
+                                      t.id,
+                                      campo,
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full border rounded text-sm p-1"
+                                />
+                              </td>
+                            )
+                          )}
                           <td className="flex gap-1 justify-center">
                             <button
                               onClick={() => handleGuardar(t)}
@@ -361,22 +332,18 @@ function Tapetes() {
                           <td>{t.marca}</td>
                           <td>{t.tipo || "—"}</td>
                           <td className="text-blue-600 font-semibold">
-                            {mostrarCosto ? (
-                              <span>
-                                $
-                                {Number(t.costo).toLocaleString("es-CO", {
-                                  minimumFractionDigits: 0,
-                                })}
-                              </span>
-                            ) : (
-                              <span className="tracking-widest">•••••</span>
-                            )}
+                            {mostrarCosto
+                              ? `$${Number(t.costo).toLocaleString("es-CO", {
+                                  minimumFractionDigits: 2,
+                                })}`
+                              : "•••••"}
                           </td>
-
                           <td className="text-green-600">
                             ${t.precio.toLocaleString()}
                           </td>
-                          <td className={t.stock === 0 ? "text-red-600" : ""}>
+                          <td
+                            className={t.stock === 0 ? "text-red-600" : ""}
+                          >
                             {t.stock === 0 ? "Sin stock" : t.stock}
                           </td>
                           <td className="flex gap-1 justify-center">
@@ -409,24 +376,19 @@ function Tapetes() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">Agregar nuevo tapete</h2>
-            {[
-              "referencia",
-              "marca",
-              "proveedor",
-              "costo",
-              "precio",
-              "stock",
-            ].map((campo) => (
-              <input
-                key={campo}
-                placeholder={campo.replace("_", " ")}
-                value={nuevoItem[campo]}
-                onChange={(e) =>
-                  setNuevoItem({ ...nuevoItem, [campo]: e.target.value })
-                }
-                className="w-full mb-3 p-2 border rounded"
-              />
-            ))}
+            {["referencia", "marca", "proveedor", "costo", "precio", "stock"].map(
+              (campo) => (
+                <input
+                  key={campo}
+                  placeholder={campo.replace("_", " ")}
+                  value={nuevoItem[campo]}
+                  onChange={(e) =>
+                    setNuevoItem({ ...nuevoItem, [campo]: e.target.value })
+                  }
+                  className="w-full mb-3 p-2 border rounded"
+                />
+              )
+            )}
             <div className="flex justify-end gap-2">
               <button
                 onClick={handleAgregar}
@@ -449,3 +411,4 @@ function Tapetes() {
 }
 
 export default Tapetes;
+

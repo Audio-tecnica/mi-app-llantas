@@ -335,16 +335,16 @@ function Tapetes() {
                           <td className="text-blue-600 font-semibold">
                             {mostrarCosto
                               ? `$${Number(t.costo).toLocaleString("es-CO", {
-                                  minimumFractionDigits: 2,
+                                  minimumFractionDigits: 0,
                                 })}`
                               : "•••••"}
                           </td>
                           <td className="text-green-600 font-semibold">
                             {t.precio !== undefined && t.precio !== null
-                              ? Number(t.precio).toLocaleString("es-CO", {
-                                  style: "currency",
-                                  currency: "COP",
-                                })
+                              ? `$${Number(t.precio).toLocaleString("es-CO", {
+                                  minimumFractionDigits: 0,
+                                  maximumFractionDigits: 0,
+                                })}`
                               : "$0"}
                           </td>
 

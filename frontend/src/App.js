@@ -370,6 +370,7 @@ function App() {
             )}
 
             <input></input>
+            
             {/* Tabla */}
 
             <div className="overflow-auto">

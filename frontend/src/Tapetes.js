@@ -124,7 +124,7 @@ function Tapetes() {
       const nuevoTapeteFormateado = {
         marca: nuevoItem.marca,
         referencia: nuevoItem.referencia,
-        tipo: nuevoItem.proveedor || "",
+        proveedor: nuevoItem.proveedor || "",
         costo: parseFloat(nuevoItem.costo) || 0,
         precio: parseFloat(nuevoItem.precio) || 0,
         stock: parseInt(nuevoItem.stock) || 0,
@@ -261,7 +261,7 @@ function Tapetes() {
                     <th></th>
                     <th onClick={() => ordenarPor("referencia")}>Referencia</th>
                     <th onClick={() => ordenarPor("marca")}>Marca</th>
-                    <th onClick={() => ordenarPor("tipo")}>Proveedor</th>
+                    <th onClick={() => ordenarPor("proveedor")}>Proveedor</th>
                     <th
                       className="cursor-pointer"
                       onClick={() => setMostrarCosto(!mostrarCosto)}
@@ -297,7 +297,7 @@ function Tapetes() {
                           {[
                             "referencia",
                             "marca",
-                            "tipo",
+                            "proveedor",
                             "costo",
                             "precio",
                             "stock",
@@ -331,7 +331,7 @@ function Tapetes() {
                         <>
                           <td>{t.referencia}</td>
                           <td>{t.marca}</td>
-                          <td>{t.tipo || "—"}</td>
+                          <td>{t.proveedor || "—"}</td>
                           <td className="text-blue-600 font-semibold">
                             {mostrarCosto
                               ? `$${Number(t.costo).toLocaleString("es-CO", {

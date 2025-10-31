@@ -193,7 +193,7 @@ app.post('/api/agregar-tapete', async (req, res) => {
   try {
     await pool.query(`
       INSERT INTO tapetes (marca, referencia, proveedor, costo, precio, stock)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      VALUES ($1, $2, $3, $4, $5, $6)
     `, [
       marca || '',
       referencia || '',

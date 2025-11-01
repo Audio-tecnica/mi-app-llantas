@@ -273,30 +273,35 @@ function App() {
         </div>
       ) : (
         <>
-          {/* Filtros */}
-          <div className="mb-3">
-            <div className="flex justify-end p-4">
-              <button
-                onClick={() => {
-                  setBusqueda("");
-                  setMarcaSeleccionada("");
-                }}
-                className="bg-orange-600 text-white px-2 py-2 rounded-lg hover:bg-orange-700 transition"
-              >
-                Limpiar filtros
-              </button>
-            </div>
-          </div>
+          <div className="flex space-x-3"> 
+            <button
+              onClick={() => {
+                setBusqueda("");
+                setMarcaSeleccionada("");
+              }}
+              className="bg-orange-600 text-white px-2 py-2 rounded-lg hover:bg-orange-700 transition"
+            >
+              Limpiar filtros
+            </button>
 
+            <button
+              onClick={() => navigate("/tapetes")}
+              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+            >
+              Ir a Tapetes
+            </button>
+          </div>
           <div className="flex justify-end p-4">
-             <button
-                onClick={() => {
-                  setBusqueda("");
-                  setMarcaSeleccionada("");
-                }}
-                className="bg-orange-600 text-white px-2 py-2 rounded-lg hover:bg-orange-700 transition"
-              >Limpiar filtros
-              </button>
+            <button
+              onClick={() => {
+                setBusqueda("");
+                setMarcaSeleccionada("");
+              }}
+              className="bg-orange-600 text-white px-2 py-2 rounded-lg hover:bg-orange-700 transition"
+            >
+              Limpiar filtros
+            </button>
+
             <button
               onClick={() => navigate("/tapetes")}
               className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"

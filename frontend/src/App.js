@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
 import "./index.css";
 
@@ -66,9 +66,7 @@ function App() {
   // 📦 Cargar llantas
   useEffect(() => {
     axios
-      .get(
-        "https://mi-app-llantas.onrender.com/api/llantas"
-      ) //https://cors-anywhere.herokuapp.com/
+      .get("https://mi-app-llantas.onrender.com/api/llantas") //https://cors-anywhere.herokuapp.com/
       .then((res) => setLlantas(res.data))
       .catch(() => setMensaje("Error al cargar llantas ❌"))
       .finally(() => setCargando(false));
@@ -284,19 +282,28 @@ function App() {
                   setMarcaSeleccionada("");
                 }}
                 className="bg-orange-600 text-white px-2 py-2 rounded-lg hover:bg-orange-700 transition"
-              >Limpiar filtros
+              >
+                Limpiar filtros
               </button>
             </div>
           </div>
 
-           <div className="flex justify-end p-4">
-      <button
-        onClick={() => navigate("/tapetes")}
-        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
-      >
-        Ir a Tapetes
-      </button>
-    </div>
+          <div className="flex justify-end p-4">
+             <button
+                onClick={() => {
+                  setBusqueda("");
+                  setMarcaSeleccionada("");
+                }}
+                className="bg-orange-600 text-white px-2 py-2 rounded-lg hover:bg-orange-700 transition"
+              >Limpiar filtros
+              </button>
+            <button
+              onClick={() => navigate("/tapetes")}
+              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+            >
+              Ir a Tapetes
+            </button>
+          </div>
 
           <div className="text-sm text-gray-700 mb-2">
             Mostrando {filtradas.length} resultados
@@ -369,7 +376,7 @@ function App() {
             )}
 
             <input></input>
-            
+
             {/* Tabla */}
 
             <div className="overflow-auto">

@@ -283,9 +283,8 @@ function App() {
                   setBusqueda("");
                   setMarcaSeleccionada("");
                 }}
-                className="px-3 py-1 bg-orange-600 text-white rounded-xl hover:bg-orange-700"
-              >
-                Limpiar filtros
+                className="px-4 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700"
+              >Limpiar filtros
               </button>
             </div>
           </div>

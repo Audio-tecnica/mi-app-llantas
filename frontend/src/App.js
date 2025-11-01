@@ -234,7 +234,7 @@ function App() {
             onClick={() => setMostrarModal(true)}
             className="bg-gray-700 text-white px-3 py-1.5 rounded text-sm hover:bg-gray-800"
           >
-            Agregar ítem
+            Agregar llanta
           </button>
           <button
             onClick={handleEliminarMultiples}
@@ -277,7 +277,7 @@ function App() {
         <>
           {/* Filtros */}
           <div className="mb-3">
-            <div className="flex justify-left mt-2">
+            <div className="flex justify-end mt-2">
               <button
                 onClick={() => {
                   setBusqueda("");

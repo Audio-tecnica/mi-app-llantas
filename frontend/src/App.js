@@ -283,7 +283,7 @@ function App() {
                   setBusqueda("");
                   setMarcaSeleccionada("");
                 }}
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition"
+                className="bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-orange-700 transition"
               >Limpiar filtros
               </button>
             </div>

@@ -277,7 +277,7 @@ function App() {
         <>
           {/* Filtros */}
           <div className="mb-3">
-            <div className="flex justify-end mt-2">
+            <div className="flex justify-end p-4">
               <button
                 onClick={() => {
                   setBusqueda("");

@@ -332,14 +332,14 @@ function Tapetes() {
                           <td>{t.referencia}</td>
                           <td>{t.marca}</td>
                           <td>{t.proveedor || "—"}</td>
-                          <td className="text-blue-600 font-semibold">
+                          <td className="text-blue-200 font-semibold">
                             {mostrarCosto
                               ? `$${Number(t.costo).toLocaleString("es-CO", {
                                   minimumFractionDigits: 0,
                                 })}`
                               : "•••••"}
                           </td>
-                          <td className="text-green-400 font-semibold">
+                          <td className="text-green-200 font-semibold">
                             {t.precio !== undefined && t.precio !== null
                               ? `$${Number(t.precio).toLocaleString("es-CO", {
                                   minimumFractionDigits: 0,

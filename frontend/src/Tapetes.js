@@ -339,7 +339,7 @@ function Tapetes() {
                                 })}`
                               : "•••••"}
                           </td>
-                          <td className="text-green-600 font-semibold">
+                          <td className="text-green-400 font-semibold">
                             {t.precio !== undefined && t.precio !== null
                               ? `$${Number(t.precio).toLocaleString("es-CO", {
                                   minimumFractionDigits: 0,

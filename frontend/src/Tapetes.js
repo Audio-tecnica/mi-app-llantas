@@ -254,7 +254,7 @@ function Tapetes() {
               ))}
             </select>
 
-            <div className="overflow-auto">
+            <div className="overflow-auto mt-8">
               <table className="w-full border text-sm">
                 <thead className="bg-gradient-to-r from-gray-400 to-blue-300 text-black">
                   <tr>

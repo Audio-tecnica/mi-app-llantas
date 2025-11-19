@@ -43,15 +43,20 @@ function Rines() {
 
   const marcasUnicas = [...new Set(rines.map((r) => r.marca))];
   
-  // Medidas disponibles (puedes ajustar esto según tus necesidades)
-  const medidasDisponibles = ['15"', '16"', '17"', '18"', '20"'];
+  // Medidas disponibles (sin comillas si guardas así en BD)
+  const medidasDisponibles = ['15', '16', '17', '18', '20'];
 
   const filtradas = rines.filter((r) => {
     const coincideBusqueda = r.referencia
       ?.toLowerCase()
       .includes(busqueda.toLowerCase());
     const coincideMarca = !marcaSeleccionada || r.marca === marcaSeleccionada;
-    const coincideMedida = !medidaSeleccionada || r.medida === medidaSeleccionada;
+    
+    // Filtro flexible: acepta "15" o "15\""
+    const coincideMedida = !medidaSeleccionada || 
+      r.medida === medidaSeleccionada || 
+      r.medida === medidaSeleccionada.replace('"', '');
+    
     return coincideBusqueda && coincideMarca && coincideMedida;
   });
 

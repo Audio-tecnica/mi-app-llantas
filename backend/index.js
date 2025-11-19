@@ -256,31 +256,35 @@ app.get("/api/rines", async (req, res) => {
   }
 });
 
-// Agregar
+// Agregar rin (CORREGIDO)
 app.post("/api/agregar-rin", async (req, res) => {
   const { marca, referencia, proveedor, medida, costo, precio, stock } = req.body;
 
   try {
-    await pool.query(
+    const result = await pool.query(
       `
       INSERT INTO rines (marca, referencia, proveedor, medida, costo, precio, stock)
       VALUES ($1,$2,$3,$4,$5,$6,$7)
+      RETURNING *
       `,
       [
         marca,
         referencia,
-        proveedor,
-        medida,
-        parseFloat(costo),
-        parseFloat(precio),
-        parseInt(stock),
+        proveedor || "",
+        medida || "",
+        parseFloat(costo) || 0,
+        parseFloat(precio) || 0,
+        parseInt(stock) || 0,
       ]
     );
-    res.json({ success: true });
+    
+    res.json(result.rows[0]); // ✅ Devolver el rin creado
   } catch (error) {
+    console.error("Error agregando rin:", error);
     res.status(500).json({ error: "Error agregando rin" });
   }
 });
+
 
 // Editar
 app.post("/api/editar-rin", async (req, res) => {

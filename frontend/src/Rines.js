@@ -6,6 +6,7 @@ import "./index.css";
 
 function Rines() {
   const [mostrarCosto, setMostrarCosto] = useState(false);
+  const navigate = useNavigate();
   const [rines, setRines] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [marcaSeleccionada, setMarcaSeleccionada] = useState("");
@@ -23,33 +24,23 @@ function Rines() {
   const [cargando, setCargando] = useState(true);
   const [orden, setOrden] = useState({ campo: "", asc: true });
   const [seleccionadas, setSeleccionadas] = useState([]);
-  const [mostrarModal, setMostrarModal] = useState(false);
 
   // Para modales de fotos
   const [fotoModal, setFotoModal] = useState(null);
   const [subirFotoId, setSubirFotoId] = useState(null);
   const [archivoFoto, setArchivoFoto] = useState(null);
 
-  const navigate = useNavigate();
-
-  // Mensaje temporal
-  const mostrarMensaje = (texto, tiempo = 2000) => {
-    setMensaje(texto);
-    setTimeout(() => setMensaje(""), tiempo);
-  };
-
   // Cargar rines
   useEffect(() => {
     axios
       .get("https://mi-app-llantas.onrender.com/api/rines")
       .then((res) => setRines(res.data))
-      .catch(() => mostrarMensaje("Error al cargar rines ❌"))
+      .catch(() => setMensaje("Error al cargar rines ❌"))
       .finally(() => setCargando(false));
   }, []);
 
   const marcasUnicas = [...new Set(rines.map((r) => r.marca))];
 
-  // Filtrado
   const filtradas = rines.filter((r) => {
     const coincideBusqueda = r.referencia
       ?.toLowerCase()
@@ -58,7 +49,6 @@ function Rines() {
     return coincideBusqueda && coincideMarca;
   });
 
-  // Ordenamiento
   const ordenarPor = (campo) => {
     const asc = orden.campo === campo ? !orden.asc : true;
     const ordenadas = [...filtradas].sort((a, b) => {
@@ -70,8 +60,8 @@ function Rines() {
           : b[campo]?.toString().localeCompare(a[campo]?.toString());
       }
     });
+    setRines(ordenadas);
     setOrden({ campo, asc });
-    return ordenadas;
   };
 
   // CRUD
@@ -90,11 +80,16 @@ function Rines() {
           { id }
         );
       }
-      setRines((prev) => prev.filter((r) => !seleccionadas.includes(r.id)));
+      const { data } = await axios.get(
+        "https://mi-app-llantas.onrender.com/api/rines"
+      );
+      setRines(data);
       setSeleccionadas([]);
-      mostrarMensaje("Rines eliminados ✅");
+      setMensaje("Rines eliminados ✅");
+      setTimeout(() => setMensaje(""), 2000);
     } catch {
-      mostrarMensaje("Error al eliminar ❌");
+      setMensaje("Error al eliminar ❌");
+      setTimeout(() => setMensaje(""), 2000);
     }
   };
 
@@ -104,10 +99,12 @@ function Rines() {
         "https://mi-app-llantas.onrender.com/api/editar-rin",
         rin
       );
+      setMensaje("Cambios guardados ✅");
       setModoEdicion(null);
-      mostrarMensaje("Cambios guardados ✅");
+      setTimeout(() => setMensaje(""), 2000);
     } catch {
-      mostrarMensaje("Error al guardar ❌");
+      setMensaje("Error al guardar ❌");
+      setTimeout(() => setMensaje(""), 2000);
     }
   };
 
@@ -118,9 +115,11 @@ function Rines() {
         id,
       });
       setRines((prev) => prev.filter((r) => r.id !== id));
-      mostrarMensaje("Rin eliminado ✅");
+      setMensaje("Rin eliminado ✅");
+      setTimeout(() => setMensaje(""), 2000);
     } catch {
-      mostrarMensaje("Error al eliminar ❌");
+      setMensaje("Error al eliminar ❌");
+      setTimeout(() => setMensaje(""), 2000);
     }
   };
 
@@ -141,7 +140,11 @@ function Rines() {
         nuevoRinFormateado
       );
 
-      setRines((prev) => [...prev, nuevoRinFormateado]);
+      const { data } = await axios.get(
+        "https://mi-app-llantas.onrender.com/api/rines"
+      );
+      setRines(data);
+      setMostrarModal(false);
       setNuevoItem({
         referencia: "",
         marca: "",
@@ -151,11 +154,12 @@ function Rines() {
         precio: "",
         stock: "",
       });
-      setMostrarModal(false);
-      mostrarMensaje("Rin agregado ✅");
+      setMensaje("Rin agregado ✅");
+      setTimeout(() => setMensaje(""), 2000);
     } catch (e) {
       console.error("❌ Error al agregar rin:", e);
-      mostrarMensaje("Error al agregar ❌");
+      setMensaje("Error al agregar ❌");
+      setTimeout(() => setMensaje(""), 2000);
     }
   };
 
@@ -168,7 +172,8 @@ function Rines() {
   // Subir foto
   const handleSubirFoto = async (id) => {
     if (!archivoFoto) {
-      mostrarMensaje("Selecciona un archivo primero ❌");
+      setMensaje("Selecciona un archivo primero ❌");
+      setTimeout(() => setMensaje(""), 2000);
       return;
     }
 
@@ -185,20 +190,20 @@ function Rines() {
 
       setRines((prev) =>
         prev.map((r) =>
-          r.id === id ? { ...r, foto: data.foto || r.foto } : r
+          r.id === id ? { ...r, foto: data.foto } : r
         )
       );
 
       setArchivoFoto(null);
       setSubirFotoId(null);
-      mostrarMensaje("Foto subida ✅");
+      setMensaje("Foto subida ✅");
+      setTimeout(() => setMensaje(""), 2000);
     } catch (e) {
       console.error("Error al subir foto:", e);
-      mostrarMensaje("Error al subir foto ❌");
+      setMensaje("Error al subir foto ❌");
+      setTimeout(() => setMensaje(""), 2000);
     }
   };
-
-  const rinesOrdenados = ordenarPor(orden.campo || "marca");
 
   // Render
   return (
@@ -223,7 +228,7 @@ function Rines() {
           <button
             onClick={() => {
               localStorage.removeItem("acceso");
-              navigate("/login");
+              window.location.href = "/login";
             }}
             className="bg-red-500 text-white px-3 py-1.5 rounded text-sm hover:bg-red-600"
           >
@@ -272,24 +277,13 @@ function Rines() {
               <tr>
                 <th></th>
                 <th>Referencia</th>
-                <th
-                  onClick={() => setOrden({ campo: "marca", asc: !orden.asc })}
-                  className="cursor-pointer p-2"
-                >
+                <th onClick={() => ordenarPor("marca")} className="cursor-pointer p-2">
                   Marca
                 </th>
-                <th
-                  onClick={() => setOrden({ campo: "medida", asc: !orden.asc })}
-                  className="cursor-pointer p-2"
-                >
+                <th onClick={() => ordenarPor("medida")} className="cursor-pointer p-2">
                   Medida
                 </th>
-                <th
-                  onClick={() =>
-                    setOrden({ campo: "proveedor", asc: !orden.asc })
-                  }
-                  className="cursor-pointer p-2"
-                >
+                <th onClick={() => ordenarPor("proveedor")} className="cursor-pointer p-2">
                   Proveedor
                 </th>
                 <th className="cursor-pointer p-2">
@@ -301,30 +295,20 @@ function Rines() {
                     }}
                     className="ml-2"
                   >
-                    {mostrarCosto ? (
-                      <EyeOff className="inline w-4 h-4" />
-                    ) : (
-                      <Eye className="inline w-4 h-4" />
-                    )}
+                    {mostrarCosto ? <EyeOff className="inline w-4 h-4" /> : <Eye className="inline w-4 h-4" />}
                   </button>
                 </th>
-                <th
-                  onClick={() => setOrden({ campo: "precio", asc: !orden.asc })}
-                  className="cursor-pointer p-2"
-                >
+                <th onClick={() => ordenarPor("precio")} className="cursor-pointer p-2">
                   Precio
                 </th>
-                <th
-                  onClick={() => setOrden({ campo: "stock", asc: !orden.asc })}
-                  className="cursor-pointer p-2"
-                >
+                <th onClick={() => ordenarPor("stock")} className="cursor-pointer p-2">
                   Stock
                 </th>
                 <th>Acción</th>
               </tr>
             </thead>
             <tbody>
-              {rinesOrdenados.map((r) => (
+              {filtradas.map((r) => (
                 <tr key={r.id} className="text-center border-t even:bg-gray-50">
                   <td>
                     <input
@@ -335,23 +319,12 @@ function Rines() {
                   </td>
                   {modoEdicion === r.id ? (
                     <>
-                      {[
-                        "referencia",
-                        "marca",
-                        "medida",
-                        "proveedor",
-                        "costo",
-                        "precio",
-                        "stock",
-                      ].map((campo) => (
+                      {["referencia","marca","medida","proveedor","costo","precio","stock"].map((campo) => (
                         <td key={campo}>
                           <input
                             value={r[campo]}
-                            onChange={(e) =>
-                              actualizarCampo(r.id, campo, e.target.value)
-                            }
+                            onChange={(e) => actualizarCampo(r.id, campo, e.target.value)}
                             className="w-full border rounded text-sm p-1"
-                            type={["costo", "precio", "stock"].includes(campo) ? "number" : "text"}
                           />
                         </td>
                       ))}
@@ -387,9 +360,7 @@ function Rines() {
                       <td>{r.medida || "—"}</td>
                       <td>{r.proveedor || "—"}</td>
                       <td className="text-blue-600">
-                        {mostrarCosto
-                          ? `$${Number(r.costo).toLocaleString("es-CO")}`
-                          : "•••••"}
+                        {mostrarCosto ? `$${Number(r.costo).toLocaleString("es-CO")}` : "•••••"}
                       </td>
                       <td className="text-green-600">
                         {r.precio !== undefined && r.precio !== null
@@ -429,24 +400,23 @@ function Rines() {
       )}
 
       {/* Modal agregar rin */}
-      {mostrarModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      {nuevoItem && (
+        <div
+          className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 ${mostrarModal ? "" : "hidden"}`}
+        >
           <div className="bg-white rounded p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">Agregar nuevo rin</h2>
-            {["referencia", "marca", "medida", "proveedor", "costo", "precio", "stock"].map(
-              (campo) => (
-                <input
-                  key={campo}
-                  placeholder={campo.replace("_", " ")}
-                  value={nuevoItem[campo]}
-                  onChange={(e) =>
-                    setNuevoItem({ ...nuevoItem, [campo]: e.target.value })
-                  }
-                  className="w-full mb-3 p-2 border rounded"
-                  type={["costo", "precio", "stock"].includes(campo) ? "number" : "text"}
-                />
-              )
-            )}
+            {["referencia","marca","medida","proveedor","costo","precio","stock"].map((campo) => (
+              <input
+                key={campo}
+                placeholder={campo.replace("_"," ")}
+                value={nuevoItem[campo]}
+                onChange={(e) =>
+                  setNuevoItem({ ...nuevoItem, [campo]: e.target.value })
+                }
+                className="w-full mb-3 p-2 border rounded"
+              />
+            ))}
             <div className="flex justify-end gap-2">
               <button
                 onClick={handleAgregar}
@@ -512,6 +482,7 @@ function Rines() {
 }
 
 export default Rines;
+
 
 
 

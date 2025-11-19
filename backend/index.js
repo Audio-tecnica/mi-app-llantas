@@ -270,3 +270,89 @@ app.post("/api/actualizar-stock-tapete", async (req, res) => {
     res.status(500).json({ error: "Error al actualizar stock" });
   }
 });
+
+// ==========================================
+// ENDPOINTS PARA RINES
+// ==========================================
+
+// 📦 Obtener todos los rines
+app.get('/api/rines', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM rines ORDER BY id DESC');
+    res.json(rows);
+  } catch (error) {
+    console.error('Error al obtener rines:', error);
+    res.status(500).json({ error: 'Error al obtener rines' });
+  }
+});
+
+// ➕ Agregar un rin (PostgreSQL)
+app.post('/api/agregar-rin', async (req, res) => {
+  try {
+    const { marca, referencia, proveedor, medida, costo, precio, stock } = req.body;
+    
+    const query = `
+      INSERT INTO rines (marca, referencia, proveedor, medida, costo, precio, stock) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `;
+    
+    await pool.query(query, [
+      marca,
+      referencia,
+      proveedor || '',
+      medida || '',
+      parseFloat(costo) || 0,
+      parseFloat(precio) || 0,
+      parseInt(stock) || 0
+    ]);
+    
+    res.json({ success: true, message: 'Rin agregado correctamente' });
+  } catch (error) {
+    console.error('Error al agregar rin:', error);
+    res.status(500).json({ error: 'Error al agregar rin' });
+  }
+});
+
+// ✏️ Editar un rin (PostgreSQL)
+app.post('/api/editar-rin', async (req, res) => {
+  try {
+    const { id, marca, referencia, proveedor, medida, costo, precio, stock } = req.body;
+    
+    const query = `
+      UPDATE rines 
+      SET marca = $1, referencia = $2, proveedor = $3, medida = $4, 
+          costo = $5, precio = $6, stock = $7
+      WHERE id = $8
+    `;
+    
+    await pool.query(query, [
+      marca,
+      referencia,
+      proveedor || '',
+      medida || '',
+      parseFloat(costo) || 0,
+      parseFloat(precio) || 0,
+      parseInt(stock) || 0,
+      id
+    ]);
+    
+    res.json({ success: true, message: 'Rin actualizado correctamente' });
+  } catch (error) {
+    console.error('Error al editar rin:', error);
+    res.status(500).json({ error: 'Error al editar rin' });
+  }
+});
+
+// 🗑️ Eliminar un rin (PostgreSQL)
+app.post('/api/eliminar-rin', async (req, res) => {
+  try {
+    const { id } = req.body;
+    
+    await pool.query('DELETE FROM rines WHERE id = $1', [id]);
+    
+    res.json({ success: true, message: 'Rin eliminado correctamente' });
+  } catch (error) {
+    console.error('Error al eliminar rin:', error);
+    res.status(500).json({ error: 'Error al eliminar rin' });
+  }
+});

@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "./index.css";
 
-function Tapetes() {
+function Rines() {
   const [mostrarCosto, setMostrarCosto] = useState(false);
   const navigate = useNavigate();
-  const [tapetes, setTapetes] = useState([]);
+  const [rines, setRines] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [marcaSeleccionada, setMarcaSeleccionada] = useState("");
   const [mensaje, setMensaje] = useState("");
@@ -17,6 +17,7 @@ function Tapetes() {
     referencia: "",
     marca: "",
     proveedor: "",
+    medida: "",
     costo: "",
     precio: "",
     stock: "",
@@ -25,22 +26,22 @@ function Tapetes() {
   const [orden, setOrden] = useState({ campo: "", asc: true });
   const [seleccionadas, setSeleccionadas] = useState([]);
 
-  // 📦 Cargar tapetes
+  // 📦 Cargar rines
   useEffect(() => {
     axios
-      .get("https://mi-app-llantas.onrender.com/api/tapetes")
-      .then((res) => setTapetes(res.data))
-      .catch(() => setMensaje("Error al cargar tapetes ❌"))
+      .get("https://mi-app-llantas.onrender.com/api/rines")
+      .then((res) => setRines(res.data))
+      .catch(() => setMensaje("Error al cargar rines ❌"))
       .finally(() => setCargando(false));
   }, []);
 
-  const marcasUnicas = [...new Set(tapetes.map((t) => t.marca))];
+  const marcasUnicas = [...new Set(rines.map((r) => r.marca))];
 
-  const filtradas = tapetes.filter((t) => {
-    const coincideBusqueda = t.referencia
+  const filtradas = rines.filter((r) => {
+    const coincideBusqueda = r.referencia
       ?.toLowerCase()
       .includes(busqueda.toLowerCase());
-    const coincideMarca = !marcaSeleccionada || t.marca === marcaSeleccionada;
+    const coincideMarca = !marcaSeleccionada || r.marca === marcaSeleccionada;
     return coincideBusqueda && coincideMarca;
   });
 
@@ -55,7 +56,7 @@ function Tapetes() {
           : b[campo]?.toString().localeCompare(a[campo]?.toString());
       }
     });
-    setTapetes(ordenadas);
+    setRines(ordenadas);
     setOrden({ campo, asc });
   };
 
@@ -67,20 +68,20 @@ function Tapetes() {
   };
 
   const handleEliminarMultiples = async () => {
-    if (!window.confirm("¿Eliminar los tapetes seleccionados?")) return;
+    if (!window.confirm("¿Eliminar los rines seleccionados?")) return;
     try {
       for (let id of seleccionadas) {
         await axios.post(
-          "https://mi-app-llantas.onrender.com/api/eliminar-tapete",
+          "https://mi-app-llantas.onrender.com/api/eliminar-rin",
           { id }
         );
       }
       const { data } = await axios.get(
-        "https://mi-app-llantas.onrender.com/api/tapetes"
+        "https://mi-app-llantas.onrender.com/api/rines"
       );
-      setTapetes(data);
+      setRines(data);
       setSeleccionadas([]);
-      setMensaje("Tapetes eliminados ✅");
+      setMensaje("Rines eliminados ✅");
       setTimeout(() => setMensaje(""), 2000);
     } catch {
       setMensaje("Error al eliminar ❌");
@@ -88,11 +89,11 @@ function Tapetes() {
     }
   };
 
-  const handleGuardar = async (tapete) => {
+  const handleGuardar = async (rin) => {
     try {
       await axios.post(
-        "https://mi-app-llantas.onrender.com/api/editar-tapete",
-        tapete
+        "https://mi-app-llantas.onrender.com/api/editar-rin",
+        rin
       );
       setMensaje("Cambios guardados ✅");
       setModoEdicion(null);
@@ -104,14 +105,14 @@ function Tapetes() {
   };
 
   const handleEliminar = async (id) => {
-    if (!window.confirm("¿Eliminar este tapete?")) return;
+    if (!window.confirm("¿Eliminar este rin?")) return;
     try {
       await axios.post(
-        "https://mi-app-llantas.onrender.com/api/eliminar-tapete",
+        "https://mi-app-llantas.onrender.com/api/eliminar-rin",
         { id }
       );
-      setTapetes((prev) => prev.filter((t) => t.id !== id));
-      setMensaje("Tapete eliminado ✅");
+      setRines((prev) => prev.filter((r) => r.id !== id));
+      setMensaje("Rin eliminado ✅");
       setTimeout(() => setMensaje(""), 2000);
     } catch {
       setMensaje("Error al eliminar ❌");
@@ -121,59 +122,61 @@ function Tapetes() {
 
   const handleAgregar = async () => {
     try {
-      const nuevoTapeteFormateado = {
+      const nuevoRinFormateado = {
         marca: nuevoItem.marca,
         referencia: nuevoItem.referencia,
         proveedor: nuevoItem.proveedor || "",
+        medida: nuevoItem.medida || "",
         costo: parseFloat(nuevoItem.costo) || 0,
         precio: parseFloat(nuevoItem.precio) || 0,
         stock: parseInt(nuevoItem.stock) || 0,
       };
 
       await axios.post(
-        "https://mi-app-llantas.onrender.com/api/agregar-tapete",
-        nuevoTapeteFormateado
+        "https://mi-app-llantas.onrender.com/api/agregar-rin",
+        nuevoRinFormateado
       );
 
       const { data } = await axios.get(
-        "https://mi-app-llantas.onrender.com/api/tapetes"
+        "https://mi-app-llantas.onrender.com/api/rines"
       );
-      setTapetes(data);
+      setRines(data);
       setMostrarModal(false);
       setNuevoItem({
         referencia: "",
         marca: "",
         proveedor: "",
+        medida: "",
         costo: "",
         precio: "",
         stock: "",
       });
-      setMensaje("Tapete agregado ✅");
+      setMensaje("Rin agregado ✅");
       setTimeout(() => setMensaje(""), 2000);
     } catch (e) {
-      console.error("❌ Error al agregar tapete:", e);
+      console.error("❌ Error al agregar rin:", e);
       setMensaje("Error al agregar ❌");
       setTimeout(() => setMensaje(""), 2000);
     }
   };
 
   const actualizarCampo = (id, campo, valor) => {
-    setTapetes((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, [campo]: valor } : t))
+    setRines((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, [campo]: valor } : r))
     );
   };
 
   // 🧩 Render
   return (
-    <div className="max-w-7xl mx-auto p-5 min-h-screen bg-gradient-to-b from-orange-200 to-orange-800">
+    <div className="max-w-7xl mx-auto p-5 min-h-screen bg-gradient-to-b from-gray-200 to-gray-600">
       <div className="flex justify-between items-center mb-6 flex-wrap gap-2">
-        <img src="/logowp.PNG" className="h-13 w-48" />
+        <img src="/logowp.PNG" className="h-13 w-48" alt="Logo" />
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setMostrarModal(true)}
             className="bg-gray-700 text-white px-3 py-1.5 rounded text-sm hover:bg-gray-800"
           >
-            Agregar tapete
+            Agregar rin
           </button>
           <button
             onClick={handleEliminarMultiples}
@@ -196,13 +199,13 @@ function Tapetes() {
 
       {mensaje && (
         <div className="text-center text-blue-700 font-semibold mb-4">
-          ❗{mensaje}
+          ◉{mensaje}
         </div>
       )}
 
       {cargando ? (
         <div className="text-center py-10 text-gray-500">
-          ⏳ Cargando tapetes...
+          ⏳ Cargando rines...
         </div>
       ) : (
         <>
@@ -223,18 +226,22 @@ function Tapetes() {
             >
               Volver a Llantas
             </button>
+
+            <button
+              onClick={() => navigate("/tapetes")}
+              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-lg shadow"
+            >
+              Ir a Tapetes
+            </button>
           </div>
 
-          <button
-            onClick={() => navigate("/rines")}
-            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition"
-          >
-            Ir a Rines
-          </button>
+          <div className="text-sm text-gray-700 mb-2">
+            Mostrando {filtradas.length} resultados
+          </div>
 
           <div className="bg-white p-6 rounded-3xl shadow-xl border mb-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-6">
-              Buscar tapete
+              Buscar rin
             </h2>
 
             <input
@@ -242,7 +249,7 @@ function Tapetes() {
               placeholder="Buscar referencia..."
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
-              className="w-full p-3 border-2 border-orange-500 rounded-3xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-500"
+              className="w-full p-3 border-2 border-gray-500 rounded-3xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-500"
             />
 
             <label className="block text-sm font-medium text-gray-600 mb-2 mt-4">
@@ -251,7 +258,7 @@ function Tapetes() {
             <select
               value={marcaSeleccionada}
               onChange={(e) => setMarcaSeleccionada(e.target.value)}
-              className="w-full p-4 border-2 border-orange-300 rounded-xl shadow-sm focus:ring-2 focus:ring-orange-400 outline-none transition ease-in-out duration-300"
+              className="w-full p-4 border-2 border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-gray-400 outline-none transition ease-in-out duration-300"
             >
               <option value="">Todas las marcas</option>
               {marcasUnicas.map((m) => (
@@ -263,47 +270,54 @@ function Tapetes() {
 
             <div className="overflow-auto mt-8">
               <table className="w-full border text-sm">
-                <thead className="bg-gradient-to-r from-gray-400 to-blue-300 text-black">
+                <thead className="bg-gradient-to-r from-gray-500 to-gray-300 text-black">
                   <tr>
                     <th></th>
-                    <th onClick={() => ordenarPor("referencia")}>Referencia</th>
-                    <th onClick={() => ordenarPor("marca")}>Marca</th>
-                    <th onClick={() => ordenarPor("proveedor")}>Proveedor</th>
-                    <th
-                      className="cursor-pointer"
-                      onClick={() => setMostrarCosto(!mostrarCosto)}
-                    >
+                    <th onClick={() => ordenarPor("referencia")} className="cursor-pointer p-2">Referencia</th>
+                    <th onClick={() => ordenarPor("marca")} className="cursor-pointer p-2">Marca</th>
+                    <th onClick={() => ordenarPor("medida")} className="cursor-pointer p-2">Medida</th>
+                    <th onClick={() => ordenarPor("proveedor")} className="cursor-pointer p-2">Proveedor</th>
+                    <th className="cursor-pointer p-2">
                       Costo{" "}
-                      {mostrarCosto ? (
-                        <EyeOff className="inline w-4 h-4" />
-                      ) : (
-                        <Eye className="inline w-4 h-4" />
-                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setMostrarCosto(!mostrarCosto);
+                        }}
+                        className="ml-2"
+                      >
+                        {mostrarCosto ? (
+                          <EyeOff className="inline w-4 h-4" />
+                        ) : (
+                          <Eye className="inline w-4 h-4" />
+                        )}
+                      </button>
                     </th>
-                    <th onClick={() => ordenarPor("precio")}>Precio</th>
-                    <th onClick={() => ordenarPor("stock")}>Stock</th>
+                    <th onClick={() => ordenarPor("precio")} className="cursor-pointer p-2">Precio</th>
+                    <th onClick={() => ordenarPor("stock")} className="cursor-pointer p-2">Stock</th>
                     <th>Acción</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filtradas.map((t) => (
+                  {filtradas.map((r) => (
                     <tr
-                      key={t.id}
+                      key={r.id}
                       className="text-center border-t even:bg-gray-50"
                     >
                       <td>
                         <input
                           type="checkbox"
-                          checked={seleccionadas.includes(t.id)}
-                          onChange={() => toggleSeleccion(t.id)}
+                          checked={seleccionadas.includes(r.id)}
+                          onChange={() => toggleSeleccion(r.id)}
                         />
                       </td>
 
-                      {modoEdicion === t.id ? (
+                      {modoEdicion === r.id ? (
                         <>
                           {[
                             "referencia",
                             "marca",
+                            "medida",
                             "proveedor",
                             "costo",
                             "precio",
@@ -311,9 +325,9 @@ function Tapetes() {
                           ].map((campo) => (
                             <td key={campo}>
                               <input
-                                value={t[campo]}
+                                value={r[campo]}
                                 onChange={(e) =>
-                                  actualizarCampo(t.id, campo, e.target.value)
+                                  actualizarCampo(r.id, campo, e.target.value)
                                 }
                                 className="w-full border rounded text-sm p-1"
                               />
@@ -321,7 +335,7 @@ function Tapetes() {
                           ))}
                           <td className="flex gap-1 justify-center">
                             <button
-                              onClick={() => handleGuardar(t)}
+                              onClick={() => handleGuardar(r)}
                               className="bg-blue-500 text-white px-2 py-1 text-xs rounded"
                             >
                               Guardar
@@ -336,37 +350,38 @@ function Tapetes() {
                         </>
                       ) : (
                         <>
-                          <td>{t.referencia}</td>
-                          <td>{t.marca}</td>
-                          <td>{t.proveedor || "—"}</td>
+                          <td>{r.referencia}</td>
+                          <td>{r.marca}</td>
+                          <td>{r.medida || "—"}</td>
+                          <td>{r.proveedor || "—"}</td>
                           <td className="text-blue-600">
                             {mostrarCosto
-                              ? `$${Number(t.costo).toLocaleString("es-CO", {
+                              ? `$${Number(r.costo).toLocaleString("es-CO", {
                                   minimumFractionDigits: 0,
                                 })}`
                               : "•••••"}
                           </td>
                           <td className="text-green-600">
-                            {t.precio !== undefined && t.precio !== null
-                              ? `$${Number(t.precio).toLocaleString("es-CO", {
+                            {r.precio !== undefined && r.precio !== null
+                              ? `$${Number(r.precio).toLocaleString("es-CO", {
                                   minimumFractionDigits: 0,
                                   maximumFractionDigits: 0,
                                 })}`
                               : "$0"}
                           </td>
 
-                          <td className={t.stock === 0 ? "text-red-600" : ""}>
-                            {t.stock === 0 ? "Sin stock" : t.stock}
+                          <td className={r.stock === 0 ? "text-red-600" : ""}>
+                            {r.stock === 0 ? "Sin stock" : r.stock}
                           </td>
                           <td className="flex gap-1 justify-center">
                             <button
-                              onClick={() => setModoEdicion(t.id)}
+                              onClick={() => setModoEdicion(r.id)}
                               className="bg-gray-200 hover:bg-gray-300 px-2 py-1 text-xs rounded"
                             >
                               Editar
                             </button>
                             <button
-                              onClick={() => handleEliminar(t.id)}
+                              onClick={() => handleEliminar(r.id)}
                               className="bg-red-500 text-white hover:bg-red-600 px-2 py-1 text-xs rounded"
                             >
                               Eliminar
@@ -383,14 +398,15 @@ function Tapetes() {
         </>
       )}
 
-      {/* Modal agregar tapete */}
+      {/* Modal agregar rin */}
       {mostrarModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Agregar nuevo tapete</h2>
+            <h2 className="text-xl font-bold mb-4">Agregar nuevo rin</h2>
             {[
               "referencia",
               "marca",
+              "medida",
               "proveedor",
               "costo",
               "precio",
@@ -427,4 +443,4 @@ function Tapetes() {
   );
 }
 
-export default Tapetes;
+export default Rines;

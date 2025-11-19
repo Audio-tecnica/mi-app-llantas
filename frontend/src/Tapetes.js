@@ -226,7 +226,7 @@ function Tapetes() {
 
             <button
               onClick={() => navigate("/rines")}
-              className="bg-purple-600 text-white px-3 py-1 rounded-lg hover:bg-purple-700 transition"
+              className="bg-purple-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg shadow"
             >
               Ir a Rines
             </button>

@@ -54,8 +54,7 @@ app.get("/api/rines", async (req, res) => {
 // POST agregar rin
 app.post("/api/agregar-rin", async (req, res) => {
   try {
-    const { referencia, marca, proveedor, medida, costo, precio, stock } =
-      req.body;
+    const { referencia, marca, proveedor, medida, costo, precio, stock } = req.body;
 
     const result = await db.query(
       `INSERT INTO rines (referencia, marca, proveedor, medida, costo, precio, stock)
@@ -64,11 +63,11 @@ app.post("/api/agregar-rin", async (req, res) => {
       [
         referencia,
         marca,
-        proveedor,
-        medida,
-        Number(costo),
-        Number(precio),
-        Number(stock),
+        proveedor ?? "",
+        medida ?? "",
+        Number(costo) || 0,
+        Number(precio) || 0,
+        Number(stock) || 0
       ]
     );
 
@@ -82,24 +81,23 @@ app.post("/api/agregar-rin", async (req, res) => {
 // POST editar rin
 app.post("/api/editar-rin", async (req, res) => {
   try {
-    const { id, referencia, marca, proveedor, medida, costo, precio, stock } =
-      req.body;
+    const { id, referencia, marca, proveedor, medida, costo, precio, stock } = req.body;
 
     const result = await db.query(
       `UPDATE rines
-       SET referencia = $1, marca = $2, proveedor = $3, medida = $4,
-           costo = $5, precio = $6, stock = $7
-       WHERE id = $8
+       SET referencia=$1, marca=$2, proveedor=$3, medida=$4,
+           costo=$5, precio=$6, stock=$7
+       WHERE id=$8
        RETURNING *`,
       [
         referencia,
         marca,
-        proveedor,
-        medida,
-        Number(costo),
-        Number(precio),
-        Number(stock),
-        id,
+        proveedor ?? "",
+        medida ?? "",
+        Number(costo) || 0,
+        Number(precio) || 0,
+        Number(stock) || 0,
+        id
       ]
     );
 
@@ -115,7 +113,7 @@ app.post("/api/eliminar-rin", async (req, res) => {
   try {
     const { id } = req.body;
 
-    await db.query("DELETE FROM rines WHERE id = $1", [id]);
+    await db.query("DELETE FROM rines WHERE id=$1", [id]);
 
     res.json({ message: "Rin eliminado correctamente" });
   } catch (error) {

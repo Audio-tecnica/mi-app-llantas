@@ -2,6 +2,7 @@ import express from "express";
 import pkg from "pg";
 import cors from "cors";
 import dotenv from "dotenv";
+import fileUpload from "express-fileupload"; // para subir imágenes
 
 dotenv.config();
 const { Pool } = pkg;
@@ -9,8 +10,16 @@ const { Pool } = pkg;
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(fileUpload());
+
+// Configurar carpeta pública para fotos
+app.use("/files", express.static("/opt/render/project/files"));
 
 const db = new Pool({ connectionString: process.env.DATABASE_URL });
+
+// ===========================
+//  ACCESORIOS
+// ===========================
 
 // GET todos los accesorios
 app.get("/api/accesorios", async (req, res) => {
@@ -38,7 +47,9 @@ app.post("/api/accesorios", async (req, res) => {
   }
 });
 
-app.listen(3001, () => console.log("Servidor corriendo en puerto 3001"));
+// ===========================
+//  RINES
+// ===========================
 
 // GET todos los rines
 app.get("/api/rines", async (req, res) => {
@@ -121,3 +132,49 @@ app.post("/api/eliminar-rin", async (req, res) => {
     res.status(500).json({ error: "Error al eliminar rin" });
   }
 });
+
+// ===========================
+//  SUBIR FOTO PARA RINES
+// ===========================
+
+app.post("/api/rines/subir-foto", async (req, res) => {
+  try {
+    const { id } = req.body;
+    const archivo = req.files?.foto;
+
+    if (!archivo) {
+      return res.status(400).json({ error: "No se envió ninguna imagen" });
+    }
+
+    // Crear nombre único
+    const nombreArchivo = `rin_${id}_${Date.now()}.jpg`;
+    const rutaLocal = `/opt/render/project/files/${nombreArchivo}`;
+
+    // Guardar imagen en servidor
+    await archivo.mv(rutaLocal);
+
+    // URL pública
+    const urlFoto = `https://TU-BACKEND.onrender.com/files/${nombreArchivo}`;
+
+    // Guardar en DB
+    await db.query(
+      "UPDATE rines SET foto = $1 WHERE id = $2",
+      [urlFoto, id]
+    );
+
+    res.json({ success: true, foto: urlFoto });
+
+  } catch (error) {
+    console.error("❌ Error al subir foto:", error);
+    res.status(500).json({ error: "Error al subir foto" });
+  }
+});
+
+// ===========================
+//  INICIAR SERVIDOR
+// ===========================
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`Servidor escuchando en puerto ${PORT}`);
+});
+

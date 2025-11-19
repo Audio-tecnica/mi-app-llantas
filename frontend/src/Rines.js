@@ -270,7 +270,7 @@ function Rines() {
                 setBusqueda("");
                 setMarcaSeleccionada("");
               }}
-              className="bg-gray-600 text-white px-2 py-2 rounded-lg hover:bg-black-700 transition"
+              className="bg-orange-600 text-white px-2 py-2 rounded-lg hover:bg-orange-700 transition"
             >
               Limpiar filtros
             </button>

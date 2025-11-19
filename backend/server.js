@@ -2,7 +2,8 @@ import express from "express";
 import pkg from "pg";
 import cors from "cors";
 import dotenv from "dotenv";
-import fileUpload from "express-fileupload"; // para subir imágenes
+import fileUpload from "express-fileupload";
+import path from "path";
 
 dotenv.config();
 const { Pool } = pkg;
@@ -12,9 +13,11 @@ app.use(cors());
 app.use(express.json());
 app.use(fileUpload());
 
-// Configurar carpeta pública para fotos
-app.use("/files", express.static("/opt/render/project/files"));
+// Carpeta para fotos
+const FILES_PATH = path.join(process.cwd(), "files");
+app.use("/files", express.static(FILES_PATH));
 
+// Configuración de DB
 const db = new Pool({ connectionString: process.env.DATABASE_URL });
 
 // ===========================
@@ -38,7 +41,7 @@ app.post("/api/accesorios", async (req, res) => {
     const { nombre, categoria, costo, precio, stock } = req.body;
     const result = await db.query(
       "INSERT INTO accesorios (nombre, categoria, costo, precio, stock) VALUES ($1,$2,$3,$4,$5) RETURNING *",
-      [nombre, categoria, Number(costo), Number(precio), Number(stock)]
+      [nombre, categoria, Number(costo) ?? 0, Number(precio) ?? 0, Number(stock) ?? 0]
     );
     res.json(result.rows[0]);
   } catch (error) {
@@ -66,7 +69,6 @@ app.get("/api/rines", async (req, res) => {
 app.post("/api/agregar-rin", async (req, res) => {
   try {
     const { referencia, marca, proveedor, medida, costo, precio, stock } = req.body;
-
     const result = await db.query(
       `INSERT INTO rines (referencia, marca, proveedor, medida, costo, precio, stock)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -76,12 +78,11 @@ app.post("/api/agregar-rin", async (req, res) => {
         marca,
         proveedor ?? "",
         medida ?? "",
-        Number(costo) || 0,
-        Number(precio) || 0,
-        Number(stock) || 0
+        Number(costo) ?? 0,
+        Number(precio) ?? 0,
+        Number(stock) ?? 0
       ]
     );
-
     res.json(result.rows[0]);
   } catch (error) {
     console.error(error);
@@ -93,7 +94,6 @@ app.post("/api/agregar-rin", async (req, res) => {
 app.post("/api/editar-rin", async (req, res) => {
   try {
     const { id, referencia, marca, proveedor, medida, costo, precio, stock } = req.body;
-
     const result = await db.query(
       `UPDATE rines
        SET referencia=$1, marca=$2, proveedor=$3, medida=$4,
@@ -105,13 +105,12 @@ app.post("/api/editar-rin", async (req, res) => {
         marca,
         proveedor ?? "",
         medida ?? "",
-        Number(costo) || 0,
-        Number(precio) || 0,
-        Number(stock) || 0,
+        Number(costo) ?? 0,
+        Number(precio) ?? 0,
+        Number(stock) ?? 0,
         id
       ]
     );
-
     res.json(result.rows[0]);
   } catch (error) {
     console.error(error);
@@ -123,9 +122,7 @@ app.post("/api/editar-rin", async (req, res) => {
 app.post("/api/eliminar-rin", async (req, res) => {
   try {
     const { id } = req.body;
-
     await db.query("DELETE FROM rines WHERE id=$1", [id]);
-
     res.json({ message: "Rin eliminado correctamente" });
   } catch (error) {
     console.error(error);
@@ -136,7 +133,6 @@ app.post("/api/eliminar-rin", async (req, res) => {
 // ===========================
 //  SUBIR FOTO PARA RINES
 // ===========================
-
 app.post("/api/rines/subir-foto", async (req, res) => {
   try {
     const { id } = req.body;
@@ -148,22 +144,18 @@ app.post("/api/rines/subir-foto", async (req, res) => {
 
     // Crear nombre único
     const nombreArchivo = `rin_${id}_${Date.now()}.jpg`;
-    const rutaLocal = `/opt/render/project/files/${nombreArchivo}`;
+    const rutaLocal = path.join(FILES_PATH, nombreArchivo);
 
-    // Guardar imagen en servidor
+    // Guardar imagen
     await archivo.mv(rutaLocal);
 
-    // URL pública
-    const urlFoto = `https://TU-BACKEND.onrender.com/files/${nombreArchivo}`;
+    // URL pública (usar variable de entorno)
+    const urlFoto = `${process.env.BACKEND_URL}/files/${nombreArchivo}`;
 
     // Guardar en DB
-    await db.query(
-      "UPDATE rines SET foto = $1 WHERE id = $2",
-      [urlFoto, id]
-    );
+    await db.query("UPDATE rines SET foto = $1 WHERE id = $2", [urlFoto, id]);
 
     res.json({ success: true, foto: urlFoto });
-
   } catch (error) {
     console.error("❌ Error al subir foto:", error);
     res.status(500).json({ error: "Error al subir foto" });
@@ -177,4 +169,5 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en puerto ${PORT}`);
 });
+
 

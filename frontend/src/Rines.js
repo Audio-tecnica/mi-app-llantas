@@ -10,6 +10,7 @@ function Rines() {
   const [rines, setRines] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [marcaSeleccionada, setMarcaSeleccionada] = useState("");
+  const [medidaSeleccionada, setMedidaSeleccionada] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [modoEdicion, setModoEdicion] = useState(null);
   const [mostrarModal, setMostrarModal] = useState(false);
@@ -25,7 +26,7 @@ function Rines() {
   const [cargando, setCargando] = useState(true);
   const [orden, setOrden] = useState({ campo: "", asc: true });
   const [seleccionadas, setSeleccionadas] = useState([]);
-
+  
   // Estados para fotos
   const [fotoModal, setFotoModal] = useState(null);
   const [subirFotoId, setSubirFotoId] = useState(null);
@@ -41,13 +42,17 @@ function Rines() {
   }, []);
 
   const marcasUnicas = [...new Set(rines.map((r) => r.marca))];
+  
+  // Medidas disponibles (puedes ajustar esto según tus necesidades)
+  const medidasDisponibles = ['15"', '16"', '17"', '18"', '20"'];
 
   const filtradas = rines.filter((r) => {
     const coincideBusqueda = r.referencia
       ?.toLowerCase()
       .includes(busqueda.toLowerCase());
     const coincideMarca = !marcaSeleccionada || r.marca === marcaSeleccionada;
-    return coincideBusqueda && coincideMarca;
+    const coincideMedida = !medidaSeleccionada || r.medida === medidaSeleccionada;
+    return coincideBusqueda && coincideMarca && coincideMedida;
   });
 
   const ordenarPor = (campo) => {
@@ -112,9 +117,10 @@ function Rines() {
   const handleEliminar = async (id) => {
     if (!window.confirm("¿Eliminar este rin?")) return;
     try {
-      await axios.post("https://mi-app-llantas.onrender.com/api/eliminar-rin", {
-        id,
-      });
+      await axios.post(
+        "https://mi-app-llantas.onrender.com/api/eliminar-rin",
+        { id }
+      );
       setRines((prev) => prev.filter((r) => r.id !== id));
       setMensaje("Rin eliminado ✅");
       setTimeout(() => setMensaje(""), 2000);
@@ -126,13 +132,6 @@ function Rines() {
 
   const handleAgregar = async () => {
     try {
-      // Validar campos obligatorios
-      if (!nuevoItem.referencia || !nuevoItem.marca) {
-        setMensaje("Referencia y marca son obligatorios ❌");
-        setTimeout(() => setMensaje(""), 2000);
-        return;
-      }
-
       const nuevoRinFormateado = {
         marca: nuevoItem.marca,
         referencia: nuevoItem.referencia,
@@ -143,21 +142,15 @@ function Rines() {
         stock: parseInt(nuevoItem.stock) || 0,
       };
 
-      console.log("📤 Enviando:", nuevoRinFormateado); // Para debug
-
-      const { data } = await axios.post(
+      await axios.post(
         "https://mi-app-llantas.onrender.com/api/agregar-rin",
         nuevoRinFormateado
       );
 
-      console.log("✅ Respuesta del servidor:", data); // Para debug
-
-      // Recargar lista completa
-      const { data: rinesActualizados } = await axios.get(
+      const { data } = await axios.get(
         "https://mi-app-llantas.onrender.com/api/rines"
       );
-
-      setRines(rinesActualizados);
+      setRines(data);
       setMostrarModal(false);
       setNuevoItem({
         referencia: "",
@@ -171,8 +164,7 @@ function Rines() {
       setMensaje("Rin agregado ✅");
       setTimeout(() => setMensaje(""), 2000);
     } catch (e) {
-      console.error("❌ Error completo:", e); // Para ver el error completo
-      console.error("❌ Respuesta del servidor:", e.response?.data); // Error del backend
+      console.error("❌ Error al agregar rin:", e);
       setMensaje("Error al agregar ❌");
       setTimeout(() => setMensaje(""), 2000);
     }
@@ -269,6 +261,7 @@ function Rines() {
               onClick={() => {
                 setBusqueda("");
                 setMarcaSeleccionada("");
+                setMedidaSeleccionada("");
               }}
               className="bg-orange-600 text-white px-2 py-2 rounded-lg hover:bg-orange-700 transition"
             >
@@ -296,7 +289,7 @@ function Rines() {
 
           <div className="bg-white p-6 rounded-3xl shadow-xl border mb-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-6">
-              Buscar Rin
+              Buscar rin
             </h2>
 
             <input
@@ -322,6 +315,36 @@ function Rines() {
                 </option>
               ))}
             </select>
+
+            {/* Filtro por medida con botones */}
+            <label className="block text-sm font-medium text-gray-600 mb-2 mt-6">
+              Medida
+            </label>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setMedidaSeleccionada("")}
+                className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                  medidaSeleccionada === ""
+                    ? "bg-gray-700 text-white shadow-lg"
+                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                }`}
+              >
+                Todas
+              </button>
+              {medidasDisponibles.map((medida) => (
+                <button
+                  key={medida}
+                  onClick={() => setMedidaSeleccionada(medida)}
+                  className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                    medidaSeleccionada === medida
+                      ? "bg-blue-600 text-white shadow-lg"
+                      : "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                  }`}
+                >
+                  {medida}
+                </button>
+              ))}
+            </div>
 
             {/* Tabla */}
             <div className="overflow-auto mt-6">
@@ -452,7 +475,11 @@ function Rines() {
                               type="number"
                               value={r.costo}
                               onChange={(e) =>
-                                actualizarCampo(r.id, "costo", e.target.value)
+                                actualizarCampo(
+                                  r.id,
+                                  "costo",
+                                  e.target.value
+                                )
                               }
                               className="w-full border rounded text-sm p-1"
                             />
@@ -462,7 +489,11 @@ function Rines() {
                               type="number"
                               value={r.precio}
                               onChange={(e) =>
-                                actualizarCampo(r.id, "precio", e.target.value)
+                                actualizarCampo(
+                                  r.id,
+                                  "precio",
+                                  e.target.value
+                                )
                               }
                               className="w-full border rounded text-sm p-1"
                             />

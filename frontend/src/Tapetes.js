@@ -223,15 +223,14 @@ function Tapetes() {
             >
               Volver a Llantas
             </button>
+
+            <button
+              onClick={() => navigate("/rines")}
+              className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition"
+            >
+              Ir a Rines
+            </button>
           </div>
-
-          <button
-            onClick={() => navigate("/rines")}
-            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition"
-          >
-            Ir a Rines
-          </button>
-
           <div className="bg-white p-6 rounded-3xl shadow-xl border mb-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-6">
               Buscar tapete

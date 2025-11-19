@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -6,11 +6,13 @@ import "./index.css";
 
 function Rines() {
   const [mostrarCosto, setMostrarCosto] = useState(false);
+  const navigate = useNavigate();
   const [rines, setRines] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [marcaSeleccionada, setMarcaSeleccionada] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [modoEdicion, setModoEdicion] = useState(null);
+  const [mostrarModal, setMostrarModal] = useState(false);
   const [nuevoItem, setNuevoItem] = useState({
     referencia: "",
     marca: "",
@@ -21,61 +23,49 @@ function Rines() {
     stock: "",
   });
   const [cargando, setCargando] = useState(true);
-  const [orden, setOrden] = useState({ campo: "marca", asc: true });
+  const [orden, setOrden] = useState({ campo: "", asc: true });
   const [seleccionadas, setSeleccionadas] = useState([]);
-  const [mostrarModal, setMostrarModal] = useState(false);
-
+  
+  // Estados para fotos
   const [fotoModal, setFotoModal] = useState(null);
   const [subirFotoId, setSubirFotoId] = useState(null);
   const [archivoFoto, setArchivoFoto] = useState(null);
 
-  const navigate = useNavigate();
-
-  // Mensaje temporal
-  const mostrarMensaje = (texto, tiempo = 2000) => {
-    setMensaje(texto);
-    setTimeout(() => setMensaje(""), tiempo);
-  };
-
-  // Cargar rines
+  // 📦 Cargar rines
   useEffect(() => {
     axios
       .get("https://mi-app-llantas.onrender.com/api/rines")
       .then((res) => setRines(res.data))
-      .catch(() => mostrarMensaje("Error al cargar rines ❌"))
+      .catch(() => setMensaje("Error al cargar rines ❌"))
       .finally(() => setCargando(false));
   }, []);
 
   const marcasUnicas = [...new Set(rines.map((r) => r.marca))];
 
-  // Filtrado
-  const filtradas = useMemo(
-    () =>
-      rines.filter((r) => {
-        const coincideBusqueda = r.referencia
-          ?.toLowerCase()
-          .includes(busqueda.toLowerCase());
-        const coincideMarca = !marcaSeleccionada || r.marca === marcaSeleccionada;
-        return coincideBusqueda && coincideMarca;
-      }),
-    [rines, busqueda, marcaSeleccionada]
-  );
+  const filtradas = rines.filter((r) => {
+    const coincideBusqueda = r.referencia
+      ?.toLowerCase()
+      .includes(busqueda.toLowerCase());
+    const coincideMarca = !marcaSeleccionada || r.marca === marcaSeleccionada;
+    return coincideBusqueda && coincideMarca;
+  });
 
-  // Ordenamiento seguro con useMemo
-  const rinesOrdenados = useMemo(() => {
-    if (!orden.campo) return filtradas;
-    return [...filtradas].sort((a, b) => {
-      const va = a[orden.campo] ?? "";
-      const vb = b[orden.campo] ?? "";
-
-      if (typeof va === "number") return orden.asc ? va - vb : vb - va;
-      return orden.asc
-        ? va.toString().localeCompare(vb.toString())
-        : vb.toString().localeCompare(va.toString());
+  const ordenarPor = (campo) => {
+    const asc = orden.campo === campo ? !orden.asc : true;
+    const ordenadas = [...filtradas].sort((a, b) => {
+      if (typeof a[campo] === "number") {
+        return asc ? a[campo] - b[campo] : b[campo] - a[campo];
+      } else {
+        return asc
+          ? a[campo]?.toString().localeCompare(b[campo]?.toString())
+          : b[campo]?.toString().localeCompare(a[campo]?.toString());
+      }
     });
-  }, [filtradas, orden]);
+    setRines(ordenadas);
+    setOrden({ campo, asc });
+  };
 
-  // CRUD
+  // ✅ CRUD
   const toggleSeleccion = (id) => {
     setSeleccionadas((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
@@ -86,41 +76,58 @@ function Rines() {
     if (!window.confirm("¿Eliminar los rines seleccionados?")) return;
     try {
       for (let id of seleccionadas) {
-        await axios.post("https://mi-app-llantas.onrender.com/api/eliminar-rin", { id });
+        await axios.post(
+          "https://mi-app-llantas.onrender.com/api/eliminar-rin",
+          { id }
+        );
       }
-      setRines((prev) => prev.filter((r) => !seleccionadas.includes(r.id)));
+      const { data } = await axios.get(
+        "https://mi-app-llantas.onrender.com/api/rines"
+      );
+      setRines(data);
       setSeleccionadas([]);
-      mostrarMensaje("Rines eliminados ✅");
+      setMensaje("Rines eliminados ✅");
+      setTimeout(() => setMensaje(""), 2000);
     } catch {
-      mostrarMensaje("Error al eliminar ❌");
+      setMensaje("Error al eliminar ❌");
+      setTimeout(() => setMensaje(""), 2000);
     }
   };
 
   const handleGuardar = async (rin) => {
     try {
-      await axios.post("https://mi-app-llantas.onrender.com/api/editar-rin", rin);
+      await axios.post(
+        "https://mi-app-llantas.onrender.com/api/editar-rin",
+        rin
+      );
+      setMensaje("Cambios guardados ✅");
       setModoEdicion(null);
-      mostrarMensaje("Cambios guardados ✅");
+      setTimeout(() => setMensaje(""), 2000);
     } catch {
-      mostrarMensaje("Error al guardar ❌");
+      setMensaje("Error al guardar ❌");
+      setTimeout(() => setMensaje(""), 2000);
     }
   };
 
   const handleEliminar = async (id) => {
     if (!window.confirm("¿Eliminar este rin?")) return;
     try {
-      await axios.post("https://mi-app-llantas.onrender.com/api/eliminar-rin", { id });
+      await axios.post(
+        "https://mi-app-llantas.onrender.com/api/eliminar-rin",
+        { id }
+      );
       setRines((prev) => prev.filter((r) => r.id !== id));
-      mostrarMensaje("Rin eliminado ✅");
+      setMensaje("Rin eliminado ✅");
+      setTimeout(() => setMensaje(""), 2000);
     } catch {
-      mostrarMensaje("Error al eliminar ❌");
+      setMensaje("Error al eliminar ❌");
+      setTimeout(() => setMensaje(""), 2000);
     }
   };
 
   const handleAgregar = async () => {
     try {
       const nuevoRinFormateado = {
-        id: Date.now(), // asignamos id temporal único
         marca: nuevoItem.marca,
         referencia: nuevoItem.referencia,
         proveedor: nuevoItem.proveedor || "",
@@ -135,7 +142,11 @@ function Rines() {
         nuevoRinFormateado
       );
 
-      setRines((prev) => [...prev, nuevoRinFormateado]);
+      const { data } = await axios.get(
+        "https://mi-app-llantas.onrender.com/api/rines"
+      );
+      setRines(data);
+      setMostrarModal(false);
       setNuevoItem({
         referencia: "",
         marca: "",
@@ -145,11 +156,12 @@ function Rines() {
         precio: "",
         stock: "",
       });
-      setMostrarModal(false);
-      mostrarMensaje("Rin agregado ✅");
+      setMensaje("Rin agregado ✅");
+      setTimeout(() => setMensaje(""), 2000);
     } catch (e) {
       console.error("❌ Error al agregar rin:", e);
-      mostrarMensaje("Error al agregar ❌");
+      setMensaje("Error al agregar ❌");
+      setTimeout(() => setMensaje(""), 2000);
     }
   };
 
@@ -159,9 +171,11 @@ function Rines() {
     );
   };
 
+  // Función para subir foto
   const handleSubirFoto = async (id) => {
     if (!archivoFoto) {
-      mostrarMensaje("Selecciona un archivo primero ❌");
+      setMensaje("Selecciona un archivo primero ❌");
+      setTimeout(() => setMensaje(""), 2000);
       return;
     }
 
@@ -177,291 +191,469 @@ function Rines() {
       );
 
       setRines((prev) =>
-        prev.map((r) => (r.id === id ? { ...r, foto: data.foto || r.foto } : r))
+        prev.map((r) => (r.id === id ? { ...r, foto: data.foto } : r))
       );
 
       setArchivoFoto(null);
       setSubirFotoId(null);
-      mostrarMensaje("Foto subida ✅");
+      setMensaje("Foto subida ✅");
+      setTimeout(() => setMensaje(""), 2000);
     } catch (e) {
       console.error("Error al subir foto:", e);
-      mostrarMensaje("Error al subir foto ❌");
+      setMensaje("Error al subir foto ❌");
+      setTimeout(() => setMensaje(""), 2000);
     }
   };
 
-  const limpiarFiltros = () => {
-    setBusqueda("");
-    setMarcaSeleccionada("");
-  };
-
+  // 🧩 Render
   return (
-    <div className="max-w-7xl mx-auto p-5 min-h-screen bg-gradient-to-b from-gray-200 to-gray-600">
-      {/* Botones arriba */}
-      <div style={{ backgroundColor: "#f1b97f", padding: "15px", marginBottom: "15px", borderRadius: "8px" }}>
-        <div style={{ marginBottom: "10px" }}>
+    <div className="max-w-7xl mx-auto p-4">
+      {/* Encabezado */}
+      <div className="flex justify-between items-center mb-6 flex-wrap gap-2">
+        <img src="/logowp.PNG" className="h-13 w-48" alt="Logo" />
+        <div className="flex flex-wrap gap-2">
           <button
-            onClick={limpiarFiltros}
-            style={{
-              backgroundColor: "#f97316",
-              color: "white",
-              border: "none",
-              borderRadius: "6px",
-              padding: "6px 12px",
-              marginRight: "8px",
-              cursor: "pointer",
-            }}
+            onClick={() => setMostrarModal(true)}
+            className="bg-gray-700 text-white px-3 py-1.5 rounded text-sm hover:bg-gray-800"
           >
-            Limpiar filtros
+            Agregar rin
           </button>
-
           <button
-            onClick={() => navigate("/llantas")}
-            style={{
-              backgroundColor: "#3b82f6",
-              color: "white",
-              border: "none",
-              borderRadius: "6px",
-              padding: "6px 12px",
-              marginRight: "8px",
-              cursor: "pointer",
-            }}
+            onClick={handleEliminarMultiples}
+            disabled={seleccionadas.length === 0}
+            className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700"
           >
-            Volver a Llantas
+            Eliminar seleccionados
           </button>
-
           <button
-            onClick={() => navigate("/rines")}
-            style={{
-              backgroundColor: "#8b5cf6",
-              color: "white",
-              border: "none",
-              borderRadius: "6px",
-              padding: "6px 12px",
-              cursor: "pointer",
+            onClick={() => {
+              localStorage.removeItem("acceso");
+              window.location.href = "/login";
             }}
+            className="bg-red-500 text-white px-3 py-1.5 rounded text-sm hover:bg-red-600"
           >
-            Ir a Rines
+            Cerrar sesión
           </button>
-        </div>
-
-        {/* Filtros */}
-        <div
-          style={{
-            backgroundColor: "white",
-            borderRadius: "8px",
-            padding: "12px 15px",
-            maxWidth: "600px",
-          }}
-        >
-          <label
-            htmlFor="buscar"
-            style={{ fontWeight: "600", display: "block", marginBottom: "5px" }}
-          >
-            Buscar referencia
-          </label>
-          <input
-            id="buscar"
-            type="text"
-            placeholder="Buscar referencia..."
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "8px 12px",
-              border: "1.5px solid #f97316",
-              borderRadius: "20px",
-              marginBottom: "15px",
-              outline: "none",
-            }}
-          />
-
-          <label
-            htmlFor="marca"
-            style={{ fontWeight: "600", display: "block", marginBottom: "5px" }}
-          >
-            Marca
-          </label>
-          <select
-            id="marca"
-            value={marcaSeleccionada}
-            onChange={(e) => setMarcaSeleccionada(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "8px 12px",
-              border: "1.5px solid #f97316",
-              borderRadius: "6px",
-              outline: "none",
-            }}
-          >
-            <option value="">Todas las marcas</option>
-            {marcasUnicas.map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
-            ))}
-          </select>
         </div>
       </div>
 
+      {/* Mensajes */}
       {mensaje && (
         <div className="text-center text-blue-700 font-semibold mb-4">
           ◉{mensaje}
         </div>
       )}
 
+      {/* Contenido principal */}
       {cargando ? (
-        <div className="text-center py-10 text-gray-500">⏳ Cargando rines...</div>
+        <div className="text-center py-10 text-gray-500">
+          ⏳ Cargando rines...
+        </div>
       ) : (
-        <div className="bg-white p-6 rounded-3xl shadow-xl border mb-6 overflow-auto">
-          <table className="w-full border text-sm">
-            <thead className="bg-gradient-to-r from-gray-500 to-gray-300 text-black">
-              <tr>
-                <th></th>
-                <th>Referencia</th>
-                <th
-                  onClick={() => setOrden({ campo: "marca", asc: !orden.asc })}
-                  className="cursor-pointer p-2"
-                >
-                  Marca
-                </th>
-                <th
-                  onClick={() => setOrden({ campo: "medida", asc: !orden.asc })}
-                  className="cursor-pointer p-2"
-                >
-                  Medida
-                </th>
-                <th
-                  onClick={() => setOrden({ campo: "proveedor", asc: !orden.asc })}
-                  className="cursor-pointer p-2"
-                >
-                  Proveedor
-                </th>
-                <th className="cursor-pointer p-2">
-                  Costo{" "}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setMostrarCosto(!mostrarCosto);
-                    }}
-                    className="ml-2"
-                  >
-                    {mostrarCosto ? <EyeOff className="inline w-4 h-4" /> : <Eye className="inline w-4 h-4" />}
-                  </button>
-                </th>
-                <th
-                  onClick={() => setOrden({ campo: "precio", asc: !orden.asc })}
-                  className="cursor-pointer p-2"
-                >
-                  Precio
-                </th>
-                <th
-                  onClick={() => setOrden({ campo: "stock", asc: !orden.asc })}
-                  className="cursor-pointer p-2"
-                >
-                  Stock
-                </th>
-                <th>Acción</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rinesOrdenados
-                .filter((r) => r && r.id) // seguridad extra
-                .map((r) => (
-                  <tr key={r.id} className="text-center border-t even:bg-gray-50">
-                    <td>
-                      <input
-                        type="checkbox"
-                        checked={seleccionadas.includes(r.id)}
-                        onChange={() => toggleSeleccion(r.id)}
-                      />
-                    </td>
-                    {modoEdicion === r.id ? (
-                      <>
-                        {["referencia", "marca", "medida", "proveedor", "costo", "precio", "stock"].map(
-                          (campo) => (
-                            <td key={campo}>
-                              <input
-                                value={r[campo]}
-                                onChange={(e) => actualizarCampo(r.id, campo, e.target.value)}
-                                className="w-full border rounded text-sm p-1"
-                                type={["costo", "precio", "stock"].includes(campo) ? "number" : "text"}
-                              />
-                            </td>
-                          )
+        <>
+          <div className="flex space-x-3">
+            <button
+              onClick={() => {
+                setBusqueda("");
+                setMarcaSeleccionada("");
+              }}
+              className="bg-orange-600 text-white px-2 py-2 rounded-lg hover:bg-orange-700 transition"
+            >
+              Limpiar filtros
+            </button>
+
+            <button
+              onClick={() => navigate("/")}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+            >
+              Volver a Llantas
+            </button>
+
+            <button
+              onClick={() => navigate("/tapetes")}
+              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+            >
+              Ir a Tapetes
+            </button>
+          </div>
+
+          <div className="text-sm text-gray-700 mb-2 mt-4">
+            Mostrando {filtradas.length} resultados
+          </div>
+
+          <div className="bg-white p-6 rounded-3xl shadow-xl border mb-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-6">
+              Buscar rin
+            </h2>
+
+            <input
+              type="text"
+              placeholder="Buscar referencia..."
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              className="w-full p-3 border-2 border-gray-500 rounded-3xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-500"
+            />
+
+            <label className="block text-sm font-medium text-gray-600 mb-2 mt-4">
+              Marca
+            </label>
+            <select
+              value={marcaSeleccionada}
+              onChange={(e) => setMarcaSeleccionada(e.target.value)}
+              className="w-full p-4 border-2 border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-gray-400 outline-none transition ease-in-out duration-300"
+            >
+              <option value="">Todas las marcas</option>
+              {marcasUnicas.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+
+            {/* Tabla */}
+            <div className="overflow-auto mt-6">
+              <table className="w-full border text-sm">
+                <thead className="bg-gradient-to-r from-gray-500 to-gray-300 text-black">
+                  <tr>
+                    <th></th>
+                    <th
+                      onClick={() => ordenarPor("referencia")}
+                      className="cursor-pointer p-2"
+                    >
+                      Referencia
+                    </th>
+                    <th
+                      onClick={() => ordenarPor("marca")}
+                      className="cursor-pointer p-2"
+                    >
+                      Marca
+                    </th>
+                    <th
+                      onClick={() => ordenarPor("medida")}
+                      className="cursor-pointer p-2"
+                    >
+                      Medida
+                    </th>
+                    <th
+                      onClick={() => ordenarPor("proveedor")}
+                      className="cursor-pointer p-2"
+                    >
+                      Proveedor
+                    </th>
+                    <th
+                      onClick={() => ordenarPor("costo")}
+                      className="cursor-pointer p-2"
+                    >
+                      Costo
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setMostrarCosto(!mostrarCosto);
+                        }}
+                        className="ml-2 text-white-600"
+                      >
+                        {mostrarCosto ? (
+                          <EyeOff size={16} />
+                        ) : (
+                          <Eye size={16} />
                         )}
-                        <td className="flex gap-1 justify-center">
-                          <button
-                            onClick={() => handleGuardar(r)}
-                            className="bg-blue-500 text-white px-2 py-1 text-xs rounded"
-                          >
-                            Guardar
-                          </button>
-                          <button
-                            onClick={() => setModoEdicion(null)}
-                            className="bg-gray-300 text-black px-2 py-1 text-xs rounded"
-                          >
-                            Cancelar
-                          </button>
-                        </td>
-                      </>
-                    ) : (
-                      <>
-                        <td>
-                          {r.referencia}
-                          {r.foto && (
-                            <button
-                              onClick={() => setFotoModal(r.foto)}
-                              className="ml-2 px-2 py-0.5 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
-                            >
-                              Ver foto
-                            </button>
-                          )}
-                        </td>
-                        <td>{r.marca}</td>
-                        <td>{r.medida || "—"}</td>
-                        <td>{r.proveedor || "—"}</td>
-                        <td className="text-blue-600">
-                          {mostrarCosto ? `$${Number(r.costo).toLocaleString("es-CO")}` : "•••••"}
-                        </td>
-                        <td className="text-green-600">
-                          {r.precio != null ? `$${Number(r.precio).toLocaleString("es-CO")}` : "$0"}
-                        </td>
-                        <td className={r.stock === 0 ? "text-red-600" : ""}>
-                          {r.stock === 0 ? "Sin stock" : r.stock}
-                        </td>
-                        <td className="flex gap-1 justify-center flex-wrap">
-                          <button
-                            onClick={() => setModoEdicion(r.id)}
-                            className="bg-gray-200 hover:bg-gray-300 px-2 py-1 text-xs rounded"
-                          >
-                            Editar
-                          </button>
-                          <button
-                            onClick={() => handleEliminar(r.id)}
-                            className="bg-red-500 text-white hover:bg-red-600 px-2 py-1 text-xs rounded"
-                          >
-                            Eliminar
-                          </button>
-                          <button
-                            onClick={() => setSubirFotoId(r.id)}
-                            className="bg-green-500 text-white hover:bg-green-600 px-2 py-1 text-xs rounded"
-                          >
-                            Agregar foto
-                          </button>
-                        </td>
-                      </>
-                    )}
+                      </button>
+                    </th>
+                    <th
+                      onClick={() => ordenarPor("precio")}
+                      className="cursor-pointer p-2"
+                    >
+                      Precio
+                    </th>
+                    <th
+                      onClick={() => ordenarPor("stock")}
+                      className="cursor-pointer p-2"
+                    >
+                      Stock
+                    </th>
+                    <th className="p-2">Acción</th>
                   </tr>
-                ))}
-            </tbody>
-          </table>
+                </thead>
+                <tbody>
+                  {filtradas.map((r) => (
+                    <tr
+                      key={r.id}
+                      className="text-center border-t even:bg-gray-50"
+                    >
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={seleccionadas.includes(r.id)}
+                          onChange={() => toggleSeleccion(r.id)}
+                        />
+                      </td>
+
+                      {modoEdicion === r.id ? (
+                        <>
+                          <td>
+                            <input
+                              value={r.referencia}
+                              onChange={(e) =>
+                                actualizarCampo(
+                                  r.id,
+                                  "referencia",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full border rounded text-sm p-1"
+                            />
+                          </td>
+                          <td>
+                            <input
+                              value={r.marca}
+                              onChange={(e) =>
+                                actualizarCampo(r.id, "marca", e.target.value)
+                              }
+                              className="w-full border rounded text-sm p-1"
+                            />
+                          </td>
+                          <td>
+                            <input
+                              value={r.medida}
+                              onChange={(e) =>
+                                actualizarCampo(r.id, "medida", e.target.value)
+                              }
+                              className="w-full border rounded text-sm p-1"
+                            />
+                          </td>
+                          <td>
+                            <input
+                              value={r.proveedor}
+                              onChange={(e) =>
+                                actualizarCampo(
+                                  r.id,
+                                  "proveedor",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full border rounded text-sm p-1"
+                            />
+                          </td>
+                          <td>
+                            <input
+                              type="number"
+                              value={r.costo}
+                              onChange={(e) =>
+                                actualizarCampo(
+                                  r.id,
+                                  "costo",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full border rounded text-sm p-1"
+                            />
+                          </td>
+                          <td>
+                            <input
+                              type="number"
+                              value={r.precio}
+                              onChange={(e) =>
+                                actualizarCampo(
+                                  r.id,
+                                  "precio",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full border rounded text-sm p-1"
+                            />
+                          </td>
+                          <td>
+                            <input
+                              type="number"
+                              value={r.stock}
+                              onChange={(e) =>
+                                actualizarCampo(r.id, "stock", e.target.value)
+                              }
+                              className="w-full border rounded text-sm p-1"
+                            />
+                          </td>
+                          <td className="flex gap-1 justify-center">
+                            <button
+                              onClick={() => handleGuardar(r)}
+                              className="bg-blue-500 text-white px-2 py-1 text-xs rounded"
+                            >
+                              Guardar
+                            </button>
+                            <button
+                              onClick={() => setModoEdicion(null)}
+                              className="bg-gray-300 text-black px-2 py-1 text-xs rounded"
+                            >
+                              Cancelar
+                            </button>
+                          </td>
+                        </>
+                      ) : (
+                        <>
+                          <td className="p-1">
+                            <div className="flex items-center justify-center gap-2">
+                              <span>{r.referencia}</span>
+                              {r.foto && (
+                                <button
+                                  onClick={() => setFotoModal(r.foto)}
+                                  className="bg-purple-500 text-white px-2 py-1 rounded hover:bg-purple-600 text-xs"
+                                >
+                                  Ver foto
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                          <td>{r.marca}</td>
+                          <td>{r.medida || "—"}</td>
+                          <td>{r.proveedor || "—"}</td>
+                          <td className="text-blue-600">
+                            {mostrarCosto
+                              ? `$${Number(r.costo).toLocaleString("es-CO", {
+                                  minimumFractionDigits: 0,
+                                })}`
+                              : "•••••"}
+                          </td>
+                          <td className="text-green-600">
+                            {r.precio !== undefined && r.precio !== null
+                              ? `$${Number(r.precio).toLocaleString("es-CO", {
+                                  minimumFractionDigits: 0,
+                                  maximumFractionDigits: 0,
+                                })}`
+                              : "$0"}
+                          </td>
+                          <td className={r.stock === 0 ? "text-red-600" : ""}>
+                            {r.stock === 0 ? "Sin stock" : r.stock}
+                          </td>
+                          <td className="flex gap-1 justify-center">
+                            <button
+                              onClick={() => setModoEdicion(r.id)}
+                              className="bg-gray-200 hover:bg-gray-300 px-2 py-1 text-xs rounded"
+                            >
+                              Editar
+                            </button>
+                            <button
+                              onClick={() => handleEliminar(r.id)}
+                              className="bg-red-500 text-white hover:bg-red-600 px-2 py-1 text-xs rounded"
+                            >
+                              Eliminar
+                            </button>
+                            <button
+                              onClick={() => setSubirFotoId(r.id)}
+                              className="bg-green-500 text-white hover:bg-green-600 px-2 py-1 text-xs rounded"
+                            >
+                              Foto
+                            </button>
+                          </td>
+                        </>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Modal agregar rin */}
+      {mostrarModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Agregar nuevo rin</h2>
+            {[
+              "referencia",
+              "marca",
+              "medida",
+              "proveedor",
+              "costo",
+              "precio",
+              "stock",
+            ].map((campo) => (
+              <input
+                key={campo}
+                placeholder={campo.replace("_", " ")}
+                value={nuevoItem[campo]}
+                onChange={(e) =>
+                  setNuevoItem({ ...nuevoItem, [campo]: e.target.value })
+                }
+                className="w-full mb-3 p-2 border rounded"
+              />
+            ))}
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={handleAgregar}
+                className="bg-blue-600 text-white px-4 py-2 rounded"
+              >
+                Guardar
+              </button>
+              <button
+                onClick={() => setMostrarModal(false)}
+                className="bg-gray-400 text-white px-4 py-2 rounded"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal subir foto */}
+      {subirFotoId && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Subir foto</h2>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setArchivoFoto(e.target.files[0])}
+              className="w-full mb-4 p-2 border rounded"
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => handleSubirFoto(subirFotoId)}
+                className="bg-green-600 text-white px-4 py-2 rounded"
+              >
+                Subir
+              </button>
+              <button
+                onClick={() => {
+                  setSubirFotoId(null);
+                  setArchivoFoto(null);
+                }}
+                className="bg-gray-400 text-white px-4 py-2 rounded"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal ver foto */}
+      {fotoModal && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+          onClick={() => setFotoModal(null)}
+        >
+          <div className="relative">
+            <img
+              src={fotoModal}
+              alt="Foto del rin"
+              className="max-w-3xl max-h-screen rounded shadow-lg"
+            />
+            <button
+              onClick={() => setFotoModal(null)}
+              className="absolute top-2 right-2 bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+            >
+              Cerrar
+            </button>
+          </div>
         </div>
       )}
     </div>
   );
 }
 
-export default Rines;
+export default Rines
 
 
 

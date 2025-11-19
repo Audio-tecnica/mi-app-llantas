@@ -309,9 +309,52 @@ app.post("/api/eliminar-rin", async (req, res) => {
   }
 });
 
+// ===========================
+//  SERVIR ARCHIVOS / FOTOS
+// ===========================
+app.use("/files", express.static("/opt/render/project/files"));
+
+
 // Run server
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en puerto ${PORT}`);
 });
+
+// ===========================
+//   SUBIR FOTO PARA RINES
+// ===========================
+app.post("/api/rines/subir-foto", async (req, res) => {
+  try {
+    const { id } = req.body;
+    const archivo = req.files?.foto;
+
+    if (!archivo) {
+      return res.status(400).json({ error: "No se envió ninguna imagen" });
+    }
+
+    // Crear nombre único
+    const nombreArchivo = `rin_${id}_${Date.now()}.jpg`;
+    const rutaLocal = `/opt/render/project/files/${nombreArchivo}`;
+
+    // Guardar imagen en servidor
+    archivo.mv(rutaLocal);
+
+    // URL pública
+    const urlFoto = `https://TU-BACKEND.onrender.com/files/${nombreArchivo}`;
+
+    // Guardar en BD
+    await db.query(
+      "UPDATE rines SET foto = $1 WHERE id = $2",
+      [urlFoto, id]
+    );
+
+    res.json({ success: true, foto: urlFoto });
+
+  } catch (error) {
+    console.error("❌ Error al subir foto:", error);
+    res.status(500).json({ error: "Error al subir foto" });
+  }
+});
+
 
 

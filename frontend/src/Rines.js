@@ -13,6 +13,7 @@ function Rines() {
   const [mensaje, setMensaje] = useState("");
   const [modoEdicion, setModoEdicion] = useState(null);
   const [mostrarModal, setMostrarModal] = useState(false);
+  const [fotoModal, setFotoModal] = useState(null); // 👈 estado para mostrar foto
   const [nuevoItem, setNuevoItem] = useState({
     referencia: "",
     marca: "",
@@ -107,10 +108,9 @@ function Rines() {
   const handleEliminar = async (id) => {
     if (!window.confirm("¿Eliminar este rin?")) return;
     try {
-      await axios.post(
-        "https://mi-app-llantas.onrender.com/api/eliminar-rin",
-        { id }
-      );
+      await axios.post("https://mi-app-llantas.onrender.com/api/eliminar-rin", {
+        id,
+      });
       setRines((prev) => prev.filter((r) => r.id !== id));
       setMensaje("Rin eliminado ✅");
       setTimeout(() => setMensaje(""), 2000);
@@ -164,6 +164,42 @@ function Rines() {
     setRines((prev) =>
       prev.map((r) => (r.id === id ? { ...r, [campo]: valor } : r))
     );
+  };
+
+  // 📸 Función para subir foto
+  const agregarFotoRin = async (id) => {
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = "image/*";
+
+    fileInput.onchange = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append("foto", file);
+      formData.append("id", id);
+
+      try {
+        await axios.post(
+          "https://mi-app-llantas.onrender.com/api/subir-foto-rin",
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
+
+        const { data } = await axios.get(
+          "https://mi-app-llantas.onrender.com/api/rines"
+        );
+        setRines(data);
+        setMensaje("Foto subida ✅");
+        setTimeout(() => setMensaje(""), 2000);
+      } catch {
+        setMensaje("Error al subir foto ❌");
+        setTimeout(() => setMensaje(""), 2000);
+      }
+    };
+
+    fileInput.click();
   };
 
   // 🧩 Render
@@ -273,10 +309,25 @@ function Rines() {
                 <thead className="bg-gradient-to-r from-gray-500 to-gray-300 text-black">
                   <tr>
                     <th></th>
-                    <th onClick={() => ordenarPor("referencia")} className="cursor-pointer p-2">Referencia</th>
-                    <th onClick={() => ordenarPor("marca")} className="cursor-pointer p-2">Marca</th>
-                    <th onClick={() => ordenarPor("medida")} className="cursor-pointer p-2">Medida</th>
-                    <th onClick={() => ordenarPor("proveedor")} className="cursor-pointer p-2">Proveedor</th>
+                    <th>Referencia</th>
+                    <th
+                      onClick={() => ordenarPor("marca")}
+                      className="cursor-pointer p-2"
+                    >
+                      Marca
+                    </th>
+                    <th
+                      onClick={() => ordenarPor("medida")}
+                      className="cursor-pointer p-2"
+                    >
+                      Medida
+                    </th>
+                    <th
+                      onClick={() => ordenarPor("proveedor")}
+                      className="cursor-pointer p-2"
+                    >
+                      Proveedor
+                    </th>
                     <th className="cursor-pointer p-2">
                       Costo{" "}
                       <button
@@ -293,8 +344,18 @@ function Rines() {
                         )}
                       </button>
                     </th>
-                    <th onClick={() => ordenarPor("precio")} className="cursor-pointer p-2">Precio</th>
-                    <th onClick={() => ordenarPor("stock")} className="cursor-pointer p-2">Stock</th>
+                    <th
+                      onClick={() => ordenarPor("precio")}
+                      className="cursor-pointer p-2"
+                    >
+                      Precio
+                    </th>
+                    <th
+                      onClick={() => ordenarPor("stock")}
+                      className="cursor-pointer p-2"
+                    >
+                      Stock
+                    </th>
                     <th>Acción</th>
                   </tr>
                 </thead>
@@ -350,7 +411,17 @@ function Rines() {
                         </>
                       ) : (
                         <>
-                          <td>{r.referencia}</td>
+                          <td>
+                            {r.referencia}
+                            {r.foto && (
+                              <button
+                                onClick={() => setFotoModal(r.foto)}
+                                className="bg-blue-500 text-white ml-2 px-2 py-1 text-xs rounded"
+                              >
+                                Ver foto
+                              </button>
+                            )}
+                          </td>
                           <td>{r.marca}</td>
                           <td>{r.medida || "—"}</td>
                           <td>{r.proveedor || "—"}</td>
@@ -386,6 +457,13 @@ function Rines() {
                             >
                               Eliminar
                             </button>
+
+                            <button
+                              onClick={() => agregarFotoRin(r.id)}
+                              className="bg-green-500 text-white hover:bg-green-600 px-2 py-1 text-xs rounded"
+                            >
+                              Agregar foto
+                            </button>
                           </td>
                         </>
                       )}
@@ -396,6 +474,25 @@ function Rines() {
             </div>
           </div>
         </>
+      )}
+
+      {/* Modal ver foto */}
+      {fotoModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded p-4 max-w-lg w-full flex flex-col items-center">
+            <img
+              src={fotoModal}
+              alt="Foto del rin"
+              style={{ maxWidth: "90%", maxHeight: "80vh" }}
+            />
+            <button
+              onClick={() => setFotoModal(null)}
+              className="mt-4 bg-red-500 text-white px-4 py-2 rounded"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Modal agregar rin */}
@@ -444,3 +541,4 @@ function Rines() {
 }
 
 export default Rines;
+

@@ -273,7 +273,7 @@ function App() {
         </div>
       ) : (
         <>
-          <div className="flex space-x-3"> 
+          <div className="flex space-x-3">
             <button
               onClick={() => {
                 setBusqueda("");
@@ -290,7 +290,14 @@ function App() {
             >
               Ir a Tapetes
             </button>
-          </div> 
+          </div>
+
+          <button
+            onClick={() => navigate("/rines")}
+            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition"
+          >
+            Ir a Rines
+          </button>
 
           <div className="text-sm text-gray-700 mb-2">
             Mostrando {filtradas.length} resultados

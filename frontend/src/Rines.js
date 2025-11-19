@@ -52,10 +52,9 @@ function Rines() {
       .includes(busqueda.toLowerCase());
     const coincideMarca = !marcaSeleccionada || r.marca === marcaSeleccionada;
     
-    // Filtro flexible: acepta "15" o "15\""
+    // Filtro flexible: busca si la medida COMIENZA con el número
     const coincideMedida = !medidaSeleccionada || 
-      r.medida === medidaSeleccionada || 
-      r.medida === medidaSeleccionada.replace('"', '');
+      r.medida?.toString().startsWith(medidaSeleccionada);
     
     return coincideBusqueda && coincideMarca && coincideMedida;
   });
@@ -346,7 +345,7 @@ function Rines() {
                       : "bg-blue-100 text-blue-700 hover:bg-blue-200"
                   }`}
                 >
-                  {medida}
+                  {medida}"
                 </button>
               ))}
             </div>

@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
-import { Eye, EyeOff, X } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "./index.css";
 
@@ -48,18 +48,15 @@ function Rines() {
 
   const marcasUnicas = [...new Set(rines.map((r) => r.marca))];
 
-  // Filtrado
-  const filtradas = useMemo(
-    () =>
-      rines.filter((r) => {
-        const coincideBusqueda = r.referencia
-          ?.toLowerCase()
-          .includes(busqueda.toLowerCase());
-        const coincideMarca = !marcaSeleccionada || r.marca === marcaSeleccionada;
-        return coincideBusqueda && coincideMarca;
-      }),
-    [rines, busqueda, marcaSeleccionada]
-  );
+  // Filtrado igual a App.js
+  const filtradas = useMemo(() => {
+    return rines.filter((r) => {
+      const busquedaLower = busqueda.toLowerCase();
+      const referenciaCoincide = r.referencia?.toLowerCase().includes(busquedaLower);
+      const marcaCoincide = !marcaSeleccionada || r.marca === marcaSeleccionada;
+      return referenciaCoincide && marcaCoincide;
+    });
+  }, [rines, busqueda, marcaSeleccionada]);
 
   // Ordenamiento seguro con useMemo
   const rinesOrdenados = useMemo(() => {
@@ -75,7 +72,7 @@ function Rines() {
     });
   }, [filtradas, orden]);
 
-  // CRUD
+  // CRUD y selección
   const toggleSeleccion = (id) => {
     setSeleccionadas((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
@@ -120,7 +117,7 @@ function Rines() {
   const handleAgregar = async () => {
     try {
       const nuevoRinFormateado = {
-        id: Date.now(), // asignamos id temporal único
+        id: Date.now(),
         marca: nuevoItem.marca,
         referencia: nuevoItem.referencia,
         proveedor: nuevoItem.proveedor || "",
@@ -189,6 +186,11 @@ function Rines() {
     }
   };
 
+  const limpiarFiltros = () => {
+    setBusqueda("");
+    setMarcaSeleccionada("");
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-5 min-h-screen bg-gradient-to-b from-gray-200 to-gray-600">
       {/* Header */}
@@ -207,6 +209,24 @@ function Rines() {
             className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700"
           >
             Eliminar seleccionados
+          </button>
+          <button
+            onClick={limpiarFiltros}
+            className="bg-yellow-500 text-white px-3 py-1.5 rounded text-sm hover:bg-yellow-600"
+          >
+            Limpiar filtros
+          </button>
+          <button
+            onClick={() => navigate("/tapetes")}
+            className="bg-blue-500 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-600"
+          >
+            Ir a Tapetes
+          </button>
+          <button
+            onClick={() => navigate("/llantas")}
+            className="bg-green-500 text-white px-3 py-1.5 rounded text-sm hover:bg-green-600"
+          >
+            Ir a Llantas
           </button>
           <button
             onClick={() => {
@@ -386,33 +406,10 @@ function Rines() {
                             onClick={() => setSubirFotoId(r.id)}
                             className="bg-green-500 text-white hover:bg-green-600 px-2 py-1 text-xs rounded"
                           >
-                            Subir foto
+                            Agregar foto
                           </button>
                         </td>
                       </>
-                    )}
-                    {/* Modal de subir foto */}
-                    {subirFotoId === r.id && (
-                      <tr>
-                        <td colSpan={9} className="bg-gray-100 p-2 flex gap-2 justify-center items-center">
-                          <input
-                            type="file"
-                            onChange={(e) => setArchivoFoto(e.target.files[0])}
-                          />
-                          <button
-                            onClick={() => handleSubirFoto(r.id)}
-                            className="bg-green-600 text-white px-2 py-1 text-xs rounded"
-                          >
-                            Subir
-                          </button>
-                          <button
-                            onClick={() => setSubirFotoId(null)}
-                            className="bg-gray-400 text-black px-2 py-1 text-xs rounded"
-                          >
-                            Cancelar
-                          </button>
-                        </td>
-                      </tr>
                     )}
                   </tr>
                 ))}
@@ -420,26 +417,12 @@ function Rines() {
           </table>
         </div>
       )}
-
-      {/* Modal de ver foto */}
-      {fotoModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-4 rounded relative max-w-lg w-full">
-            <button
-              onClick={() => setFotoModal(null)}
-              className="absolute top-2 right-2 text-gray-700 hover:text-black"
-            >
-              <X />
-            </button>
-            <img src={fotoModal} alt="Rin" className="w-full h-auto rounded" />
-          </div>
-        </div>
-      )}
     </div>
   );
 }
 
 export default Rines;
+
 
 
 

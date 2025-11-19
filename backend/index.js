@@ -3,6 +3,8 @@ const fileUpload = require("express-fileupload");
 const cors = require("cors");
 const xlsx = require("xlsx");
 const { Pool } = require("pg");
+const path = require("path");
+const fs = require("fs");
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -18,6 +20,17 @@ const pool = new Pool({
 app.use(fileUpload());
 app.use(cors());
 app.use(express.json());
+
+// ===========================
+//  CREAR CARPETA PARA FOTOS
+// ===========================
+const FILES_PATH = path.join(__dirname, "files");
+if (!fs.existsSync(FILES_PATH)) {
+  fs.mkdirSync(FILES_PATH, { recursive: true });
+}
+
+// Servir archivos estáticos
+app.use("/files", express.static(FILES_PATH));
 
 // Crear tabla llantas si no existe
 async function crearTabla() {
@@ -310,18 +323,7 @@ app.post("/api/eliminar-rin", async (req, res) => {
 });
 
 // ===========================
-//  SERVIR ARCHIVOS / FOTOS
-// ===========================
-app.use("/files", express.static("/opt/render/project/files"));
-
-
-// Run server
-app.listen(PORT, () => {
-  console.log(`Servidor escuchando en puerto ${PORT}`);
-});
-
-// ===========================
-//   SUBIR FOTO PARA RINES
+//   SUBIR FOTO PARA RINES (CORREGIDO)
 // ===========================
 app.post("/api/rines/subir-foto", async (req, res) => {
   try {
@@ -332,28 +334,37 @@ app.post("/api/rines/subir-foto", async (req, res) => {
       return res.status(400).json({ error: "No se envió ninguna imagen" });
     }
 
+    // Validar tipo de archivo
+    const tiposPermitidos = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
+    if (!tiposPermitidos.includes(archivo.mimetype)) {
+      return res.status(400).json({ error: "Solo se permiten imágenes JPG, PNG o GIF" });
+    }
+
     // Crear nombre único
-    const nombreArchivo = `rin_${id}_${Date.now()}.jpg`;
-    const rutaLocal = `/opt/render/project/files/${nombreArchivo}`;
+    const extension = path.extname(archivo.name);
+    const nombreArchivo = `rin_${id}_${Date.now()}${extension}`;
+    const rutaLocal = path.join(FILES_PATH, nombreArchivo);
 
     // Guardar imagen en servidor
-    archivo.mv(rutaLocal);
+    await archivo.mv(rutaLocal);
 
-    // URL pública
-    const urlFoto = `https://TU-BACKEND.onrender.com/files/${nombreArchivo}`;
+    // URL pública (cambia esto por tu URL real de backend)
+    const urlFoto = `https://mi-app-llantas.onrender.com/files/${nombreArchivo}`;
 
-    // Guardar en BD
-    await db.query(
-      "UPDATE rines SET foto = $1 WHERE id = $2",
-      [urlFoto, id]
-    );
+    // Guardar en BD (CORREGIDO: usar 'pool' en lugar de 'db')
+    await pool.query("UPDATE rines SET foto = $1 WHERE id = $2", [urlFoto, id]);
 
     res.json({ success: true, foto: urlFoto });
-
   } catch (error) {
     console.error("❌ Error al subir foto:", error);
     res.status(500).json({ error: "Error al subir foto" });
   }
+});
+
+// Run server
+app.listen(PORT, () => {
+  console.log(`✅ Servidor escuchando en puerto ${PORT}`);
+  console.log(`📁 Carpeta de archivos: ${FILES_PATH}`);
 });
 
 

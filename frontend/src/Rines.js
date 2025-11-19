@@ -25,7 +25,7 @@ function Rines() {
   const [cargando, setCargando] = useState(true);
   const [orden, setOrden] = useState({ campo: "", asc: true });
   const [seleccionadas, setSeleccionadas] = useState([]);
-  
+
   // Estados para fotos
   const [fotoModal, setFotoModal] = useState(null);
   const [subirFotoId, setSubirFotoId] = useState(null);
@@ -112,10 +112,9 @@ function Rines() {
   const handleEliminar = async (id) => {
     if (!window.confirm("¿Eliminar este rin?")) return;
     try {
-      await axios.post(
-        "https://mi-app-llantas.onrender.com/api/eliminar-rin",
-        { id }
-      );
+      await axios.post("https://mi-app-llantas.onrender.com/api/eliminar-rin", {
+        id,
+      });
       setRines((prev) => prev.filter((r) => r.id !== id));
       setMensaje("Rin eliminado ✅");
       setTimeout(() => setMensaje(""), 2000);
@@ -127,6 +126,13 @@ function Rines() {
 
   const handleAgregar = async () => {
     try {
+      // Validar campos obligatorios
+      if (!nuevoItem.referencia || !nuevoItem.marca) {
+        setMensaje("Referencia y marca son obligatorios ❌");
+        setTimeout(() => setMensaje(""), 2000);
+        return;
+      }
+
       const nuevoRinFormateado = {
         marca: nuevoItem.marca,
         referencia: nuevoItem.referencia,
@@ -137,15 +143,21 @@ function Rines() {
         stock: parseInt(nuevoItem.stock) || 0,
       };
 
-      await axios.post(
+      console.log("📤 Enviando:", nuevoRinFormateado); // Para debug
+
+      const { data } = await axios.post(
         "https://mi-app-llantas.onrender.com/api/agregar-rin",
         nuevoRinFormateado
       );
 
-      const { data } = await axios.get(
+      console.log("✅ Respuesta del servidor:", data); // Para debug
+
+      // Recargar lista completa
+      const { data: rinesActualizados } = await axios.get(
         "https://mi-app-llantas.onrender.com/api/rines"
       );
-      setRines(data);
+
+      setRines(rinesActualizados);
       setMostrarModal(false);
       setNuevoItem({
         referencia: "",
@@ -159,7 +171,8 @@ function Rines() {
       setMensaje("Rin agregado ✅");
       setTimeout(() => setMensaje(""), 2000);
     } catch (e) {
-      console.error("❌ Error al agregar rin:", e);
+      console.error("❌ Error completo:", e); // Para ver el error completo
+      console.error("❌ Respuesta del servidor:", e.response?.data); // Error del backend
       setMensaje("Error al agregar ❌");
       setTimeout(() => setMensaje(""), 2000);
     }
@@ -439,11 +452,7 @@ function Rines() {
                               type="number"
                               value={r.costo}
                               onChange={(e) =>
-                                actualizarCampo(
-                                  r.id,
-                                  "costo",
-                                  e.target.value
-                                )
+                                actualizarCampo(r.id, "costo", e.target.value)
                               }
                               className="w-full border rounded text-sm p-1"
                             />
@@ -453,11 +462,7 @@ function Rines() {
                               type="number"
                               value={r.precio}
                               onChange={(e) =>
-                                actualizarCampo(
-                                  r.id,
-                                  "precio",
-                                  e.target.value
-                                )
+                                actualizarCampo(r.id, "precio", e.target.value)
                               }
                               className="w-full border rounded text-sm p-1"
                             />
@@ -653,14 +658,4 @@ function Rines() {
   );
 }
 
-export default Rines
-
-
-
-
-
-
-
-
-
-
+export default Rines;

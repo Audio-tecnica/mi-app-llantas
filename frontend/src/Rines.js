@@ -270,7 +270,7 @@ function Rines() {
                 setBusqueda("");
                 setMarcaSeleccionada("");
               }}
-              className="bg-orange-600 text-white px-2 py-2 rounded-lg hover:bg-orange-700 transition"
+              className="bg-gray-600 text-white px-2 py-2 rounded-lg hover:bg-black-700 transition"
             >
               Limpiar filtros
             </button>
@@ -296,7 +296,7 @@ function Rines() {
 
           <div className="bg-white p-6 rounded-3xl shadow-xl border mb-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-6">
-              Buscar rin
+              Buscar Rin
             </h2>
 
             <input

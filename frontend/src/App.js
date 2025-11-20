@@ -553,6 +553,18 @@ function App() {
                         <>
                           <td className="p-1 flex items-center justify-center gap-2">
                             <span>{ll.referencia}</span>
+                            {/* 🗨️ Si hay comentario, mostrar icono */}
+                            {ll.comentario && (
+                              <div
+                                className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center cursor-pointer"
+                                title={ll.comentario}
+                              >
+                                <span className="text-white font-bold text-xs">
+                                  C
+                                </span>
+                              </div>
+                            )}
+
                             <button
                               onClick={() =>
                                 window.open(
@@ -604,6 +616,38 @@ function App() {
                             >
                               Editar
                             </button>
+                            <td className="flex gap-1 justify-center">
+                              <button
+                                onClick={() => setModoEdicion(ll.id)}
+                                className="bg-gray-200 hover:bg-gray-300 px-2 py-1 text-xs rounded"
+                              >
+                                Editar
+                              </button>
+
+                              {/* 🔵 Botón de comentario */}
+                              <button
+                                onClick={() => {
+                                  const texto = prompt(
+                                    "Escribe un comentario para esta llanta:",
+                                    ll.comentario || ""
+                                  );
+                                  if (texto !== null) {
+                                    actualizarCampo(ll.id, "comentario", texto);
+                                  }
+                                }}
+                                className="bg-yellow-500 text-white px-2 py-1 text-xs rounded hover:bg-yellow-600"
+                              >
+                                Comentar
+                              </button>
+
+                              <button
+                                onClick={() => handleEliminar(ll.id)}
+                                className="bg-red-500 text-white hover:bg-red-600 px-2 py-1 text-xs rounded"
+                              >
+                                Eliminar
+                              </button>
+                            </td>
+
                             <button
                               onClick={() => handleEliminar(ll.id)}
                               className="bg-red-500 text-white hover:bg-red-600 px-2 py-1 text-xs rounded"

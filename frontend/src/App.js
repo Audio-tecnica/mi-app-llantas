@@ -403,7 +403,7 @@ function App() {
                     <th></th>
                     <th
                       onClick={() => ordenarPor("referencia")}
-                      className="cursor-pointer p-2"
+                      className="cursor-pointer p-2 min-w-[280px]"
                     >
                       Referencia
                     </th>

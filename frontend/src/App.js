@@ -626,19 +626,50 @@ function App() {
                                 );
                                 if (texto !== null) {
                                   try {
-                                    console.log("Guardando comentario:", { ...ll, comentario: texto });
+                                    const datosAEnviar = {
+                                      id: ll.id,
+                                      referencia: ll.referencia,
+                                      marca: ll.marca,
+                                      proveedor: ll.proveedor,
+                                      costo_empresa: ll.costo_empresa,
+                                      precio_cliente: ll.precio_cliente,
+                                      stock: ll.stock,
+                                      consignacion: ll.consignacion || false,
+                                      comentario: texto,
+                                    };
+                                    console.log(
+                                      "Enviando al servidor:",
+                                      datosAEnviar
+                                    );
+
                                     const response = await axios.post(
                                       "https://mi-app-llantas.onrender.com/api/editar-llanta",
-                                      { ...ll, comentario: texto }
+                                      datosAEnviar
                                     );
-                                    console.log("Respuesta del servidor:", response.data);
+                                    console.log(
+                                      "Respuesta exitosa:",
+                                      response.data
+                                    );
                                     actualizarCampo(ll.id, "comentario", texto);
                                     setMensaje("Comentario guardado ✅");
                                     setTimeout(() => setMensaje(""), 2000);
                                   } catch (error) {
-                                    console.error("Error completo:", error.response?.data || error);
-                                    setMensaje("Error al guardar comentario ❌");
-                                    setTimeout(() => setMensaje(""), 2000);
+                                    console.error("Error completo:", error);
+                                    console.error(
+                                      "Error response:",
+                                      error.response?.data
+                                    );
+                                    console.error(
+                                      "Error status:",
+                                      error.response?.status
+                                    );
+                                    setMensaje(
+                                      `Error: ${
+                                        error.response?.data?.error ||
+                                        error.message
+                                      } ❌`
+                                    );
+                                    setTimeout(() => setMensaje(""), 4000);
                                   }
                                 }
                               }}

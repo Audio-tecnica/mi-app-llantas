@@ -43,10 +43,29 @@ async function crearTabla() {
         proveedor TEXT,
         costo_empresa INTEGER,
         precio_cliente INTEGER,
-        stock INTEGER
+        stock INTEGER,
+        consignacion BOOLEAN DEFAULT FALSE,
+        comentario TEXT DEFAULT ''
       )
     `);
-    console.log('Tabla "llantas" lista.');
+    
+    // Agregar columnas si no existen (para tablas existentes)
+    await pool.query(`
+      DO $$ 
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                       WHERE table_name='llantas' AND column_name='consignacion') THEN
+          ALTER TABLE llantas ADD COLUMN consignacion BOOLEAN DEFAULT FALSE;
+        END IF;
+        
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                       WHERE table_name='llantas' AND column_name='comentario') THEN
+          ALTER TABLE llantas ADD COLUMN comentario TEXT DEFAULT '';
+        END IF;
+      END $$;
+    `);
+    
+    console.log('Tabla "llantas" lista con todas las columnas.');
   } catch (err) {
     console.error("Error creando tabla:", err);
   }
@@ -55,7 +74,7 @@ crearTabla();
 
 // ---------------- LLANTAS ----------------
 
-// Subir Excel
+// Subir Excel (ACTUALIZADO)
 app.post("/api/upload", async (req, res) => {
   if (!req.files || !req.files.file)
     return res.status(400).json({ error: "Archivo faltante" });
@@ -69,8 +88,8 @@ app.post("/api/upload", async (req, res) => {
     await pool.query("DELETE FROM llantas");
 
     const query = `
-      INSERT INTO llantas (referencia, marca, proveedor, costo_empresa, precio_cliente, stock)
-      VALUES ($1,$2,$3,$4,$5,$6)
+      INSERT INTO llantas (referencia, marca, proveedor, costo_empresa, precio_cliente, stock, consignacion, comentario)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
     `;
 
     for (const l of datos) {
@@ -81,6 +100,8 @@ app.post("/api/upload", async (req, res) => {
         parseInt(l["costo_empresa"]) || 0,
         parseInt(l["precio_cliente"]) || 0,
         parseInt(l["stock"]) || 0,
+        l["consignacion"] || false,
+        l["comentario"] || ""
       ]);
     }
 
@@ -97,36 +118,54 @@ app.get("/api/llantas", async (req, res) => {
     const { rows } = await pool.query("SELECT * FROM llantas ORDER BY id ASC");
     res.json(rows);
   } catch (e) {
+    console.error("Error obteniendo llantas:", e);
     res.status(500).json({ error: "Error obteniendo llantas" });
   }
 });
 
-// Editar llanta
+// Editar llanta (CORREGIDO)
 app.post('/api/editar-llanta', async (req, res) => {
   const { id, referencia, marca, proveedor, costo_empresa, precio_cliente, stock, consignacion, comentario } = req.body;
   
   try {
-    await db.query(
-      'UPDATE llantas SET referencia = ?, marca = ?, proveedor = ?, costo_empresa = ?, precio_cliente = ?, stock = ?, consignacion = ?, comentario = ? WHERE id = ?',
-      [referencia, marca, proveedor, costo_empresa, precio_cliente, stock, consignacion, comentario, id]
+    await pool.query(
+      `UPDATE llantas SET 
+        referencia = $1, 
+        marca = $2, 
+        proveedor = $3, 
+        costo_empresa = $4, 
+        precio_cliente = $5, 
+        stock = $6, 
+        consignacion = $7, 
+        comentario = $8 
+      WHERE id = $9`,
+      [
+        referencia, 
+        marca, 
+        proveedor, 
+        parseInt(costo_empresa), 
+        parseInt(precio_cliente), 
+        parseInt(stock), 
+        consignacion || false, 
+        comentario || '', 
+        id
+      ]
     );
     res.json({ success: true });
   } catch (error) {
+    console.error('Error editando llanta:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// Agregar llanta
+// Agregar llanta (ACTUALIZADO)
 app.post("/api/agregar-llanta", async (req, res) => {
-  const { referencia, marca, proveedor, costo_empresa, precio_cliente, stock } =
-    req.body;
+  const { referencia, marca, proveedor, costo_empresa, precio_cliente, stock, consignacion, comentario } = req.body;
 
   try {
     await pool.query(
-      `
-      INSERT INTO llantas (referencia, marca, proveedor, costo_empresa, precio_cliente, stock)
-      VALUES ($1,$2,$3,$4,$5,$6)
-      `,
+      `INSERT INTO llantas (referencia, marca, proveedor, costo_empresa, precio_cliente, stock, consignacion, comentario)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
       [
         referencia,
         marca,
@@ -134,10 +173,13 @@ app.post("/api/agregar-llanta", async (req, res) => {
         parseInt(costo_empresa),
         parseInt(precio_cliente),
         parseInt(stock),
+        consignacion || false,
+        comentario || ''
       ]
     );
     res.json({ success: true });
   } catch (e) {
+    console.error('Error agregando llanta:', e);
     res.status(500).json({ error: "Error agregando llanta" });
   }
 });
@@ -148,6 +190,7 @@ app.post("/api/eliminar-llanta", async (req, res) => {
     await pool.query("DELETE FROM llantas WHERE id=$1", [req.body.id]);
     res.json({ success: true });
   } catch (e) {
+    console.error("Error eliminando llanta:", e);
     res.status(500).json({ error: "Error eliminando llanta" });
   }
 });
@@ -160,6 +203,7 @@ app.get("/api/tapetes", async (req, res) => {
     const { rows } = await pool.query("SELECT * FROM tapetes ORDER BY id ASC");
     res.json(rows);
   } catch (e) {
+    console.error("Error obteniendo tapetes:", e);
     res.status(500).json({ error: "Error obteniendo tapetes" });
   }
 });
@@ -185,6 +229,7 @@ app.post("/api/agregar-tapete", async (req, res) => {
     );
     res.json({ success: true });
   } catch (e) {
+    console.error("Error agregando tapete:", e);
     res.status(500).json({ error: "Error agregando tapete" });
   }
 });
@@ -212,6 +257,7 @@ app.post("/api/editar-tapete", async (req, res) => {
     );
     res.json({ success: true });
   } catch (e) {
+    console.error("Error editando tapete:", e);
     res.status(500).json({ error: "Error editando tapete" });
   }
 });
@@ -222,6 +268,7 @@ app.post("/api/eliminar-tapete", async (req, res) => {
     await pool.query("DELETE FROM tapetes WHERE id=$1", [req.body.id]);
     res.json({ success: true });
   } catch (e) {
+    console.error("Error eliminando tapete:", e);
     res.status(500).json({ error: "Error eliminando tapete" });
   }
 });
@@ -234,6 +281,7 @@ app.get("/api/rines", async (req, res) => {
     const result = await pool.query("SELECT * FROM rines ORDER BY id DESC");
     res.json(result.rows);
   } catch (error) {
+    console.error("Error obteniendo rines:", error);
     res.status(500).json({ error: "Error obteniendo rines" });
   }
 });
@@ -267,7 +315,6 @@ app.post("/api/agregar-rin", async (req, res) => {
   }
 });
 
-
 // Editar
 app.post("/api/editar-rin", async (req, res) => {
   const { id, marca, referencia, proveedor, medida, costo, precio, stock } =
@@ -294,6 +341,7 @@ app.post("/api/editar-rin", async (req, res) => {
     );
     res.json({ success: true });
   } catch (error) {
+    console.error("Error editando rin:", error);
     res.status(500).json({ error: "Error editando rin" });
   }
 });
@@ -304,6 +352,7 @@ app.post("/api/eliminar-rin", async (req, res) => {
     await pool.query("DELETE FROM rines WHERE id=$1", [req.body.id]);
     res.json({ success: true });
   } catch (error) {
+    console.error("Error eliminando rin:", error);
     res.status(500).json({ error: "Error eliminando rin" });
   }
 });

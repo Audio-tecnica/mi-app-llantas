@@ -102,35 +102,17 @@ app.get("/api/llantas", async (req, res) => {
 });
 
 // Editar llanta
-app.post("/api/editar-llanta", async (req, res) => {
-  const { id, referencia, marca, proveedor, costo_empresa, precio_cliente, stock } =
-    req.body;
-
+app.post('/api/editar-llanta', async (req, res) => {
+  const { id, referencia, marca, proveedor, costo_empresa, precio_cliente, stock, consignacion, comentario } = req.body;
+  
   try {
-    await pool.query(
-      `
-      UPDATE llantas SET
-        referencia=$1,
-        marca=$2,
-        proveedor=$3,
-        costo_empresa=$4,
-        precio_cliente=$5,
-        stock=$6
-      WHERE id=$7
-    `,
-      [
-        referencia,
-        marca,
-        proveedor,
-        parseInt(costo_empresa) || 0,
-        parseInt(precio_cliente) || 0,
-        parseInt(stock) || 0,
-        id,
-      ]
+    await db.query(
+      'UPDATE llantas SET referencia = ?, marca = ?, proveedor = ?, costo_empresa = ?, precio_cliente = ?, stock = ?, consignacion = ?, comentario = ? WHERE id = ?',
+      [referencia, marca, proveedor, costo_empresa, precio_cliente, stock, consignacion, comentario, id]
     );
     res.json({ success: true });
-  } catch (e) {
-    res.status(500).json({ error: "Error editando llanta" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 

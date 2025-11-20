@@ -626,17 +626,18 @@ function App() {
                                 );
                                 if (texto !== null) {
                                   try {
-                                    await axios.post(
+                                    console.log("Guardando comentario:", { ...ll, comentario: texto });
+                                    const response = await axios.post(
                                       "https://mi-app-llantas.onrender.com/api/editar-llanta",
                                       { ...ll, comentario: texto }
                                     );
+                                    console.log("Respuesta del servidor:", response.data);
                                     actualizarCampo(ll.id, "comentario", texto);
                                     setMensaje("Comentario guardado ✅");
                                     setTimeout(() => setMensaje(""), 2000);
-                                  } catch {
-                                    setMensaje(
-                                      "Error al guardar comentario ❌"
-                                    );
+                                  } catch (error) {
+                                    console.error("Error completo:", error.response?.data || error);
+                                    setMensaje("Error al guardar comentario ❌");
                                     setTimeout(() => setMensaje(""), 2000);
                                   }
                                 }

@@ -400,7 +400,7 @@ function App() {
               <table className="w-full border text-sm">
                 <thead className="bg-gradient-to-r from-gray-400 to-orange-300 text-black">
                   <tr>
-                    <th></th>
+                    <th className="p-2"></th>
                     <th
                       onClick={() => ordenarPor("referencia")}
                       className="cursor-pointer p-2"
@@ -481,6 +481,9 @@ function App() {
                               }
                               className="w-full border rounded text-sm p-1"
                             />
+                          </td>
+                          <td>
+                            {/* Vacío en modo edición */}
                           </td>
                           <td>
                             <input
@@ -579,12 +582,37 @@ function App() {
                         </>
                       ) : (
                         <>
-                          <td className="p-2 min-w-[280px]">
+                          <td className="p-2">
                             <div className="flex items-center justify-center gap-1">
-                              {/* Referencia */}
-                              <span className="font-medium whitespace-nowrap">{ll.referencia}</span>
+                              {/* Solo referencia e indicadores */}
+                              <span className="font-medium">{ll.referencia}</span>
                               
-                              {/* Botones Llantar y Comparar */}
+                              {/* Indicadores (comentario y consignación) */}
+                              {ll.comentario && (
+                                <button
+                                  type="button"
+                                  onClick={() => setComentarioModal(ll)}
+                                  className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center text-white hover:bg-blue-600 transition-colors text-xs"
+                                  title="Ver comentario"
+                                >
+                                  💬
+                                </button>
+                              )}
+                              
+                              {ll.consignacion && (
+                                <div
+                                  className="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center"
+                                  title="En consignación"
+                                >
+                                  <span className="text-white font-bold text-[10px]">C</span>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                          
+                          {/* Nueva columna para Llantar y Comparar */}
+                          <td className="p-2">
+                            <div className="flex gap-1 justify-center items-center">
                               <button
                                 onClick={() =>
                                   window.open(
@@ -594,41 +622,19 @@ function App() {
                                     "_blank"
                                   )
                                 }
-                                className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-xs whitespace-nowrap"
+                                className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-xs"
                               >
                                 Llantar
                               </button>
                               <button
                                 onClick={() => abrirComparador(ll.referencia)}
-                                className="bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700 text-xs whitespace-nowrap"
+                                className="bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700 text-xs"
                               >
                                 Comparar
                               </button>
-                              
-                              {/* Indicadores (comentario y consignación) */}
-                              <div className="flex items-center gap-1">
-                                {ll.comentario && (
-                                  <button
-                                    type="button"
-                                    onClick={() => setComentarioModal(ll)}
-                                    className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center text-white hover:bg-blue-600 transition-colors text-xs flex-shrink-0"
-                                    title="Ver comentario"
-                                  >
-                                    💬
-                                  </button>
-                                )}
-                                
-                                {ll.consignacion && (
-                                  <div
-                                    className="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center flex-shrink-0"
-                                    title="En consignación"
-                                  >
-                                    <span className="text-white font-bold text-[10px]">C</span>
-                                  </div>
-                                )}
-                              </div>
                             </div>
                           </td>
+                          
                           <td>{ll.marca}</td>
                           <td>{ll.proveedor}</td>
                           <td className="text-blue-600">

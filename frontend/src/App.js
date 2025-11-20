@@ -617,16 +617,28 @@ function App() {
                             >
                               Editar
                             </button>
-
                             {/* Botón Comentar */}
                             <button
-                              onClick={() => {
+                              onClick={async () => {
                                 const texto = prompt(
                                   "Escribe un comentario para esta llanta:",
                                   ll.comentario || ""
                                 );
                                 if (texto !== null) {
-                                  actualizarCampo(ll.id, "comentario", texto);
+                                  try {
+                                    await axios.post(
+                                      "https://mi-app-llantas.onrender.com/api/editar-llanta",
+                                      { ...ll, comentario: texto }
+                                    );
+                                    actualizarCampo(ll.id, "comentario", texto);
+                                    setMensaje("Comentario guardado ✅");
+                                    setTimeout(() => setMensaje(""), 2000);
+                                  } catch {
+                                    setMensaje(
+                                      "Error al guardar comentario ❌"
+                                    );
+                                    setTimeout(() => setMensaje(""), 2000);
+                                  }
                                 }
                               }}
                               className="bg-yellow-500 text-white px-2 py-1 text-xs rounded hover:bg-yellow-600"

@@ -17,6 +17,13 @@ button {
   transition: opacity 0.2s ease-in-out;
 }
 
+/* Tooltip visible en móvil al tocar */
+@media (max-width: 768px) {
+  .group:active .group-hover\:block {
+    display: block !important;
+  }
+}
+
 
 
 

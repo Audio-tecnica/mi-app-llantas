@@ -660,7 +660,6 @@ function App() {
                             >
                               Comentar
                             </button>
-
                             {/* Botón Eliminar */}
                             <button
                               onClick={() => handleEliminar(ll.id)}

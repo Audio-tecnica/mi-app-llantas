@@ -610,46 +610,31 @@ function App() {
                             {ll.stock === 0 ? "Sin stock" : ll.stock}
                           </td>
                           <td className="flex gap-1 justify-center">
+                            {/* Botón Editar */}
                             <button
                               onClick={() => setModoEdicion(ll.id)}
                               className="bg-gray-200 hover:bg-gray-300 px-2 py-1 text-xs rounded"
                             >
                               Editar
                             </button>
-                            <td className="flex gap-1 justify-center">
-                              {/* Botón Editar */}
-                              <button
-                                onClick={() => setModoEdicion(ll.id)}
-                                className="bg-gray-200 hover:bg-gray-300 px-2 py-1 text-xs rounded"
-                              >
-                                Editar
-                              </button>
 
-                              {/* Botón Comentar */}
-                              <button
-                                onClick={() => {
-                                  const texto = prompt(
-                                    "Escribe un comentario para esta llanta:",
-                                    ll.comentario || ""
-                                  );
-                                  if (texto !== null) {
-                                    actualizarCampo(ll.id, "comentario", texto);
-                                  }
-                                }}
-                                className="bg-yellow-500 text-white px-2 py-1 text-xs rounded hover:bg-yellow-600"
-                              >
-                                Comentar
-                              </button>
+                            {/* Botón Comentar */}
+                            <button
+                              onClick={() => {
+                                const texto = prompt(
+                                  "Escribe un comentario para esta llanta:",
+                                  ll.comentario || ""
+                                );
+                                if (texto !== null) {
+                                  actualizarCampo(ll.id, "comentario", texto);
+                                }
+                              }}
+                              className="bg-yellow-500 text-white px-2 py-1 text-xs rounded hover:bg-yellow-600"
+                            >
+                              Comentar
+                            </button>
 
-                              {/* Botón Eliminar */}
-                              <button
-                                onClick={() => handleEliminar(ll.id)}
-                                className="bg-red-500 text-white hover:bg-red-600 px-2 py-1 text-xs rounded"
-                              >
-                                Eliminar
-                              </button>
-                            </td>
-
+                            {/* Botón Eliminar */}
                             <button
                               onClick={() => handleEliminar(ll.id)}
                               className="bg-red-500 text-white hover:bg-red-600 px-2 py-1 text-xs rounded"

@@ -617,6 +617,7 @@ function App() {
                               Editar
                             </button>
                             <td className="flex gap-1 justify-center">
+                              {/* Botón Editar */}
                               <button
                                 onClick={() => setModoEdicion(ll.id)}
                                 className="bg-gray-200 hover:bg-gray-300 px-2 py-1 text-xs rounded"
@@ -624,7 +625,7 @@ function App() {
                                 Editar
                               </button>
 
-                              {/* 🔵 Botón de comentario */}
+                              {/* Botón Comentar */}
                               <button
                                 onClick={() => {
                                   const texto = prompt(
@@ -640,6 +641,7 @@ function App() {
                                 Comentar
                               </button>
 
+                              {/* Botón Eliminar */}
                               <button
                                 onClick={() => handleEliminar(ll.id)}
                                 className="bg-red-500 text-white hover:bg-red-600 px-2 py-1 text-xs rounded"

@@ -617,7 +617,7 @@ function App() {
                             >
                               Editar
                             </button>
-                            {/* Botón Comentar */}
+                   {/* Botón Comentar */}
                             <button
                               onClick={async () => {
                                 const texto = prompt(
@@ -635,40 +635,23 @@ function App() {
                                       precio_cliente: ll.precio_cliente,
                                       stock: ll.stock,
                                       consignacion: ll.consignacion || false,
-                                      comentario: texto,
+                                      comentario: texto
                                     };
-                                    console.log(
-                                      "Enviando al servidor:",
-                                      datosAEnviar
-                                    );
-
+                                    console.log("Enviando al servidor:", datosAEnviar);
+                                    
                                     const response = await axios.post(
                                       "https://mi-app-llantas.onrender.com/api/editar-llanta",
                                       datosAEnviar
                                     );
-                                    console.log(
-                                      "Respuesta exitosa:",
-                                      response.data
-                                    );
+                                    console.log("Respuesta exitosa:", response.data);
                                     actualizarCampo(ll.id, "comentario", texto);
                                     setMensaje("Comentario guardado ✅");
                                     setTimeout(() => setMensaje(""), 2000);
                                   } catch (error) {
                                     console.error("Error completo:", error);
-                                    console.error(
-                                      "Error response:",
-                                      error.response?.data
-                                    );
-                                    console.error(
-                                      "Error status:",
-                                      error.response?.status
-                                    );
-                                    setMensaje(
-                                      `Error: ${
-                                        error.response?.data?.error ||
-                                        error.message
-                                      } ❌`
-                                    );
+                                    console.error("Error response:", error.response?.data);
+                                    console.error("Error status:", error.response?.status);
+                                    setMensaje(`Error: ${error.response?.data?.error || error.message} ❌`);
                                     setTimeout(() => setMensaje(""), 4000);
                                   }
                                 }

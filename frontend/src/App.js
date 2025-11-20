@@ -617,7 +617,7 @@ function App() {
                             >
                               Editar
                             </button>
-                   {/* Botón Comentar */}
+                  {/* Botón Comentar */}
                             <button
                               onClick={async () => {
                                 const texto = prompt(
@@ -660,6 +660,7 @@ function App() {
                             >
                               Comentar
                             </button>
+                            
                             {/* Botón Eliminar */}
                             <button
                               onClick={() => handleEliminar(ll.id)}

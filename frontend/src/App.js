@@ -232,14 +232,14 @@ function App() {
         precio_cliente: llanta.precio_cliente,
         stock: llanta.stock,
         consignacion: llanta.consignacion || false,
-        comentario: nuevoComentario,
+        comentario: nuevoComentario
       };
-
+      
       await axios.post(
         "https://mi-app-llantas.onrender.com/api/editar-llanta",
         datosAEnviar
       );
-
+      
       actualizarCampo(llanta.id, "comentario", nuevoComentario);
       setMensaje("Comentario guardado ✅");
       setTimeout(() => setMensaje(""), 2000);
@@ -579,53 +579,10 @@ function App() {
                       ) : (
                         <>
                           <td className="p-2">
-                            <div className="flex items-center justify-center gap-1">
+                            <div className="flex items-center justify-center gap-1 flex-wrap">
                               {/* Referencia */}
-                              <span className="font-medium">
-                                {ll.referencia}
-                              </span>
-
-                              {/* Indicadores (comentario y consignación) */}
-                              <div className="flex items-center gap-1 ml-1">
-                                {ll.comentario && (
-                                  <button
-                                    type="button"
-                                    onClick={() => setComentarioModal(ll)}
-                                    className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center text-white hover:bg-blue-600 transition-colors text-xs"
-                                    title="Ver comentario"
-                                  >
-                                    💬
-                                  </button>
-                                )}
-
-                                {ll.consignacion && (
-                                  <div
-                                    className="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center"
-                                    title="En consignación"
-                                  >
-                                    <span className="text-white font-bold text-[10px]">
-                                      C
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </td>
-                          <td>{ll.marca}</td>
-                          <td>{ll.proveedor}</td>
-                          <td className="text-blue-600">
-                            {mostrarCosto
-                              ? `$${ll.costo_empresa.toLocaleString()}`
-                              : "•••••"}
-                          </td>
-                          <td className="text-green-600">
-                            ${ll.precio_cliente.toLocaleString()}
-                          </td>
-                          <td className={ll.stock === 0 ? "text-red-600" : ""}>
-                            {ll.stock === 0 ? "Sin stock" : ll.stock}
-                          </td>
-                          <td className="p-2">
-                            <div className="flex gap-1 justify-center items-center flex-wrap">
+                              <span className="font-medium">{ll.referencia}</span>
+                              
                               {/* Botones Llantar y Comparar */}
                               <button
                                 onClick={() =>
@@ -646,10 +603,46 @@ function App() {
                               >
                                 Comparar
                               </button>
-
-                              {/* Separador visual */}
-                              <div className="w-px h-6 bg-gray-300"></div>
-
+                              
+                              {/* Indicadores (comentario y consignación) */}
+                              <div className="flex items-center gap-1">
+                                {ll.comentario && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setComentarioModal(ll)}
+                                    className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center text-white hover:bg-blue-600 transition-colors text-xs"
+                                    title="Ver comentario"
+                                  >
+                                    💬
+                                  </button>
+                                )}
+                                
+                                {ll.consignacion && (
+                                  <div
+                                    className="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center"
+                                    title="En consignación"
+                                  >
+                                    <span className="text-white font-bold text-[10px]">C</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td>{ll.marca}</td>
+                          <td>{ll.proveedor}</td>
+                          <td className="text-blue-600">
+                            {mostrarCosto
+                              ? `${ll.costo_empresa.toLocaleString()}`
+                              : "•••••"}
+                          </td>
+                          <td className="text-green-600">
+                            ${ll.precio_cliente.toLocaleString()}
+                          </td>
+                          <td className={ll.stock === 0 ? "text-red-600" : ""}>
+                            {ll.stock === 0 ? "Sin stock" : ll.stock}
+                          </td>
+                          <td className="p-2">
+                            <div className="flex gap-1 justify-center items-center flex-wrap">
                               {/* Botones de acción */}
                               <button
                                 onClick={() => setModoEdicion(ll.id)}
@@ -657,7 +650,7 @@ function App() {
                               >
                                 Editar
                               </button>
-
+                              
                               <button
                                 onClick={async () => {
                                   const texto = prompt(
@@ -672,7 +665,7 @@ function App() {
                               >
                                 💬
                               </button>
-
+                              
                               <button
                                 onClick={() => handleEliminar(ll.id)}
                                 className="bg-red-500 text-white hover:bg-red-600 px-2 py-1 text-xs rounded"
@@ -735,20 +728,18 @@ function App() {
 
       {/* 🆕 MODAL PARA VER COMENTARIOS */}
       {comentarioModal && (
-        <div
+        <div 
           className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4"
           onClick={() => setComentarioModal(null)}
         >
-          <div
+          <div 
             className="bg-white rounded-xl p-6 w-full max-w-lg shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h3 className="text-lg font-bold text-gray-800">Comentario</h3>
-                <p className="text-sm text-gray-500">
-                  Ref: {comentarioModal.referencia}
-                </p>
+                <p className="text-sm text-gray-500">Ref: {comentarioModal.referencia}</p>
               </div>
               <button
                 onClick={() => setComentarioModal(null)}
@@ -757,7 +748,7 @@ function App() {
                 ×
               </button>
             </div>
-
+            
             <div className="bg-gray-50 p-4 rounded-lg mb-4">
               <p className="text-gray-800 whitespace-pre-wrap break-words">
                 {comentarioModal.comentario}
@@ -793,5 +784,5 @@ function App() {
     </div>
   );
 }
-
+ 
 export default App;

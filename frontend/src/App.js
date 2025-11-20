@@ -403,10 +403,11 @@ function App() {
                     <th></th>
                     <th
                       onClick={() => ordenarPor("referencia")}
-                      className="cursor-pointer p-2 min-w-[280px]"
+                      className="cursor-pointer p-2"
                     >
                       Referencia
                     </th>
+                    <th className="p-2">Búsqueda</th>
                     <th
                       onClick={() => ordenarPor("marca")}
                       className="cursor-pointer p-2"
@@ -578,10 +579,10 @@ function App() {
                         </>
                       ) : (
                         <>
-                          <td className="p-2">
-                            <div className="flex items-center justify-center gap-1 flex-wrap">
+                          <td className="p-2 min-w-[280px]">
+                            <div className="flex items-center justify-center gap-1">
                               {/* Referencia */}
-                              <span className="font-medium">{ll.referencia}</span>
+                              <span className="font-medium whitespace-nowrap">{ll.referencia}</span>
                               
                               {/* Botones Llantar y Comparar */}
                               <button
@@ -593,13 +594,13 @@ function App() {
                                     "_blank"
                                   )
                                 }
-                                className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-xs"
+                                className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-xs whitespace-nowrap"
                               >
                                 Llantar
                               </button>
                               <button
                                 onClick={() => abrirComparador(ll.referencia)}
-                                className="bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700 text-xs"
+                                className="bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700 text-xs whitespace-nowrap"
                               >
                                 Comparar
                               </button>
@@ -610,7 +611,7 @@ function App() {
                                   <button
                                     type="button"
                                     onClick={() => setComentarioModal(ll)}
-                                    className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center text-white hover:bg-blue-600 transition-colors text-xs"
+                                    className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center text-white hover:bg-blue-600 transition-colors text-xs flex-shrink-0"
                                     title="Ver comentario"
                                   >
                                     💬
@@ -619,7 +620,7 @@ function App() {
                                 
                                 {ll.consignacion && (
                                   <div
-                                    className="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center"
+                                    className="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center flex-shrink-0"
                                     title="En consignación"
                                   >
                                     <span className="text-white font-bold text-[10px]">C</span>

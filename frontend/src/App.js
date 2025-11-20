@@ -642,8 +642,8 @@ function App() {
                             {ll.stock === 0 ? "Sin stock" : ll.stock}
                           </td>
                           <td className="p-2">
-                            <div className="flex gap-1 justify-center items-center flex-wrap">
-                              {/* Botones de acción */}
+                            <div className="flex gap-1 justify-center items-center">
+                              {/* Botones de acción en una sola línea */}
                               <button
                                 onClick={() => setModoEdicion(ll.id)}
                                 className="bg-gray-200 hover:bg-gray-300 px-2 py-1 text-xs rounded"
@@ -784,5 +784,5 @@ function App() {
     </div>
   );
 }
- 
+
 export default App;

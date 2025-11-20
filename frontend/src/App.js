@@ -209,7 +209,7 @@ function App() {
       prev.map((l) => (l.id === id ? { ...l, [campo]: valor } : l))
     );
   };
-  
+
   const handleBusquedaChange = (e) => {
     const valor = e.target.value;
     setBusqueda(valor);
@@ -299,7 +299,7 @@ function App() {
               Ir a Rines
             </button>
           </div>
-          
+
           <div className="text-sm text-gray-700 mb-2 mt-4">
             Mostrando {filtradas.length} resultados
           </div>
@@ -529,7 +529,9 @@ function App() {
                                   : "bg-gray-200 text-gray-700"
                               }`}
                             >
-                              {ll.consignacion ? "✓ Consignación" : "Marcar Consignación"}
+                              {ll.consignacion
+                                ? "✓ Consignación"
+                                : "Marcar Consignación"}
                             </button>
                             <div className="flex gap-1">
                               <button
@@ -572,10 +574,14 @@ function App() {
                             </button>
                             {/* Indicador de consignación - círculo rojo */}
                             {ll.consignacion && (
-                              <div 
-                                className="w-3 h-3 bg-red-600 rounded-full" 
+                              <div
+                                className="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center"
                                 title="En consignación"
-                              ></div>
+                              >
+                                <span className="text-white font-bold text-sm">
+                                  C
+                                </span>
+                              </div>
                             )}
                           </td>
                           <td>{ll.marca}</td>

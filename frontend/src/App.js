@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 
 import "./index.css";
@@ -18,7 +19,6 @@ function App() {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [comparadorAbierto, setComparadorAbierto] = useState(false);
   const [referenciaSeleccionada, setReferenciaSeleccionada] = useState("");
-  const [comentarioModal, setComentarioModal] = useState(null); // 🆕 Para el modal de comentarios
   const [nuevoItem, setNuevoItem] = useState({
     referencia: "",
     marca: "",
@@ -33,6 +33,7 @@ function App() {
 
   const navigate = useNavigate();
 
+  // 🔹 Aquí va el hook que faltaba:
   const [busquedasRecientes, setBusquedasRecientes] = useState(() => {
     const guardadas = localStorage.getItem("busquedasRecientes");
     return guardadas ? JSON.parse(guardadas) : [];
@@ -42,7 +43,7 @@ function App() {
   useEffect(() => {
     const acceso = localStorage.getItem("acceso");
     const timestamp = localStorage.getItem("timestamp");
-    const maxTiempo = 60 * 60 * 1000;
+    const maxTiempo = 60 * 60 * 1000; // 1 hora
 
     if (!acceso || !timestamp || Date.now() - parseInt(timestamp) > maxTiempo) {
       localStorage.removeItem("acceso");
@@ -71,6 +72,7 @@ function App() {
       .finally(() => setCargando(false));
   }, []);
 
+  // funciones para abrir / cerrar modal comparador
   const abrirComparador = (referencia) => {
     const url = `https://www.google.com/search?q=${encodeURIComponent(
       referencia +
@@ -218,36 +220,6 @@ function App() {
     const top5 = nuevas.slice(0, 5);
     setBusquedasRecientes(top5);
     localStorage.setItem("busquedasRecientes", JSON.stringify(top5));
-  };
-
-  // 🆕 Función para guardar comentario
-  const guardarComentario = async (llanta, nuevoComentario) => {
-    try {
-      const datosAEnviar = {
-        id: llanta.id,
-        referencia: llanta.referencia,
-        marca: llanta.marca,
-        proveedor: llanta.proveedor,
-        costo_empresa: llanta.costo_empresa,
-        precio_cliente: llanta.precio_cliente,
-        stock: llanta.stock,
-        consignacion: llanta.consignacion || false,
-        comentario: nuevoComentario
-      };
-      
-      await axios.post(
-        "https://mi-app-llantas.onrender.com/api/editar-llanta",
-        datosAEnviar
-      );
-      
-      actualizarCampo(llanta.id, "comentario", nuevoComentario);
-      setMensaje("Comentario guardado ✅");
-      setTimeout(() => setMensaje(""), 2000);
-    } catch (error) {
-      console.error("Error guardando comentario:", error);
-      setMensaje("Error al guardar comentario ❌");
-      setTimeout(() => setMensaje(""), 2000);
-    }
   };
 
   // 🧩 Render principal
@@ -542,6 +514,7 @@ function App() {
                             />
                           </td>
                           <td className="flex gap-1 justify-center flex-col items-center">
+                            {/* Botón toggle de consignación */}
                             <button
                               onClick={() =>
                                 actualizarCampo(
@@ -578,52 +551,34 @@ function App() {
                         </>
                       ) : (
                         <>
-                          <td className="p-2">
-                            <div className="flex items-center justify-center gap-2 flex-wrap">
-                              <span>{ll.referencia}</span>
-                              
-                              {/* 🆕 BOTÓN DE COMENTARIO MEJORADO */}
-                              {ll.comentario && (
-                                <button
-                                  type="button"
-                                  onClick={() => setComentarioModal(ll)}
-                                  className="min-w-[28px] min-h-[28px] w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs hover:bg-blue-700 active:bg-blue-800 transition-colors"
-                                >
-                                  💬
-                                </button>
-                              )}
-
-                              <button
-                                onClick={() =>
-                                  window.open(
-                                    `https://www.llantar.com.co/search?q=${encodeURIComponent(
-                                      ll.referencia
-                                    )}`,
-                                    "_blank"
-                                  )
-                                }
-                                className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-xs whitespace-nowrap"
-                              >
-                                Llantar
-                              </button>
-                              <button
-                                onClick={() => abrirComparador(ll.referencia)}
-                                className="bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700 text-xs whitespace-nowrap"
-                              >
-                                Comparar
-                              </button>
-                              
-                              {ll.consignacion && (
-                                <div
-                                  className="w-6 h-6 bg-red-600 rounded-full flex items-center justify-center"
-                                  title="En consignación"
-                                >
-                                  <span className="text-white font-bold text-xs">
-                                    C
-                                  </span>
-                                </div>
-                              )}
-                            </div>
+                          <td className="p-1 flex items-center justify-center gap-2">
+                            <span>{ll.referencia}</span>
+                            <button
+                              onClick={() =>
+                                window.open(
+                                  `https://www.llantar.com.co/search?q=${encodeURIComponent(
+                                    ll.referencia
+                                  )}`,
+                                  "_blank"
+                                )
+                              }
+                              className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-xs"
+                            >
+                              Llantar
+                            </button>
+                            <button
+                              onClick={() => abrirComparador(ll.referencia)}
+                              className="bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700 text-xs"
+                            >
+                              Comparar
+                            </button>
+                            {/* Indicador de consignación - círculo rojo */}
+                            {ll.consignacion && (
+                              <div
+                                className="w-3 h-3 bg-red-600 rounded-full"
+                                title="En consignación"
+                              ></div>
+                            )}
                           </td>
                           <td>{ll.marca}</td>
                           <td>{ll.proveedor}</td>
@@ -638,37 +593,19 @@ function App() {
                           <td className={ll.stock === 0 ? "text-red-600" : ""}>
                             {ll.stock === 0 ? "Sin stock" : ll.stock}
                           </td>
-                          <td className="p-2">
-                            <div className="flex gap-1 justify-center flex-wrap">
-                              <button
-                                onClick={() => setModoEdicion(ll.id)}
-                                className="bg-gray-200 hover:bg-gray-300 px-2 py-1 text-xs rounded whitespace-nowrap"
-                              >
-                                Editar
-                              </button>
-                              
-                              <button
-                                onClick={async () => {
-                                  const texto = prompt(
-                                    "Escribe un comentario para esta llanta:",
-                                    ll.comentario || ""
-                                  );
-                                  if (texto !== null) {
-                                    await guardarComentario(ll, texto);
-                                  }
-                                }}
-                                className="bg-yellow-500 text-white px-2 py-1 text-xs rounded hover:bg-yellow-600 whitespace-nowrap"
-                              >
-                                Comentar
-                              </button>
-                              
-                              <button
-                                onClick={() => handleEliminar(ll.id)}
-                                className="bg-red-500 text-white hover:bg-red-600 px-2 py-1 text-xs rounded whitespace-nowrap"
-                              >
-                                Eliminar
-                              </button>
-                            </div>
+                          <td className="flex gap-1 justify-center">
+                            <button
+                              onClick={() => setModoEdicion(ll.id)}
+                              className="bg-gray-200 hover:bg-gray-300 px-2 py-1 text-xs rounded"
+                            >
+                              Editar
+                            </button>
+                            <button
+                              onClick={() => handleEliminar(ll.id)}
+                              className="bg-red-500 text-white hover:bg-red-600 px-2 py-1 text-xs rounded"
+                            >
+                              Eliminar
+                            </button>
                           </td>
                         </>
                       )}
@@ -681,10 +618,10 @@ function App() {
         </>
       )}
 
-      {/* Modal agregar llanta */}
+      {/* Modal agregar */}
       {mostrarModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">Agregar nueva llanta</h2>
             {[
               "referencia",
@@ -716,62 +653,6 @@ function App() {
                 className="bg-gray-400 text-white px-4 py-2 rounded"
               >
                 Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 🆕 MODAL PARA VER COMENTARIOS (funciona en móvil) */}
-      {comentarioModal && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4"
-          onClick={() => setComentarioModal(null)}
-        >
-          <div 
-            className="bg-white rounded-xl p-6 w-full max-w-lg shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h3 className="text-lg font-bold text-gray-800">Comentario</h3>
-                <p className="text-sm text-gray-500">Ref: {comentarioModal.referencia}</p>
-              </div>
-              <button
-                onClick={() => setComentarioModal(null)}
-                className="text-gray-400 hover:text-gray-600 text-3xl leading-none"
-              >
-                ×
-              </button>
-            </div>
-            
-            <div className="bg-gray-50 p-4 rounded-lg mb-4">
-              <p className="text-gray-800 whitespace-pre-wrap break-words">
-                {comentarioModal.comentario}
-              </p>
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                onClick={async () => {
-                  const nuevoTexto = prompt(
-                    "Editar comentario:",
-                    comentarioModal.comentario
-                  );
-                  if (nuevoTexto !== null) {
-                    await guardarComentario(comentarioModal, nuevoTexto);
-                    setComentarioModal(null);
-                  }
-                }}
-                className="flex-1 bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 font-medium"
-              >
-                Editar
-              </button>
-              <button
-                onClick={() => setComentarioModal(null)}
-                className="flex-1 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 font-medium"
-              >
-                Cerrar
               </button>
             </div>
           </div>

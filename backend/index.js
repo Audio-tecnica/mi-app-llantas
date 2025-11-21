@@ -9,6 +9,31 @@ const fs = require("fs");
 const app = express();
 const PORT = process.env.PORT || 10000;
 
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const multer = require('multer');
+
+// ===========================
+// CONFIGURAR CLOUDINARY
+// ===========================
+cloudinary.config({
+  cloud_name: 'dlgub1vaf',      // Reemplaza con tu Cloud Name
+  api_key: '971754543599966',            // Reemplaza con tu API Key
+  api_secret: 'q8N34PNwLpnmBSvfhGYuk6jmYR4'       // Reemplaza con tu API Secret
+});
+
+// Configurar almacenamiento en Cloudinary
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'rines',
+    allowed_formats: ['jpg', 'png', 'jpeg', 'gif', 'webp'],
+    transformation: [{ width: 800, height: 800, crop: 'limit' }] // Optimiza el tamaño
+  },
+});
+
+const upload = multer({ storage: storage });
+
 // PostgreSQL
 const pool = new Pool({
   connectionString:
@@ -358,35 +383,23 @@ app.post("/api/eliminar-rin", async (req, res) => {
 });
 
 // ===========================
-//   SUBIR FOTO PARA RINES (CORREGIDO)
+//   SUBIR FOTO PARA RINES (Cloudinary)
 // ===========================
-app.post("/api/rines/subir-foto", async (req, res) => {
+app.post("/api/rines/subir-foto", upload.single('foto'), async (req, res) => {
   try {
     const { id } = req.body;
-    const archivo = req.files?.foto;
-
-    if (!archivo) {
-      return res.status(400).json({ error: "No se envió ninguna imagen" });
+    
+    if (!req.file) {
+      return res.status(400).json({ error: "No se recibió ninguna imagen" });
     }
 
-    // Validar tipo de archivo
-    const tiposPermitidos = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
-    if (!tiposPermitidos.includes(archivo.mimetype)) {
-      return res.status(400).json({ error: "Solo se permiten imágenes JPG, PNG o GIF" });
-    }
+    // Cloudinary ya subió la imagen automáticamente
+    // Solo obtenemos la URL segura
+    const urlFoto = req.file.path;
 
-    // Crear nombre único
-    const extension = path.extname(archivo.name);
-    const nombreArchivo = `rin_${id}_${Date.now()}${extension}`;
-    const rutaLocal = path.join(FILES_PATH, nombreArchivo);
+    console.log("✅ Foto subida a Cloudinary:", urlFoto);
 
-    // Guardar imagen en servidor
-    await archivo.mv(rutaLocal);
-
-    // URL pública (cambia esto por tu URL real de backend)
-    const urlFoto = `https://mi-app-llantas.onrender.com/files/${nombreArchivo}`;
-
-    // Guardar en BD (CORREGIDO: usar 'pool' en lugar de 'db')
+    // Guardar URL en la base de datos
     await pool.query("UPDATE rines SET foto = $1 WHERE id = $2", [urlFoto, id]);
 
     res.json({ success: true, foto: urlFoto });

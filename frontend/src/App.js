@@ -222,13 +222,13 @@ function App() {
     }
   };
 
-  // ✅ HANDLEGUARDAR CORREGIDO
+ // ✅ HANDLEGUARDAR CORREGIDO
   const handleGuardar = async (llanta) => {
     try {
       console.log("=== INICIO GUARDAR ===");
       console.log("Llanta a guardar:", llanta);
       console.log("Llanta original guardada:", llantaOriginalEdicion);
-
+      
       if (!llantaOriginalEdicion) {
         setMensaje("Error: No se encontró la llanta original ❌");
         return;
@@ -237,95 +237,42 @@ function App() {
       let cambios = [];
 
       // Comparar cada campo con conversión de tipos
-      if (
-        String(llantaOriginalEdicion.referencia) !== String(llanta.referencia)
-      ) {
-        console.log(
-          "Cambio en referencia:",
-          llantaOriginalEdicion.referencia,
-          "→",
-          llanta.referencia
-        );
-        cambios.push(
-          `Referencia: ${llantaOriginalEdicion.referencia} → ${llanta.referencia}`
-        );
+      if (String(llantaOriginalEdicion.referencia) !== String(llanta.referencia)) {
+        console.log("Cambio en referencia:", llantaOriginalEdicion.referencia, "→", llanta.referencia);
+        cambios.push(`Referencia: ${llantaOriginalEdicion.referencia} → ${llanta.referencia}`);
       }
 
       if (String(llantaOriginalEdicion.marca) !== String(llanta.marca)) {
-        console.log(
-          "Cambio en marca:",
-          llantaOriginalEdicion.marca,
-          "→",
-          llanta.marca
-        );
+        console.log("Cambio en marca:", llantaOriginalEdicion.marca, "→", llanta.marca);
         cambios.push(`Marca: ${llantaOriginalEdicion.marca} → ${llanta.marca}`);
       }
 
-      if (
-        String(llantaOriginalEdicion.proveedor) !== String(llanta.proveedor)
-      ) {
-        console.log(
-          "Cambio en proveedor:",
-          llantaOriginalEdicion.proveedor,
-          "→",
-          llanta.proveedor
-        );
-        cambios.push(
-          `Proveedor: ${llantaOriginalEdicion.proveedor} → ${llanta.proveedor}`
-        );
+      if (String(llantaOriginalEdicion.proveedor) !== String(llanta.proveedor)) {
+        console.log("Cambio en proveedor:", llantaOriginalEdicion.proveedor, "→", llanta.proveedor);
+        cambios.push(`Proveedor: ${llantaOriginalEdicion.proveedor} → ${llanta.proveedor}`);
       }
 
-      if (
-        Number(llantaOriginalEdicion.costo_empresa) !==
-        Number(llanta.costo_empresa)
-      ) {
-        console.log(
-          "Cambio en costo:",
-          llantaOriginalEdicion.costo_empresa,
-          "→",
-          llanta.costo_empresa
-        );
-        cambios.push(
-          `Costo: ${llantaOriginalEdicion.costo_empresa} → ${llanta.costo_empresa}`
-        );
+      if (Number(llantaOriginalEdicion.costo_empresa) !== Number(llanta.costo_empresa)) {
+        console.log("Cambio en costo:", llantaOriginalEdicion.costo_empresa, "→", llanta.costo_empresa);
+        cambios.push(`Costo: ${llantaOriginalEdicion.costo_empresa} → ${llanta.costo_empresa}`);
       }
 
-      if (
-        Number(llantaOriginalEdicion.precio_cliente) !==
-        Number(llanta.precio_cliente)
-      ) {
-        console.log(
-          "Cambio en precio:",
-          llantaOriginalEdicion.precio_cliente,
-          "→",
-          llanta.precio_cliente
-        );
-        cambios.push(
-          `Precio: ${llantaOriginalEdicion.precio_cliente} → ${llanta.precio_cliente}`
-        );
+      if (Number(llantaOriginalEdicion.precio_cliente) !== Number(llanta.precio_cliente)) {
+        console.log("Cambio en precio:", llantaOriginalEdicion.precio_cliente, "→", llanta.precio_cliente);
+        cambios.push(`Precio: ${llantaOriginalEdicion.precio_cliente} → ${llanta.precio_cliente}`);
       }
 
       if (Number(llantaOriginalEdicion.stock) !== Number(llanta.stock)) {
-        console.log(
-          "Cambio en stock:",
-          llantaOriginalEdicion.stock,
-          "→",
-          llanta.stock
-        );
+        console.log("Cambio en stock:", llantaOriginalEdicion.stock, "→", llanta.stock);
         cambios.push(`Stock: ${llantaOriginalEdicion.stock} → ${llanta.stock}`);
       }
 
       if (!!llantaOriginalEdicion.consignacion !== !!llanta.consignacion) {
-        console.log(
-          "Cambio en consignación:",
-          llantaOriginalEdicion.consignacion,
-          "→",
-          llanta.consignacion
-        );
+        console.log("Cambio en consignación:", llantaOriginalEdicion.consignacion, "→", llanta.consignacion);
         cambios.push(
-          `Consignación: ${
-            llantaOriginalEdicion.consignacion ? "Sí" : "No"
-          } → ${llanta.consignacion ? "Sí" : "No"}`
+          `Consignación: ${llantaOriginalEdicion.consignacion ? "Sí" : "No"} → ${
+            llanta.consignacion ? "Sí" : "No"
+          }`
         );
       }
 
@@ -368,40 +315,6 @@ function App() {
       console.error("❌ ERROR COMPLETO:", error);
       console.error("❌ Error response:", error.response?.data);
       setMensaje("Error al guardar ❌");
-      setTimeout(() => setMensaje(""), 2000);
-    }
-  };
-
-  const handleAgregar = async () => {
-    try {
-      await axios.post(
-        "https://mi-app-llantas.onrender.com/api/agregar-llanta",
-        nuevoItem
-      );
-
-      // Registrar actividad
-      await registrarActividad(
-        "NUEVA LLANTA",
-        `Se agregó: ${nuevoItem.referencia} - ${nuevoItem.marca} (Stock: ${nuevoItem.stock})`
-      );
-
-      const { data } = await axios.get(
-        "https://mi-app-llantas.onrender.com/api/llantas"
-      );
-      setLlantas(data);
-      setMostrarModal(false);
-      setNuevoItem({
-        referencia: "",
-        marca: "",
-        proveedor: "",
-        costo_empresa: "",
-        precio_cliente: "",
-        stock: "",
-      });
-      setMensaje("Llanta agregada ✅");
-      setTimeout(() => setMensaje(""), 2000);
-    } catch {
-      setMensaje("Error al agregar ❌");
       setTimeout(() => setMensaje(""), 2000);
     }
   };

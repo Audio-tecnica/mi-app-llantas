@@ -74,7 +74,6 @@ async function crearTabla() {
       )
     `);
     
-    // Agregar columnas si no existen (para tablas existentes)
     await pool.query(`
       DO $$ 
       BEGIN
@@ -99,7 +98,7 @@ crearTabla();
 
 // ---------------- LLANTAS ----------------
 
-// Subir Excel (ACTUALIZADO)
+// Subir Excel
 app.post("/api/upload", fileUpload(), async (req, res) => {
   if (!req.files || !req.files.file)
     return res.status(400).json({ error: "Archivo faltante" });
@@ -148,7 +147,7 @@ app.get("/api/llantas", async (req, res) => {
   }
 });
 
-// Editar llanta (CORREGIDO)
+// Editar llanta
 app.post('/api/editar-llanta', async (req, res) => {
   const { id, referencia, marca, proveedor, costo_empresa, precio_cliente, stock, consignacion, comentario } = req.body;
   
@@ -183,7 +182,7 @@ app.post('/api/editar-llanta', async (req, res) => {
   }
 });
 
-// Agregar llanta (ACTUALIZADO)
+// Agregar llanta
 app.post("/api/agregar-llanta", async (req, res) => {
   const { referencia, marca, proveedor, costo_empresa, precio_cliente, stock, consignacion, comentario } = req.body;
 
@@ -222,7 +221,6 @@ app.post("/api/eliminar-llanta", async (req, res) => {
 
 // ---------------- TAPETES ----------------
 
-// Obtener tapetes
 app.get("/api/tapetes", async (req, res) => {
   try {
     const { rows } = await pool.query("SELECT * FROM tapetes ORDER BY id ASC");
@@ -233,7 +231,6 @@ app.get("/api/tapetes", async (req, res) => {
   }
 });
 
-// Agregar tapete
 app.post("/api/agregar-tapete", async (req, res) => {
   const { marca, referencia, proveedor, costo, precio, stock } = req.body;
 
@@ -311,7 +308,7 @@ app.get("/api/rines", async (req, res) => {
   }
 });
 
-// Agregar rin (CORREGIDO)
+// Agregar rin
 app.post("/api/agregar-rin", async (req, res) => {
   const { marca, referencia, proveedor, medida, costo, precio, stock } = req.body;
 
@@ -340,7 +337,7 @@ app.post("/api/agregar-rin", async (req, res) => {
   }
 });
 
-// Editar
+// Editar rin
 app.post("/api/editar-rin", async (req, res) => {
   const { id, marca, referencia, proveedor, medida, costo, precio, stock } =
     req.body;
@@ -371,7 +368,7 @@ app.post("/api/editar-rin", async (req, res) => {
   }
 });
 
-// Eliminar
+// Eliminar rin
 app.post("/api/eliminar-rin", async (req, res) => {
   try {
     await pool.query("DELETE FROM rines WHERE id=$1", [req.body.id]);
@@ -383,7 +380,7 @@ app.post("/api/eliminar-rin", async (req, res) => {
 });
 
 // ===========================
-//   SUBIR FOTO PARA RINES (Cloudinary) - CORREGIDO
+//   SUBIR FOTO PARA RINES 
 // ===========================
 app.post("/api/rines/subir-foto", upload.single('foto'), async (req, res) => {
   try {
@@ -402,12 +399,10 @@ app.post("/api/rines/subir-foto", upload.single('foto'), async (req, res) => {
       return res.status(400).json({ error: "No se recibió ninguna imagen" });
     }
 
-    // Cloudinary ya subió la imagen automáticamente
     const urlFoto = req.file.path;
 
     console.log("✅ Foto subida a Cloudinary:", urlFoto);
 
-    // Guardar URL en la base de datos
     await pool.query("UPDATE rines SET foto = $1 WHERE id = $2", [urlFoto, id]);
 
     console.log("✅ URL guardada en BD para rin ID:", id);
@@ -415,7 +410,6 @@ app.post("/api/rines/subir-foto", upload.single('foto'), async (req, res) => {
     res.json({ success: true, foto: urlFoto });
   } catch (error) {
     console.error("❌ Error completo al subir foto:", error);
-    console.error("❌ Stack trace:", error.stack);
     res.status(500).json({ 
       error: error.message || "Error al subir foto",
       details: error.toString()
@@ -423,45 +417,39 @@ app.post("/api/rines/subir-foto", upload.single('foto'), async (req, res) => {
   }
 });
 
-// Tabla para logs en PostgreSQL (ejecuta esto primero en tu base de datos)
-/*
-CREATE TABLE logs_actividad (
-  id SERIAL PRIMARY KEY,
-  tipo VARCHAR(100),
-  detalles TEXT,
-  fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-*/
+// ===========================
+//        LOGS ACTIVIDAD
+// ===========================
 
-// Ruta para guardar log de actividad
-// Ruta para guardar log de actividad
-app.post("/api/log-actividad", (req, res) => {
+// Guardar log (CORREGIDO)
+app.post("/api/log-actividad", async (req, res) => {
   const { tipo, detalles, fecha } = req.body;
-  
-  const query = "INSERT INTO logs_actividad (tipo, detalles, fecha) VALUES ($1, $2, $3) RETURNING id";
-  
-  db.query(query, [tipo, detalles, fecha], (err, result) => {
-    if (err) {
-      console.error("❌ Error guardando log:", err);
-      return res.status(500).json({ error: "Error al guardar log", detalles: err.message });
-    }
+
+  try {
+    const result = await pool.query(
+      "INSERT INTO logs_actividad (tipo, detalles, fecha) VALUES ($1, $2, $3) RETURNING id",
+      [tipo, detalles, fecha]
+    );
+
     res.json({ success: true, id: result.rows[0].id });
-  });
+  } catch (err) {
+    console.error("❌ Error guardando log:", err);
+    res.status(500).json({ error: "Error al guardar log", detalles: err.message });
+  }
 });
 
-// Ruta para obtener todos los logs
-app.get("/api/logs", (req, res) => {
-  const query = "SELECT * FROM logs_actividad ORDER BY fecha DESC LIMIT 500";
-  
-  db.query(query, (err, results) => {
-    if (err) {
-      console.error("❌ Error obteniendo logs:", err);
-      return res.status(500).json({ error: "Error al obtener logs", detalles: err.message });
-    }
-    
-    console.log("✅ Logs obtenidos:", results.rows.length);
-    res.json(results.rows);
-  });
+// Obtener logs (CORREGIDO)
+app.get("/api/logs", async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT * FROM logs_actividad ORDER BY fecha DESC LIMIT 500"
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("❌ Error obteniendo logs:", err);
+    res.status(500).json({ error: "Error al obtener logs", detalles: err.message });
+  }
 });
 
 // Run server

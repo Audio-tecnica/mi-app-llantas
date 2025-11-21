@@ -222,56 +222,62 @@ function App() {
     }
   };
 
- const handleGuardar = async (llanta) => {
-  try {
-    // Obtener la llanta original de tu estado
-    const llantaOriginal = llantas.find(l => l.id === llanta.id);
-    let cambios = [];
+  // 🔑 🔑 🔑 HANDLEGUARDAR CORREGIDO 🔑 🔑 🔑
+  const handleGuardar = async (llanta) => {
+    try {
+      // Obtener la llanta original de tu estado
+      const llantaOriginal = llantas.find((l) => l.id === llanta.id);
+      let cambios = [];
 
-    // Comparar cada campo forzando tipos compatibles
-    if (String(llantaOriginal.referencia) !== String(llanta.referencia)) 
-      cambios.push(`Referencia: ${llantaOriginal.referencia} → ${llanta.referencia}`);
+      // Comparar cada campo con conversión de tipos
+      if (String(llantaOriginal.referencia) !== String(llanta.referencia))
+        cambios.push(`Referencia: ${llantaOriginal.referencia} → ${llanta.referencia}`);
 
-    if (String(llantaOriginal.marca) !== String(llanta.marca)) 
-      cambios.push(`Marca: ${llantaOriginal.marca} → ${llanta.marca}`);
+      if (String(llantaOriginal.marca) !== String(llanta.marca))
+        cambios.push(`Marca: ${llantaOriginal.marca} → ${llanta.marca}`);
 
-    if (String(llantaOriginal.proveedor) !== String(llanta.proveedor)) 
-      cambios.push(`Proveedor: ${llantaOriginal.proveedor} → ${llanta.proveedor}`);
+      if (String(llantaOriginal.proveedor) !== String(llanta.proveedor))
+        cambios.push(`Proveedor: ${llantaOriginal.proveedor} → ${llanta.proveedor}`);
 
-    if (Number(llantaOriginal.costo_empresa) !== Number(llanta.costo_empresa)) 
-      cambios.push(`Costo: ${llantaOriginal.costo_empresa} → ${llanta.costo_empresa}`);
+      if (Number(llantaOriginal.costo_empresa) !== Number(llanta.costo_empresa))
+        cambios.push(`Costo: ${llantaOriginal.costo_empresa} → ${llanta.costo_empresa}`);
 
-    if (Number(llantaOriginal.precio_cliente) !== Number(llanta.precio_cliente)) 
-      cambios.push(`Precio: ${llantaOriginal.precio_cliente} → ${llanta.precio_cliente}`);
+      if (Number(llantaOriginal.precio_cliente) !== Number(llanta.precio_cliente))
+        cambios.push(`Precio: ${llantaOriginal.precio_cliente} → ${llanta.precio_cliente}`);
 
-    if (Number(llantaOriginal.stock) !== Number(llanta.stock)) 
-      cambios.push(`Stock: ${llantaOriginal.stock} → ${llanta.stock}`);
+      if (Number(llantaOriginal.stock) !== Number(llanta.stock))
+        cambios.push(`Stock: ${llantaOriginal.stock} → ${llanta.stock}`);
 
-    if (!!llantaOriginal.consignacion !== !!llanta.consignacion) 
-      cambios.push(`Consignación: ${llantaOriginal.consignacion ? 'Sí' : 'No'} → ${llanta.consignacion ? 'Sí' : 'No'}`);
+      if (!!llantaOriginal.consignacion !== !!llanta.consignacion)
+        cambios.push(
+          `Consignación: ${llantaOriginal.consignacion ? "Sí" : "No"} → ${
+            llanta.consignacion ? "Sí" : "No"
+          }`
+        );
 
-    // Actualizar la llanta en la base de datos
-    await axios.post("https://mi-app-llantas.onrender.com/api/editar-llanta", llanta);
-
-    // Registrar actividad solo si hay cambios
-    if (cambios.length > 0) {
-      await registrarActividad(
-        "EDICIÓN",
-        `Llanta ${llanta.referencia}: ${cambios.join(", ")}`
+      // Actualizar la llanta en la base de datos
+      await axios.post(
+        "https://mi-app-llantas.onrender.com/api/editar-llanta",
+        llanta
       );
+
+      // Registrar actividad solo si hay cambios
+      if (cambios.length > 0) {
+        await registrarActividad(
+          "EDICIÓN",
+          `Llanta ${llanta.referencia}: ${cambios.join(", ")}`
+        );
+      }
+
+      setMensaje("Cambios guardados ✅");
+      setModoEdicion(null);
+      setTimeout(() => setMensaje(""), 2000);
+    } catch (error) {
+      console.error("Error al guardar llanta:", error);
+      setMensaje("Error al guardar ❌");
+      setTimeout(() => setMensaje(""), 2000);
     }
-
-    setMensaje("Cambios guardados ✅");
-    setModoEdicion(null);
-    setTimeout(() => setMensaje(""), 2000);
-
-  } catch (error) {
-    console.error("Error al guardar llanta:", error);
-    setMensaje("Error al guardar ❌");
-    setTimeout(() => setMensaje(""), 2000);
-  }
-};
-
+  };
 
   const handleAgregar = async () => {
     try {

@@ -31,7 +31,7 @@ function Rines() {
   const [fotoModal, setFotoModal] = useState(null);
   const [subirFotoId, setSubirFotoId] = useState(null);
   const [archivoFoto, setArchivoFoto] = useState(null);
-  const [subiendoFoto, setSubiendoFoto] = useState(false); // 🆕 Estado de carga
+  const [subiendoFoto, setSubiendoFoto] = useState(false);
 
   // 📦 Cargar rines
   useEffect(() => {
@@ -180,7 +180,7 @@ function Rines() {
     );
   };
 
-  // 🆕 Función CORREGIDA para subir foto a Cloudinary
+  // 🆕 Función para subir foto a Cloudinary
   const handleSubirFoto = async (id) => {
     if (!archivoFoto) {
       setMensaje("Selecciona un archivo primero ❌");
@@ -219,7 +219,7 @@ function Rines() {
           headers: { 
             "Content-Type": "multipart/form-data" 
           },
-          timeout: 30000 // 30 segundos de timeout
+          timeout: 30000
         }
       );
 
@@ -400,6 +400,7 @@ function Rines() {
                     >
                       Referencia
                     </th>
+                    <th className="p-2">Foto</th>
                     <th
                       onClick={() => ordenarPor("marca")}
                       className="cursor-pointer p-2"
@@ -481,6 +482,7 @@ function Rines() {
                               className="w-full border rounded text-sm p-1"
                             />
                           </td>
+                          <td></td>
                           <td>
                             <input
                               value={r.marca}
@@ -568,17 +570,17 @@ function Rines() {
                       ) : (
                         <>
                           <td className="p-2">
-                            <div className="flex items-center justify-center gap-2 flex-wrap">
-                              <span>{r.referencia}</span>
-                              {r.foto && (
-                                <button
-                                  onClick={() => setFotoModal(r.foto)}
-                                  className="bg-purple-500 text-white px-2 py-1 rounded hover:bg-purple-600 text-xs whitespace-nowrap"
-                                >
-                                  📷 Ver foto
-                                </button>
-                              )}
-                            </div>
+                            {r.referencia}
+                          </td>
+                          <td className="p-2">
+                            {r.foto && (
+                              <button
+                                onClick={() => setFotoModal(r.foto)}
+                                className="bg-purple-500 text-white px-2 py-1 rounded hover:bg-purple-600 text-xs whitespace-nowrap"
+                              >
+                                📷 Ver foto
+                              </button>
+                            )}
                           </td>
                           <td>{r.marca}</td>
                           <td>{r.medida || "—"}</td>
@@ -676,7 +678,7 @@ function Rines() {
         </div>
       )}
 
-      {/* Modal subir foto - MEJORADO */}
+      {/* Modal subir foto */}
       {subirFotoId && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
@@ -739,7 +741,7 @@ function Rines() {
         </div>
       )}
 
-      {/* Modal ver foto - MEJORADO */}
+      {/* Modal ver foto */}
       {fotoModal && (
         <div
           className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4"
@@ -751,7 +753,7 @@ function Rines() {
               alt="Foto del rin"
               className="max-w-full max-h-screen rounded-lg shadow-2xl object-contain"
               onError={(e) => {
-                e.target.src = '/placeholder-image.png'; // Imagen de respaldo
+                e.target.src = '/placeholder-image.png';
                 e.target.alt = 'Error al cargar imagen';
               }}
             />

@@ -390,17 +390,17 @@ function Rines() {
 
             {/* Tabla */}
             <div className="overflow-auto mt-6">
-              <table className="w-full border text-sm table-fixed">
+              <table className="w-full border text-sm">
                 <thead className="bg-gradient-to-r from-gray-500 to-gray-300 text-black">
                   <tr>
-                    <th className="w-12"></th>
+                    <th></th>
                     <th
                       onClick={() => ordenarPor("referencia")}
                       className="cursor-pointer p-2"
                     >
                       Referencia
                     </th>
-                    <th className="p-2 w-16">Foto</th>
+                    <th className="p-2">Foto</th>
                     <th
                       onClick={() => ordenarPor("marca")}
                       className="cursor-pointer p-2"
@@ -409,7 +409,8 @@ function Rines() {
                     </th>
                     <th
                       onClick={() => ordenarPor("medida")}
-                      className="cursor-pointer p-2 w-24"
+                      className="cursor-pointer p-2"
+                      style={{ minWidth: '120px' }}
                     >
                       Medida
                     </th>
@@ -492,7 +493,7 @@ function Rines() {
                               className="w-full border rounded text-sm p-1"
                             />
                           </td>
-                          <td className="w-24 px-3">
+                          <td className="px-3" style={{ minWidth: '120px' }}>
                             <input
                               value={r.medida}
                               onChange={(e) =>
@@ -583,7 +584,7 @@ function Rines() {
                             )}
                           </td>
                           <td>{r.marca}</td>
-                          <td className="w-24 px-3">{r.medida || "—"}</td>
+                          <td className="px-3" style={{ minWidth: '120px' }}>{r.medida || "—"}</td>
                           <td>{r.proveedor || "—"}</td>
                           <td className="text-blue-600">
                             {mostrarCosto

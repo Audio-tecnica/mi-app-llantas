@@ -31,6 +31,7 @@ function Rines() {
   const [fotoModal, setFotoModal] = useState(null);
   const [subirFotoId, setSubirFotoId] = useState(null);
   const [archivoFoto, setArchivoFoto] = useState(null);
+  const [subiendoFoto, setSubiendoFoto] = useState(false); // 🆕 Estado de carga
 
   // 📦 Cargar rines
   useEffect(() => {
@@ -43,7 +44,7 @@ function Rines() {
 
   const marcasUnicas = [...new Set(rines.map((r) => r.marca))];
   
-  // Medidas disponibles (sin comillas si guardas así en BD)
+  // Medidas disponibles
   const medidasDisponibles = ['15', '16', '17', '18', '20'];
 
   const filtradas = rines.filter((r) => {
@@ -52,7 +53,6 @@ function Rines() {
       .includes(busqueda.toLowerCase());
     const coincideMarca = !marcaSeleccionada || r.marca === marcaSeleccionada;
     
-    // Filtro flexible: busca si la medida COMIENZA con el número
     const coincideMedida = !medidaSeleccionada || 
       r.medida?.toString().startsWith(medidaSeleccionada);
     
@@ -180,7 +180,7 @@ function Rines() {
     );
   };
 
-  // Función para subir foto
+  // 🆕 Función CORREGIDA para subir foto a Cloudinary
   const handleSubirFoto = async (id) => {
     if (!archivoFoto) {
       setMensaje("Selecciona un archivo primero ❌");
@@ -188,29 +188,67 @@ function Rines() {
       return;
     }
 
+    // Validar que sea una imagen
+    if (!archivoFoto.type.startsWith('image/')) {
+      setMensaje("Solo se permiten archivos de imagen ❌");
+      setTimeout(() => setMensaje(""), 2000);
+      return;
+    }
+
+    // Validar tamaño (máximo 5MB)
+    if (archivoFoto.size > 5 * 1024 * 1024) {
+      setMensaje("La imagen no puede superar 5MB ❌");
+      setTimeout(() => setMensaje(""), 2000);
+      return;
+    }
+
+    setSubiendoFoto(true);
+    setMensaje("Subiendo foto... ⏳");
+
     try {
       const formData = new FormData();
       formData.append("foto", archivoFoto);
       formData.append("id", id);
 
+      console.log("📤 Enviando foto al servidor...");
+
       const { data } = await axios.post(
         "https://mi-app-llantas.onrender.com/api/rines/subir-foto",
         formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
+        { 
+          headers: { 
+            "Content-Type": "multipart/form-data" 
+          },
+          timeout: 30000 // 30 segundos de timeout
+        }
       );
 
+      console.log("✅ Respuesta del servidor:", data);
+
+      // Actualizar el estado local con la nueva URL de Cloudinary
       setRines((prev) =>
         prev.map((r) => (r.id === id ? { ...r, foto: data.foto } : r))
       );
 
       setArchivoFoto(null);
       setSubirFotoId(null);
-      setMensaje("Foto subida ✅");
-      setTimeout(() => setMensaje(""), 2000);
+      setMensaje("Foto subida exitosamente ✅");
+      setTimeout(() => setMensaje(""), 3000);
     } catch (e) {
-      console.error("Error al subir foto:", e);
-      setMensaje("Error al subir foto ❌");
-      setTimeout(() => setMensaje(""), 2000);
+      console.error("❌ Error completo:", e);
+      console.error("❌ Respuesta del servidor:", e.response?.data);
+      
+      let mensajeError = "Error al subir foto ❌";
+      if (e.response?.data?.error) {
+        mensajeError = `Error: ${e.response.data.error}`;
+      } else if (e.code === 'ECONNABORTED') {
+        mensajeError = "Tiempo de espera agotado. La imagen es muy grande ❌";
+      }
+      
+      setMensaje(mensajeError);
+      setTimeout(() => setMensaje(""), 4000);
+    } finally {
+      setSubiendoFoto(false);
     }
   };
 
@@ -230,7 +268,7 @@ function Rines() {
           <button
             onClick={handleEliminarMultiples}
             disabled={seleccionadas.length === 0}
-            className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700"
+            className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700 disabled:opacity-50"
           >
             Eliminar seleccionados
           </button>
@@ -260,7 +298,7 @@ function Rines() {
         </div>
       ) : (
         <>
-          <div className="flex space-x-3">
+          <div className="flex space-x-3 flex-wrap">
             <button
               onClick={() => {
                 setBusqueda("");
@@ -529,15 +567,15 @@ function Rines() {
                         </>
                       ) : (
                         <>
-                          <td className="p-1">
-                            <div className="flex items-center justify-center gap-2">
+                          <td className="p-2">
+                            <div className="flex items-center justify-center gap-2 flex-wrap">
                               <span>{r.referencia}</span>
                               {r.foto && (
                                 <button
                                   onClick={() => setFotoModal(r.foto)}
-                                  className="bg-purple-500 text-white px-2 py-1 rounded hover:bg-purple-600 text-xs"
+                                  className="bg-purple-500 text-white px-2 py-1 rounded hover:bg-purple-600 text-xs whitespace-nowrap"
                                 >
-                                  Ver foto
+                                  📷 Ver foto
                                 </button>
                               )}
                             </div>
@@ -563,25 +601,27 @@ function Rines() {
                           <td className={r.stock === 0 ? "text-red-600" : ""}>
                             {r.stock === 0 ? "Sin stock" : r.stock}
                           </td>
-                          <td className="flex gap-1 justify-center">
-                            <button
-                              onClick={() => setModoEdicion(r.id)}
-                              className="bg-gray-200 hover:bg-gray-300 px-2 py-1 text-xs rounded"
-                            >
-                              Editar
-                            </button>
-                            <button
-                              onClick={() => handleEliminar(r.id)}
-                              className="bg-red-500 text-white hover:bg-red-600 px-2 py-1 text-xs rounded"
-                            >
-                              Eliminar
-                            </button>
-                            <button
-                              onClick={() => setSubirFotoId(r.id)}
-                              className="bg-green-500 text-white hover:bg-green-600 px-2 py-1 text-xs rounded"
-                            >
-                              Foto
-                            </button>
+                          <td className="p-2">
+                            <div className="flex gap-1 justify-center flex-wrap">
+                              <button
+                                onClick={() => setModoEdicion(r.id)}
+                                className="bg-gray-200 hover:bg-gray-300 px-2 py-1 text-xs rounded whitespace-nowrap"
+                              >
+                                Editar
+                              </button>
+                              <button
+                                onClick={() => handleEliminar(r.id)}
+                                className="bg-red-500 text-white hover:bg-red-600 px-2 py-1 text-xs rounded whitespace-nowrap"
+                              >
+                                Eliminar
+                              </button>
+                              <button
+                                onClick={() => setSubirFotoId(r.id)}
+                                className="bg-green-500 text-white hover:bg-green-600 px-2 py-1 text-xs rounded whitespace-nowrap"
+                              >
+                                📷 Foto
+                              </button>
+                            </div>
                           </td>
                         </>
                       )}
@@ -596,8 +636,8 @@ function Rines() {
 
       {/* Modal agregar rin */}
       {mostrarModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">Agregar nuevo rin</h2>
             {[
               "referencia",
@@ -610,7 +650,7 @@ function Rines() {
             ].map((campo) => (
               <input
                 key={campo}
-                placeholder={campo.replace("_", " ")}
+                placeholder={campo.replace("_", " ").toUpperCase()}
                 value={nuevoItem[campo]}
                 onChange={(e) =>
                   setNuevoItem({ ...nuevoItem, [campo]: e.target.value })
@@ -621,13 +661,13 @@ function Rines() {
             <div className="flex justify-end gap-2">
               <button
                 onClick={handleAgregar}
-                className="bg-blue-600 text-white px-4 py-2 rounded"
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
               >
                 Guardar
               </button>
               <button
                 onClick={() => setMostrarModal(false)}
-                className="bg-gray-400 text-white px-4 py-2 rounded"
+                className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
               >
                 Cancelar
               </button>
@@ -636,30 +676,61 @@ function Rines() {
         </div>
       )}
 
-      {/* Modal subir foto */}
+      {/* Modal subir foto - MEJORADO */}
       {subirFotoId && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Subir foto</h2>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setArchivoFoto(e.target.files[0])}
-              className="w-full mb-4 p-2 border rounded"
-            />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">📷 Subir foto del rin</h2>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Selecciona una imagen (máximo 5MB)
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    if (file.size > 5 * 1024 * 1024) {
+                      setMensaje("La imagen no puede superar 5MB ❌");
+                      setTimeout(() => setMensaje(""), 3000);
+                      e.target.value = '';
+                      return;
+                    }
+                    setArchivoFoto(file);
+                  }
+                }}
+                className="w-full p-2 border-2 border-gray-300 rounded focus:border-blue-500 focus:outline-none"
+                disabled={subiendoFoto}
+              />
+              
+              {archivoFoto && (
+                <div className="mt-2 text-sm text-green-600">
+                  ✓ Archivo seleccionado: {archivoFoto.name}
+                </div>
+              )}
+            </div>
+
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => handleSubirFoto(subirFotoId)}
-                className="bg-green-600 text-white px-4 py-2 rounded"
+                disabled={!archivoFoto || subiendoFoto}
+                className={`px-4 py-2 rounded font-medium ${
+                  !archivoFoto || subiendoFoto
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-green-600 text-white hover:bg-green-700'
+                }`}
               >
-                Subir
+                {subiendoFoto ? '⏳ Subiendo...' : '📤 Subir foto'}
               </button>
               <button
                 onClick={() => {
                   setSubirFotoId(null);
                   setArchivoFoto(null);
                 }}
-                className="bg-gray-400 text-white px-4 py-2 rounded"
+                disabled={subiendoFoto}
+                className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 disabled:opacity-50"
               >
                 Cancelar
               </button>
@@ -668,23 +739,27 @@ function Rines() {
         </div>
       )}
 
-      {/* Modal ver foto */}
+      {/* Modal ver foto - MEJORADO */}
       {fotoModal && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4"
           onClick={() => setFotoModal(null)}
         >
-          <div className="relative">
+          <div className="relative max-w-4xl max-h-screen">
             <img
               src={fotoModal}
               alt="Foto del rin"
-              className="max-w-3xl max-h-screen rounded shadow-lg"
+              className="max-w-full max-h-screen rounded-lg shadow-2xl object-contain"
+              onError={(e) => {
+                e.target.src = '/placeholder-image.png'; // Imagen de respaldo
+                e.target.alt = 'Error al cargar imagen';
+              }}
             />
             <button
               onClick={() => setFotoModal(null)}
-              className="absolute top-2 right-2 bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+              className="absolute top-4 right-4 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 font-bold shadow-lg"
             >
-              Cerrar
+              ✕ Cerrar
             </button>
           </div>
         </div>

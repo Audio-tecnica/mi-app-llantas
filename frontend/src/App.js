@@ -184,9 +184,7 @@ function App() {
   // 🔥 FUNCIÓN QUE FALTABA - actualizar campos en modo edición
   const actualizarCampo = (id, campo, valor) => {
     setLlantas(
-      llantas.map((ll) =>
-        ll.id === id ? { ...ll, [campo]: valor } : ll
-      )
+      llantas.map((ll) => (ll.id === id ? { ...ll, [campo]: valor } : ll))
     );
   };
 
@@ -204,7 +202,9 @@ function App() {
       // Registrar actividad
       await registrarActividad(
         "COMENTARIO",
-        `${llanta.referencia}: ${texto ? 'Comentario agregado/editado' : 'Comentario eliminado'}`
+        `${llanta.referencia}: ${
+          texto ? "Comentario agregado/editado" : "Comentario eliminado"
+        }`
       );
 
       const { data } = await axios.get(
@@ -767,7 +767,9 @@ function App() {
                                   setLlantaOriginalEdicion(null);
                                   // Recargar datos originales
                                   axios
-                                    .get("https://mi-app-llantas.onrender.com/api/llantas")
+                                    .get(
+                                      "https://mi-app-llantas.onrender.com/api/llantas"
+                                    )
                                     .then((res) => setLlantas(res.data));
                                 }}
                                 className="bg-gray-300 text-black px-3 py-1 text-xs rounded hover:bg-gray-400 transition-colors"
@@ -835,15 +837,21 @@ function App() {
 
                           <td>{ll.marca}</td>
                           <td>{ll.proveedor}</td>
-                          <td className="text-blue-600 font-semibold">
+                          <td className="text-blue-600">
                             {mostrarCosto
-                               ? `${ll.costo_empresa.toLocaleString()}`
+                              ? `$${(ll.costo_empresa || 0).toLocaleString()}`
                               : "•••••"}
                           </td>
                           <td className="text-green-600 font-semibold">
                             ${ll.precio_cliente.toLocaleString()}
                           </td>
-                          <td className={ll.stock === 0 ? "text-red-600 font-bold" : "font-semibold"}>
+                          <td
+                            className={
+                              ll.stock === 0
+                                ? "text-red-600 font-bold"
+                                : "font-semibold"
+                            }
+                          >
                             {ll.stock === 0 ? "❌" : ll.stock}
                           </td>
                           <td className="p-2">

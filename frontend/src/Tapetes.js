@@ -167,7 +167,7 @@ function Tapetes() {
   return (
     <div className="max-w-7xl mx-auto p-5 min-h-screen bg-gradient-to-b from-orange-200 to-orange-800">
       <div className="flex justify-between items-center mb-6 flex-wrap gap-2">
-        <img src="/logowp.PNG" className="h-13 w-48" />
+        <img src="/logowp.PNG" className="h-13 w-48" alt="Logo" />
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setMostrarModal(true)}
@@ -264,12 +264,27 @@ function Tapetes() {
               <table className="w-full border text-sm">
                 <thead className="bg-gradient-to-r from-gray-400 to-blue-300 text-black">
                   <tr>
-                    <th></th>
-                    <th onClick={() => ordenarPor("referencia")}>Referencia</th>
-                    <th onClick={() => ordenarPor("marca")}>Marca</th>
-                    <th onClick={() => ordenarPor("proveedor")}>Proveedor</th>
+                    <th className="border py-3 px-4"></th>
+                    <th 
+                      className="border py-3 px-4 cursor-pointer hover:bg-blue-400 transition-colors"
+                      onClick={() => ordenarPor("referencia")}
+                    >
+                      Referencia
+                    </th>
+                    <th 
+                      className="border py-3 px-4 cursor-pointer hover:bg-blue-400 transition-colors"
+                      onClick={() => ordenarPor("marca")}
+                    >
+                      Marca
+                    </th>
+                    <th 
+                      className="border py-3 px-4 cursor-pointer hover:bg-blue-400 transition-colors"
+                      onClick={() => ordenarPor("proveedor")}
+                    >
+                      Proveedor
+                    </th>
                     <th
-                      className="cursor-pointer"
+                      className="border py-3 px-4 cursor-pointer hover:bg-blue-400 transition-colors"
                       onClick={() => setMostrarCosto(!mostrarCosto)}
                     >
                       Costo{" "}
@@ -279,18 +294,28 @@ function Tapetes() {
                         <Eye className="inline w-4 h-4" />
                       )}
                     </th>
-                    <th onClick={() => ordenarPor("precio")}>Precio</th>
-                    <th onClick={() => ordenarPor("stock")}>Stock</th>
-                    <th>Acción</th>
+                    <th 
+                      className="border py-3 px-4 cursor-pointer hover:bg-blue-400 transition-colors"
+                      onClick={() => ordenarPor("precio")}
+                    >
+                      Precio
+                    </th>
+                    <th 
+                      className="border py-3 px-4 cursor-pointer hover:bg-blue-400 transition-colors"
+                      onClick={() => ordenarPor("stock")}
+                    >
+                      Stock
+                    </th>
+                    <th className="border py-3 px-4">Acción</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filtradas.map((t) => (
                     <tr
                       key={t.id}
-                      className="text-center border-t even:bg-gray-50"
+                      className="border-t even:bg-gray-50 hover:bg-blue-50 transition-colors"
                     >
-                      <td>
+                      <td className="border py-3 px-4 text-center">
                         <input
                           type="checkbox"
                           checked={seleccionadas.includes(t.id)}
@@ -308,7 +333,7 @@ function Tapetes() {
                             "precio",
                             "stock",
                           ].map((campo) => (
-                            <td key={campo}>
+                            <td key={campo} className="border py-3 px-4">
                               <input
                                 value={t[campo]}
                                 onChange={(e) =>
@@ -318,34 +343,36 @@ function Tapetes() {
                               />
                             </td>
                           ))}
-                          <td className="flex gap-1 justify-center">
-                            <button
-                              onClick={() => handleGuardar(t)}
-                              className="bg-blue-500 text-white px-2 py-1 text-xs rounded"
-                            >
-                              Guardar
-                            </button>
-                            <button
-                              onClick={() => setModoEdicion(null)}
-                              className="bg-gray-300 text-black px-2 py-1 text-xs rounded"
-                            >
-                              Cancelar
-                            </button>
+                          <td className="border py-3 px-4">
+                            <div className="flex gap-1 justify-center">
+                              <button
+                                onClick={() => handleGuardar(t)}
+                                className="bg-blue-500 text-white px-2 py-1 text-xs rounded"
+                              >
+                                Guardar
+                              </button>
+                              <button
+                                onClick={() => setModoEdicion(null)}
+                                className="bg-gray-300 text-black px-2 py-1 text-xs rounded"
+                              >
+                                Cancelar
+                              </button>
+                            </div>
                           </td>
                         </>
                       ) : (
                         <>
-                          <td>{t.referencia}</td>
-                          <td>{t.marca}</td>
-                          <td>{t.proveedor || "—"}</td>
-                          <td className="text-blue-600">
+                          <td className="border py-3 px-4">{t.referencia}</td>
+                          <td className="border py-3 px-4 text-center">{t.marca}</td>
+                          <td className="border py-3 px-4">{t.proveedor || "—"}</td>
+                          <td className="border py-3 px-4 text-center text-blue-600">
                             {mostrarCosto
                               ? `$${Number(t.costo).toLocaleString("es-CO", {
                                   minimumFractionDigits: 0,
                                 })}`
                               : "•••••"}
                           </td>
-                          <td className="text-green-600">
+                          <td className="border py-3 px-4 text-center text-green-600">
                             {t.precio !== undefined && t.precio !== null
                               ? `$${Number(t.precio).toLocaleString("es-CO", {
                                   minimumFractionDigits: 0,
@@ -354,22 +381,24 @@ function Tapetes() {
                               : "$0"}
                           </td>
 
-                          <td className={t.stock === 0 ? "text-red-600" : ""}>
+                          <td className={`border py-3 px-4 text-center ${t.stock === 0 ? "text-red-600" : ""}`}>
                             {t.stock === 0 ? "Sin stock" : t.stock}
                           </td>
-                          <td className="flex gap-1 justify-center">
-                            <button
-                              onClick={() => setModoEdicion(t.id)}
-                              className="bg-gray-200 hover:bg-gray-300 px-2 py-1 text-xs rounded"
-                            >
-                              Editar
-                            </button>
-                            <button
-                              onClick={() => handleEliminar(t.id)}
-                              className="bg-red-500 text-white hover:bg-red-600 px-2 py-1 text-xs rounded"
-                            >
-                              Eliminar
-                            </button>
+                          <td className="border py-3 px-4">
+                            <div className="flex gap-1 justify-center">
+                              <button
+                                onClick={() => setModoEdicion(t.id)}
+                                className="bg-gray-200 hover:bg-gray-300 px-2 py-1 text-xs rounded"
+                              >
+                                Editar
+                              </button>
+                              <button
+                                onClick={() => handleEliminar(t.id)}
+                                className="bg-red-500 text-white hover:bg-red-600 px-2 py-1 text-xs rounded"
+                              >
+                                Eliminar
+                              </button>
+                            </div>
                           </td>
                         </>
                       )}

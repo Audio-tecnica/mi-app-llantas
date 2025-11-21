@@ -421,13 +421,14 @@ app.post("/api/rines/subir-foto", upload.single('foto'), async (req, res) => {
 //        LOGS ACTIVIDAD
 // ===========================
 
-// Guardar log (CORREGIDO)
+// Guardar log (CORREGIDO para que funcione sin fecha enviada)
 app.post("/api/log-actividad", async (req, res) => {
   const { tipo, detalles, fecha } = req.body;
 
   try {
+    // COALESCE usa la fecha enviada o NOW() si no se envía
     const result = await pool.query(
-      "INSERT INTO logs_actividad (tipo, detalles, fecha) VALUES ($1, $2, $3) RETURNING id",
+      "INSERT INTO logs_actividad (tipo, detalles, fecha) VALUES ($1, $2, COALESCE($3, NOW())) RETURNING id",
       [tipo, detalles, fecha]
     );
 
@@ -451,6 +452,7 @@ app.get("/api/logs", async (req, res) => {
     res.status(500).json({ error: "Error al obtener logs", detalles: err.message });
   }
 });
+
 
 // Run server
 app.listen(PORT, () => {

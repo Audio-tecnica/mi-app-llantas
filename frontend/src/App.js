@@ -223,7 +223,7 @@ function App() {
   };
 
  // ✅ HANDLEGUARDAR CORREGIDO
-  const handleGuardar = async (llanta) => {
+const handleGuardar = async (llanta) => {
     try {
       console.log("=== INICIO GUARDAR ===");
       console.log("Llanta a guardar:", llanta);
@@ -288,62 +288,6 @@ function App() {
     } catch (error) {
       console.error("❌ ERROR:", error);
       setMensaje("Error al guardar ❌");
-      setTimeout(() => setMensaje(""), 2000);
-    }
-  };
-
-  const actualizarCampo = (id, campo, valor) => {
-    setLlantas((prev) =>
-      prev.map((l) => (l.id === id ? { ...l, [campo]: valor } : l))
-    );
-  };
-
-  const handleBusquedaChange = (e) => {
-    const valor = e.target.value;
-    setBusqueda(valor);
-
-    if (valor.trim() === "") return;
-
-    const nuevas = [valor, ...busquedasRecientes.filter((v) => v !== valor)];
-    const top5 = nuevas.slice(0, 5);
-    setBusquedasRecientes(top5);
-    localStorage.setItem("busquedasRecientes", JSON.stringify(top5));
-  };
-
-  // Función para guardar comentario
-  const guardarComentario = async (llanta, nuevoComentario) => {
-    try {
-      const datosAEnviar = {
-        id: llanta.id,
-        referencia: llanta.referencia,
-        marca: llanta.marca,
-        proveedor: llanta.proveedor,
-        costo_empresa: llanta.costo_empresa,
-        precio_cliente: llanta.precio_cliente,
-        stock: llanta.stock,
-        consignacion: llanta.consignacion || false,
-        comentario: nuevoComentario,
-      };
-
-      await axios.post(
-        "https://mi-app-llantas.onrender.com/api/editar-llanta",
-        datosAEnviar
-      );
-
-      // Registrar actividad
-      await registrarActividad(
-        "COMENTARIO",
-        `Se ${llanta.comentario ? "actualizó" : "agregó"} comentario en ${
-          llanta.referencia
-        }`
-      );
-
-      actualizarCampo(llanta.id, "comentario", nuevoComentario);
-      setMensaje("Comentario guardado ✅");
-      setTimeout(() => setMensaje(""), 2000);
-    } catch (error) {
-      console.error("Error guardando comentario:", error);
-      setMensaje("Error al guardar comentario ❌");
       setTimeout(() => setMensaje(""), 2000);
     }
   };

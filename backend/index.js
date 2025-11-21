@@ -429,4 +429,3 @@ app.listen(PORT, () => {
   console.log(`📁 Cloudinary configurado correctamente`);
 });
 
-

@@ -3,8 +3,6 @@ import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-import "./index.css";
-
 function App() {
   const [mostrarCosto, setMostrarCosto] = useState(false);
   const [llantas, setLlantas] = useState([]);
@@ -37,6 +35,9 @@ function App() {
   const [cargandoLogs, setCargandoLogs] = useState(false);
   const [busquedaLog, setBusquedaLog] = useState("");
   const [filtroTipoLog, setFiltroTipoLog] = useState("");
+
+  // 🔥 VARIABLE CRÍTICA QUE FALTABA
+  const [llantaOriginalEdicion, setLlantaOriginalEdicion] = useState(null);
 
   const navigate = useNavigate();
 
@@ -100,7 +101,6 @@ function App() {
       "Ingrese la contraseña para ver el log de actividades:"
     );
 
-    // Cambia esta contraseña por la que quieras usar
     const PASSWORD_CORRECTA = "Cmd2025";
 
     if (password === PASSWORD_CORRECTA) {
@@ -181,7 +181,46 @@ function App() {
     setOrden({ campo, asc });
   };
 
-  // ✅ Funciones CRUD (modificadas para incluir logs)
+  // 🔥 FUNCIÓN QUE FALTABA - actualizar campos en modo edición
+  const actualizarCampo = (id, campo, valor) => {
+    setLlantas(
+      llantas.map((ll) =>
+        ll.id === id ? { ...ll, [campo]: valor } : ll
+      )
+    );
+  };
+
+  // 🔥 FUNCIÓN PARA GUARDAR COMENTARIO
+  const guardarComentario = async (llanta, texto) => {
+    try {
+      await axios.post(
+        "https://mi-app-llantas.onrender.com/api/editar-llanta",
+        {
+          ...llanta,
+          comentario: texto,
+        }
+      );
+
+      // Registrar actividad
+      await registrarActividad(
+        "COMENTARIO",
+        `${llanta.referencia}: ${texto ? 'Comentario agregado/editado' : 'Comentario eliminado'}`
+      );
+
+      const { data } = await axios.get(
+        "https://mi-app-llantas.onrender.com/api/llantas"
+      );
+      setLlantas(data);
+      setMensaje("Comentario guardado ✅");
+      setTimeout(() => setMensaje(""), 2000);
+    } catch (error) {
+      console.error("Error guardando comentario:", error);
+      setMensaje("Error al guardar comentario ❌");
+      setTimeout(() => setMensaje(""), 2000);
+    }
+  };
+
+  // ✅ Funciones CRUD
   const toggleSeleccion = (id) => {
     setSeleccionadas((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
@@ -203,7 +242,6 @@ function App() {
         );
       }
 
-      // Registrar actividad
       await registrarActividad(
         "ELIMINACIÓN MÚLTIPLE",
         `Se eliminaron ${seleccionadas.length} llantas: ${referencias}`
@@ -219,6 +257,17 @@ function App() {
     } catch {
       setMensaje("Error al eliminar ❌");
       setTimeout(() => setMensaje(""), 2000);
+    }
+  };
+
+  // 🔥 FUNCIÓN PARA INICIAR EDICIÓN (GUARDANDO ESTADO ORIGINAL)
+  const iniciarEdicion = (id) => {
+    const llanta = llantas.find((l) => l.id === id);
+    if (llanta) {
+      // Guardar copia profunda del estado original
+      setLlantaOriginalEdicion(JSON.parse(JSON.stringify(llanta)));
+      setModoEdicion(id);
+      console.log("✅ Modo edición iniciado. Original guardado:", llanta);
     }
   };
 
@@ -295,12 +344,15 @@ function App() {
         llanta
       );
 
-      // Registrar actividad
+      // Registrar actividad solo si hubo cambios
       if (cambios.length > 0) {
         await registrarActividad(
           "EDICIÓN",
           `Llanta ${llanta.referencia}: ${cambios.join(", ")}`
         );
+        console.log("✅ Cambios registrados en log");
+      } else {
+        console.log("ℹ️ No hubo cambios para registrar");
       }
 
       // Recargar
@@ -327,7 +379,6 @@ function App() {
         nuevoItem
       );
 
-      // Registrar actividad
       await registrarActividad(
         "NUEVA LLANTA",
         `Se agregó: ${nuevoItem.referencia} - ${nuevoItem.marca} (Stock: ${nuevoItem.stock})`
@@ -364,7 +415,6 @@ function App() {
         { id }
       );
 
-      // Registrar actividad
       await registrarActividad(
         "ELIMINACIÓN",
         `Se eliminó: ${llanta.referencia} - ${llanta.marca}`

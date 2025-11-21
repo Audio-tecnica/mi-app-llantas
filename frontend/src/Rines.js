@@ -492,7 +492,7 @@ function Rines() {
                               className="w-full border rounded text-sm p-1"
                             />
                           </td>
-                          <td>
+                          <td className="min-w-[80px]">
                             <input
                               value={r.medida}
                               onChange={(e) =>

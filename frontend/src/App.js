@@ -448,18 +448,17 @@ function App() {
           <button
             onClick={handleEliminarMultiples}
             disabled={seleccionadas.length === 0}
-            className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700"
+            className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Eliminar seleccionados
           </button>
 
-          {/* 🆕 BOTÓN DE LOG DE ACTIVIDADES */}
           <button
             onClick={abrirLogActividades}
             className="bg-indigo-600 text-white px-3 py-1.5 rounded text-sm hover:bg-indigo-700 font-semibold"
             title="Ver historial de cambios"
           >
-            📋 Upgrade
+            📋 Historial
           </button>
 
           <button
@@ -482,7 +481,7 @@ function App() {
 
       {/* Mensajes */}
       {mensaje && (
-        <div className="text-center text-blue-700 font-semibold mb-4">
+        <div className="text-center text-blue-700 font-semibold mb-4 bg-blue-50 p-3 rounded-lg">
           ❗{mensaje}
         </div>
       )}
@@ -494,7 +493,7 @@ function App() {
         </div>
       ) : (
         <>
-          <div className="flex space-x-3">
+          <div className="flex space-x-3 mb-4">
             <button
               onClick={() => {
                 setBusqueda("");
@@ -520,7 +519,7 @@ function App() {
             </button>
           </div>
 
-          <div className="text-sm text-gray-700 mb-2 mt-4">
+          <div className="text-sm text-gray-700 mb-2">
             Mostrando {filtradas.length} resultados
           </div>
 
@@ -595,34 +594,34 @@ function App() {
                     <th className="p-2"></th>
                     <th
                       onClick={() => ordenarPor("referencia")}
-                      className="cursor-pointer p-2"
+                      className="cursor-pointer p-2 hover:bg-orange-400 transition-colors"
                     >
-                      Referencia
+                      Referencia ↕
                     </th>
                     <th className="p-2">Búsqueda</th>
                     <th
                       onClick={() => ordenarPor("marca")}
-                      className="cursor-pointer p-2"
+                      className="cursor-pointer p-2 hover:bg-orange-400 transition-colors"
                     >
-                      Marca
+                      Marca ↕
                     </th>
                     <th
                       onClick={() => ordenarPor("proveedor")}
-                      className="cursor-pointer p-2"
+                      className="cursor-pointer p-2 hover:bg-orange-400 transition-colors"
                     >
-                      Proveedor
+                      Proveedor ↕
                     </th>
                     <th
                       onClick={() => ordenarPor("costo_empresa")}
-                      className="cursor-pointer p-2"
+                      className="cursor-pointer p-2 hover:bg-orange-400 transition-colors"
                     >
-                      Costo
+                      Costo ↕
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           setMostrarCosto(!mostrarCosto);
                         }}
-                        className="ml-2 text-white-600"
+                        className="ml-2 text-gray-700 hover:text-black"
                       >
                         {mostrarCosto ? (
                           <EyeOff size={16} />
@@ -633,15 +632,15 @@ function App() {
                     </th>
                     <th
                       onClick={() => ordenarPor("precio_cliente")}
-                      className="cursor-pointer p-2"
+                      className="cursor-pointer p-2 hover:bg-orange-400 transition-colors"
                     >
-                      Precio
+                      Precio ↕
                     </th>
                     <th
                       onClick={() => ordenarPor("stock")}
-                      className="cursor-pointer p-2"
+                      className="cursor-pointer p-2 hover:bg-orange-400 transition-colors"
                     >
-                      Stock
+                      Stock ↕
                     </th>
                     <th className="p-2">Acción</th>
                   </tr>
@@ -650,13 +649,14 @@ function App() {
                   {filtradas.map((ll) => (
                     <tr
                       key={ll.id}
-                      className="text-center border-t even:bg-gray-50"
+                      className="text-center border-t even:bg-gray-50 hover:bg-blue-50 transition-colors"
                     >
                       <td>
                         <input
                           type="checkbox"
                           checked={seleccionadas.includes(ll.id)}
                           onChange={() => toggleSeleccion(ll.id)}
+                          className="cursor-pointer"
                         />
                       </td>
                       {modoEdicion === ll.id ? (
@@ -671,7 +671,7 @@ function App() {
                                   e.target.value
                                 )
                               }
-                              className="w-full border rounded text-sm p-1"
+                              className="w-full border rounded text-sm p-1 focus:ring-2 focus:ring-blue-400"
                             />
                           </td>
                           <td>{/* Vacío en modo edición */}</td>
@@ -681,7 +681,7 @@ function App() {
                               onChange={(e) =>
                                 actualizarCampo(ll.id, "marca", e.target.value)
                               }
-                              className="w-full border rounded text-sm p-1"
+                              className="w-full border rounded text-sm p-1 focus:ring-2 focus:ring-blue-400"
                             />
                           </td>
                           <td>
@@ -694,7 +694,7 @@ function App() {
                                   e.target.value
                                 )
                               }
-                              className="w-full border rounded text-sm p-1"
+                              className="w-full border rounded text-sm p-1 focus:ring-2 focus:ring-blue-400"
                             />
                           </td>
                           <td>
@@ -708,7 +708,7 @@ function App() {
                                   e.target.value
                                 )
                               }
-                              className="w-full border rounded text-sm p-1"
+                              className="w-full border rounded text-sm p-1 focus:ring-2 focus:ring-blue-400"
                             />
                           </td>
                           <td>
@@ -722,7 +722,7 @@ function App() {
                                   e.target.value
                                 )
                               }
-                              className="w-full border rounded text-sm p-1"
+                              className="w-full border rounded text-sm p-1 focus:ring-2 focus:ring-blue-400"
                             />
                           </td>
                           <td>
@@ -732,10 +732,10 @@ function App() {
                               onChange={(e) =>
                                 actualizarCampo(ll.id, "stock", e.target.value)
                               }
-                              className="w-full border rounded text-sm p-1"
+                              className="w-full border rounded text-sm p-1 focus:ring-2 focus:ring-blue-400"
                             />
                           </td>
-                          <td className="flex gap-1 justify-center flex-col items-center">
+                          <td className="flex gap-1 justify-center flex-col items-center p-2">
                             <button
                               onClick={() =>
                                 actualizarCampo(
@@ -744,10 +744,10 @@ function App() {
                                   !ll.consignacion
                                 )
                               }
-                              className={`px-3 py-1 text-xs rounded mb-2 font-semibold ${
+                              className={`px-3 py-1 text-xs rounded mb-2 font-semibold transition-colors ${
                                 ll.consignacion
-                                  ? "bg-red-500 text-white"
-                                  : "bg-gray-200 text-gray-700"
+                                  ? "bg-red-500 text-white hover:bg-red-600"
+                                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                               }`}
                             >
                               {ll.consignacion
@@ -757,15 +757,22 @@ function App() {
                             <div className="flex gap-1">
                               <button
                                 onClick={() => handleGuardar(ll)}
-                                className="bg-blue-500 text-white px-2 py-1 text-xs rounded"
+                                className="bg-blue-500 text-white px-3 py-1 text-xs rounded hover:bg-blue-600 transition-colors"
                               >
-                                Guardar
+                                💾 Guardar
                               </button>
                               <button
-                                onClick={() => setModoEdicion(null)}
-                                className="bg-gray-300 text-black px-2 py-1 text-xs rounded"
+                                onClick={() => {
+                                  setModoEdicion(null);
+                                  setLlantaOriginalEdicion(null);
+                                  // Recargar datos originales
+                                  axios
+                                    .get("https://mi-app-llantas.onrender.com/api/llantas")
+                                    .then((res) => setLlantas(res.data));
+                                }}
+                                className="bg-gray-300 text-black px-3 py-1 text-xs rounded hover:bg-gray-400 transition-colors"
                               >
-                                Cancelar
+                                ✖ Cancelar
                               </button>
                             </div>
                           </td>
@@ -813,13 +820,13 @@ function App() {
                                     "_blank"
                                   )
                                 }
-                                className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-xs"
+                                className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-xs transition-colors"
                               >
                                 Llantar
                               </button>
                               <button
                                 onClick={() => abrirComparador(ll.referencia)}
-                                className="bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700 text-xs"
+                                className="bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700 text-xs transition-colors"
                               >
                                 Comparar
                               </button>
@@ -828,24 +835,24 @@ function App() {
 
                           <td>{ll.marca}</td>
                           <td>{ll.proveedor}</td>
-                          <td className="text-blue-600">
+                          <td className="text-blue-600 font-semibold">
                             {mostrarCosto
                               ? `${ll.costo_empresa.toLocaleString()}`
                               : "•••••"}
                           </td>
-                          <td className="text-green-600">
+                          <td className="text-green-600 font-semibold">
                             ${ll.precio_cliente.toLocaleString()}
                           </td>
-                          <td className={ll.stock === 0 ? "text-red-600" : ""}>
-                            {ll.stock === 0 ? "Sin stock" : ll.stock}
+                          <td className={ll.stock === 0 ? "text-red-600 font-bold" : "font-semibold"}>
+                            {ll.stock === 0 ? "❌ Sin stock" : ll.stock}
                           </td>
                           <td className="p-2">
                             <div className="flex gap-1 justify-center items-center">
                               <button
-                                onClick={() => setModoEdicion(ll.id)}
-                                className="bg-gray-200 hover:bg-gray-300 px-2 py-1 text-xs rounded"
+                                onClick={() => iniciarEdicion(ll.id)}
+                                className="bg-gray-200 hover:bg-gray-300 px-2 py-1 text-xs rounded transition-colors"
                               >
-                                Editar
+                                ✏️ Editar
                               </button>
 
                               <button
@@ -858,14 +865,14 @@ function App() {
                                     await guardarComentario(ll, texto);
                                   }
                                 }}
-                                className="bg-yellow-500 text-white px-2 py-1 text-xs rounded hover:bg-yellow-600"
+                                className="bg-yellow-500 text-white px-2 py-1 text-xs rounded hover:bg-yellow-600 transition-colors"
                               >
                                 💬
                               </button>
 
                               <button
                                 onClick={() => handleEliminar(ll.id)}
-                                className="bg-red-500 text-white hover:bg-red-600 px-2 py-1 text-xs rounded"
+                                className="bg-red-500 text-white hover:bg-red-600 px-2 py-1 text-xs rounded transition-colors"
                               >
                                 🗑️
                               </button>
@@ -902,19 +909,19 @@ function App() {
                 onChange={(e) =>
                   setNuevoItem({ ...nuevoItem, [campo]: e.target.value })
                 }
-                className="w-full mb-3 p-2 border rounded"
+                className="w-full mb-3 p-2 border rounded focus:ring-2 focus:ring-blue-400 outline-none"
               />
             ))}
             <div className="flex justify-end gap-2">
               <button
                 onClick={handleAgregar}
-                className="bg-blue-600 text-white px-4 py-2 rounded"
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
               >
                 Guardar
               </button>
               <button
                 onClick={() => setMostrarModal(false)}
-                className="bg-gray-400 text-white px-4 py-2 rounded"
+                className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 transition-colors"
               >
                 Cancelar
               </button>
@@ -966,13 +973,13 @@ function App() {
                     setComentarioModal(null);
                   }
                 }}
-                className="flex-1 bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 font-medium"
+                className="flex-1 bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 font-medium transition-colors"
               >
                 Editar
               </button>
               <button
                 onClick={() => setComentarioModal(null)}
-                className="flex-1 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 font-medium"
+                className="flex-1 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 font-medium transition-colors"
               >
                 Cerrar
               </button>

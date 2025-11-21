@@ -236,45 +236,32 @@ function App() {
       };
 
       // Comparaciones con conversión
-      if (llantaOriginal.referencia !== llantaNormalizada.referencia)
+      if (String(llantaOriginal.referencia) !== String(llanta.referencia))
         cambios.push(
-          `Referencia: ${llantaOriginal.referencia} → ${llantaNormalizada.referencia}`
+          `Referencia: ${llantaOriginal.referencia} → ${llanta.referencia}`
         );
-
-      if (llantaOriginal.marca !== llantaNormalizada.marca)
+      if (String(llantaOriginal.marca) !== String(llanta.marca))
+        cambios.push(`Marca: ${llantaOriginal.marca} → ${llanta.marca}`);
+      if (String(llantaOriginal.proveedor) !== String(llanta.proveedor))
         cambios.push(
-          `Marca: ${llantaOriginal.marca} → ${llantaNormalizada.marca}`
+          `Proveedor: ${llantaOriginal.proveedor} → ${llanta.proveedor}`
         );
-
-      if (llantaOriginal.proveedor !== llantaNormalizada.proveedor)
+      if (Number(llantaOriginal.costo_empresa) !== Number(llanta.costo_empresa))
         cambios.push(
-          `Proveedor: ${llantaOriginal.proveedor} → ${llantaNormalizada.proveedor}`
+          `Costo: ${llantaOriginal.costo_empresa} → ${llanta.costo_empresa}`
         );
-
       if (
-        Number(llantaOriginal.costo_empresa) !== llantaNormalizada.costo_empresa
+        Number(llantaOriginal.precio_cliente) !== Number(llanta.precio_cliente)
       )
         cambios.push(
-          `Costo: ${llantaOriginal.costo_empresa} → ${llantaNormalizada.costo_empresa}`
+          `Precio: ${llantaOriginal.precio_cliente} → ${llanta.precio_cliente}`
         );
-
-      if (
-        Number(llantaOriginal.precio_cliente) !==
-        llantaNormalizada.precio_cliente
-      )
-        cambios.push(
-          `Precio: ${llantaOriginal.precio_cliente} → ${llantaNormalizada.precio_cliente}`
-        );
-
-      if (Number(llantaOriginal.stock) !== llantaNormalizada.stock)
-        cambios.push(
-          `Stock: ${llantaOriginal.stock} → ${llantaNormalizada.stock}`
-        );
-
-      if (llantaOriginal.consignacion !== llantaNormalizada.consignacion)
+      if (Number(llantaOriginal.stock) !== Number(llanta.stock))
+        cambios.push(`Stock: ${llantaOriginal.stock} → ${llanta.stock}`);
+      if (!!llantaOriginal.consignacion !== !!llanta.consignacion)
         cambios.push(
           `Consignación: ${llantaOriginal.consignacion ? "Sí" : "No"} → ${
-            llantaNormalizada.consignacion ? "Sí" : "No"
+            llanta.consignacion ? "Sí" : "No"
           }`
         );
 

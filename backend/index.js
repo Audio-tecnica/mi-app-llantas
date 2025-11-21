@@ -17,9 +17,9 @@ const multer = require('multer');
 // CONFIGURAR CLOUDINARY
 // ===========================
 cloudinary.config({
-  cloud_name: 'dlgub1vaf',      // Reemplaza con tu Cloud Name
-  api_key: '971754543599966',            // Reemplaza con tu API Key
-  api_secret: 'q8N34PNwLpnmBSvfhGYuk6jmYR4'       // Reemplaza con tu API Secret
+  cloud_name: 'dlgub1vaf',
+  api_key: '971754543599966',
+  api_secret: 'q8N34PNwLpnmBSvfhGYuk6jmYR4'
 });
 
 // Configurar almacenamiento en Cloudinary
@@ -28,7 +28,7 @@ const storage = new CloudinaryStorage({
   params: {
     folder: 'rines',
     allowed_formats: ['jpg', 'png', 'jpeg', 'gif', 'webp'],
-    transformation: [{ width: 800, height: 800, crop: 'limit' }] // Optimiza el tamaño
+    transformation: [{ width: 800, height: 800, crop: 'limit' }]
   },
 });
 
@@ -42,12 +42,12 @@ const pool = new Pool({
 });
 
 // Middleware
-app.use(fileUpload());
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // ===========================
-//  CREAR CARPETA PARA FOTOS
+//  CREAR CARPETA PARA FOTOS (legacy)
 // ===========================
 const FILES_PATH = path.join(__dirname, "files");
 if (!fs.existsSync(FILES_PATH)) {
@@ -100,7 +100,7 @@ crearTabla();
 // ---------------- LLANTAS ----------------
 
 // Subir Excel (ACTUALIZADO)
-app.post("/api/upload", async (req, res) => {
+app.post("/api/upload", fileUpload(), async (req, res) => {
   if (!req.files || !req.files.file)
     return res.status(400).json({ error: "Archivo faltante" });
 
@@ -333,7 +333,7 @@ app.post("/api/agregar-rin", async (req, res) => {
       ]
     );
     
-    res.json(result.rows[0]); // ✅ Devolver el rin creado
+    res.json(result.rows[0]);
   } catch (error) {
     console.error("Error agregando rin:", error);
     res.status(500).json({ error: "Error agregando rin" });
@@ -383,18 +383,26 @@ app.post("/api/eliminar-rin", async (req, res) => {
 });
 
 // ===========================
-//   SUBIR FOTO PARA RINES (Cloudinary)
+//   SUBIR FOTO PARA RINES (Cloudinary) - CORREGIDO
 // ===========================
 app.post("/api/rines/subir-foto", upload.single('foto'), async (req, res) => {
   try {
+    console.log("📥 Body recibido:", req.body);
+    console.log("📸 Archivo recibido:", req.file);
+    
     const { id } = req.body;
     
+    if (!id) {
+      console.error("❌ ID no proporcionado");
+      return res.status(400).json({ error: "ID del rin no proporcionado" });
+    }
+    
     if (!req.file) {
+      console.error("❌ No se recibió archivo");
       return res.status(400).json({ error: "No se recibió ninguna imagen" });
     }
 
     // Cloudinary ya subió la imagen automáticamente
-    // Solo obtenemos la URL segura
     const urlFoto = req.file.path;
 
     console.log("✅ Foto subida a Cloudinary:", urlFoto);
@@ -402,18 +410,23 @@ app.post("/api/rines/subir-foto", upload.single('foto'), async (req, res) => {
     // Guardar URL en la base de datos
     await pool.query("UPDATE rines SET foto = $1 WHERE id = $2", [urlFoto, id]);
 
+    console.log("✅ URL guardada en BD para rin ID:", id);
+
     res.json({ success: true, foto: urlFoto });
   } catch (error) {
-    console.error("❌ Error al subir foto:", error);
-    res.status(500).json({ error: "Error al subir foto" });
+    console.error("❌ Error completo al subir foto:", error);
+    console.error("❌ Stack trace:", error.stack);
+    res.status(500).json({ 
+      error: error.message || "Error al subir foto",
+      details: error.toString()
+    });
   }
 });
 
 // Run server
 app.listen(PORT, () => {
   console.log(`✅ Servidor escuchando en puerto ${PORT}`);
-  console.log(`📁 Carpeta de archivos: ${FILES_PATH}`);
+  console.log(`📁 Cloudinary configurado correctamente`);
 });
-
 
 

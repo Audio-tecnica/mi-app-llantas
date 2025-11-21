@@ -410,7 +410,7 @@ function Rines() {
                     <th
                       onClick={() => ordenarPor("medida")}
                       className="cursor-pointer p-2"
-                      style={{ minWidth: '120px' }}
+                      style={{ minWidth: '150px', width: '150px' }}
                     >
                       Medida
                     </th>
@@ -493,7 +493,7 @@ function Rines() {
                               className="w-full border rounded text-sm p-1"
                             />
                           </td>
-                          <td className="px-3" style={{ minWidth: '120px' }}>
+                          <td style={{ minWidth: '150px', width: '150px', padding: '12px' }}>
                             <input
                               value={r.medida}
                               onChange={(e) =>
@@ -584,7 +584,7 @@ function Rines() {
                             )}
                           </td>
                           <td>{r.marca}</td>
-                          <td className="px-3" style={{ minWidth: '120px' }}>{r.medida || "—"}</td>
+                          <td style={{ minWidth: '150px', width: '150px', padding: '12px' }}>{r.medida || "—"}</td>
                           <td>{r.proveedor || "—"}</td>
                           <td className="text-blue-600">
                             {mostrarCosto

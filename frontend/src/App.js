@@ -96,7 +96,7 @@ function App() {
     const password = prompt("Ingrese la contraseña para ver el log de actividades:");
     
     // Cambia esta contraseña por la que quieras usar
-    const PASSWORD_CORRECTA = "admin123";
+    const PASSWORD_CORRECTA = "Cmd2025";
     
     if (password === PASSWORD_CORRECTA) {
       cargarLogs();
@@ -389,7 +389,7 @@ function App() {
             className="bg-indigo-600 text-white px-3 py-1.5 rounded text-sm hover:bg-indigo-700 font-semibold"
             title="Ver historial de cambios"
           >
-            📋 Historial
+            📋 Upgrade
           </button>
           
           <button

@@ -234,86 +234,59 @@ function App() {
         return;
       }
 
-      let cambios = [];
+      const cambios = [];
 
-      // Comparar cada campo con conversión de tipos
+      // Comparar cada campo
       if (String(llantaOriginalEdicion.referencia) !== String(llanta.referencia)) {
-        console.log("Cambio en referencia:", llantaOriginalEdicion.referencia, "→", llanta.referencia);
         cambios.push(`Referencia: ${llantaOriginalEdicion.referencia} → ${llanta.referencia}`);
       }
 
       if (String(llantaOriginalEdicion.marca) !== String(llanta.marca)) {
-        console.log("Cambio en marca:", llantaOriginalEdicion.marca, "→", llanta.marca);
         cambios.push(`Marca: ${llantaOriginalEdicion.marca} → ${llanta.marca}`);
       }
 
       if (String(llantaOriginalEdicion.proveedor) !== String(llanta.proveedor)) {
-        console.log("Cambio en proveedor:", llantaOriginalEdicion.proveedor, "→", llanta.proveedor);
         cambios.push(`Proveedor: ${llantaOriginalEdicion.proveedor} → ${llanta.proveedor}`);
       }
 
       if (Number(llantaOriginalEdicion.costo_empresa) !== Number(llanta.costo_empresa)) {
-        console.log("Cambio en costo:", llantaOriginalEdicion.costo_empresa, "→", llanta.costo_empresa);
         cambios.push(`Costo: ${llantaOriginalEdicion.costo_empresa} → ${llanta.costo_empresa}`);
       }
 
       if (Number(llantaOriginalEdicion.precio_cliente) !== Number(llanta.precio_cliente)) {
-        console.log("Cambio en precio:", llantaOriginalEdicion.precio_cliente, "→", llanta.precio_cliente);
         cambios.push(`Precio: ${llantaOriginalEdicion.precio_cliente} → ${llanta.precio_cliente}`);
       }
 
       if (Number(llantaOriginalEdicion.stock) !== Number(llanta.stock)) {
-        console.log("Cambio en stock:", llantaOriginalEdicion.stock, "→", llanta.stock);
         cambios.push(`Stock: ${llantaOriginalEdicion.stock} → ${llanta.stock}`);
       }
 
       if (!!llantaOriginalEdicion.consignacion !== !!llanta.consignacion) {
-        console.log("Cambio en consignación:", llantaOriginalEdicion.consignacion, "→", llanta.consignacion);
         cambios.push(
-          `Consignación: ${llantaOriginalEdicion.consignacion ? "Sí" : "No"} → ${
-            llanta.consignacion ? "Sí" : "No"
-          }`
+          `Consignación: ${llantaOriginalEdicion.consignacion ? "Sí" : "No"} → ${llanta.consignacion ? "Sí" : "No"}`
         );
       }
 
       console.log("🔍 Cambios detectados:", cambios);
 
-      // Actualizar la llanta en la base de datos
-      console.log("💾 Guardando en base de datos...");
-      await axios.post(
-        "https://mi-app-llantas.onrender.com/api/editar-llanta",
-        llanta
-      );
-      console.log("✅ Guardado en BD exitoso");
+      // Guardar en BD
+      await axios.post("https://mi-app-llantas.onrender.com/api/editar-llanta", llanta);
 
-      // Registrar actividad solo si hay cambios
+      // Registrar actividad
       if (cambios.length > 0) {
-        console.log("📝 Registrando actividad en logs...");
-        await registrarActividad(
-          "EDICIÓN",
-          `Llanta ${llanta.referencia}: ${cambios.join(", ")}`
-        );
-        console.log("✅ Actividad registrada correctamente");
-      } else {
-        console.log("⚠️ No hay cambios para registrar");
+        await registrarActividad("EDICIÓN", `Llanta ${llanta.referencia}: ${cambios.join(", ")}`);
       }
 
-      // Recargar las llantas para reflejar los cambios
-      console.log("🔄 Recargando llantas...");
-      const { data } = await axios.get(
-        "https://mi-app-llantas.onrender.com/api/llantas"
-      );
+      // Recargar
+      const { data } = await axios.get("https://mi-app-llantas.onrender.com/api/llantas");
       setLlantas(data);
-      console.log("✅ Llantas recargadas");
 
       setMensaje("Cambios guardados ✅");
       setModoEdicion(null);
-      setLlantaOriginalEdicion(null); // 🆕 Limpiar original
+      setLlantaOriginalEdicion(null);
       setTimeout(() => setMensaje(""), 2000);
-      console.log("=== FIN GUARDAR ===");
     } catch (error) {
-      console.error("❌ ERROR COMPLETO:", error);
-      console.error("❌ Error response:", error.response?.data);
+      console.error("❌ ERROR:", error);
       setMensaje("Error al guardar ❌");
       setTimeout(() => setMensaje(""), 2000);
     }

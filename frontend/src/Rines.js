@@ -252,134 +252,41 @@ function Rines() {
     }
   };
 
-  // Componente Tarjeta para Móvil
-  const TarjetaRin = ({ r }) => {
-    const stock = r.stock === 0 ? "Sin stock" : r.stock;
-    const stockColor = r.stock === 0 ? "text-red-600" : "text-green-600";
-
-    return (
-      <div className="bg-white rounded-2xl shadow-lg border p-4 mb-4">
-        {/* Encabezado de Tarjeta */}
-        <div className="flex justify-between items-start mb-3">
-          <div>
-            <h3 className="font-bold text-lg text-gray-800">{r.referencia}</h3>
-            <p className="text-sm text-gray-600">{r.marca}</p>
-          </div>
-          <input
-            type="checkbox"
-            checked={seleccionadas.includes(r.id)}
-            onChange={() => toggleSeleccion(r.id)}
-            className="w-5 h-5"
-          />
-        </div>
-
-        {/* Foto si existe */}
-        {r.foto && (
-          <button
-            onClick={() => setFotoModal(r.foto)}
-            className="w-full bg-purple-500 text-white px-3 py-2 rounded-lg hover:bg-purple-600 text-sm mb-3 whitespace-nowrap"
-          >
-            📷 Ver foto
-          </button>
-        )}
-
-        {/* Info Principal */}
-        <div className="grid grid-cols-2 gap-3 mb-3">
-          <div className="bg-blue-50 p-2 rounded-lg">
-            <p className="text-xs text-gray-600">Medida</p>
-            <p className="font-semibold text-gray-800">{r.medida || "—"}</p>
-          </div>
-          <div className={`p-2 rounded-lg ${stock === "Sin stock" ? "bg-red-50" : "bg-green-50"}`}>
-            <p className="text-xs text-gray-600">Stock</p>
-            <p className={`font-semibold ${stockColor}`}>{stock}</p>
-          </div>
-          <div className="bg-yellow-50 p-2 rounded-lg">
-            <p className="text-xs text-gray-600">Proveedor</p>
-            <p className="font-semibold text-gray-800 text-sm">{r.proveedor || "—"}</p>
-          </div>
-          <div className="bg-green-50 p-2 rounded-lg">
-            <p className="text-xs text-gray-600">Precio</p>
-            <p className="font-semibold text-green-600">
-              ${Number(r.precio).toLocaleString("es-CO", {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0,
-              })}
-            </p>
-          </div>
-        </div>
-
-        {/* Costo (si está visible) */}
-        {mostrarCosto && (
-          <div className="bg-blue-50 p-2 rounded-lg mb-3">
-            <p className="text-xs text-gray-600">Costo</p>
-            <p className="font-semibold text-blue-600">
-              ${Number(r.costo).toLocaleString("es-CO", {
-                minimumFractionDigits: 0,
-              })}
-            </p>
-          </div>
-        )}
-
-        {/* Botones de Acción */}
-        <div className="flex gap-2 flex-wrap">
-          <button
-            onClick={() => setModoEdicion(r.id)}
-            className="flex-1 bg-gray-200 hover:bg-gray-300 px-2 py-2 text-xs rounded font-medium"
-          >
-            ✏️ Editar
-          </button>
-          <button
-            onClick={() => handleEliminar(r.id)}
-            className="flex-1 bg-red-500 text-white hover:bg-red-600 px-2 py-2 text-xs rounded font-medium"
-          >
-            🗑️ Eliminar
-          </button>
-          <button
-            onClick={() => setSubirFotoId(r.id)}
-            className="flex-1 bg-green-500 text-white hover:bg-green-600 px-2 py-2 text-xs rounded font-medium"
-          >
-            📷 Foto
-          </button>
-        </div>
-      </div>
-    );
-  };
-
   // 🧩 Render
   return (
-    <div className="max-w-7xl mx-auto p-2 sm:p-4">
+    <div className="max-w-7xl mx-auto p-4">
       {/* Encabezado */}
-      <div className="flex justify-between items-center mb-4 sm:mb-6 flex-wrap gap-2">
-        <img src="/logowp.PNG" className="h-10 sm:h-13 w-32 sm:w-48" alt="Logo" />
-        <div className="flex flex-wrap gap-1 sm:gap-2">
+      <div className="flex justify-between items-center mb-6 flex-wrap gap-2">
+        <img src="/logowp.PNG" className="h-13 w-48" alt="Logo" />
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setMostrarModal(true)}
-            className="bg-gray-700 text-white px-2 sm:px-3 py-1.5 rounded text-xs sm:text-sm hover:bg-gray-800"
+            className="bg-gray-700 text-white px-3 py-1.5 rounded text-sm hover:bg-gray-800"
           >
-            Agregar
+            Agregar rin
           </button>
           <button
             onClick={handleEliminarMultiples}
             disabled={seleccionadas.length === 0}
-            className="bg-red-600 text-white px-2 sm:px-3 py-1.5 rounded text-xs sm:text-sm hover:bg-red-700 disabled:opacity-50"
+            className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700 disabled:opacity-50"
           >
-            Eliminar
+            Eliminar seleccionados
           </button>
           <button
             onClick={() => {
               localStorage.removeItem("acceso");
               window.location.href = "/login";
             }}
-            className="bg-red-500 text-white px-2 sm:px-3 py-1.5 rounded text-xs sm:text-sm hover:bg-red-600"
+            className="bg-red-500 text-white px-3 py-1.5 rounded text-sm hover:bg-red-600"
           >
-            Salir
+            Cerrar sesión
           </button>
         </div>
       </div>
 
       {/* Mensajes */}
       {mensaje && (
-        <div className="text-center text-blue-700 font-semibold mb-4 text-sm sm:text-base">
+        <div className="text-center text-blue-700 font-semibold mb-4">
           ◉{mensaje}
         </div>
       )}
@@ -391,39 +298,39 @@ function Rines() {
         </div>
       ) : (
         <>
-          <div className="flex space-x-2 sm:space-x-3 flex-wrap mb-4">
+          <div className="flex space-x-3 flex-wrap">
             <button
               onClick={() => {
                 setBusqueda("");
                 setMarcaSeleccionada("");
                 setMedidaSeleccionada("");
               }}
-              className="bg-orange-600 text-white px-2 py-2 rounded-lg hover:bg-orange-700 transition text-xs sm:text-sm"
+              className="bg-orange-600 text-white px-2 py-2 rounded-lg hover:bg-orange-700 transition"
             >
-              Limpiar
+              Limpiar filtros
             </button>
 
             <button
               onClick={() => navigate("/")}
-              className="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition text-xs sm:text-sm"
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
             >
-              Llantas
+              Volver a Llantas
             </button>
 
             <button
               onClick={() => navigate("/tapetes")}
-              className="bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition text-xs sm:text-sm"
+              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
             >
-              Tapetes
+              Ir a Tapetes
             </button>
           </div>
 
-          <div className="text-xs sm:text-sm text-gray-700 mb-2">
+          <div className="text-sm text-gray-700 mb-2 mt-4">
             Mostrando {filtradas.length} resultados
           </div>
 
-          <div className="bg-white p-4 sm:p-6 rounded-3xl shadow-xl border mb-6">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4 sm:mb-6">
+          <div className="bg-white p-6 rounded-3xl shadow-xl border mb-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-6">
               Buscar rin
             </h2>
 
@@ -432,16 +339,16 @@ function Rines() {
               placeholder="Buscar referencia..."
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
-              className="w-full p-3 border-2 border-gray-500 rounded-3xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-500 text-sm"
+              className="w-full p-3 border-2 border-gray-500 rounded-3xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-500"
             />
 
-            <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-2 mt-4">
+            <label className="block text-sm font-medium text-gray-600 mb-2 mt-4">
               Marca
             </label>
             <select
               value={marcaSeleccionada}
               onChange={(e) => setMarcaSeleccionada(e.target.value)}
-              className="w-full p-3 sm:p-4 border-2 border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-gray-400 outline-none transition ease-in-out duration-300 text-sm"
+              className="w-full p-4 border-2 border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-gray-400 outline-none transition ease-in-out duration-300"
             >
               <option value="">Todas las marcas</option>
               {marcasUnicas.map((m) => (
@@ -452,13 +359,13 @@ function Rines() {
             </select>
 
             {/* Filtro por medida con botones */}
-            <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-2 mt-4 sm:mt-6">
+            <label className="block text-sm font-medium text-gray-600 mb-2 mt-6">
               Medida
             </label>
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setMedidaSeleccionada("")}
-                className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg font-semibold transition-all text-xs sm:text-sm ${
+                className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                   medidaSeleccionada === ""
                     ? "bg-gray-700 text-white shadow-lg"
                     : "bg-gray-200 text-gray-700 hover:bg-gray-300"
@@ -470,7 +377,7 @@ function Rines() {
                 <button
                   key={medida}
                   onClick={() => setMedidaSeleccionada(medida)}
-                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg font-semibold transition-all text-xs sm:text-sm ${
+                  className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                     medidaSeleccionada === medida
                       ? "bg-blue-600 text-white shadow-lg"
                       : "bg-blue-100 text-blue-700 hover:bg-blue-200"
@@ -481,15 +388,8 @@ function Rines() {
               ))}
             </div>
 
-            {/* Vista Móvil - Tarjetas */}
-            <div className="md:hidden mt-6">
-              {filtradas.map((r) => (
-                <TarjetaRin key={r.id} r={r} />
-              ))}
-            </div>
-
-            {/* Vista Desktop - Tabla */}
-            <div className="hidden md:block overflow-auto mt-6">
+            {/* Tabla */}
+            <div className="overflow-auto mt-6">
               <table className="w-full border text-sm">
                 <thead className="bg-gradient-to-r from-gray-500 to-gray-300 text-black">
                   <tr>

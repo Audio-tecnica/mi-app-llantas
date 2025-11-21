@@ -227,13 +227,9 @@ function App() {
     try {
       console.log("=== INICIO GUARDAR ===");
       console.log("Llanta a guardar:", llanta);
-      
-      // Obtener la llanta original de tu estado
-      const llantaOriginal = llantas.find((l) => l.id === llanta.id);
-      
-      console.log("Llanta original:", llantaOriginal);
-      
-      if (!llantaOriginal) {
+      console.log("Llanta original guardada:", llantaOriginalEdicion);
+
+      if (!llantaOriginalEdicion) {
         setMensaje("Error: No se encontró la llanta original ❌");
         return;
       }
@@ -241,42 +237,95 @@ function App() {
       let cambios = [];
 
       // Comparar cada campo con conversión de tipos
-      if (String(llantaOriginal.referencia) !== String(llanta.referencia)) {
-        console.log("Cambio en referencia:", llantaOriginal.referencia, "→", llanta.referencia);
-        cambios.push(`Referencia: ${llantaOriginal.referencia} → ${llanta.referencia}`);
-      }
-
-      if (String(llantaOriginal.marca) !== String(llanta.marca)) {
-        console.log("Cambio en marca:", llantaOriginal.marca, "→", llanta.marca);
-        cambios.push(`Marca: ${llantaOriginal.marca} → ${llanta.marca}`);
-      }
-
-      if (String(llantaOriginal.proveedor) !== String(llanta.proveedor)) {
-        console.log("Cambio en proveedor:", llantaOriginal.proveedor, "→", llanta.proveedor);
-        cambios.push(`Proveedor: ${llantaOriginal.proveedor} → ${llanta.proveedor}`);
-      }
-
-      if (Number(llantaOriginal.costo_empresa) !== Number(llanta.costo_empresa)) {
-        console.log("Cambio en costo:", llantaOriginal.costo_empresa, "→", llanta.costo_empresa);
-        cambios.push(`Costo: ${llantaOriginal.costo_empresa} → ${llanta.costo_empresa}`);
-      }
-
-      if (Number(llantaOriginal.precio_cliente) !== Number(llanta.precio_cliente)) {
-        console.log("Cambio en precio:", llantaOriginal.precio_cliente, "→", llanta.precio_cliente);
-        cambios.push(`Precio: ${llantaOriginal.precio_cliente} → ${llanta.precio_cliente}`);
-      }
-
-      if (Number(llantaOriginal.stock) !== Number(llanta.stock)) {
-        console.log("Cambio en stock:", llantaOriginal.stock, "→", llanta.stock);
-        cambios.push(`Stock: ${llantaOriginal.stock} → ${llanta.stock}`);
-      }
-
-      if (!!llantaOriginal.consignacion !== !!llanta.consignacion) {
-        console.log("Cambio en consignación:", llantaOriginal.consignacion, "→", llanta.consignacion);
+      if (
+        String(llantaOriginalEdicion.referencia) !== String(llanta.referencia)
+      ) {
+        console.log(
+          "Cambio en referencia:",
+          llantaOriginalEdicion.referencia,
+          "→",
+          llanta.referencia
+        );
         cambios.push(
-          `Consignación: ${llantaOriginal.consignacion ? "Sí" : "No"} → ${
-            llanta.consignacion ? "Sí" : "No"
-          }`
+          `Referencia: ${llantaOriginalEdicion.referencia} → ${llanta.referencia}`
+        );
+      }
+
+      if (String(llantaOriginalEdicion.marca) !== String(llanta.marca)) {
+        console.log(
+          "Cambio en marca:",
+          llantaOriginalEdicion.marca,
+          "→",
+          llanta.marca
+        );
+        cambios.push(`Marca: ${llantaOriginalEdicion.marca} → ${llanta.marca}`);
+      }
+
+      if (
+        String(llantaOriginalEdicion.proveedor) !== String(llanta.proveedor)
+      ) {
+        console.log(
+          "Cambio en proveedor:",
+          llantaOriginalEdicion.proveedor,
+          "→",
+          llanta.proveedor
+        );
+        cambios.push(
+          `Proveedor: ${llantaOriginalEdicion.proveedor} → ${llanta.proveedor}`
+        );
+      }
+
+      if (
+        Number(llantaOriginalEdicion.costo_empresa) !==
+        Number(llanta.costo_empresa)
+      ) {
+        console.log(
+          "Cambio en costo:",
+          llantaOriginalEdicion.costo_empresa,
+          "→",
+          llanta.costo_empresa
+        );
+        cambios.push(
+          `Costo: ${llantaOriginalEdicion.costo_empresa} → ${llanta.costo_empresa}`
+        );
+      }
+
+      if (
+        Number(llantaOriginalEdicion.precio_cliente) !==
+        Number(llanta.precio_cliente)
+      ) {
+        console.log(
+          "Cambio en precio:",
+          llantaOriginalEdicion.precio_cliente,
+          "→",
+          llanta.precio_cliente
+        );
+        cambios.push(
+          `Precio: ${llantaOriginalEdicion.precio_cliente} → ${llanta.precio_cliente}`
+        );
+      }
+
+      if (Number(llantaOriginalEdicion.stock) !== Number(llanta.stock)) {
+        console.log(
+          "Cambio en stock:",
+          llantaOriginalEdicion.stock,
+          "→",
+          llanta.stock
+        );
+        cambios.push(`Stock: ${llantaOriginalEdicion.stock} → ${llanta.stock}`);
+      }
+
+      if (!!llantaOriginalEdicion.consignacion !== !!llanta.consignacion) {
+        console.log(
+          "Cambio en consignación:",
+          llantaOriginalEdicion.consignacion,
+          "→",
+          llanta.consignacion
+        );
+        cambios.push(
+          `Consignación: ${
+            llantaOriginalEdicion.consignacion ? "Sí" : "No"
+          } → ${llanta.consignacion ? "Sí" : "No"}`
         );
       }
 
@@ -312,6 +361,7 @@ function App() {
 
       setMensaje("Cambios guardados ✅");
       setModoEdicion(null);
+      setLlantaOriginalEdicion(null); // 🆕 Limpiar original
       setTimeout(() => setMensaje(""), 2000);
       console.log("=== FIN GUARDAR ===");
     } catch (error) {

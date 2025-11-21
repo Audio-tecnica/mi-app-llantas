@@ -851,8 +851,9 @@ function App() {
                               <button
                                 onClick={() => iniciarEdicion(ll.id)}
                                 className="bg-gray-200 hover:bg-gray-300 px-2 py-1 text-xs rounded transition-colors"
+                                title="Editar"
                               >
-                                ✏️ Editar
+                                ✏️
                               </button>
 
                               <button

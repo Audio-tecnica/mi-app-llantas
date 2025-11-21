@@ -596,26 +596,26 @@ function App() {
                       onClick={() => ordenarPor("referencia")}
                       className="cursor-pointer p-2 hover:bg-orange-400 transition-colors"
                     >
-                      Referencia ↕
+                      Referencia
                     </th>
                     <th className="p-2">Búsqueda</th>
                     <th
                       onClick={() => ordenarPor("marca")}
                       className="cursor-pointer p-2 hover:bg-orange-400 transition-colors"
                     >
-                      Marca ↕
+                      Marca
                     </th>
                     <th
                       onClick={() => ordenarPor("proveedor")}
                       className="cursor-pointer p-2 hover:bg-orange-400 transition-colors"
                     >
-                      Proveedor ↕
+                      Proveedor
                     </th>
                     <th
                       onClick={() => ordenarPor("costo_empresa")}
                       className="cursor-pointer p-2 hover:bg-orange-400 transition-colors"
                     >
-                      Costo ↕
+                      Costo
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -634,13 +634,13 @@ function App() {
                       onClick={() => ordenarPor("precio_cliente")}
                       className="cursor-pointer p-2 hover:bg-orange-400 transition-colors"
                     >
-                      Precio ↕
+                      Precio
                     </th>
                     <th
                       onClick={() => ordenarPor("stock")}
                       className="cursor-pointer p-2 hover:bg-orange-400 transition-colors"
                     >
-                      Stock ↕
+                      Stock
                     </th>
                     <th className="p-2">Acción</th>
                   </tr>

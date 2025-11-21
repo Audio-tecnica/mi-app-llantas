@@ -844,7 +844,7 @@ function App() {
                             ${ll.precio_cliente.toLocaleString()}
                           </td>
                           <td className={ll.stock === 0 ? "text-red-600 font-bold" : "font-semibold"}>
-                            {ll.stock === 0 ? "❌ Sin stock" : ll.stock}
+                            {ll.stock === 0 ? "❌" : ll.stock}
                           </td>
                           <td className="p-2">
                             <div className="flex gap-1 justify-center items-center">

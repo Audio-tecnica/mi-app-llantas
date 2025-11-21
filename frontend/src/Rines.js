@@ -26,7 +26,7 @@ function Rines() {
   const [cargando, setCargando] = useState(true);
   const [orden, setOrden] = useState({ campo: "", asc: true });
   const [seleccionadas, setSeleccionadas] = useState([]);
-
+  
   // Estados para fotos
   const [fotoModal, setFotoModal] = useState(null);
   const [subirFotoId, setSubirFotoId] = useState(null);
@@ -43,20 +43,19 @@ function Rines() {
   }, []);
 
   const marcasUnicas = [...new Set(rines.map((r) => r.marca))];
-
+  
   // Medidas disponibles
-  const medidasDisponibles = ["15", "16", "17", "18", "20"];
+  const medidasDisponibles = ['15', '16', '17', '18', '20'];
 
   const filtradas = rines.filter((r) => {
     const coincideBusqueda = r.referencia
       ?.toLowerCase()
       .includes(busqueda.toLowerCase());
     const coincideMarca = !marcaSeleccionada || r.marca === marcaSeleccionada;
-
-    const coincideMedida =
-      !medidaSeleccionada ||
+    
+    const coincideMedida = !medidaSeleccionada || 
       r.medida?.toString().startsWith(medidaSeleccionada);
-
+    
     return coincideBusqueda && coincideMarca && coincideMedida;
   });
 
@@ -122,9 +121,10 @@ function Rines() {
   const handleEliminar = async (id) => {
     if (!window.confirm("¿Eliminar este rin?")) return;
     try {
-      await axios.post("https://mi-app-llantas.onrender.com/api/eliminar-rin", {
-        id,
-      });
+      await axios.post(
+        "https://mi-app-llantas.onrender.com/api/eliminar-rin",
+        { id }
+      );
       setRines((prev) => prev.filter((r) => r.id !== id));
       setMensaje("Rin eliminado ✅");
       setTimeout(() => setMensaje(""), 2000);
@@ -189,7 +189,7 @@ function Rines() {
     }
 
     // Validar que sea una imagen
-    if (!archivoFoto.type.startsWith("image/")) {
+    if (!archivoFoto.type.startsWith('image/')) {
       setMensaje("Solo se permiten archivos de imagen ❌");
       setTimeout(() => setMensaje(""), 2000);
       return;
@@ -215,11 +215,11 @@ function Rines() {
       const { data } = await axios.post(
         "https://mi-app-llantas.onrender.com/api/rines/subir-foto",
         formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
+        { 
+          headers: { 
+            "Content-Type": "multipart/form-data" 
           },
-          timeout: 30000,
+          timeout: 30000
         }
       );
 
@@ -237,14 +237,14 @@ function Rines() {
     } catch (e) {
       console.error("❌ Error completo:", e);
       console.error("❌ Respuesta del servidor:", e.response?.data);
-
+      
       let mensajeError = "Error al subir foto ❌";
       if (e.response?.data?.error) {
         mensajeError = `Error: ${e.response.data.error}`;
-      } else if (e.code === "ECONNABORTED") {
+      } else if (e.code === 'ECONNABORTED') {
         mensajeError = "Tiempo de espera agotado. La imagen es muy grande ❌";
       }
-
+      
       setMensaje(mensajeError);
       setTimeout(() => setMensaje(""), 4000);
     } finally {
@@ -390,17 +390,17 @@ function Rines() {
 
             {/* Tabla */}
             <div className="overflow-auto mt-6">
-              <table className="w-full border text-sm">
+              <table className="w-full border text-sm table-fixed">
                 <thead className="bg-gradient-to-r from-gray-500 to-gray-300 text-black">
                   <tr>
-                    <th></th>
+                    <th className="w-12"></th>
                     <th
                       onClick={() => ordenarPor("referencia")}
                       className="cursor-pointer p-2"
                     >
                       Referencia
                     </th>
-                    <th className="p-2">Foto</th>
+                    <th className="p-2 w-16">Foto</th>
                     <th
                       onClick={() => ordenarPor("marca")}
                       className="cursor-pointer p-2"
@@ -409,7 +409,7 @@ function Rines() {
                     </th>
                     <th
                       onClick={() => ordenarPor("medida")}
-                      className="cursor-pointer p-2"
+                      className="cursor-pointer p-2 w-24"
                     >
                       Medida
                     </th>
@@ -492,7 +492,7 @@ function Rines() {
                               className="w-full border rounded text-sm p-1"
                             />
                           </td>
-                          <td className="min-w-[80px]">
+                          <td className="w-24 px-3">
                             <input
                               value={r.medida}
                               onChange={(e) =>
@@ -519,7 +519,11 @@ function Rines() {
                               type="number"
                               value={r.costo}
                               onChange={(e) =>
-                                actualizarCampo(r.id, "costo", e.target.value)
+                                actualizarCampo(
+                                  r.id,
+                                  "costo",
+                                  e.target.value
+                                )
                               }
                               className="w-full border rounded text-sm p-1"
                             />
@@ -529,7 +533,11 @@ function Rines() {
                               type="number"
                               value={r.precio}
                               onChange={(e) =>
-                                actualizarCampo(r.id, "precio", e.target.value)
+                                actualizarCampo(
+                                  r.id,
+                                  "precio",
+                                  e.target.value
+                                )
                               }
                               className="w-full border rounded text-sm p-1"
                             />
@@ -561,7 +569,9 @@ function Rines() {
                         </>
                       ) : (
                         <>
-                          <td className="p-2">{r.referencia}</td>
+                          <td className="p-2">
+                            {r.referencia}
+                          </td>
                           <td className="p-2">
                             {r.foto && (
                               <button
@@ -573,7 +583,7 @@ function Rines() {
                             )}
                           </td>
                           <td>{r.marca}</td>
-                          <td>{r.medida || "—"}</td>
+                          <td className="w-24 px-3">{r.medida || "—"}</td>
                           <td>{r.proveedor || "—"}</td>
                           <td className="text-blue-600">
                             {mostrarCosto
@@ -680,8 +690,8 @@ function Rines() {
               alt="Foto del rin"
               className="max-w-full max-h-screen rounded-lg shadow-2xl object-contain"
               onError={(e) => {
-                e.target.src = "/placeholder-image.png";
-                e.target.alt = "Error al cargar imagen";
+                e.target.src = '/placeholder-image.png';
+                e.target.alt = 'Error al cargar imagen';
               }}
             />
             <button

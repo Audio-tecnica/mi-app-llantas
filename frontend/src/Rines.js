@@ -31,7 +31,7 @@ function Rines() {
   const [fotoModal, setFotoModal] = useState(null);
   const [subirFotoId, setSubirFotoId] = useState(null);
   const [archivoFoto, setArchivoFoto] = useState(null);
-  const [subiendoFoto, setSubiendoFoto] = useState(false);
+  const [subiendoFoto, setSubiendoFoto] = useState(false); // 🆕 Estado de carga
 
   // 📦 Cargar rines
   useEffect(() => {
@@ -43,6 +43,8 @@ function Rines() {
   }, []);
 
   const marcasUnicas = [...new Set(rines.map((r) => r.marca))];
+  
+  // Medidas disponibles
   const medidasDisponibles = ['15', '16', '17', '18', '20'];
 
   const filtradas = rines.filter((r) => {
@@ -50,8 +52,10 @@ function Rines() {
       ?.toLowerCase()
       .includes(busqueda.toLowerCase());
     const coincideMarca = !marcaSeleccionada || r.marca === marcaSeleccionada;
+    
     const coincideMedida = !medidaSeleccionada || 
       r.medida?.toString().startsWith(medidaSeleccionada);
+    
     return coincideBusqueda && coincideMarca && coincideMedida;
   });
 
@@ -70,6 +74,7 @@ function Rines() {
     setOrden({ campo, asc });
   };
 
+  // ✅ CRUD
   const toggleSeleccion = (id) => {
     setSeleccionadas((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
@@ -175,6 +180,7 @@ function Rines() {
     );
   };
 
+  // 🆕 Función CORREGIDA para subir foto a Cloudinary
   const handleSubirFoto = async (id) => {
     if (!archivoFoto) {
       setMensaje("Selecciona un archivo primero ❌");
@@ -182,12 +188,14 @@ function Rines() {
       return;
     }
 
+    // Validar que sea una imagen
     if (!archivoFoto.type.startsWith('image/')) {
       setMensaje("Solo se permiten archivos de imagen ❌");
       setTimeout(() => setMensaje(""), 2000);
       return;
     }
 
+    // Validar tamaño (máximo 5MB)
     if (archivoFoto.size > 5 * 1024 * 1024) {
       setMensaje("La imagen no puede superar 5MB ❌");
       setTimeout(() => setMensaje(""), 2000);
@@ -202,6 +210,8 @@ function Rines() {
       formData.append("foto", archivoFoto);
       formData.append("id", id);
 
+      console.log("📤 Enviando foto al servidor...");
+
       const { data } = await axios.post(
         "https://mi-app-llantas.onrender.com/api/rines/subir-foto",
         formData,
@@ -209,10 +219,13 @@ function Rines() {
           headers: { 
             "Content-Type": "multipart/form-data" 
           },
-          timeout: 30000
+          timeout: 30000 // 30 segundos de timeout
         }
       );
 
+      console.log("✅ Respuesta del servidor:", data);
+
+      // Actualizar el estado local con la nueva URL de Cloudinary
       setRines((prev) =>
         prev.map((r) => (r.id === id ? { ...r, foto: data.foto } : r))
       );
@@ -222,11 +235,16 @@ function Rines() {
       setMensaje("Foto subida exitosamente ✅");
       setTimeout(() => setMensaje(""), 3000);
     } catch (e) {
-      console.error("❌ Error:", e);
+      console.error("❌ Error completo:", e);
+      console.error("❌ Respuesta del servidor:", e.response?.data);
+      
       let mensajeError = "Error al subir foto ❌";
       if (e.response?.data?.error) {
         mensajeError = `Error: ${e.response.data.error}`;
+      } else if (e.code === 'ECONNABORTED') {
+        mensajeError = "Tiempo de espera agotado. La imagen es muy grande ❌";
       }
+      
       setMensaje(mensajeError);
       setTimeout(() => setMensaje(""), 4000);
     } finally {
@@ -280,7 +298,7 @@ function Rines() {
         </div>
       ) : (
         <>
-          <div className="flex space-x-3 flex-wrap gap-2">
+          <div className="flex space-x-3 flex-wrap">
             <button
               onClick={() => {
                 setBusqueda("");
@@ -370,144 +388,77 @@ function Rines() {
               ))}
             </div>
 
-            {/* Vista de TARJETAS para móvil y TABLA para desktop */}
-            
-            {/* VISTA MÓVIL - Tarjetas */}
-            <div className="block md:hidden mt-6 space-y-4">
-              {filtradas.map((r) => (
-                <div key={r.id} className="border rounded-lg p-4 bg-gray-50 shadow">
-                  <div className="flex items-start justify-between mb-3">
-                    <input
-                      type="checkbox"
-                      checked={seleccionadas.includes(r.id)}
-                      onChange={() => toggleSeleccion(r.id)}
-                      className="mt-1"
-                    />
-                    <div className="flex-1 ml-3">
-                      <div className="font-bold text-gray-800 mb-1">{r.referencia}</div>
-                      <div className="text-sm text-gray-600">
-                        <span className="font-semibold">Marca:</span> {r.marca}
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        <span className="font-semibold">Medida:</span> {r.medida || "—"}
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        <span className="font-semibold">Proveedor:</span> {r.proveedor || "—"}
-                      </div>
-                      <div className="text-sm mt-2">
-                        <span className="font-semibold text-blue-600">Costo:</span>{" "}
-                        {mostrarCosto
-                          ? `$${Number(r.costo).toLocaleString("es-CO")}`
-                          : "•••••"}
-                      </div>
-                      <div className="text-sm">
-                        <span className="font-semibold text-green-600">Precio:</span>{" "}
-                        ${Number(r.precio).toLocaleString("es-CO")}
-                      </div>
-                      <div className="text-sm">
-                        <span className="font-semibold">Stock:</span>{" "}
-                        <span className={r.stock === 0 ? "text-red-600" : ""}>
-                          {r.stock === 0 ? "Sin stock" : r.stock}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    {r.foto && (
-                      <button
-                        onClick={() => setFotoModal(r.foto)}
-                        className="bg-purple-500 text-white px-3 py-1.5 rounded text-xs hover:bg-purple-600"
-                      >
-                        📷 Ver foto
-                      </button>
-                    )}
-                    <button
-                      onClick={() => setModoEdicion(r.id)}
-                      className="bg-gray-200 hover:bg-gray-300 px-3 py-1.5 text-xs rounded"
-                    >
-                      Editar
-                    </button>
-                    <button
-                      onClick={() => handleEliminar(r.id)}
-                      className="bg-red-500 text-white hover:bg-red-600 px-3 py-1.5 text-xs rounded"
-                    >
-                      Eliminar
-                    </button>
-                    <button
-                      onClick={() => setSubirFotoId(r.id)}
-                      className="bg-green-500 text-white hover:bg-green-600 px-3 py-1.5 text-xs rounded"
-                    >
-                      📷 Foto
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* VISTA DESKTOP - Tabla */}
-            <div className="hidden md:block overflow-auto mt-6">
+            {/* Tabla */}
+            <div className="overflow-auto mt-6">
               <table className="w-full border text-sm">
                 <thead className="bg-gradient-to-r from-gray-500 to-gray-300 text-black">
                   <tr>
-                    <th className="border py-3 px-4"></th>
+                    <th></th>
                     <th
                       onClick={() => ordenarPor("referencia")}
-                      className="border py-3 px-4 cursor-pointer hover:bg-gray-400 transition-colors"
+                      className="cursor-pointer p-2"
                     >
                       Referencia
                     </th>
                     <th
                       onClick={() => ordenarPor("marca")}
-                      className="border py-3 px-4 cursor-pointer hover:bg-gray-400 transition-colors"
+                      className="cursor-pointer p-2"
                     >
                       Marca
                     </th>
                     <th
                       onClick={() => ordenarPor("medida")}
-                      className="border py-3 px-4 cursor-pointer hover:bg-gray-400 transition-colors"
+                      className="cursor-pointer p-2"
                     >
                       Medida
                     </th>
                     <th
                       onClick={() => ordenarPor("proveedor")}
-                      className="border py-3 px-4 cursor-pointer hover:bg-gray-400 transition-colors"
+                      className="cursor-pointer p-2"
                     >
                       Proveedor
                     </th>
-                    <th className="border py-3 px-4">
-                      <div className="flex items-center justify-center gap-2">
-                        <span>Costo</span>
-                        <button
-                          onClick={() => setMostrarCosto(!mostrarCosto)}
-                          className="text-black"
-                        >
-                          {mostrarCosto ? <EyeOff size={16} /> : <Eye size={16} />}
-                        </button>
-                      </div>
+                    <th
+                      onClick={() => ordenarPor("costo")}
+                      className="cursor-pointer p-2"
+                    >
+                      Costo
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setMostrarCosto(!mostrarCosto);
+                        }}
+                        className="ml-2 text-white-600"
+                      >
+                        {mostrarCosto ? (
+                          <EyeOff size={16} />
+                        ) : (
+                          <Eye size={16} />
+                        )}
+                      </button>
                     </th>
                     <th
                       onClick={() => ordenarPor("precio")}
-                      className="border py-3 px-4 cursor-pointer hover:bg-gray-400 transition-colors"
+                      className="cursor-pointer p-2"
                     >
                       Precio
                     </th>
                     <th
                       onClick={() => ordenarPor("stock")}
-                      className="border py-3 px-4 cursor-pointer hover:bg-gray-400 transition-colors"
+                      className="cursor-pointer p-2"
                     >
                       Stock
                     </th>
-                    <th className="border py-3 px-4">Acción</th>
+                    <th className="p-2">Acción</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filtradas.map((r) => (
                     <tr
                       key={r.id}
-                      className="border-t even:bg-gray-50 hover:bg-blue-50 transition-colors"
+                      className="text-center border-t even:bg-gray-50"
                     >
-                      <td className="border py-3 px-4 text-center">
+                      <td>
                         <input
                           type="checkbox"
                           checked={seleccionadas.includes(r.id)}
@@ -517,80 +468,158 @@ function Rines() {
 
                       {modoEdicion === r.id ? (
                         <>
-                          {["referencia", "marca", "medida", "proveedor", "costo", "precio", "stock"].map((campo) => (
-                            <td key={campo} className="border py-3 px-4">
-                              <input
-                                value={r[campo]}
-                                onChange={(e) => actualizarCampo(r.id, campo, e.target.value)}
-                                className="w-full border rounded text-sm p-1"
-                              />
-                            </td>
-                          ))}
-                          <td className="border py-3 px-4">
-                            <div className="flex gap-1 justify-center">
-                              <button
-                                onClick={() => handleGuardar(r)}
-                                className="bg-blue-500 text-white px-2 py-1 text-xs rounded"
-                              >
-                                Guardar
-                              </button>
-                              <button
-                                onClick={() => setModoEdicion(null)}
-                                className="bg-gray-300 text-black px-2 py-1 text-xs rounded"
-                              >
-                                Cancelar
-                              </button>
-                            </div>
+                          <td>
+                            <input
+                              value={r.referencia}
+                              onChange={(e) =>
+                                actualizarCampo(
+                                  r.id,
+                                  "referencia",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full border rounded text-sm p-1"
+                            />
+                          </td>
+                          <td>
+                            <input
+                              value={r.marca}
+                              onChange={(e) =>
+                                actualizarCampo(r.id, "marca", e.target.value)
+                              }
+                              className="w-full border rounded text-sm p-1"
+                            />
+                          </td>
+                          <td>
+                            <input
+                              value={r.medida}
+                              onChange={(e) =>
+                                actualizarCampo(r.id, "medida", e.target.value)
+                              }
+                              className="w-full border rounded text-sm p-1"
+                            />
+                          </td>
+                          <td>
+                            <input
+                              value={r.proveedor}
+                              onChange={(e) =>
+                                actualizarCampo(
+                                  r.id,
+                                  "proveedor",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full border rounded text-sm p-1"
+                            />
+                          </td>
+                          <td>
+                            <input
+                              type="number"
+                              value={r.costo}
+                              onChange={(e) =>
+                                actualizarCampo(
+                                  r.id,
+                                  "costo",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full border rounded text-sm p-1"
+                            />
+                          </td>
+                          <td>
+                            <input
+                              type="number"
+                              value={r.precio}
+                              onChange={(e) =>
+                                actualizarCampo(
+                                  r.id,
+                                  "precio",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full border rounded text-sm p-1"
+                            />
+                          </td>
+                          <td>
+                            <input
+                              type="number"
+                              value={r.stock}
+                              onChange={(e) =>
+                                actualizarCampo(r.id, "stock", e.target.value)
+                              }
+                              className="w-full border rounded text-sm p-1"
+                            />
+                          </td>
+                          <td className="flex gap-1 justify-center">
+                            <button
+                              onClick={() => handleGuardar(r)}
+                              className="bg-blue-500 text-white px-2 py-1 text-xs rounded"
+                            >
+                              Guardar
+                            </button>
+                            <button
+                              onClick={() => setModoEdicion(null)}
+                              className="bg-gray-300 text-black px-2 py-1 text-xs rounded"
+                            >
+                              Cancelar
+                            </button>
                           </td>
                         </>
                       ) : (
                         <>
-                          <td className="border py-3 px-4">
-                            <div className="flex items-center justify-center gap-2">
+                          <td className="p-2">
+                            <div className="flex items-center justify-center gap-2 flex-wrap">
                               <span>{r.referencia}</span>
                               {r.foto && (
                                 <button
                                   onClick={() => setFotoModal(r.foto)}
-                                  className="bg-purple-500 text-white px-2 py-1 rounded hover:bg-purple-600 text-xs"
+                                  className="bg-purple-500 text-white px-2 py-1 rounded hover:bg-purple-600 text-xs whitespace-nowrap"
                                 >
-                                  📷
+                                  📷 Ver foto
                                 </button>
                               )}
                             </div>
                           </td>
-                          <td className="border py-3 px-4 text-center">{r.marca}</td>
-                          <td className="border py-3 px-4 text-center">{r.medida || "—"}</td>
-                          <td className="border py-3 px-4 text-center">{r.proveedor || "—"}</td>
-                          <td className="border py-3 px-4 text-center text-blue-600">
+                          <td>{r.marca}</td>
+                          <td>{r.medida || "—"}</td>
+                          <td>{r.proveedor || "—"}</td>
+                          <td className="text-blue-600">
                             {mostrarCosto
-                              ? `$${Number(r.costo).toLocaleString("es-CO")}`
+                              ? `$${Number(r.costo).toLocaleString("es-CO", {
+                                  minimumFractionDigits: 0,
+                                })}`
                               : "•••••"}
                           </td>
-                          <td className="border py-3 px-4 text-center text-green-600">
-                            ${Number(r.precio).toLocaleString("es-CO")}
+                          <td className="text-green-600">
+                            {r.precio !== undefined && r.precio !== null
+                              ? `$${Number(r.precio).toLocaleString("es-CO", {
+                                  minimumFractionDigits: 0,
+                                  maximumFractionDigits: 0,
+                                })}`
+                              : "$0"}
                           </td>
-                          <td className={`border py-3 px-4 text-center ${r.stock === 0 ? "text-red-600" : ""}`}>
+                          <td className={r.stock === 0 ? "text-red-600" : ""}>
                             {r.stock === 0 ? "Sin stock" : r.stock}
                           </td>
-                          <td className="border py-3 px-4">
-                            <div className="flex gap-1 justify-center">
+                          <td className="p-2">
+                            <div className="flex gap-1 justify-center flex-wrap">
                               <button
                                 onClick={() => setModoEdicion(r.id)}
-                                className="bg-gray-200 hover:bg-gray-300 px-2 py-1 text-xs rounded"
+                                className="bg-gray-200 hover:bg-gray-300 px-2 py-1 text-xs rounded whitespace-nowrap"
                               >
                                 Editar
                               </button>
                               <button
                                 onClick={() => handleEliminar(r.id)}
-                                className="bg-red-500 text-white hover:bg-red-600 px-2 py-1 text-xs rounded"
+                                className="bg-red-500 text-white hover:bg-red-600 px-2 py-1 text-xs rounded whitespace-nowrap"
                               >
                                 Eliminar
                               </button>
                               <button
                                 onClick={() => setSubirFotoId(r.id)}
-                                className="bg-green-500 text-white hover:bg-green-600 px-2 py-1 text-xs rounded"
+                                className="bg-green-500 text-white hover:bg-green-600 px-2 py-1 text-xs rounded whitespace-nowrap"
                               >
-                                📷
+                                📷 Foto
                               </button>
                             </div>
                           </td>
@@ -610,7 +639,15 @@ function Rines() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">Agregar nuevo rin</h2>
-            {["referencia", "marca", "medida", "proveedor", "costo", "precio", "stock"].map((campo) => (
+            {[
+              "referencia",
+              "marca",
+              "medida",
+              "proveedor",
+              "costo",
+              "precio",
+              "stock",
+            ].map((campo) => (
               <input
                 key={campo}
                 placeholder={campo.replace("_", " ").toUpperCase()}
@@ -639,7 +676,7 @@ function Rines() {
         </div>
       )}
 
-      {/* Modal subir foto */}
+      {/* Modal subir foto - MEJORADO */}
       {subirFotoId && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">

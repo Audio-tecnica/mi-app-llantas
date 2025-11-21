@@ -423,6 +423,42 @@ app.post("/api/rines/subir-foto", upload.single('foto'), async (req, res) => {
   }
 });
 
+// Tabla para logs en PostgreSQL (ejecuta esto primero en tu base de datos)
+/*
+CREATE TABLE logs_actividad (
+  id SERIAL PRIMARY KEY,
+  tipo VARCHAR(100),
+  detalles TEXT,
+  fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+*/
+
+// Ruta para guardar log de actividad
+app.post("/api/log-actividad", (req, res) => {
+  const { tipo, detalles, fecha } = req.body;
+  
+  const query = "INSERT INTO logs_actividad (tipo, detalles, fecha) VALUES ($1, $2, $3) RETURNING id";
+  db.query(query, [tipo, detalles, fecha], (err, result) => {
+    if (err) {
+      console.error("Error guardando log:", err);
+      return res.status(500).json({ error: "Error al guardar log" });
+    }
+    res.json({ success: true, id: result.rows[0].id });
+  });
+});
+
+// Ruta para obtener todos los logs (ordenados del más reciente al más antiguo)
+app.get("/api/logs", (req, res) => {
+  const query = "SELECT * FROM logs_actividad ORDER BY fecha DESC LIMIT 500";
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Error obteniendo logs:", err);
+      return res.status(500).json({ error: "Error al obtener logs" });
+    }
+    res.json(results.rows);
+  });
+});
+
 // Run server
 app.listen(PORT, () => {
   console.log(`✅ Servidor escuchando en puerto ${PORT}`);

@@ -31,6 +31,13 @@ function App() {
   const [orden, setOrden] = useState({ campo: "", asc: true });
   const [seleccionadas, setSeleccionadas] = useState([]);
 
+  // 🆕 Estados para log de actividades
+  const [mostrarLogModal, setMostrarLogModal] = useState(false);
+  const [logs, setLogs] = useState([]);
+  const [cargandoLogs, setCargandoLogs] = useState(false);
+  const [busquedaLog, setBusquedaLog] = useState("");
+  const [filtroTipoLog, setFiltroTipoLog] = useState("");
+
   const navigate = useNavigate();
 
   const [busquedasRecientes, setBusquedasRecientes] = useState(() => {
@@ -71,6 +78,49 @@ function App() {
       .finally(() => setCargando(false));
   }, []);
 
+  // 🆕 Función para registrar actividad
+  const registrarActividad = async (tipo, detalles) => {
+    try {
+      await axios.post("https://mi-app-llantas.onrender.com/api/log-actividad", {
+        tipo,
+        detalles,
+        fecha: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Error registrando actividad:", error);
+    }
+  };
+
+  // 🆕 Función para abrir log con contraseña
+  const abrirLogActividades = () => {
+    const password = prompt("Ingrese la contraseña para ver el log de actividades:");
+    
+    // Cambia esta contraseña por la que quieras usar
+    const PASSWORD_CORRECTA = "admin123";
+    
+    if (password === PASSWORD_CORRECTA) {
+      cargarLogs();
+      setMostrarLogModal(true);
+    } else if (password !== null) {
+      alert("❌ Contraseña incorrecta");
+    }
+  };
+
+  // 🆕 Función para cargar logs
+  const cargarLogs = async () => {
+    setCargandoLogs(true);
+    try {
+      const { data } = await axios.get("https://mi-app-llantas.onrender.com/api/logs");
+      setLogs(data);
+    } catch (error) {
+      console.error("Error cargando logs:", error);
+      setMensaje("Error al cargar historial ❌");
+      setTimeout(() => setMensaje(""), 2000);
+    } finally {
+      setCargandoLogs(false);
+    }
+  };
+
   const abrirComparador = (referencia) => {
     const url = `https://www.google.com/search?q=${encodeURIComponent(
       referencia +
@@ -99,6 +149,14 @@ function App() {
     );
   });
 
+  // 🆕 Filtrar logs
+  const logsFiltrados = logs.filter((log) => {
+    const coincideBusqueda = log.detalles?.toLowerCase().includes(busquedaLog.toLowerCase()) ||
+                             log.tipo?.toLowerCase().includes(busquedaLog.toLowerCase());
+    const coincideTipo = !filtroTipoLog || log.tipo === filtroTipoLog;
+    return coincideBusqueda && coincideTipo;
+  });
+
   // 🔃 Ordenar columnas
   const ordenarPor = (campo) => {
     const asc = orden.campo === campo ? !orden.asc : true;
@@ -115,7 +173,7 @@ function App() {
     setOrden({ campo, asc });
   };
 
-  // ✅ Funciones CRUD
+  // ✅ Funciones CRUD (modificadas para incluir logs)
   const toggleSeleccion = (id) => {
     setSeleccionadas((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
@@ -125,12 +183,24 @@ function App() {
   const handleEliminarMultiples = async () => {
     if (!window.confirm("¿Eliminar los ítems seleccionados?")) return;
     try {
+      const referencias = llantas
+        .filter(l => seleccionadas.includes(l.id))
+        .map(l => l.referencia)
+        .join(", ");
+      
       for (let id of seleccionadas) {
         await axios.post(
           "https://mi-app-llantas.onrender.com/api/eliminar-llanta",
           { id }
         );
       }
+      
+      // Registrar actividad
+      await registrarActividad(
+        "ELIMINACIÓN MÚLTIPLE",
+        `Se eliminaron ${seleccionadas.length} llantas: ${referencias}`
+      );
+      
       const { data } = await axios.get(
         "https://mi-app-llantas.onrender.com/api/llantas"
       );
@@ -146,10 +216,30 @@ function App() {
 
   const handleGuardar = async (llanta) => {
     try {
+      const llantaOriginal = llantas.find(l => l.id === llanta.id);
+      let cambios = [];
+      
+      if (llantaOriginal.referencia !== llanta.referencia) cambios.push(`Referencia: ${llantaOriginal.referencia} → ${llanta.referencia}`);
+      if (llantaOriginal.marca !== llanta.marca) cambios.push(`Marca: ${llantaOriginal.marca} → ${llanta.marca}`);
+      if (llantaOriginal.proveedor !== llanta.proveedor) cambios.push(`Proveedor: ${llantaOriginal.proveedor} → ${llanta.proveedor}`);
+      if (llantaOriginal.costo_empresa !== llanta.costo_empresa) cambios.push(`Costo: ${llantaOriginal.costo_empresa} → ${llanta.costo_empresa}`);
+      if (llantaOriginal.precio_cliente !== llanta.precio_cliente) cambios.push(`Precio: ${llantaOriginal.precio_cliente} → ${llanta.precio_cliente}`);
+      if (llantaOriginal.stock !== llanta.stock) cambios.push(`Stock: ${llantaOriginal.stock} → ${llanta.stock}`);
+      if (llantaOriginal.consignacion !== llanta.consignacion) cambios.push(`Consignación: ${llantaOriginal.consignacion ? 'Sí' : 'No'} → ${llanta.consignacion ? 'Sí' : 'No'}`);
+      
       await axios.post(
         "https://mi-app-llantas.onrender.com/api/editar-llanta",
         llanta
       );
+      
+      // Registrar actividad
+      if (cambios.length > 0) {
+        await registrarActividad(
+          "EDICIÓN",
+          `Llanta ${llanta.referencia}: ${cambios.join(", ")}`
+        );
+      }
+      
       setMensaje("Cambios guardados ✅");
       setModoEdicion(null);
       setTimeout(() => setMensaje(""), 2000);
@@ -162,10 +252,19 @@ function App() {
   const handleEliminar = async (id) => {
     if (!window.confirm("¿Estás seguro de eliminar esta llanta?")) return;
     try {
+      const llanta = llantas.find(l => l.id === id);
+      
       await axios.post(
         "https://mi-app-llantas.onrender.com/api/eliminar-llanta",
         { id }
       );
+      
+      // Registrar actividad
+      await registrarActividad(
+        "ELIMINACIÓN",
+        `Se eliminó la llanta: ${llanta.referencia} (${llanta.marca})`
+      );
+      
       setLlantas((prev) => prev.filter((l) => l.id !== id));
       setMensaje("Llanta eliminada ✅");
       setTimeout(() => setMensaje(""), 2000);
@@ -181,6 +280,13 @@ function App() {
         "https://mi-app-llantas.onrender.com/api/agregar-llanta",
         nuevoItem
       );
+      
+      // Registrar actividad
+      await registrarActividad(
+        "NUEVA LLANTA",
+        `Se agregó: ${nuevoItem.referencia} - ${nuevoItem.marca} (Stock: ${nuevoItem.stock})`
+      );
+      
       const { data } = await axios.get(
         "https://mi-app-llantas.onrender.com/api/llantas"
       );
@@ -220,7 +326,7 @@ function App() {
     localStorage.setItem("busquedasRecientes", JSON.stringify(top5));
   };
 
-  // 🆕 Función para guardar comentario
+  // Función para guardar comentario
   const guardarComentario = async (llanta, nuevoComentario) => {
     try {
       const datosAEnviar = {
@@ -238,6 +344,12 @@ function App() {
       await axios.post(
         "https://mi-app-llantas.onrender.com/api/editar-llanta",
         datosAEnviar
+      );
+      
+      // Registrar actividad
+      await registrarActividad(
+        "COMENTARIO",
+        `Se ${llanta.comentario ? 'actualizó' : 'agregó'} comentario en ${llanta.referencia}`
       );
       
       actualizarCampo(llanta.id, "comentario", nuevoComentario);
@@ -270,6 +382,16 @@ function App() {
           >
             Eliminar seleccionados
           </button>
+          
+          {/* 🆕 BOTÓN DE LOG DE ACTIVIDADES */}
+          <button
+            onClick={abrirLogActividades}
+            className="bg-indigo-600 text-white px-3 py-1.5 rounded text-sm hover:bg-indigo-700 font-semibold"
+            title="Ver historial de cambios"
+          >
+            📋 Historial
+          </button>
+          
           <button
             onClick={() => {
               localStorage.removeItem("acceso");
@@ -584,10 +706,8 @@ function App() {
                         <>
                           <td className="p-2">
                             <div className="flex items-center justify-center gap-1">
-                              {/* Solo referencia e indicadores */}
                               <span className="font-medium">{ll.referencia}</span>
                               
-                              {/* Indicadores (comentario y consignación) */}
                               {ll.comentario && (
                                 <button
                                   type="button"
@@ -610,7 +730,6 @@ function App() {
                             </div>
                           </td>
                           
-                          {/* Nueva columna para Llantar y Comparar */}
                           <td className="p-2">
                             <div className="flex gap-1 justify-center items-center">
                               <button
@@ -645,12 +764,11 @@ function App() {
                           <td className="text-green-600">
                             ${ll.precio_cliente.toLocaleString()}
                           </td>
-                          <td className={ll.stock === 0 ? "text-red-600" : ""}>
+                          <td className={ll.stock=== 0 ? "text-red-600" : ""}>
                             {ll.stock === 0 ? "Sin stock" : ll.stock}
                           </td>
                           <td className="p-2">
                             <div className="flex gap-1 justify-center items-center">
-                              {/* Botones de acción en una sola línea */}
                               <button
                                 onClick={() => setModoEdicion(ll.id)}
                                 className="bg-gray-200 hover:bg-gray-300 px-2 py-1 text-xs rounded"
@@ -733,7 +851,7 @@ function App() {
         </div>
       )}
 
-      {/* 🆕 MODAL PARA VER COMENTARIOS */}
+      {/* MODAL PARA VER COMENTARIOS */}
       {comentarioModal && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4"
@@ -781,6 +899,170 @@ function App() {
               <button
                 onClick={() => setComentarioModal(null)}
                 className="flex-1 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 font-medium"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🆕 MODAL DE LOG DE ACTIVIDADES */}
+      {mostrarLogModal && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"
+          onClick={() => setMostrarLogModal(false)}
+        >
+          <div 
+            className="bg-white rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header del modal */}
+            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-bold">📋 Historial de Actividades</h2>
+                  <p className="text-indigo-100 text-sm mt-1">
+                    Registro completo de cambios en el inventario
+                  </p>
+                </div>
+                <button
+                  onClick={() => setMostrarLogModal(false)}
+                  className="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-colors"
+                >
+                  <span className="text-3xl leading-none">×</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Filtros */}
+            <div className="p-6 bg-gray-50 border-b">
+              <div className="flex gap-4 flex-wrap">
+                <div className="flex-1 min-w-[200px]">
+                  <input
+                    type="text"
+                    placeholder="Buscar en historial..."
+                    value={busquedaLog}
+                    onChange={(e) => setBusquedaLog(e.target.value)}
+                    className="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none"
+                  />
+                </div>
+                <div className="min-w-[200px]">
+                  <select
+                    value={filtroTipoLog}
+                    onChange={(e) => setFiltroTipoLog(e.target.value)}
+                    className="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none"
+                  >
+                    <option value="">Todos los tipos</option>
+                    <option value="NUEVA LLANTA">Nueva Llanta</option>
+                    <option value="EDICIÓN">Edición</option>
+                    <option value="ELIMINACIÓN">Eliminación</option>
+                    <option value="ELIMINACIÓN MÚLTIPLE">Eliminación Múltiple</option>
+                    <option value="COMENTARIO">Comentario</option>
+                  </select>
+                </div>
+                <button
+                  onClick={() => {
+                    setBusquedaLog("");
+                    setFiltroTipoLog("");
+                  }}
+                  className="bg-orange-500 text-white px-6 py-3 rounded-lg hover:bg-orange-600 font-semibold transition-colors"
+                >
+                  Limpiar
+                </button>
+              </div>
+              
+              <div className="mt-3 text-sm text-gray-600">
+                Mostrando {logsFiltrados.length} de {logs.length} registros
+              </div>
+            </div>
+
+            {/* Contenido del log */}
+            <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 280px)' }}>
+              {cargandoLogs ? (
+                <div className="text-center py-10 text-gray-500">
+                  ⏳ Cargando historial...
+                </div>
+              ) : logsFiltrados.length === 0 ? (
+                <div className="text-center py-10 text-gray-500">
+                  <div className="text-6xl mb-4">📭</div>
+                  <p className="text-lg">No hay registros que mostrar</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {logsFiltrados.map((log, index) => {
+                    const fecha = new Date(log.fecha);
+                    const esHoy = fecha.toDateString() === new Date().toDateString();
+                    
+                    // Colores según tipo de actividad
+                    let colorClase = "bg-blue-50 border-blue-200";
+                    let iconoTipo = "📝";
+                    
+                    if (log.tipo === "NUEVA LLANTA") {
+                      colorClase = "bg-green-50 border-green-200";
+                      iconoTipo = "➕";
+                    } else if (log.tipo === "ELIMINACIÓN" || log.tipo === "ELIMINACIÓN MÚLTIPLE") {
+                      colorClase = "bg-red-50 border-red-200";
+                      iconoTipo = "🗑️";
+                    } else if (log.tipo === "EDICIÓN") {
+                      colorClase = "bg-yellow-50 border-yellow-200";
+                      iconoTipo = "✏️";
+                    } else if (log.tipo === "COMENTARIO") {
+                      colorClase = "bg-purple-50 border-purple-200";
+                      iconoTipo = "💬";
+                    }
+                    
+                    return (
+                      <div 
+                        key={log.id || index}
+                        className={`${colorClase} border-l-4 p-4 rounded-lg transition-all hover:shadow-md`}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-xl">{iconoTipo}</span>
+                              <span className="font-bold text-gray-800">{log.tipo}</span>
+                              {esHoy && (
+                                <span className="bg-indigo-500 text-white text-xs px-2 py-1 rounded-full">
+                                  HOY
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-gray-700 text-sm leading-relaxed">
+                              {log.detalles}
+                            </p>
+                          </div>
+                          <div className="text-right text-xs text-gray-500 ml-4">
+                            <div className="font-semibold">
+                              {fecha.toLocaleDateString('es-CO', { 
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric'
+                              })}
+                            </div>
+                            <div className="text-gray-400">
+                              {fecha.toLocaleTimeString('es-CO', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Footer del modal */}
+            <div className="bg-gray-100 p-4 border-t flex justify-between items-center">
+              <div className="text-sm text-gray-600">
+                Total de actividades registradas: <span className="font-bold">{logs.length}</span>
+              </div>
+              <button
+                onClick={() => setMostrarLogModal(false)}
+                className="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 font-semibold transition-colors"
               >
                 Cerrar
               </button>

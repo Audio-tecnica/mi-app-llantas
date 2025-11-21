@@ -434,27 +434,32 @@ CREATE TABLE logs_actividad (
 */
 
 // Ruta para guardar log de actividad
+// Ruta para guardar log de actividad
 app.post("/api/log-actividad", (req, res) => {
   const { tipo, detalles, fecha } = req.body;
   
   const query = "INSERT INTO logs_actividad (tipo, detalles, fecha) VALUES ($1, $2, $3) RETURNING id";
+  
   db.query(query, [tipo, detalles, fecha], (err, result) => {
     if (err) {
-      console.error("Error guardando log:", err);
-      return res.status(500).json({ error: "Error al guardar log" });
+      console.error("❌ Error guardando log:", err);
+      return res.status(500).json({ error: "Error al guardar log", detalles: err.message });
     }
     res.json({ success: true, id: result.rows[0].id });
   });
 });
 
-// Ruta para obtener todos los logs (ordenados del más reciente al más antiguo)
+// Ruta para obtener todos los logs
 app.get("/api/logs", (req, res) => {
   const query = "SELECT * FROM logs_actividad ORDER BY fecha DESC LIMIT 500";
+  
   db.query(query, (err, results) => {
     if (err) {
-      console.error("Error obteniendo logs:", err);
-      return res.status(500).json({ error: "Error al obtener logs" });
+      console.error("❌ Error obteniendo logs:", err);
+      return res.status(500).json({ error: "Error al obtener logs", detalles: err.message });
     }
+    
+    console.log("✅ Logs obtenidos:", results.rows.length);
     res.json(results.rows);
   });
 });

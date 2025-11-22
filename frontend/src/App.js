@@ -819,7 +819,7 @@ function App() {
                             <td className={`p-3 text-center font-semibold ${ll.stock === 0 ? "text-red-600" : "text-gray-700"}`}>
                               {ll.stock === 0 ? (
                                 <span className="inline-flex items-center gap-1 bg-red-100 px-2 py-1 rounded-full text-xs">
-                                  ❌ Sin stock
+                                  ❌
                                 </span>
                               ) : (
                                 ll.stock

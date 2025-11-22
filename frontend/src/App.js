@@ -458,7 +458,7 @@ function App() {
             className="bg-indigo-600 text-white px-3 py-1.5 rounded text-sm hover:bg-indigo-700 font-semibold"
             title="Ver historial de cambios"
           >
-            📋 Historial
+            📋 Upgrade
           </button>
 
           <button

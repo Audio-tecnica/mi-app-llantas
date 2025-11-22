@@ -26,7 +26,7 @@ function Rines() {
   const [cargando, setCargando] = useState(true);
   const [orden, setOrden] = useState({ campo: "", asc: true });
   const [seleccionadas, setSeleccionadas] = useState([]);
-  
+
   const [fotoModal, setFotoModal] = useState(null);
   const [subirFotoId, setSubirFotoId] = useState(null);
   const [archivoFoto, setArchivoFoto] = useState(null);
@@ -41,12 +41,16 @@ function Rines() {
   }, []);
 
   const marcasUnicas = [...new Set(rines.map((r) => r.marca))];
-  const medidasDisponibles = ['15', '16', '17', '18', '20'];
+  const medidasDisponibles = ["15", "16", "17", "18", "20"];
 
   const filtradas = rines.filter((r) => {
-    const coincideBusqueda = r.referencia?.toLowerCase().includes(busqueda.toLowerCase());
+    const coincideBusqueda = r.referencia
+      ?.toLowerCase()
+      .includes(busqueda.toLowerCase());
     const coincideMarca = !marcaSeleccionada || r.marca === marcaSeleccionada;
-    const coincideMedida = !medidaSeleccionada || r.medida?.toString().startsWith(medidaSeleccionada);
+    const coincideMedida =
+      !medidaSeleccionada ||
+      r.medida?.toString().startsWith(medidaSeleccionada);
     return coincideBusqueda && coincideMarca && coincideMedida;
   });
 
@@ -75,9 +79,14 @@ function Rines() {
     if (!window.confirm("¿Eliminar los rines seleccionados?")) return;
     try {
       for (let id of seleccionadas) {
-        await axios.post("https://mi-app-llantas.onrender.com/api/eliminar-rin", { id });
+        await axios.post(
+          "https://mi-app-llantas.onrender.com/api/eliminar-rin",
+          { id }
+        );
       }
-      const { data } = await axios.get("https://mi-app-llantas.onrender.com/api/rines");
+      const { data } = await axios.get(
+        "https://mi-app-llantas.onrender.com/api/rines"
+      );
       setRines(data);
       setSeleccionadas([]);
       setMensaje("Rines eliminados ✅");
@@ -90,7 +99,10 @@ function Rines() {
 
   const handleGuardar = async (rin) => {
     try {
-      await axios.post("https://mi-app-llantas.onrender.com/api/editar-rin", rin);
+      await axios.post(
+        "https://mi-app-llantas.onrender.com/api/editar-rin",
+        rin
+      );
       setMensaje("Cambios guardados ✅");
       setModoEdicion(null);
       setTimeout(() => setMensaje(""), 2000);
@@ -103,7 +115,9 @@ function Rines() {
   const handleEliminar = async (id) => {
     if (!window.confirm("¿Eliminar este rin?")) return;
     try {
-      await axios.post("https://mi-app-llantas.onrender.com/api/eliminar-rin", { id });
+      await axios.post("https://mi-app-llantas.onrender.com/api/eliminar-rin", {
+        id,
+      });
       setRines((prev) => prev.filter((r) => r.id !== id));
       setMensaje("Rin eliminado ✅");
       setTimeout(() => setMensaje(""), 2000);
@@ -125,8 +139,13 @@ function Rines() {
         stock: parseInt(nuevoItem.stock) || 0,
       };
 
-      await axios.post("https://mi-app-llantas.onrender.com/api/agregar-rin", nuevoRinFormateado);
-      const { data } = await axios.get("https://mi-app-llantas.onrender.com/api/rines");
+      await axios.post(
+        "https://mi-app-llantas.onrender.com/api/agregar-rin",
+        nuevoRinFormateado
+      );
+      const { data } = await axios.get(
+        "https://mi-app-llantas.onrender.com/api/rines"
+      );
       setRines(data);
       setMostrarModal(false);
       setNuevoItem({
@@ -148,7 +167,9 @@ function Rines() {
   };
 
   const actualizarCampo = (id, campo, valor) => {
-    setRines((prev) => prev.map((r) => (r.id === id ? { ...r, [campo]: valor } : r)));
+    setRines((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, [campo]: valor } : r))
+    );
   };
 
   const handleSubirFoto = async (id) => {
@@ -158,7 +179,7 @@ function Rines() {
       return;
     }
 
-    if (!archivoFoto.type.startsWith('image/')) {
+    if (!archivoFoto.type.startsWith("image/")) {
       setMensaje("Solo se permiten archivos de imagen ❌");
       setTimeout(() => setMensaje(""), 2000);
       return;
@@ -181,27 +202,29 @@ function Rines() {
       const { data } = await axios.post(
         "https://mi-app-llantas.onrender.com/api/rines/subir-foto",
         formData,
-        { 
+        {
           headers: { "Content-Type": "multipart/form-data" },
-          timeout: 30000
+          timeout: 30000,
         }
       );
 
-      setRines((prev) => prev.map((r) => (r.id === id ? { ...r, foto: data.foto } : r)));
+      setRines((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, foto: data.foto } : r))
+      );
       setArchivoFoto(null);
       setSubirFotoId(null);
       setMensaje("Foto subida exitosamente ✅");
       setTimeout(() => setMensaje(""), 3000);
     } catch (e) {
       console.error("❌ Error completo:", e);
-      
+
       let mensajeError = "Error al subir foto ❌";
       if (e.response?.data?.error) {
         mensajeError = `Error: ${e.response.data.error}`;
-      } else if (e.code === 'ECONNABORTED') {
+      } else if (e.code === "ECONNABORTED") {
         mensajeError = "Tiempo de espera agotado. La imagen es muy grande ❌";
       }
-      
+
       setMensaje(mensajeError);
       setTimeout(() => setMensaje(""), 4000);
     } finally {
@@ -215,7 +238,7 @@ function Rines() {
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
           <div className="flex justify-between items-center flex-wrap gap-4">
             <img src="/logowp.PNG" className="h-12 w-auto" alt="Logo" />
-            
+
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setMostrarModal(true)}
@@ -224,7 +247,7 @@ function Rines() {
                 <span className="text-lg">+</span>
                 Agregar rin
               </button>
-              
+
               <button
                 onClick={handleEliminarMultiples}
                 disabled={seleccionadas.length === 0}
@@ -296,7 +319,11 @@ function Rines() {
 
             <div className="bg-white rounded-lg shadow-md px-4 py-2 mb-4 inline-block">
               <span className="text-sm text-gray-600">
-                📊 Mostrando <span className="font-bold text-slate-700">{filtradas.length}</span> resultados
+                📊 Mostrando{" "}
+                <span className="font-bold text-slate-700">
+                  {filtradas.length}
+                </span>{" "}
+                resultados
               </span>
             </div>
 
@@ -308,7 +335,9 @@ function Rines() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Referencia</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Referencia
+                  </label>
                   <input
                     type="text"
                     placeholder="Buscar por referencia..."
@@ -319,7 +348,9 @@ function Rines() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Marca</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Marca
+                  </label>
                   <select
                     value={marcaSeleccionada}
                     onChange={(e) => setMarcaSeleccionada(e.target.value)}
@@ -327,18 +358,24 @@ function Rines() {
                   >
                     <option value="">Todas las marcas</option>
                     {marcasUnicas.map((m) => (
-                      <option key={m} value={m}>{m}</option>
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
                     ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Medida</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Medida
+                  </label>
                   <div className="flex flex-wrap gap-2">
                     <button
                       onClick={() => setMedidaSeleccionada("")}
                       className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                        medidaSeleccionada === "" ? "bg-slate-700 text-white shadow-lg" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        medidaSeleccionada === ""
+                          ? "bg-slate-700 text-white shadow-lg"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                       }`}
                     >
                       Todas
@@ -348,7 +385,9 @@ function Rines() {
                         key={medida}
                         onClick={() => setMedidaSeleccionada(medida)}
                         className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                          medidaSeleccionada === medida ? "bg-blue-600 text-white shadow-lg" : "bg-blue-50 text-blue-700 hover:bg-blue-100"
+                          medidaSeleccionada === medida
+                            ? "bg-blue-600 text-white shadow-lg"
+                            : "bg-blue-50 text-blue-700 hover:bg-blue-100"
                         }`}
                       >
                         {medida}"
@@ -367,80 +406,266 @@ function Rines() {
                           type="checkbox"
                           onChange={(e) => {
                             if (e.target.checked) {
-                              setSeleccionadas(filtradas.map(r => r.id));
+                              setSeleccionadas(filtradas.map((r) => r.id));
                             } else {
                               setSeleccionadas([]);
                             }
                           }}
-                          checked={seleccionadas.length === filtradas.length && filtradas.length > 0}
+                          checked={
+                            seleccionadas.length === filtradas.length &&
+                            filtradas.length > 0
+                          }
                           className="cursor-pointer w-4 h-4"
                         />
                       </th>
-                      <th onClick={() => ordenarPor("referencia")} className="cursor-pointer p-3 text-left hover:bg-slate-600 transition-colors">Referencia</th>
+                      <th
+                        onClick={() => ordenarPor("referencia")}
+                        className="cursor-pointer p-3 text-left hover:bg-slate-600 transition-colors"
+                      >
+                        Referencia
+                      </th>
                       <th className="p-3 text-center">Foto</th>
-                      <th onClick={() => ordenarPor("marca")} className="cursor-pointer p-3 text-left hover:bg-slate-600 transition-colors">Marca</th>
-                      <th onClick={() => ordenarPor("medida")} className="cursor-pointer p-3 text-left hover:bg-slate-600 transition-colors">Medida</th>
-                      <th onClick={() => ordenarPor("proveedor")} className="cursor-pointer p-3 text-left hover:bg-slate-600 transition-colors">Proveedor</th>
-                      <th onClick={() => ordenarPor("costo")} className="cursor-pointer p-3 text-right hover:bg-slate-600 transition-colors">
+                      <th
+                        onClick={() => ordenarPor("marca")}
+                        className="cursor-pointer p-3 text-left hover:bg-slate-600 transition-colors"
+                      >
+                        Marca
+                      </th>
+                      <th
+                        onClick={() => ordenarPor("medida")}
+                        className="cursor-pointer p-3 text-left hover:bg-slate-600 transition-colors"
+                      >
+                        Medida
+                      </th>
+                      <th
+                        onClick={() => ordenarPor("proveedor")}
+                        className="cursor-pointer p-3 text-left hover:bg-slate-600 transition-colors"
+                      >
+                        Proveedor
+                      </th>
+                      <th
+                        onClick={() => ordenarPor("costo")}
+                        className="cursor-pointer p-3 text-right hover:bg-slate-600 transition-colors"
+                      >
                         <div className="flex items-center justify-end gap-2">
                           Costo
-                          <button onClick={(e) => { e.stopPropagation(); setMostrarCosto(!mostrarCosto); }} className="hover:bg-slate-700 p-1 rounded">
-                            {mostrarCosto ? <EyeOff size={16} /> : <Eye size={16} />}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setMostrarCosto(!mostrarCosto);
+                            }}
+                            className="hover:bg-slate-700 p-1 rounded"
+                          >
+                            {mostrarCosto ? (
+                              <EyeOff size={16} />
+                            ) : (
+                              <Eye size={16} />
+                            )}
                           </button>
                         </div>
                       </th>
-                      <th onClick={() => ordenarPor("precio")} className="cursor-pointer p-3 text-right hover:bg-slate-600 transition-colors">Precio</th>
-                      <th onClick={() => ordenarPor("stock")} className="cursor-pointer p-3 text-center hover:bg-slate-600 transition-colors">Stock</th>
+                      <th
+                        onClick={() => ordenarPor("precio")}
+                        className="cursor-pointer p-3 text-right hover:bg-slate-600 transition-colors"
+                      >
+                        Precio
+                      </th>
+                      <th
+                        onClick={() => ordenarPor("stock")}
+                        className="cursor-pointer p-3 text-center hover:bg-slate-600 transition-colors"
+                      >
+                        Stock
+                      </th>
                       <th className="p-3 text-center">Acciones</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {filtradas.map((r, idx) => (
-                      <tr key={r.id} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50 transition-colors`}>
+                      <tr
+                        key={r.id}
+                        className={`${
+                          idx % 2 === 0 ? "bg-white" : "bg-gray-50"
+                        } hover:bg-blue-50 transition-colors`}
+                      >
                         <td className="p-3">
-                          <input type="checkbox" checked={seleccionadas.includes(r.id)} onChange={() => toggleSeleccion(r.id)} className="cursor-pointer w-4 h-4" />
+                          <input
+                            type="checkbox"
+                            checked={seleccionadas.includes(r.id)}
+                            onChange={() => toggleSeleccion(r.id)}
+                            className="cursor-pointer w-4 h-4"
+                          />
                         </td>
 
                         {modoEdicion === r.id ? (
                           <>
-                            <td className="p-2"><input value={r.referencia} onChange={(e) => actualizarCampo(r.id, "referencia", e.target.value)} className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none" /></td>
+                            <td className="p-2">
+                              <input
+                                value={r.referencia}
+                                onChange={(e) =>
+                                  actualizarCampo(
+                                    r.id,
+                                    "referencia",
+                                    e.target.value
+                                  )
+                                }
+                                className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                              />
+                            </td>
                             <td></td>
-                            <td className="p-2"><input value={r.marca} onChange={(e) => actualizarCampo(r.id, "marca", e.target.value)} className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none" /></td>
-                            <td className="p-2"><input value={r.medida} onChange={(e) => actualizarCampo(r.id, "medida", e.target.value)} className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none" /></td>
-                            <td className="p-2"><input value={r.proveedor} onChange={(e) => actualizarCampo(r.id, "proveedor", e.target.value)} className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none" /></td>
-                            <td className="p-2"><input type="number" value={r.costo} onChange={(e) => actualizarCampo(r.id, "costo", e.target.value)} className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none" /></td>
-                            <td className="p-2"><input type="number" value={r.precio} onChange={(e) => actualizarCampo(r.id, "precio", e.target.value)} className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none" /></td>
-                            <td className="p-2"><input type="number" value={r.stock} onChange={(e) => actualizarCampo(r.id, "stock", e.target.value)} className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none" /></td>
+                            <td className="p-2">
+                              <input
+                                value={r.marca}
+                                onChange={(e) =>
+                                  actualizarCampo(r.id, "marca", e.target.value)
+                                }
+                                className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                              />
+                            </td>
+                            <td className="p-2">
+                              <input
+                                value={r.medida}
+                                onChange={(e) =>
+                                  actualizarCampo(
+                                    r.id,
+                                    "medida",
+                                    e.target.value
+                                  )
+                                }
+                                className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                              />
+                            </td>
+                            <td className="p-2">
+                              <input
+                                value={r.proveedor}
+                                onChange={(e) =>
+                                  actualizarCampo(
+                                    r.id,
+                                    "proveedor",
+                                    e.target.value
+                                  )
+                                }
+                                className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                              />
+                            </td>
+                            <td className="p-2">
+                              <input
+                                type="number"
+                                value={r.costo}
+                                onChange={(e) =>
+                                  actualizarCampo(r.id, "costo", e.target.value)
+                                }
+                                className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                              />
+                            </td>
+                            <td className="p-2">
+                              <input
+                                type="number"
+                                value={r.precio}
+                                onChange={(e) =>
+                                  actualizarCampo(
+                                    r.id,
+                                    "precio",
+                                    e.target.value
+                                  )
+                                }
+                                className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                              />
+                            </td>
+                            <td className="p-2">
+                              <input
+                                type="number"
+                                value={r.stock}
+                                onChange={(e) =>
+                                  actualizarCampo(r.id, "stock", e.target.value)
+                                }
+                                className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                              />
+                            </td>
                             <td className="p-3">
                               <div className="flex flex-col gap-2 items-center">
-                                <button onClick={() => handleGuardar(r)} className="bg-green-500 text-white px-4 py-2 text-xs rounded-lg hover:bg-green-600 transition-all shadow-md font-medium">💾 Guardar</button>
-                                <button onClick={() => setModoEdicion(null)} className="bg-gray-400 text-white px-4 py-2 text-xs rounded-lg hover:bg-gray-500 transition-all shadow-md font-medium">✖ Cancelar</button>
+                                <button
+                                  onClick={() => handleGuardar(r)}
+                                  className="bg-green-500 text-white px-4 py-2 text-xs rounded-lg hover:bg-green-600 transition-all shadow-md font-medium"
+                                >
+                                  💾 Guardar
+                                </button>
+                                <button
+                                  onClick={() => setModoEdicion(null)}
+                                  className="bg-gray-400 text-white px-4 py-2 text-xs rounded-lg hover:bg-gray-500 transition-all shadow-md font-medium"
+                                >
+                                  ✖ Cancelar
+                                </button>
                               </div>
                             </td>
                           </>
                         ) : (
                           <>
-                            <td className="p-3"><span className="font-semibold text-gray-800">{r.referencia}</span></td>
+                            <td className="p-3">
+                              <span className="font-semibold text-gray-800">
+                                {r.referencia}
+                              </span>
+                            </td>
                             <td className="p-3 text-center">
                               {r.foto && (
-                                <button onClick={() => setFotoModal(r.foto)} className="bg-purple-500 text-white px-3 py-1.5 rounded-lg hover:bg-purple-600 text-xs transition-all shadow-sm hover:shadow-md font-medium">
+                                <button
+                                  onClick={() => setFotoModal(r.foto)}
+                                  className="bg-purple-500 text-white px-3 py-1.5 rounded-lg hover:bg-purple-600 text-xs transition-all shadow-sm hover:shadow-md font-medium"
+                                >
                                   📷 Ver
                                 </button>
                               )}
                             </td>
                             <td className="p-3 text-gray-700">{r.marca}</td>
-                            <td className="p-3 text-gray-700">{r.medida || "—"}</td>
-                            <td className="p-3 text-gray-700">{r.proveedor || "—"}</td>
-                            <td className="p-3 text-right text-blue-600 font-semibold">{mostrarCosto ? `$${Number(r.costo).toLocaleString("es-CO")}` : "•••••"}</td>
-                            <td className="p-3 text-right text-green-600 font-semibold">${Number(r.precio || 0).toLocaleString("es-CO")}</td>
-                            <td className={`p-3 text-center font-semibold ${r.stock === 0 ? "text-red-600" : "text-gray-700"}`}>
-                              {r.stock === 0 ? <span className="inline-flex items-center gap-1 bg-red-100 px-2 py-1 rounded-full text-xs">❌</span> : r.stock}
+                            <td className="p-3 text-gray-700">
+                              {r.medida || "—"}
+                            </td>
+                            <td className="p-3 text-gray-700">
+                              {r.proveedor || "—"}
+                            </td>
+                            <td className="p-3 text-right text-blue-600 font-semibold">
+                              {mostrarCosto
+                                ? `$${Number(r.costo).toLocaleString("es-CO")}`
+                                : "•••••"}
+                            </td>
+                            <td className="p-3 text-right text-green-600 font-semibold">
+                              ${Number(r.precio || 0).toLocaleString("es-CO")}
+                            </td>
+                            <td
+                              className={`p-3 text-center font-semibold ${
+                                r.stock === 0 ? "text-red-600" : "text-gray-700"
+                              }`}
+                            >
+                              {r.stock === 0 ? (
+                                <span className="inline-flex items-center gap-1 bg-red-100 px-2 py-1 rounded-full text-xs">
+                                  ❌
+                                </span>
+                              ) : (
+                                r.stock
+                              )}
                             </td>
                             <td className="p-3">
-                              <div className="flex gap-2 justify-center items-center flex-wrap">
-                                <button onClick={() => setModoEdicion(r.id)} className="bg-slate-200 hover:bg-slate-300 px-3 py-1.5 text-sm rounded-lg transition-all shadow-sm hover:shadow-md" title="Editar">✏️</button>
-                                <button onClick={() => setSubirFotoId(r.id)} className="bg-green-500 text-white hover:bg-green-600 px-3 py-1.5 text-sm rounded-lg transition-all shadow-sm hover:shadow-md" title="Subir foto">📷</button>
-                                <button onClick={() => handleEliminar(r.id)} className="bg-red-500 text-white hover:bg-red-600 px-3 py-1.5 text-sm rounded-lg transition-all shadow-sm hover:shadow-md" title="Eliminar">🗑️</button>
+                              <div className="flex gap-2 justify-center items-center">
+                                <button
+                                  onClick={() => setModoEdicion(r.id)}
+                                  className="bg-slate-200 hover:bg-slate-300 px-3 py-1.5 text-sm rounded-lg transition-all shadow-sm hover:shadow-md"
+                                  title="Editar"
+                                >
+                                  ✏️
+                                </button>
+                                <button
+                                  onClick={() => setSubirFotoId(r.id)}
+                                  className="bg-green-500 text-white hover:bg-green-600 px-3 py-1.5 text-sm rounded-lg transition-all shadow-sm hover:shadow-md"
+                                  title="Subir foto"
+                                >
+                                  📷
+                                </button>
+                                <button
+                                  onClick={() => handleEliminar(r.id)}
+                                  className="bg-red-500 text-white hover:bg-red-600 px-3 py-1.5 text-sm rounded-lg transition-all shadow-sm hover:shadow-md"
+                                  title="Eliminar"
+                                >
+                                  🗑️
+                                </button>
                               </div>
                             </td>
                           </>
@@ -457,7 +682,9 @@ function Rines() {
         {mostrarModal && (
           <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
             <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md transform transition-all">
-              <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-2"><span>➕</span>Agregar Nuevo Rin</h2>
+              <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-2">
+                <span>➕</span>Agregar Nuevo Rin
+              </h2>
               <div className="space-y-4">
                 {[
                   { key: "referencia", label: "Referencia" },
@@ -469,19 +696,36 @@ function Rines() {
                   { key: "stock", label: "Stock" },
                 ].map((campo) => (
                   <div key={campo.key}>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{campo.label}</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {campo.label}
+                    </label>
                     <input
                       placeholder={`Ingrese ${campo.label.toLowerCase()}`}
                       value={nuevoItem[campo.key]}
-                      onChange={(e) => setNuevoItem({ ...nuevoItem, [campo.key]: e.target.value })}
+                      onChange={(e) =>
+                        setNuevoItem({
+                          ...nuevoItem,
+                          [campo.key]: e.target.value,
+                        })
+                      }
                       className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-all"
                     />
                   </div>
                 ))}
               </div>
               <div className="flex gap-3 mt-6">
-                <button onClick={handleAgregar} className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-green-600 hover:to-green-700 transition-all shadow-lg hover:shadow-xl">Guardar</button>
-                <button onClick={() => setMostrarModal(false)} className="flex-1 bg-gray-400 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-500 transition-all shadow-lg hover:shadow-xl">Cancelar</button>
+                <button
+                  onClick={handleAgregar}
+                  className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-green-600 hover:to-green-700 transition-all shadow-lg hover:shadow-xl"
+                >
+                  Guardar
+                </button>
+                <button
+                  onClick={() => setMostrarModal(false)}
+                  className="flex-1 bg-gray-400 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-500 transition-all shadow-lg hover:shadow-xl"
+                >
+                  Cancelar
+                </button>
               </div>
             </div>
           </div>
@@ -490,10 +734,14 @@ function Rines() {
         {subirFotoId && (
           <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
             <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md transform transition-all">
-              <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-2"><span>📷</span>Subir Foto del Rin</h2>
-              
+              <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-2">
+                <span>📷</span>Subir Foto del Rin
+              </h2>
+
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-3">Seleccionar imagen</label>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Seleccionar imagen
+                </label>
                 <input
                   type="file"
                   accept="image/*"
@@ -502,7 +750,8 @@ function Rines() {
                 />
                 {archivoFoto && (
                   <p className="mt-3 text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
-                    ✓ Archivo seleccionado: <span className="font-semibold">{archivoFoto.name}</span>
+                    ✓ Archivo seleccionado:{" "}
+                    <span className="font-semibold">{archivoFoto.name}</span>
                   </p>
                 )}
               </div>
@@ -553,15 +802,15 @@ function Rines() {
                   </button>
                 </div>
               </div>
-              
+
               <div className="p-6 bg-gray-50">
                 <img
                   src={fotoModal}
                   alt="Foto del rin"
                   className="max-w-full max-h-[70vh] rounded-xl shadow-2xl object-contain mx-auto"
                   onError={(e) => {
-                    e.target.src = '/placeholder-image.png';
-                    e.target.alt = 'Error al cargar imagen';
+                    e.target.src = "/placeholder-image.png";
+                    e.target.alt = "Error al cargar imagen";
                   }}
                 />
               </div>
@@ -580,7 +829,6 @@ function Rines() {
       </div>
     </div>
   );
-} 
+}
 
 export default Rines;
-                               

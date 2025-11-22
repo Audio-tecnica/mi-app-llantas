@@ -580,7 +580,7 @@ function Rines() {
       </div>
     </div>
   );
-}
+} 
 
 export default Rines;
                                

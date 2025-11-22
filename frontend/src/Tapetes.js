@@ -165,292 +165,411 @@ function Tapetes() {
 
   // 🧩 Render
   return (
-    <div className="max-w-7xl mx-auto p-5 min-h-screen bg-gradient-to-b from-orange-200 to-orange-800">
-      <div className="flex justify-between items-center mb-6 flex-wrap gap-2">
-        <img src="/logowp.PNG" className="h-13 w-48" alt="Logo" />
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => setMostrarModal(true)}
-            className="bg-gray-700 text-white px-3 py-1.5 rounded text-sm hover:bg-gray-800"
-          >
-            Agregar tapete
-          </button>
-          <button
-            onClick={handleEliminarMultiples}
-            disabled={seleccionadas.length === 0}
-            className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700"
-          >
-            Eliminar seleccionados
-          </button>
-          <button
-            onClick={() => {
-              localStorage.removeItem("acceso");
-              window.location.href = "/login";
-            }}
-            className="bg-red-500 text-white px-3 py-1.5 rounded text-sm hover:bg-red-600"
-          >
-            Cerrar sesión
-          </button>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="max-w-7xl mx-auto p-4 sm:p-6">
+        {/* Header Profesional con sombra y mejor espaciado */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+          <div className="flex justify-between items-center flex-wrap gap-4">
+            <img src="/logowp.PNG" className="h-12 w-auto" alt="Logo" />
+            
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setMostrarModal(true)}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-200 shadow-md hover:shadow-lg"
+              >
+                <span className="text-lg">+</span>
+                Agregar tapete
+              </button>
+              
+              <button
+                onClick={handleEliminarMultiples}
+                disabled={seleccionadas.length === 0}
+                className="inline-flex items-center gap-2 bg-slate-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg disabled:shadow-none"
+              >
+                <span>🗑️</span>
+                Eliminar ({seleccionadas.length})
+              </button>
 
-      {mensaje && (
-        <div className="text-center text-blue-700 font-semibold mb-4">
-          ❗{mensaje}
-        </div>
-      )}
-
-      {cargando ? (
-        <div className="text-center py-10 text-gray-500">
-          ⏳ Cargando tapetes...
-        </div>
-      ) : (
-        <>
-          <div className="flex items-center gap-3 mt-2 mb-3">
-            <button
-              onClick={() => {
-                setBusqueda("");
-                setMarcaSeleccionada("");
-              }}
-              className="px-3 py-1 bg-orange-600 text-white rounded-xl hover:bg-orange-700"
-            >
-              Limpiar filtros
-            </button>
-
-            <button
-              onClick={() => navigate("/")}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg shadow"
-            >
-              Volver a Llantas
-            </button>
-
-            <button
-              onClick={() => navigate("/rines")}
-              className="bg-purple-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg shadow"
-            >
-              Ir a Rines
-            </button>
+              <button
+                onClick={() => {
+                  localStorage.removeItem("acceso");
+                  window.location.href = "/login";
+                }}
+                className="inline-flex items-center gap-2 bg-slate-500 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-600 transition-all duration-200 shadow-md hover:shadow-lg"
+              >
+                <span>🚪</span>
+                Salir
+              </button>
+            </div>
           </div>
-          <div className="bg-white p-6 rounded-3xl shadow-xl border mb-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-6">
-              Buscar tapete
-            </h2>
+        </div>
 
-            <input
-              type="text"
-              placeholder="Buscar referencia..."
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              className="w-full p-3 border-2 border-orange-500 rounded-3xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-500"
-            />
+        {/* Mensajes con mejor diseño */}
+        {mensaje && (
+          <div className="bg-blue-50 border-l-4 border-blue-500 text-blue-800 p-4 rounded-lg mb-6 shadow-md animate-fade-in">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">ℹ️</span>
+              <span className="font-medium">{mensaje}</span>
+            </div>
+          </div>
+        )}
 
-            <label className="block text-sm font-medium text-gray-600 mb-2 mt-4">
-              Marca
-            </label>
-            <select
-              value={marcaSeleccionada}
-              onChange={(e) => setMarcaSeleccionada(e.target.value)}
-              className="w-full p-4 border-2 border-orange-300 rounded-xl shadow-sm focus:ring-2 focus:ring-orange-400 outline-none transition ease-in-out duration-300"
-            >
-              <option value="">Todas las marcas</option>
-              {marcasUnicas.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
+        {/* Contenido principal */}
+        {cargando ? (
+          <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-slate-700 mb-4"></div>
+            <p className="text-gray-600 text-lg">Cargando inventario...</p>
+          </div>
+        ) : (
+          <>
+            {/* Botones de navegación mejorados */}
+            <div className="flex flex-wrap gap-3 mb-6">
+              <button
+                onClick={() => {
+                  setBusqueda("");
+                  setMarcaSeleccionada("");
+                }}
+                className="inline-flex items-center gap-2 bg-white text-slate-700 px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-50 transition-all duration-200 shadow-md hover:shadow-lg border border-slate-200"
+              >
+                <span>🔄</span>
+                Limpiar filtros
+              </button>
 
-            <div className="overflow-auto mt-8">
-              <table className="w-full border text-sm">
-                <thead className="bg-gradient-to-r from-gray-400 to-blue-300 text-black">
-                  <tr>
-                    <th className="border py-3 px-4"></th>
-                    <th 
-                      className="border py-3 px-4 cursor-pointer hover:bg-blue-400 transition-colors"
-                      onClick={() => ordenarPor("referencia")}
-                    >
-                      Referencia
-                    </th>
-                    <th 
-                      className="border py-3 px-4 cursor-pointer hover:bg-blue-400 transition-colors"
-                      onClick={() => ordenarPor("marca")}
-                    >
-                      Marca
-                    </th>
-                    <th 
-                      className="border py-3 px-4 cursor-pointer hover:bg-blue-400 transition-colors"
-                      onClick={() => ordenarPor("proveedor")}
-                    >
-                      Proveedor
-                    </th>
-                    <th
-                      className="border py-3 px-4 cursor-pointer hover:bg-blue-400 transition-colors"
-                      onClick={() => setMostrarCosto(!mostrarCosto)}
-                    >
-                      Costo{" "}
-                      {mostrarCosto ? (
-                        <EyeOff className="inline w-4 h-4" />
-                      ) : (
-                        <Eye className="inline w-4 h-4" />
-                      )}
-                    </th>
-                    <th 
-                      className="border py-3 px-4 cursor-pointer hover:bg-blue-400 transition-colors"
-                      onClick={() => ordenarPor("precio")}
-                    >
-                      Precio
-                    </th>
-                    <th 
-                      className="border py-3 px-4 cursor-pointer hover:bg-blue-400 transition-colors"
-                      onClick={() => ordenarPor("stock")}
-                    >
-                      Stock
-                    </th>
-                    <th className="border py-3 px-4">Acción</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtradas.map((t) => (
-                    <tr
-                      key={t.id}
-                      className="border-t even:bg-gray-50 hover:bg-blue-50 transition-colors"
-                    >
-                      <td className="border py-3 px-4 text-center">
+              <button
+                onClick={() => navigate("/")}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-200 shadow-md hover:shadow-lg"
+              >
+                <span>🚗</span>
+                Llantas
+              </button>
+
+              <button
+                onClick={() => navigate("/rines")}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-200 shadow-md hover:shadow-lg"
+              >
+                <span>⚙️</span>
+                Rines
+              </button>
+            </div>
+
+            {/* Contador de resultados */}
+            <div className="bg-white rounded-lg shadow-md px-4 py-2 mb-4 inline-block">
+              <span className="text-sm text-gray-600">
+                📊 Mostrando <span className="font-bold text-slate-700">{filtradas.length}</span> resultados
+              </span>
+            </div>
+
+            {/* Panel de búsqueda mejorado */}
+            <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                <span>🔍</span>
+                Búsqueda de Tapetes
+              </h2>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Referencia
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Buscar por referencia..."
+                    value={busqueda}
+                    onChange={(e) => setBusqueda(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-all duration-200"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Marca
+                  </label>
+                  <select
+                    value={marcaSeleccionada}
+                    onChange={(e) => setMarcaSeleccionada(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-all duration-200"
+                  >
+                    <option value="">Todas las marcas</option>
+                    {marcasUnicas.map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Tabla mejorada */}
+              <div className="overflow-x-auto mt-6 rounded-xl border border-gray-200">
+                <table className="w-full text-sm">
+                  <thead className="bg-gradient-to-r from-slate-700 to-slate-800 text-white">
+                    <tr>
+                      <th className="p-3 text-left">
                         <input
                           type="checkbox"
-                          checked={seleccionadas.includes(t.id)}
-                          onChange={() => toggleSeleccion(t.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSeleccionadas(filtradas.map(t => t.id));
+                            } else {
+                              setSeleccionadas([]);
+                            }
+                          }}
+                          checked={seleccionadas.length === filtradas.length && filtradas.length > 0}
+                          className="cursor-pointer w-4 h-4"
                         />
-                      </td>
+                      </th>
+                      <th
+                        onClick={() => ordenarPor("referencia")}
+                        className="cursor-pointer p-3 text-left hover:bg-slate-600 transition-colors"
+                      >
+                        Referencia
+                      </th>
+                      <th
+                        onClick={() => ordenarPor("marca")}
+                        className="cursor-pointer p-3 text-left hover:bg-slate-600 transition-colors"
+                      >
+                        Marca
+                      </th>
+                      <th
+                        onClick={() => ordenarPor("proveedor")}
+                        className="cursor-pointer p-3 text-left hover:bg-slate-600 transition-colors"
+                      >
+                        Proveedor
+                      </th>
+                      <th
+                        onClick={() => ordenarPor("costo")}
+                        className="cursor-pointer p-3 text-right hover:bg-slate-600 transition-colors"
+                      >
+                        <div className="flex items-center justify-end gap-2">
+                          Costo
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setMostrarCosto(!mostrarCosto);
+                            }}
+                            className="hover:bg-slate-700 p-1 rounded"
+                          >
+                            {mostrarCosto ? (
+                              <EyeOff size={16} />
+                            ) : (
+                              <Eye size={16} />
+                            )}
+                          </button>
+                        </div>
+                      </th>
+                      <th
+                        onClick={() => ordenarPor("precio")}
+                        className="cursor-pointer p-3 text-right hover:bg-slate-600 transition-colors"
+                      >
+                        Precio
+                      </th>
+                      <th
+                        onClick={() => ordenarPor("stock")}
+                        className="cursor-pointer p-3 text-center hover:bg-slate-600 transition-colors"
+                      >
+                        Stock
+                      </th>
+                      <th className="p-3 text-center">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filtradas.map((t, idx) => (
+                      <tr
+                        key={t.id}
+                        className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50 transition-colors`}
+                      >
+                        <td className="p-3">
+                          <input
+                            type="checkbox"
+                            checked={seleccionadas.includes(t.id)}
+                            onChange={() => toggleSeleccion(t.id)}
+                            className="cursor-pointer w-4 h-4"
+                          />
+                        </td>
 
-                      {modoEdicion === t.id ? (
-                        <>
-                          {[
-                            "referencia",
-                            "marca",
-                            "proveedor",
-                            "costo",
-                            "precio",
-                            "stock",
-                          ].map((campo) => (
-                            <td key={campo} className="border py-3 px-4">
+                        {modoEdicion === t.id ? (
+                          <>
+                            <td className="p-2">
                               <input
-                                value={t[campo]}
+                                value={t.referencia}
                                 onChange={(e) =>
-                                  actualizarCampo(t.id, campo, e.target.value)
+                                  actualizarCampo(t.id, "referencia", e.target.value)
                                 }
-                                className="w-full border rounded text-sm p-1"
+                                className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
                               />
                             </td>
-                          ))}
-                          <td className="border py-3 px-4">
-                            <div className="flex gap-1 justify-center">
-                              <button
-                                onClick={() => handleGuardar(t)}
-                                className="bg-blue-500 text-white px-2 py-1 text-xs rounded"
-                              >
-                                Guardar
-                              </button>
-                              <button
-                                onClick={() => setModoEdicion(null)}
-                                className="bg-gray-300 text-black px-2 py-1 text-xs rounded"
-                              >
-                                Cancelar
-                              </button>
-                            </div>
-                          </td>
-                        </>
-                      ) : (
-                        <>
-                          <td className="border py-3 px-4">{t.referencia}</td>
-                          <td className="border py-3 px-4 text-center">{t.marca}</td>
-                          <td className="border py-3 px-4">{t.proveedor || "—"}</td>
-                          <td className="border py-3 px-4 text-center text-blue-600">
-                            {mostrarCosto
-                              ? `$${Number(t.costo).toLocaleString("es-CO", {
-                                  minimumFractionDigits: 0,
-                                })}`
-                              : "•••••"}
-                          </td>
-                          <td className="border py-3 px-4 text-center text-green-600">
-                            {t.precio !== undefined && t.precio !== null
-                              ? `$${Number(t.precio).toLocaleString("es-CO", {
-                                  minimumFractionDigits: 0,
-                                  maximumFractionDigits: 0,
-                                })}`
-                              : "$0"}
-                          </td>
+                            <td className="p-2">
+                              <input
+                                value={t.marca}
+                                onChange={(e) =>
+                                  actualizarCampo(t.id, "marca", e.target.value)
+                                }
+                                className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                              />
+                            </td>
+                            <td className="p-2">
+                              <input
+                                value={t.proveedor}
+                                onChange={(e) =>
+                                  actualizarCampo(t.id, "proveedor", e.target.value)
+                                }
+                                className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                              />
+                            </td>
+                            <td className="p-2">
+                              <input
+                                type="number"
+                                value={t.costo}
+                                onChange={(e) =>
+                                  actualizarCampo(t.id, "costo", e.target.value)
+                                }
+                                className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                              />
+                            </td>
+                            <td className="p-2">
+                              <input
+                                type="number"
+                                value={t.precio}
+                                onChange={(e) =>
+                                  actualizarCampo(t.id, "precio", e.target.value)
+                                }
+                                className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                              />
+                            </td>
+                            <td className="p-2">
+                              <input
+                                type="number"
+                                value={t.stock}
+                                onChange={(e) =>
+                                  actualizarCampo(t.id, "stock", e.target.value)
+                                }
+                                className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                              />
+                            </td>
+                            <td className="p-3">
+                              <div className="flex flex-col gap-2 items-center">
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => handleGuardar(t)}
+                                    className="bg-green-500 text-white px-4 py-2 text-xs rounded-lg hover:bg-green-600 transition-all shadow-md font-medium"
+                                  >
+                                    💾 Guardar
+                                  </button>
+                                  <button
+                                    onClick={() => setModoEdicion(null)}
+                                    className="bg-gray-400 text-white px-4 py-2 text-xs rounded-lg hover:bg-gray-500 transition-all shadow-md font-medium"
+                                  >
+                                    ✖ Cancelar
+                                  </button>
+                                </div>
+                              </div>
+                            </td>
+                          </>
+                        ) : (
+                          <>
+                            <td className="p-3">
+                              <span className="font-semibold text-gray-800">
+                                {t.referencia}
+                              </span>
+                            </td>
+                            <td className="p-3 text-gray-700">{t.marca}</td>
+                            <td className="p-3 text-gray-700">{t.proveedor || "—"}</td>
+                            <td className="p-3 text-right text-blue-600 font-semibold">
+                              {mostrarCosto
+                                ? `$${Number(t.costo).toLocaleString("es-CO")}`
+                                : "•••••"}
+                            </td>
+                            <td className="p-3 text-right text-green-600 font-semibold">
+                              ${Number(t.precio || 0).toLocaleString("es-CO")}
+                            </td>
+                            <td className={`p-3 text-center font-semibold ${t.stock === 0 ? "text-red-600" : "text-gray-700"}`}>
+                              {t.stock === 0 ? (
+                                <span className="inline-flex items-center gap-1 bg-red-100 px-2 py-1 rounded-full text-xs">
+                                  ❌
+                                </span>
+                              ) : (
+                                t.stock
+                              )}
+                            </td>
+                            <td className="p-3">
+                              <div className="flex gap-2 justify-center items-center">
+                                <button
+                                  onClick={() => setModoEdicion(t.id)}
+                                  className="bg-slate-200 hover:bg-slate-300 px-3 py-1.5 text-sm rounded-lg transition-all shadow-sm hover:shadow-md"
+                                  title="Editar"
+                                >
+                                  ✏️
+                                </button>
+                                <button
+                                  onClick={() => handleEliminar(t.id)}
+                                  className="bg-red-500 text-white hover:bg-red-600 px-3 py-1.5 text-sm rounded-lg transition-all shadow-sm hover:shadow-md"
+                                  title="Eliminar"
+                                >
+                                  🗑️
+                                </button>
+                              </div>
+                            </td>
+                          </>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        )}
 
-                          <td className={`border py-3 px-4 text-center ${t.stock === 0 ? "text-red-600" : ""}`}>
-                            {t.stock === 0 ? "Sin stock" : t.stock}
-                          </td>
-                          <td className="border py-3 px-4">
-                            <div className="flex gap-1 justify-center">
-                              <button
-                                onClick={() => setModoEdicion(t.id)}
-                                className="bg-gray-200 hover:bg-gray-300 px-2 py-1 text-xs rounded"
-                              >
-                                Editar
-                              </button>
-                              <button
-                                onClick={() => handleEliminar(t.id)}
-                                className="bg-red-500 text-white hover:bg-red-600 px-2 py-1 text-xs rounded"
-                              >
-                                Eliminar
-                              </button>
-                            </div>
-                          </td>
-                        </>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        {/* Modal agregar tapete */}
+        {mostrarModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md transform transition-all">
+              <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-2">
+                <span>➕</span>
+                Agregar Nuevo Tapete
+              </h2>
+              <div className="space-y-4">
+                {[
+                  { key: "referencia", label: "Referencia" },
+                  { key: "marca", label: "Marca" },
+                  { key: "proveedor", label: "Proveedor" },
+                  { key: "costo", label: "Costo" },
+                  { key: "precio", label: "Precio" },
+                  { key: "stock", label: "Stock" },
+                ].map((campo) => (
+                  <div key={campo.key}>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {campo.label}
+                    </label>
+                    <input
+                      placeholder={`Ingrese ${campo.label.toLowerCase()}`}
+                      value={nuevoItem[campo.key]}
+                      onChange={(e) =>
+                        setNuevoItem({ ...nuevoItem, [campo.key]: e.target.value })
+                      }
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-all"
+                    />
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={handleAgregar}
+                  className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-green-600 hover:to-green-700 transition-all shadow-lg hover:shadow-xl"
+                >
+                  Guardar
+                </button>
+                <button
+                  onClick={() => setMostrarModal(false)}
+                  className="flex-1 bg-gray-400 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-500 transition-all shadow-lg hover:shadow-xl"
+                >
+                  Cancelar
+                </button>
+              </div>
             </div>
           </div>
-        </>
-      )}
-
-      {/* Modal agregar tapete */}
-      {mostrarModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Agregar nuevo tapete</h2>
-            {[
-              "referencia",
-              "marca",
-              "proveedor",
-              "costo",
-              "precio",
-              "stock",
-            ].map((campo) => (
-              <input
-                key={campo}
-                placeholder={campo.replace("_", " ")}
-                value={nuevoItem[campo]}
-                onChange={(e) =>
-                  setNuevoItem({ ...nuevoItem, [campo]: e.target.value })
-                }
-                className="w-full mb-3 p-2 border rounded"
-              />
-            ))}
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={handleAgregar}
-                className="bg-blue-600 text-white px-4 py-2 rounded"
-              >
-                Guardar
-              </button>
-              <button
-                onClick={() => setMostrarModal(false)}
-                className="bg-gray-400 text-white px-4 py-2 rounded"
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

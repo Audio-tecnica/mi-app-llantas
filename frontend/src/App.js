@@ -435,27 +435,27 @@ function App() {
   // 🧩 Render principal
   return (
     <div className="max-w-7xl mx-auto p-4">
-      {/* Encabezado */}
+      {/* Encabezado - BOTONES SUPERIORES */}
       <div className="flex justify-between items-center mb-6 flex-wrap gap-2">
         <img src="/logowp.PNG" className="h-13 w-48" alt="Logo" />
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setMostrarModal(true)}
-            className="bg-gray-700 text-white px-3 py-1.5 rounded text-sm hover:bg-gray-800"
+            className="bg-slate-700 text-white px-4 py-2 rounded-lg text-sm hover:bg-slate-800 transition-all shadow-sm font-medium"
           >
             Agregar llanta
           </button>
           <button
             onClick={handleEliminarMultiples}
             disabled={seleccionadas.length === 0}
-            className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-slate-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm font-medium"
           >
             Eliminar seleccionados
           </button>
 
           <button
             onClick={abrirLogActividades}
-            className="bg-indigo-600 text-white px-3 py-1.5 rounded text-sm hover:bg-indigo-700 font-semibold"
+            className="bg-slate-800 text-white px-4 py-2 rounded-lg text-sm hover:bg-slate-900 transition-all shadow-sm font-medium border border-slate-600"
             title="Ver historial de cambios"
           >
             📋 Upgrade
@@ -466,13 +466,13 @@ function App() {
               localStorage.removeItem("acceso");
               window.location.href = "/login";
             }}
-            className="bg-red-500 text-white px-3 py-1.5 rounded text-sm hover:bg-red-600"
+            className="bg-slate-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-slate-600 transition-all shadow-sm font-medium"
           >
             Cerrar sesión
           </button>
           <button
             onClick={() => window.open("/lista_llantar.pdf", "_blank")}
-            className="bg-blue-500 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-600"
+            className="bg-slate-700 text-white px-4 py-2 rounded-lg text-sm hover:bg-slate-800 transition-all shadow-sm font-medium"
           >
             Lista llantar
           </button>
@@ -493,27 +493,28 @@ function App() {
         </div>
       ) : (
         <>
+          {/* BOTONES DE NAVEGACIÓN - Limpiar, Tapetes, Rines */}
           <div className="flex space-x-3 mb-4">
             <button
               onClick={() => {
                 setBusqueda("");
                 setMarcaSeleccionada("");
               }}
-              className="bg-orange-600 text-white px-2 py-2 rounded-lg hover:bg-orange-700 transition"
+              className="bg-slate-600 text-white px-4 py-2 rounded-lg hover:bg-slate-700 transition-all shadow-sm font-medium"
             >
               Limpiar filtros
             </button>
 
             <button
               onClick={() => navigate("/tapetes")}
-              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+              className="bg-slate-700 text-white px-4 py-2 rounded-lg hover:bg-slate-800 transition-all shadow-sm font-medium"
             >
               Ir a Tapetes
             </button>
 
             <button
               onClick={() => navigate("/rines")}
-              className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition"
+              className="bg-slate-700 text-white px-4 py-2 rounded-lg hover:bg-slate-800 transition-all shadow-sm font-medium"
             >
               Ir a Rines
             </button>

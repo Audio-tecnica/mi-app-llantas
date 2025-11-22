@@ -633,7 +633,7 @@ function Rines() {
                                   onClick={() => setFotoModal(r.foto)}
                                   className="bg-purple-500 text-white px-3 py-1.5 rounded-lg hover:bg-purple-600 text-xs transition-all shadow-sm hover:shadow-md font-medium"
                                 >
-                                  📷 Ver
+                                  📷
                                 </button>
                               )}
                             </td>

@@ -810,7 +810,7 @@ function App() {
                             <td className="p-3 text-gray-700">{ll.proveedor}</td>
                             <td className="p-3 text-right text-blue-600 font-semibold">
                               {mostrarCosto
-                                ? `${(ll.costo_empresa || 0).toLocaleString()}`
+                                ? `$${(ll.costo_empresa || 0).toLocaleString()}`
                                 : "•••••"}
                             </td>
                             <td className="p-3 text-right text-green-600 font-semibold">

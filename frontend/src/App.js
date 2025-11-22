@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
@@ -29,14 +30,12 @@ function App() {
   const [orden, setOrden] = useState({ campo: "", asc: true });
   const [seleccionadas, setSeleccionadas] = useState([]);
 
-  // 🆕 Estados para log de actividades
   const [mostrarLogModal, setMostrarLogModal] = useState(false);
   const [logs, setLogs] = useState([]);
   const [cargandoLogs, setCargandoLogs] = useState(false);
   const [busquedaLog, setBusquedaLog] = useState("");
   const [filtroTipoLog, setFiltroTipoLog] = useState("");
 
-  // 🔥 VARIABLE CRÍTICA QUE FALTABA
   const [llantaOriginalEdicion, setLlantaOriginalEdicion] = useState(null);
 
   const navigate = useNavigate();
@@ -46,7 +45,6 @@ function App() {
     return guardadas ? JSON.parse(guardadas) : [];
   });
 
-  // 🔒 Verificación de sesión
   useEffect(() => {
     const acceso = localStorage.getItem("acceso");
     const timestamp = localStorage.getItem("timestamp");
@@ -70,7 +68,6 @@ function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  // 📦 Cargar llantas
   useEffect(() => {
     axios
       .get("https://mi-app-llantas.onrender.com/api/llantas")
@@ -79,7 +76,6 @@ function App() {
       .finally(() => setCargando(false));
   }, []);
 
-  // 🆕 Función para registrar actividad
   const registrarActividad = async (tipo, detalles) => {
     try {
       await axios.post(
@@ -95,7 +91,6 @@ function App() {
     }
   };
 
-  // 🆕 Función para abrir log con contraseña
   const abrirLogActividades = () => {
     const password = prompt(
       "Ingrese la contraseña para ver el log de actividades:"
@@ -111,7 +106,6 @@ function App() {
     }
   };
 
-  // 🆕 Función para cargar logs
   const cargarLogs = async () => {
     setCargandoLogs(true);
     try {
@@ -136,7 +130,6 @@ function App() {
     window.open(url, "_blank");
   };
 
-  // 📋 Filtros y marcas
   const marcasUnicas = [...new Set(llantas.map((l) => l.marca))];
 
   const filtradas = llantas.filter((l) => {
@@ -156,7 +149,6 @@ function App() {
     );
   });
 
-  // 🆕 Filtrar logs
   const logsFiltrados = logs.filter((log) => {
     const coincideBusqueda =
       log.detalles?.toLowerCase().includes(busquedaLog.toLowerCase()) ||
@@ -165,7 +157,6 @@ function App() {
     return coincideBusqueda && coincideTipo;
   });
 
-  // 🔃 Ordenar columnas
   const ordenarPor = (campo) => {
     const asc = orden.campo === campo ? !orden.asc : true;
     const ordenadas = [...filtradas].sort((a, b) => {
@@ -181,14 +172,14 @@ function App() {
     setOrden({ campo, asc });
   };
 
-  // 🔥 FUNCIÓN QUE FALTABA - actualizar campos en modo edición
   const actualizarCampo = (id, campo, valor) => {
     setLlantas(
-      llantas.map((ll) => (ll.id === id ? { ...ll, [campo]: valor } : ll))
+      llantas.map((ll) =>
+        ll.id === id ? { ...ll, [campo]: valor } : ll
+      )
     );
   };
 
-  // 🔥 FUNCIÓN PARA GUARDAR COMENTARIO
   const guardarComentario = async (llanta, texto) => {
     try {
       await axios.post(
@@ -199,12 +190,9 @@ function App() {
         }
       );
 
-      // Registrar actividad
       await registrarActividad(
         "COMENTARIO",
-        `${llanta.referencia}: ${
-          texto ? "Comentario agregado/editado" : "Comentario eliminado"
-        }`
+        `${llanta.referencia}: ${texto ? 'Comentario agregado/editado' : 'Comentario eliminado'}`
       );
 
       const { data } = await axios.get(
@@ -220,7 +208,6 @@ function App() {
     }
   };
 
-  // ✅ Funciones CRUD
   const toggleSeleccion = (id) => {
     setSeleccionadas((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
@@ -260,24 +247,16 @@ function App() {
     }
   };
 
-  // 🔥 FUNCIÓN PARA INICIAR EDICIÓN (GUARDANDO ESTADO ORIGINAL)
   const iniciarEdicion = (id) => {
     const llanta = llantas.find((l) => l.id === id);
     if (llanta) {
-      // Guardar copia profunda del estado original
       setLlantaOriginalEdicion(JSON.parse(JSON.stringify(llanta)));
       setModoEdicion(id);
-      console.log("✅ Modo edición iniciado. Original guardado:", llanta);
     }
   };
 
-  // ✅ HANDLEGUARDAR CORREGIDO
   const handleGuardar = async (llanta) => {
     try {
-      console.log("=== INICIO GUARDAR ===");
-      console.log("Llanta a guardar:", llanta);
-      console.log("Llanta original guardada:", llantaOriginalEdicion);
-
       if (!llantaOriginalEdicion) {
         setMensaje("Error: No se encontró la llanta original ❌");
         return;
@@ -285,7 +264,6 @@ function App() {
 
       const cambios = [];
 
-      // Comparar cada campo
       if (
         String(llantaOriginalEdicion.referencia) !== String(llanta.referencia)
       ) {
@@ -336,26 +314,18 @@ function App() {
         );
       }
 
-      console.log("🔍 Cambios detectados:", cambios);
-
-      // Guardar en BD
       await axios.post(
         "https://mi-app-llantas.onrender.com/api/editar-llanta",
         llanta
       );
 
-      // Registrar actividad solo si hubo cambios
       if (cambios.length > 0) {
         await registrarActividad(
           "EDICIÓN",
           `Llanta ${llanta.referencia}: ${cambios.join(", ")}`
         );
-        console.log("✅ Cambios registrados en log");
-      } else {
-        console.log("ℹ️ No hubo cambios para registrar");
       }
 
-      // Recargar
       const { data } = await axios.get(
         "https://mi-app-llantas.onrender.com/api/llantas"
       );
@@ -432,749 +402,755 @@ function App() {
     }
   };
 
-  // 🧩 Render principal
   return (
-    <div className="max-w-7xl mx-auto p-4">
-      {/* Encabezado - BOTONES SUPERIORES */}
-      <div className="flex justify-between items-center mb-6 flex-wrap gap-2">
-        <img src="/logowp.PNG" className="h-13 w-48" alt="Logo" />
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => setMostrarModal(true)}
-            className="bg-slate-700 text-white px-4 py-2 rounded-lg text-sm hover:bg-slate-800 transition-all shadow-sm font-medium"
-          >
-            Agregar llanta
-          </button>
-          <button
-            onClick={handleEliminarMultiples}
-            disabled={seleccionadas.length === 0}
-            className="bg-slate-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm font-medium"
-          >
-            Eliminar seleccionados
-          </button>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="max-w-7xl mx-auto p-4 sm:p-6">
+        {/* Header Profesional con sombra y mejor espaciado */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+          <div className="flex justify-between items-center flex-wrap gap-4">
+            <img src="/logowp.PNG" className="h-12 w-auto" alt="Logo" />
+            
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setMostrarModal(true)}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-200 shadow-md hover:shadow-lg"
+              >
+                <span className="text-lg">+</span>
+                Agregar llanta
+              </button>
+              
+              <button
+                onClick={handleEliminarMultiples}
+                disabled={seleccionadas.length === 0}
+                className="inline-flex items-center gap-2 bg-slate-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg disabled:shadow-none"
+              >
+                <span>🗑️</span>
+                Eliminar ({seleccionadas.length})
+              </button>
 
-          <button
-            onClick={abrirLogActividades}
-            className="bg-slate-800 text-white px-4 py-2 rounded-lg text-sm hover:bg-slate-900 transition-all shadow-sm font-medium border border-slate-600"
-            title="Ver historial de cambios"
-          >
-            📋 Upgrade
-          </button>
+              <button
+                onClick={abrirLogActividades}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-800 to-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-slate-900 hover:to-black transition-all duration-200 shadow-md hover:shadow-lg border border-slate-700"
+                title="Ver historial de cambios"
+              >
+                <span>📋</span>
+                Upgrade
+              </button>
 
-          <button
-            onClick={() => {
-              localStorage.removeItem("acceso");
-              window.location.href = "/login";
-            }}
-            className="bg-slate-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-slate-600 transition-all shadow-sm font-medium"
-          >
-            Cerrar sesión
-          </button>
-          <button
-            onClick={() => window.open("/lista_llantar.pdf", "_blank")}
-            className="bg-slate-700 text-white px-4 py-2 rounded-lg text-sm hover:bg-slate-800 transition-all shadow-sm font-medium"
-          >
-            Lista llantar
-          </button>
-        </div>
-      </div>
+              <button
+                onClick={() => window.open("/lista_llantar.pdf", "_blank")}
+                className="inline-flex items-center gap-2 bg-slate-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800 transition-all duration-200 shadow-md hover:shadow-lg"
+              >
+                <span>📄</span>
+                Lista Llantar
+              </button>
 
-      {/* Mensajes */}
-      {mensaje && (
-        <div className="text-center text-blue-700 font-semibold mb-4 bg-blue-50 p-3 rounded-lg">
-          ❗{mensaje}
-        </div>
-      )}
-
-      {/* Contenido principal */}
-      {cargando ? (
-        <div className="text-center py-10 text-gray-500">
-          ⏳ Cargando llantas...
-        </div>
-      ) : (
-        <>
-          {/* BOTONES DE NAVEGACIÓN - Limpiar, Tapetes, Rines */}
-          <div className="flex space-x-3 mb-4">
-            <button
-              onClick={() => {
-                setBusqueda("");
-                setMarcaSeleccionada("");
-              }}
-              className="bg-slate-600 text-white px-4 py-2 rounded-lg hover:bg-slate-700 transition-all shadow-sm font-medium"
-            >
-              Limpiar filtros
-            </button>
-
-            <button
-              onClick={() => navigate("/tapetes")}
-              className="bg-slate-700 text-white px-4 py-2 rounded-lg hover:bg-slate-800 transition-all shadow-sm font-medium"
-            >
-              Ir a Tapetes
-            </button>
-
-            <button
-              onClick={() => navigate("/rines")}
-              className="bg-slate-700 text-white px-4 py-2 rounded-lg hover:bg-slate-800 transition-all shadow-sm font-medium"
-            >
-              Ir a Rines
-            </button>
+              <button
+                onClick={() => {
+                  localStorage.removeItem("acceso");
+                  window.location.href = "/login";
+                }}
+                className="inline-flex items-center gap-2 bg-slate-500 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-600 transition-all duration-200 shadow-md hover:shadow-lg"
+              >
+                <span>🚪</span>
+                Salir
+              </button>
+            </div>
           </div>
+        </div>
 
-          <div className="text-sm text-gray-700 mb-2">
-            Mostrando {filtradas.length} resultados
+        {/* Mensajes con mejor diseño */}
+        {mensaje && (
+          <div className="bg-blue-50 border-l-4 border-blue-500 text-blue-800 p-4 rounded-lg mb-6 shadow-md animate-fade-in">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">ℹ️</span>
+              <span className="font-medium">{mensaje}</span>
+            </div>
           </div>
+        )}
 
-          <div className="bg-white p-6 rounded-3xl shadow-xl border mb-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-6">
-              Ingrese su búsqueda
-            </h2>
-
-            <input
-              type="text"
-              placeholder="Buscar referencia..."
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && busqueda.trim() !== "") {
-                  let nuevas = [
-                    busqueda,
-                    ...busquedasRecientes.filter((v) => v !== busqueda),
-                  ];
-                  if (nuevas.length > 5) nuevas = nuevas.slice(0, 5);
-                  setBusquedasRecientes(nuevas);
-                  localStorage.setItem(
-                    "busquedasRecientes",
-                    JSON.stringify(nuevas)
-                  );
+        {/* Contenido principal */}
+        {cargando ? (
+          <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-slate-700 mb-4"></div>
+            <p className="text-gray-600 text-lg">Cargando inventario...</p>
+          </div>
+        ) : (
+          <>
+            {/* Botones de navegación mejorados */}
+            <div className="flex flex-wrap gap-3 mb-6">
+              <button
+                onClick={() => {
                   setBusqueda("");
-                }
-              }}
-              className="w-full p-3 border-2 border-orange-500 rounded-3xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition ease-in-out duration-500"
-            />
+                  setMarcaSeleccionada("");
+                }}
+                className="inline-flex items-center gap-2 bg-white text-slate-700 px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-50 transition-all duration-200 shadow-md hover:shadow-lg border border-slate-200"
+              >
+                <span>🔄</span>
+                Limpiar filtros
+              </button>
 
-            <label className="block text-sm font-medium text-gray-600 mb-2 mt-4">
-              Marca
-            </label>
-            <select
-              value={marcaSeleccionada}
-              onChange={(e) => setMarcaSeleccionada(e.target.value)}
-              className="w-full p-4 border-2 border-orange-300 rounded-xl shadow-sm focus:ring-2 focus:ring-orange-400 outline-none transition ease-in-out duration-300"
-            >
-              <option value="">Todas las marcas</option>
-              {marcasUnicas.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
+              <button
+                onClick={() => navigate("/tapetes")}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-200 shadow-md hover:shadow-lg"
+              >
+                <span>🚗</span>
+                Tapetes
+              </button>
 
-            {busquedasRecientes.length > 0 && (
-              <div className="mt-4">
-                <span className="text-sm text-gray-600 mr-2">
-                  Búsquedas recientes:
-                </span>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {busquedasRecientes.map((b, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setBusqueda(b)}
-                      className="px-3 py-1 bg-gray-200 text-gray-800 rounded-full text-sm hover:bg-orange-500 hover:text-white transition-colors duration-300"
-                    >
-                      {b}
-                    </button>
-                  ))}
+              <button
+                onClick={() => navigate("/rines")}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-200 shadow-md hover:shadow-lg"
+              >
+                <span>⚙️</span>
+                Rines
+              </button>
+            </div>
+
+            {/* Contador de resultados */}
+            <div className="bg-white rounded-lg shadow-md px-4 py-2 mb-4 inline-block">
+              <span className="text-sm text-gray-600">
+                📊 Mostrando <span className="font-bold text-slate-700">{filtradas.length}</span> resultados
+              </span>
+            </div>
+
+            {/* Panel de búsqueda mejorado */}
+            <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                <span>🔍</span>
+                Búsqueda de Inventario
+              </h2>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Referencia
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Buscar por referencia..."
+                    value={busqueda}
+                    onChange={(e) => setBusqueda(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && busqueda.trim() !== "") {
+                        let nuevas = [
+                          busqueda,
+                          ...busquedasRecientes.filter((v) => v !== busqueda),
+                        ];
+                        if (nuevas.length > 5) nuevas = nuevas.slice(0, 5);
+                        setBusquedasRecientes(nuevas);
+                        localStorage.setItem(
+                          "busquedasRecientes",
+                          JSON.stringify(nuevas)
+                        );
+                        setBusqueda("");
+                      }
+                    }}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-all duration-200"
+                  />
                 </div>
-              </div>
-            )}
 
-            {/* Tabla */}
-            <div className="overflow-auto mt-6">
-              <table className="w-full border text-sm">
-                <thead className="bg-gradient-to-r from-gray-400 to-orange-300 text-black">
-                  <tr>
-                    <th className="p-2"></th>
-                    <th
-                      onClick={() => ordenarPor("referencia")}
-                      className="cursor-pointer p-2 hover:bg-orange-400 transition-colors"
-                    >
-                      Referencia
-                    </th>
-                    <th className="p-2">Búsqueda</th>
-                    <th
-                      onClick={() => ordenarPor("marca")}
-                      className="cursor-pointer p-2 hover:bg-orange-400 transition-colors"
-                    >
-                      Marca
-                    </th>
-                    <th
-                      onClick={() => ordenarPor("proveedor")}
-                      className="cursor-pointer p-2 hover:bg-orange-400 transition-colors"
-                    >
-                      Proveedor
-                    </th>
-                    <th
-                      onClick={() => ordenarPor("costo_empresa")}
-                      className="cursor-pointer p-2 hover:bg-orange-400 transition-colors"
-                    >
-                      Costo
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setMostrarCosto(!mostrarCosto);
-                        }}
-                        className="ml-2 text-gray-700 hover:text-black"
-                      >
-                        {mostrarCosto ? (
-                          <EyeOff size={16} />
-                        ) : (
-                          <Eye size={16} />
-                        )}
-                      </button>
-                    </th>
-                    <th
-                      onClick={() => ordenarPor("precio_cliente")}
-                      className="cursor-pointer p-2 hover:bg-orange-400 transition-colors"
-                    >
-                      Precio
-                    </th>
-                    <th
-                      onClick={() => ordenarPor("stock")}
-                      className="cursor-pointer p-2 hover:bg-orange-400 transition-colors"
-                    >
-                      Stock
-                    </th>
-                    <th className="p-2">Acción</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtradas.map((ll) => (
-                    <tr
-                      key={ll.id}
-                      className="text-center border-t even:bg-gray-50 hover:bg-blue-50 transition-colors"
-                    >
-                      <td>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Marca
+                  </label>
+                  <select
+                    value={marcaSeleccionada}
+                    onChange={(e) => setMarcaSeleccionada(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-all duration-200"
+                  >
+                    <option value="">Todas las marcas</option>
+                    {marcasUnicas.map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {busquedasRecientes.length > 0 && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-600 mb-2 block">
+                      Búsquedas recientes:
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {busquedasRecientes.map((b, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setBusqueda(b)}
+                          className="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm font-medium hover:bg-slate-200 hover:text-slate-900 transition-all duration-200 shadow-sm hover:shadow-md"
+                        >
+                          {b}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Tabla mejorada */}
+              <div className="overflow-x-auto mt-6 rounded-xl border border-gray-200">
+                <table className="w-full text-sm">
+                  <thead className="bg-gradient-to-r from-slate-700 to-slate-800 text-white">
+                    <tr>
+                      <th className="p-3 text-left">
                         <input
                           type="checkbox"
-                          checked={seleccionadas.includes(ll.id)}
-                          onChange={() => toggleSeleccion(ll.id)}
-                          className="cursor-pointer"
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSeleccionadas(filtradas.map(l => l.id));
+                            } else {
+                              setSeleccionadas([]);
+                            }
+                          }}
+                          checked={seleccionadas.length === filtradas.length && filtradas.length > 0}
+                          className="cursor-pointer w-4 h-4"
                         />
-                      </td>
-                      {modoEdicion === ll.id ? (
-                        <>
-                          <td>
-                            <input
-                              value={ll.referencia}
-                              onChange={(e) =>
-                                actualizarCampo(
-                                  ll.id,
-                                  "referencia",
-                                  e.target.value
-                                )
-                              }
-                              className="w-full border rounded text-sm p-1 focus:ring-2 focus:ring-blue-400"
-                            />
-                          </td>
-                          <td>{/* Vacío en modo edición */}</td>
-                          <td>
-                            <input
-                              value={ll.marca}
-                              onChange={(e) =>
-                                actualizarCampo(ll.id, "marca", e.target.value)
-                              }
-                              className="w-full border rounded text-sm p-1 focus:ring-2 focus:ring-blue-400"
-                            />
-                          </td>
-                          <td>
-                            <input
-                              value={ll.proveedor}
-                              onChange={(e) =>
-                                actualizarCampo(
-                                  ll.id,
-                                  "proveedor",
-                                  e.target.value
-                                )
-                              }
-                              className="w-full border rounded text-sm p-1 focus:ring-2 focus:ring-blue-400"
-                            />
-                          </td>
-                          <td>
-                            <input
-                              type="number"
-                              value={ll.costo_empresa}
-                              onChange={(e) =>
-                                actualizarCampo(
-                                  ll.id,
-                                  "costo_empresa",
-                                  e.target.value
-                                )
-                              }
-                              className="w-full border rounded text-sm p-1 focus:ring-2 focus:ring-blue-400"
-                            />
-                          </td>
-                          <td>
-                            <input
-                              type="number"
-                              value={ll.precio_cliente}
-                              onChange={(e) =>
-                                actualizarCampo(
-                                  ll.id,
-                                  "precio_cliente",
-                                  e.target.value
-                                )
-                              }
-                              className="w-full border rounded text-sm p-1 focus:ring-2 focus:ring-blue-400"
-                            />
-                          </td>
-                          <td>
-                            <input
-                              type="number"
-                              value={ll.stock}
-                              onChange={(e) =>
-                                actualizarCampo(ll.id, "stock", e.target.value)
-                              }
-                              className="w-full border rounded text-sm p-1 focus:ring-2 focus:ring-blue-400"
-                            />
-                          </td>
-                          <td className="flex gap-1 justify-center flex-col items-center p-2">
-                            <button
-                              onClick={() =>
-                                actualizarCampo(
-                                  ll.id,
-                                  "consignacion",
-                                  !ll.consignacion
-                                )
-                              }
-                              className={`px-3 py-1 text-xs rounded mb-2 font-semibold transition-colors ${
-                                ll.consignacion
-                                  ? "bg-red-500 text-white hover:bg-red-600"
-                                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                              }`}
-                            >
-                              {ll.consignacion
-                                ? "✓ Consignación"
-                                : "Marcar Consignación"}
-                            </button>
-                            <div className="flex gap-1">
-                              <button
-                                onClick={() => handleGuardar(ll)}
-                                className="bg-blue-500 text-white px-3 py-1 text-xs rounded hover:bg-blue-600 transition-colors"
-                              >
-                                💾 Guardar
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setModoEdicion(null);
-                                  setLlantaOriginalEdicion(null);
-                                  // Recargar datos originales
-                                  axios
-                                    .get(
-                                      "https://mi-app-llantas.onrender.com/api/llantas"
-                                    )
-                                    .then((res) => setLlantas(res.data));
-                                }}
-                                className="bg-gray-300 text-black px-3 py-1 text-xs rounded hover:bg-gray-400 transition-colors"
-                              >
-                                ✖ Cancelar
-                              </button>
-                            </div>
-                          </td>
-                        </>
-                      ) : (
-                        <>
-                          <td className="p-2">
-                            <div className="flex items-center justify-center gap-1">
-                              <span className="font-medium">
-                                {ll.referencia}
-                              </span>
-
-                              {ll.comentario && (
+                      </th>
+                      <th
+                        onClick={() => ordenarPor("referencia")}
+                        className="cursor-pointer p-3 text-left hover:bg-slate-600 transition-colors"
+                      >
+                        Referencia
+                      </th>
+                      <th className="p-3 text-center">Búsqueda</th>
+                      <th
+                        onClick={() => ordenarPor("marca")}
+                        className="cursor-pointer p-3 text-left hover:bg-slate-600 transition-colors"
+                      >
+                        Marca
+                      </th>
+                      <th
+                        onClick={() => ordenarPor("proveedor")}
+                        className="cursor-pointer p-3 text-left hover:bg-slate-600 transition-colors"
+                      >
+                        Proveedor
+                      </th>
+                      <th
+                        onClick={() => ordenarPor("costo_empresa")}
+                        className="cursor-pointer p-3 text-right hover:bg-slate-600 transition-colors"
+                      >
+                        <div className="flex items-center justify-end gap-2">
+                          Costo
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setMostrarCosto(!mostrarCosto);
+                            }}
+                            className="hover:bg-slate-700 p-1 rounded"
+                          >
+                            {mostrarCosto ? (
+                              <EyeOff size={16} />
+                            ) : (
+                              <Eye size={16} />
+                            )}
+                          </button>
+                        </div>
+                      </th>
+                      <th
+                        onClick={() => ordenarPor("precio_cliente")}
+                        className="cursor-pointer p-3 text-right hover:bg-slate-600 transition-colors"
+                      >
+                        Precio
+                      </th>
+                      <th
+                        onClick={() => ordenarPor("stock")}
+                        className="cursor-pointer p-3 text-center hover:bg-slate-600 transition-colors"
+                      >
+                        Stock
+                      </th>
+                      <th className="p-3 text-center">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filtradas.map((ll, idx) => (
+                      <tr
+                        key={ll.id}
+                        className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50 transition-colors`}
+                      >
+                        <td className="p-3">
+                          <input
+                            type="checkbox"
+                            checked={seleccionadas.includes(ll.id)}
+                            onChange={() => toggleSeleccion(ll.id)}
+                            className="cursor-pointer w-4 h-4"
+                          />
+                        </td>
+                        {modoEdicion === ll.id ? (
+                          <>
+                            <td className="p-2">
+                              <input
+                                value={ll.referencia}
+                                onChange={(e) =>
+                                  actualizarCampo(
+                                    ll.id,
+                                    "referencia",
+                                    e.target.value
+                                  )
+                                }
+                                className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                              />
+                            </td>
+                            <td className="p-2">
+                              <input
+                                type="number"
+                                value={ll.precio_cliente}
+                                onChange={(e) =>
+                                  actualizarCampo(
+                                    ll.id,
+                                    "precio_cliente",
+                                    e.target.value
+                                  )
+                                }
+                                className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                              />
+                            </td>
+                            <td className="p-2">
+                              <input
+                                type="number"
+                                value={ll.stock}
+                                onChange={(e) =>
+                                  actualizarCampo(ll.id, "stock", e.target.value)
+                                }
+                                className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                              />
+                            </td>
+                            <td className="p-3">
+                              <div className="flex flex-col gap-2 items-center">
                                 <button
-                                  type="button"
-                                  onClick={() => setComentarioModal(ll)}
-                                  className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center text-white hover:bg-blue-600 transition-colors text-xs"
-                                  title="Ver comentario"
+                                  onClick={() =>
+                                    actualizarCampo(
+                                      ll.id,
+                                      "consignacion",
+                                      !ll.consignacion
+                                    )
+                                  }
+                                  className={`px-3 py-1.5 text-xs rounded-lg font-semibold transition-all ${
+                                    ll.consignacion
+                                      ? "bg-red-500 text-white hover:bg-red-600 shadow-md"
+                                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                  }`}
+                                >
+                                  {ll.consignacion ? "✓ Consignación" : "Marcar Consignación"}
+                                </button>
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => handleGuardar(ll)}
+                                    className="bg-green-500 text-white px-4 py-2 text-xs rounded-lg hover:bg-green-600 transition-all shadow-md font-medium"
+                                  >
+                                    💾 Guardar
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setModoEdicion(null);
+                                      setLlantaOriginalEdicion(null);
+                                      axios
+                                        .get("https://mi-app-llantas.onrender.com/api/llantas")
+                                        .then((res) => setLlantas(res.data));
+                                    }}
+                                    className="bg-gray-400 text-white px-4 py-2 text-xs rounded-lg hover:bg-gray-500 transition-all shadow-md font-medium"
+                                  >
+                                    ✖ Cancelar
+                                  </button>
+                                </div>
+                              </div>
+                            </td>
+                          </>
+                        ) : (
+                          <>
+                            <td className="p-3">
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold text-gray-800">
+                                  {ll.referencia}
+                                </span>
+                                {ll.comentario && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setComentarioModal(ll)}
+                                    className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white hover:bg-blue-600 transition-all shadow-sm hover:shadow-md"
+                                    title="Ver comentario"
+                                  >
+                                    💬
+                                  </button>
+                                )}
+                                {ll.consignacion && (
+                                  <div
+                                    className="w-6 h-6 bg-red-600 rounded-full flex items-center justify-center shadow-sm"
+                                    title="En consignación"
+                                  >
+                                    <span className="text-white font-bold text-xs">C</span>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                            <td className="p-3">
+                              <div className="flex gap-2 justify-center">
+                                <button
+                                  onClick={() =>
+                                    window.open(
+                                      `https://www.llantar.com.co/search?q=${encodeURIComponent(
+                                        ll.referencia
+                                      )}`,
+                                      "_blank"
+                                    )
+                                  }
+                                  className="bg-blue-500 text-white px-3 py-1.5 rounded-lg hover:bg-blue-600 text-xs transition-all shadow-sm hover:shadow-md font-medium"
+                                >
+                                  Llantar
+                                </button>
+                                <button
+                                  onClick={() => abrirComparador(ll.referencia)}
+                                  className="bg-purple-600 text-white px-3 py-1.5 rounded-lg hover:bg-purple-700 text-xs transition-all shadow-sm hover:shadow-md font-medium"
+                                >
+                                  Comparar
+                                </button>
+                              </div>
+                            </td>
+                            <td className="p-3 text-gray-700">{ll.marca}</td>
+                            <td className="p-3 text-gray-700">{ll.proveedor}</td>
+                            <td className="p-3 text-right text-blue-600 font-semibold">
+                              {mostrarCosto
+                                ? `${(ll.costo_empresa || 0).toLocaleString()}`
+                                : "•••••"}
+                            </td>
+                            <td className="p-3 text-right text-green-600 font-semibold">
+                              ${ll.precio_cliente.toLocaleString()}
+                            </td>
+                            <td className={`p-3 text-center font-semibold ${ll.stock === 0 ? "text-red-600" : "text-gray-700"}`}>
+                              {ll.stock === 0 ? (
+                                <span className="inline-flex items-center gap-1 bg-red-100 px-2 py-1 rounded-full text-xs">
+                                  ❌ Sin stock
+                                </span>
+                              ) : (
+                                ll.stock
+                              )}
+                            </td>
+                            <td className="p-3">
+                              <div className="flex gap-2 justify-center items-center">
+                                <button
+                                  onClick={() => iniciarEdicion(ll.id)}
+                                  className="bg-slate-200 hover:bg-slate-300 px-3 py-1.5 text-sm rounded-lg transition-all shadow-sm hover:shadow-md"
+                                  title="Editar"
+                                >
+                                  ✏️
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    const texto = prompt(
+                                      "Escribe un comentario para esta llanta:",
+                                      ll.comentario || ""
+                                    );
+                                    if (texto !== null) {
+                                      await guardarComentario(ll, texto);
+                                    }
+                                  }}
+                                  className="bg-yellow-500 text-white px-3 py-1.5 text-sm rounded-lg hover:bg-yellow-600 transition-all shadow-sm hover:shadow-md"
+                                  title="Comentario"
                                 >
                                   💬
                                 </button>
-                              )}
-
-                              {ll.consignacion && (
-                                <div
-                                  className="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center"
-                                  title="En consignación"
+                                <button
+                                  onClick={() => handleEliminar(ll.id)}
+                                  className="bg-red-500 text-white hover:bg-red-600 px-3 py-1.5 text-sm rounded-lg transition-all shadow-sm hover:shadow-md"
+                                  title="Eliminar"
                                 >
-                                  <span className="text-white font-bold text-[10px]">
-                                    C
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          </td>
-
-                          <td className="p-2">
-                            <div className="flex gap-1 justify-center items-center">
-                              <button
-                                onClick={() =>
-                                  window.open(
-                                    `https://www.llantar.com.co/search?q=${encodeURIComponent(
-                                      ll.referencia
-                                    )}`,
-                                    "_blank"
-                                  )
-                                }
-                                className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-xs transition-colors"
-                              >
-                                Llantar
-                              </button>
-                              <button
-                                onClick={() => abrirComparador(ll.referencia)}
-                                className="bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700 text-xs transition-colors"
-                              >
-                                Comparar
-                              </button>
-                            </div>
-                          </td>
-
-                          <td>{ll.marca}</td>
-                          <td>{ll.proveedor}</td>
-                          <td className="text-blue-600">
-                            {mostrarCosto
-                              ? `$${(ll.costo_empresa || 0).toLocaleString()}`
-                              : "•••••"}
-                          </td>
-                          <td className="text-green-600 font-semibold">
-                            ${ll.precio_cliente.toLocaleString()}
-                          </td>
-                          <td
-                            className={
-                              ll.stock === 0
-                                ? "text-red-600 font-bold"
-                                : "font-semibold"
-                            }
-                          >
-                            {ll.stock === 0 ? "❌" : ll.stock}
-                          </td>
-                          <td className="p-2">
-                            <div className="flex gap-1 justify-center items-center">
-                              <button
-                                onClick={() => iniciarEdicion(ll.id)}
-                                className="bg-gray-200 hover:bg-gray-300 px-2 py-1 text-xs rounded transition-colors"
-                                title="Editar"
-                              >
-                                ✏️
-                              </button>
-
-                              <button
-                                onClick={async () => {
-                                  const texto = prompt(
-                                    "Escribe un comentario para esta llanta:",
-                                    ll.comentario || ""
-                                  );
-                                  if (texto !== null) {
-                                    await guardarComentario(ll, texto);
-                                  }
-                                }}
-                                className="bg-yellow-500 text-white px-2 py-1 text-xs rounded hover:bg-yellow-600 transition-colors"
-                              >
-                                💬
-                              </button>
-
-                              <button
-                                onClick={() => handleEliminar(ll.id)}
-                                className="bg-red-500 text-white hover:bg-red-600 px-2 py-1 text-xs rounded transition-colors"
-                              >
-                                🗑️
-                              </button>
-                            </div>
-                          </td>
-                        </>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Modal agregar llanta */}
-      {mostrarModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Agregar nueva llanta</h2>
-            {[
-              "referencia",
-              "marca",
-              "proveedor",
-              "costo_empresa",
-              "precio_cliente",
-              "stock",
-            ].map((campo) => (
-              <input
-                key={campo}
-                placeholder={campo.replace("_", " ")}
-                value={nuevoItem[campo]}
-                onChange={(e) =>
-                  setNuevoItem({ ...nuevoItem, [campo]: e.target.value })
-                }
-                className="w-full mb-3 p-2 border rounded focus:ring-2 focus:ring-blue-400 outline-none"
-              />
-            ))}
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={handleAgregar}
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-              >
-                Guardar
-              </button>
-              <button
-                onClick={() => setMostrarModal(false)}
-                className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 transition-colors"
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL PARA VER COMENTARIOS */}
-      {comentarioModal && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4"
-          onClick={() => setComentarioModal(null)}
-        >
-          <div
-            className="bg-white rounded-xl p-6 w-full max-w-lg shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h3 className="text-lg font-bold text-gray-800">Comentario</h3>
-                <p className="text-sm text-gray-500">
-                  Ref: {comentarioModal.referencia}
-                </p>
+                                  🗑️
+                                </button>
+                              </div>
+                            </td>
+                          </>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-              <button
-                onClick={() => setComentarioModal(null)}
-                className="text-gray-400 hover:text-gray-600 text-3xl leading-none"
-              >
-                ×
-              </button>
             </div>
+          </>
+        )}
 
-            <div className="bg-gray-50 p-4 rounded-lg mb-4">
-              <p className="text-gray-800 whitespace-pre-wrap break-words">
-                {comentarioModal.comentario}
-              </p>
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                onClick={async () => {
-                  const nuevoTexto = prompt(
-                    "Editar comentario:",
-                    comentarioModal.comentario
-                  );
-                  if (nuevoTexto !== null) {
-                    await guardarComentario(comentarioModal, nuevoTexto);
-                    setComentarioModal(null);
-                  }
-                }}
-                className="flex-1 bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 font-medium transition-colors"
-              >
-                Editar
-              </button>
-              <button
-                onClick={() => setComentarioModal(null)}
-                className="flex-1 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 font-medium transition-colors"
-              >
-                Cerrar
-              </button>
+        {/* Modal agregar llanta */}
+        {mostrarModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md transform transition-all">
+              <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-2">
+                <span>➕</span>
+                Agregar Nueva Llanta
+              </h2>
+              <div className="space-y-4">
+                {[
+                  { key: "referencia", label: "Referencia" },
+                  { key: "marca", label: "Marca" },
+                  { key: "proveedor", label: "Proveedor" },
+                  { key: "costo_empresa", label: "Costo Empresa" },
+                  { key: "precio_cliente", label: "Precio Cliente" },
+                  { key: "stock", label: "Stock" },
+                ].map((campo) => (
+                  <div key={campo.key}>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {campo.label}
+                    </label>
+                    <input
+                      placeholder={`Ingrese ${campo.label.toLowerCase()}`}
+                      value={nuevoItem[campo.key]}
+                      onChange={(e) =>
+                        setNuevoItem({ ...nuevoItem, [campo.key]: e.target.value })
+                      }
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-all"
+                    />
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={handleAgregar}
+                  className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-green-600 hover:to-green-700 transition-all shadow-lg hover:shadow-xl"
+                >
+                  Guardar
+                </button>
+                <button
+                  onClick={() => setMostrarModal(false)}
+                  className="flex-1 bg-gray-400 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-500 transition-all shadow-lg hover:shadow-xl"
+                >
+                  Cancelar
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* 🆕 MODAL DE LOG DE ACTIVIDADES */}
-      {mostrarLogModal && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"
-          onClick={() => setMostrarLogModal(false)}
-        >
+        {/* Modal comentarios */}
+        {comentarioModal && (
           <div
-            className="bg-white rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm"
+            onClick={() => setComentarioModal(null)}
           >
-            {/* Header del modal */}
-            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
-              <div className="flex justify-between items-center">
+            <div
+              className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-lg transform transition-all"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-start mb-6">
                 <div>
-                  <h2 className="text-2xl font-bold">
-                    📋 Historial de Actividades
-                  </h2>
-                  <p className="text-indigo-100 text-sm mt-1">
-                    Registro completo de cambios en el inventario
+                  <h3 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                    <span>💬</span>
+                    Comentario
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Ref: {comentarioModal.referencia}
                   </p>
                 </div>
                 <button
-                  onClick={() => setMostrarLogModal(false)}
-                  className="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-colors"
+                  onClick={() => setComentarioModal(null)}
+                  className="text-gray-400 hover:text-gray-600 text-4xl leading-none hover:bg-gray-100 w-10 h-10 rounded-full transition-all"
                 >
-                  <span className="text-3xl leading-none">×</span>
+                  ×
                 </button>
               </div>
-            </div>
 
-            {/* Filtros */}
-            <div className="p-6 bg-gray-50 border-b">
-              <div className="flex gap-4 flex-wrap">
-                <div className="flex-1 min-w-[200px]">
-                  <input
-                    type="text"
-                    placeholder="Buscar en historial..."
-                    value={busquedaLog}
-                    onChange={(e) => setBusquedaLog(e.target.value)}
-                    className="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none"
-                  />
-                </div>
-                <div className="min-w-[200px]">
-                  <select
-                    value={filtroTipoLog}
-                    onChange={(e) => setFiltroTipoLog(e.target.value)}
-                    className="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none"
-                  >
-                    <option value="">Todos los tipos</option>
-                    <option value="NUEVA LLANTA">Nueva Llanta</option>
-                    <option value="EDICIÓN">Edición</option>
-                    <option value="ELIMINACIÓN">Eliminación</option>
-                    <option value="ELIMINACIÓN MÚLTIPLE">
-                      Eliminación Múltiple
-                    </option>
-                    <option value="COMENTARIO">Comentario</option>
-                  </select>
-                </div>
+              <div className="bg-gray-50 p-6 rounded-xl mb-6 border-2 border-gray-100">
+                <p className="text-gray-800 whitespace-pre-wrap break-words leading-relaxed">
+                  {comentarioModal.comentario}
+                </p>
+              </div>
+
+              <div className="flex gap-3">
                 <button
-                  onClick={() => {
-                    setBusquedaLog("");
-                    setFiltroTipoLog("");
+                  onClick={async () => {
+                    const nuevoTexto = prompt(
+                      "Editar comentario:",
+                      comentarioModal.comentario
+                    );
+                    if (nuevoTexto !== null) {
+                      await guardarComentario(comentarioModal, nuevoTexto);
+                      setComentarioModal(null);
+                    }
                   }}
-                  className="bg-orange-500 text-white px-6 py-3 rounded-lg hover:bg-orange-600 font-semibold transition-colors"
+                  className="flex-1 bg-yellow-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-yellow-600 transition-all shadow-lg hover:shadow-xl"
                 >
-                  Limpiar
+                  Editar
+                </button>
+                <button
+                  onClick={() => setComentarioModal(null)}
+                  className="flex-1 bg-gray-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-600 transition-all shadow-lg hover:shadow-xl"
+                >
+                  Cerrar
                 </button>
               </div>
-
-              <div className="mt-3 text-sm text-gray-600">
-                Mostrando {logsFiltrados.length} de {logs.length} registros
-              </div>
             </div>
+          </div>
+        )}
 
-            {/* Contenido del log */}
+        {/* Modal de log */}
+        {mostrarLogModal && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4 backdrop-blur-sm"
+            onClick={() => setMostrarLogModal(false)}
+          >
             <div
-              className="p-6 overflow-y-auto"
-              style={{ maxHeight: "calc(90vh - 280px)" }}
+              className="bg-white rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
             >
-              {cargandoLogs ? (
-                <div className="text-center py-10 text-gray-500">
-                  ⏳ Cargando historial...
+              <div className="bg-gradient-to-r from-slate-700 to-slate-900 p-8 text-white">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h2 className="text-3xl font-bold flex items-center gap-3">
+                      <span>📋</span>
+                      Historial de Actividades
+                    </h2>
+                    <p className="text-slate-200 text-sm mt-2">
+                      Registro completo de cambios en el inventario
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setMostrarLogModal(false)}
+                    className="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-3 transition-all w-12 h-12 flex items-center justify-center text-3xl"
+                  >
+                    ×
+                  </button>
                 </div>
-              ) : logsFiltrados.length === 0 ? (
-                <div className="text-center py-10 text-gray-500">
-                  <div className="text-6xl mb-4">📭</div>
-                  <p className="text-lg">No hay registros que mostrar</p>
+              </div>
+
+              <div className="p-6 bg-gray-50 border-b">
+                <div className="flex gap-4 flex-wrap">
+                  <div className="flex-1 min-w-[200px]">
+                    <input
+                      type="text"
+                      placeholder="🔍 Buscar en historial..."
+                      value={busquedaLog}
+                      onChange={(e) => setBusquedaLog(e.target.value)}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-all"
+                    />
+                  </div>
+                  <div className="min-w-[200px]">
+                    <select
+                      value={filtroTipoLog}
+                      onChange={(e) => setFiltroTipoLog(e.target.value)}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-all"
+                    >
+                      <option value="">Todos los tipos</option>
+                      <option value="NUEVA LLANTA">Nueva Llanta</option>
+                      <option value="EDICIÓN">Edición</option>
+                      <option value="ELIMINACIÓN">Eliminación</option>
+                      <option value="ELIMINACIÓN MÚLTIPLE">Eliminación Múltiple</option>
+                      <option value="COMENTARIO">Comentario</option>
+                    </select>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setBusquedaLog("");
+                      setFiltroTipoLog("");
+                    }}
+                    className="bg-slate-600 text-white px-6 py-3 rounded-xl hover:bg-slate-700 font-semibold transition-all shadow-md hover:shadow-lg"
+                  >
+                    🔄 Limpiar
+                  </button>
                 </div>
-              ) : (
-                <div className="space-y-3">
-                  {logsFiltrados.map((log, index) => {
-                    const fecha = new Date(log.fecha);
-                    const esHoy =
-                      fecha.toDateString() === new Date().toDateString();
 
-                    // Colores según tipo de actividad
-                    let colorClase = "bg-blue-50 border-blue-200";
-                    let iconoTipo = "📝";
+                <div className="mt-4 text-sm text-gray-600 bg-white px-4 py-2 rounded-lg inline-block">
+                  Mostrando <span className="font-bold">{logsFiltrados.length}</span> de <span className="font-bold">{logs.length}</span> registros
+                </div>
+              </div>
 
-                    if (log.tipo === "NUEVA LLANTA") {
-                      colorClase = "bg-green-50 border-green-200";
-                      iconoTipo = "➕";
-                    } else if (
-                      log.tipo === "ELIMINACIÓN" ||
-                      log.tipo === "ELIMINACIÓN MÚLTIPLE"
-                    ) {
-                      colorClase = "bg-red-50 border-red-200";
-                      iconoTipo = "🗑️";
-                    } else if (log.tipo === "EDICIÓN") {
-                      colorClase = "bg-yellow-50 border-yellow-200";
-                      iconoTipo = "✏️";
-                    } else if (log.tipo === "COMENTARIO") {
-                      colorClase = "bg-purple-50 border-purple-200";
-                      iconoTipo = "💬";
-                    }
+              <div
+                className="p-6 overflow-y-auto"
+                style={{ maxHeight: "calc(90vh - 320px)" }}
+              >
+                {cargandoLogs ? (
+                  <div className="text-center py-16">
+                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-slate-700 mb-4"></div>
+                    <p className="text-gray-600 text-lg">Cargando historial...</p>
+                  </div>
+                ) : logsFiltrados.length === 0 ? (
+                  <div className="text-center py-16 text-gray-500">
+                    <div className="text-7xl mb-6">📭</div>
+                    <p className="text-xl font-semibold">No hay registros que mostrar</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {logsFiltrados.map((log, index) => {
+                      const fecha = new Date(log.fecha);
+                      const esHoy = fecha.toDateString() === new Date().toDateString();
 
-                    return (
-                      <div
-                        key={log.id || index}
-                        className={`${colorClase} border-l-4 p-4 rounded-lg transition-all hover:shadow-md`}
-                      >
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="text-xl">{iconoTipo}</span>
-                              <span className="font-bold text-gray-800">
-                                {log.tipo}
-                              </span>
-                              {esHoy && (
-                                <span className="bg-indigo-500 text-white text-xs px-2 py-1 rounded-full">
-                                  HOY
+                      let colorClase = "bg-blue-50 border-blue-300";
+                      let iconoTipo = "📝";
+
+                      if (log.tipo === "NUEVA LLANTA") {
+                        colorClase = "bg-green-50 border-green-300";
+                        iconoTipo = "➕";
+                      } else if (
+                        log.tipo === "ELIMINACIÓN" ||
+                        log.tipo === "ELIMINACIÓN MÚLTIPLE"
+                      ) {
+                        colorClase = "bg-red-50 border-red-300";
+                        iconoTipo = "🗑️";
+                      } else if (log.tipo === "EDICIÓN") {
+                        colorClase = "bg-yellow-50 border-yellow-300";
+                        iconoTipo = "✏️";
+                      } else if (log.tipo === "COMENTARIO") {
+                        colorClase = "bg-purple-50 border-purple-300";
+                        iconoTipo = "💬";
+                      }
+
+                      return (
+                        <div
+                          key={log.id || index}
+                          className={`${colorClase} border-l-4 p-5 rounded-xl transition-all hover:shadow-lg`}
+                        >
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-3">
+                                <span className="text-2xl">{iconoTipo}</span>
+                                <span className="font-bold text-gray-800 text-lg">
+                                  {log.tipo}
                                 </span>
-                              )}
+                                {esHoy && (
+                                  <span className="bg-slate-600 text-white text-xs px-3 py-1 rounded-full font-semibold">
+                                    HOY
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-gray-700 leading-relaxed">
+                                {log.detalles}
+                              </p>
                             </div>
-                            <p className="text-gray-700 text-sm leading-relaxed">
-                              {log.detalles}
-                            </p>
-                          </div>
-                          <div className="text-right text-xs text-gray-500 ml-4">
-                            <div className="font-semibold">
-                              {fecha.toLocaleDateString("es-CO", {
-                                day: "2-digit",
-                                month: "short",
-                                year: "numeric",
-                              })}
-                            </div>
-                            <div className="text-gray-400">
-                              {fecha.toLocaleTimeString("es-CO", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
+                            <div className="text-right text-xs text-gray-500 ml-6 bg-white px-3 py-2 rounded-lg shadow-sm">
+                              <div className="font-semibold text-gray-700">
+                                {fecha.toLocaleDateString("es-CO", {
+                                  day: "2-digit",
+                                  month: "short",
+                                  year: "numeric",
+                                })}
+                              </div>
+                              <div className="text-gray-500 mt-1">
+                                {fecha.toLocaleTimeString("es-CO", {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            {/* Footer del modal */}
-            <div className="bg-gray-100 p-4 border-t flex justify-between items-center">
-              <div className="text-sm text-gray-600">
-                Total de actividades registradas:{" "}
-                <span className="font-bold">{logs.length}</span>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-              <button
-                onClick={() => setMostrarLogModal(false)}
-                className="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 font-semibold transition-colors"
-              >
-                Cerrar
-              </button>
+
+              <div className="bg-gray-100 p-6 border-t flex justify-between items-center">
+                <div className="text-sm text-gray-700 bg-white px-4 py-2 rounded-lg">
+                  Total de actividades: <span className="font-bold text-slate-700">{logs.length}</span>
+                </div>
+                <button
+                  onClick={() => setMostrarLogModal(false)}
+                  className="bg-slate-600 text-white px-8 py-3 rounded-xl hover:bg-slate-700 font-semibold transition-all shadow-lg hover:shadow-xl"
+                >
+                  Cerrar
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

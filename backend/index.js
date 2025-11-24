@@ -354,17 +354,17 @@ app.post("/api/editar-rin", async (req, res) => {
         marca,
         referencia,
         proveedor || "",
-        medida || "0",            // ← 🔥 CORRECCIÓN APLICADA AQUÍ
-        parseFloat(costo),
-        parseFloat(precio),
-        parseInt(stock),
+        medida || "",  // ← Cambiado de "0" a "" para permitir valores vacíos
+        parseFloat(costo) || 0,
+        parseFloat(precio) || 0,
+        parseInt(stock) || 0,
         id,
       ]
     );
     res.json({ success: true });
   } catch (error) {
     console.error("Error editando rin:", error);
-    res.status(500).json({ error: "Error editando rin" });
+    res.status(500).json({ error: error.message }); // ← También agregué .message para ver el error específico
   }
 });
 

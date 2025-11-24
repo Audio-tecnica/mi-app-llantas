@@ -137,7 +137,7 @@ function Rines() {
         referencia: nuevoItem.referencia.trim(),
         marca: nuevoItem.marca.trim(),
         proveedor: nuevoItem.proveedor?.trim() || "",
-        medida: nuevoItem.medida === "" ? null : Number(nuevoItem.medida),
+        medida: nuevoItem.medida.trim(),
         costo: Number(nuevoItem.costo) || 0,
         precio: Number(nuevoItem.precio) || 0,
         stock: Number(nuevoItem.stock) || 0,

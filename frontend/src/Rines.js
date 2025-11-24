@@ -417,7 +417,7 @@ function Rines() {
                           className="cursor-pointer w-4 h-4"
                         />
                       </th>
-                      <th className="p-3 text-center">Foto</th>
+                      <th className="p-3 text-center w-32">Foto</th>
                       <th
                         onClick={() => ordenarPor("referencia")}
                         className="cursor-pointer p-3 text-left hover:bg-slate-600 transition-colors"

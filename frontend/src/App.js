@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
@@ -174,9 +173,7 @@ function App() {
 
   const actualizarCampo = (id, campo, valor) => {
     setLlantas(
-      llantas.map((ll) =>
-        ll.id === id ? { ...ll, [campo]: valor } : ll
-      )
+      llantas.map((ll) => (ll.id === id ? { ...ll, [campo]: valor } : ll))
     );
   };
 
@@ -192,7 +189,9 @@ function App() {
 
       await registrarActividad(
         "COMENTARIO",
-        `${llanta.referencia}: ${texto ? 'Comentario agregado/editado' : 'Comentario eliminado'}`
+        `${llanta.referencia}: ${
+          texto ? "Comentario agregado/editado" : "Comentario eliminado"
+        }`
       );
 
       const { data } = await axios.get(
@@ -409,7 +408,7 @@ function App() {
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
           <div className="flex justify-between items-center flex-wrap gap-4">
             <img src="/logowp.PNG" className="h-12 w-auto" alt="Logo" />
-            
+
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setMostrarModal(true)}
@@ -418,7 +417,7 @@ function App() {
                 <span className="text-lg">+</span>
                 Agregar llanta
               </button>
-              
+
               <button
                 onClick={handleEliminarMultiples}
                 disabled={seleccionadas.length === 0}
@@ -510,7 +509,11 @@ function App() {
             {/* Contador de resultados */}
             <div className="bg-white rounded-lg shadow-md px-4 py-2 mb-4 inline-block">
               <span className="text-sm text-gray-600">
-                📊 Mostrando <span className="font-bold text-slate-700">{filtradas.length}</span> resultados
+                📊 Mostrando{" "}
+                <span className="font-bold text-slate-700">
+                  {filtradas.length}
+                </span>{" "}
+                resultados
               </span>
             </div>
 
@@ -598,12 +601,15 @@ function App() {
                           type="checkbox"
                           onChange={(e) => {
                             if (e.target.checked) {
-                              setSeleccionadas(filtradas.map(l => l.id));
+                              setSeleccionadas(filtradas.map((l) => l.id));
                             } else {
                               setSeleccionadas([]);
                             }
                           }}
-                          checked={seleccionadas.length === filtradas.length && filtradas.length > 0}
+                          checked={
+                            seleccionadas.length === filtradas.length &&
+                            filtradas.length > 0
+                          }
                           className="cursor-pointer w-4 h-4"
                         />
                       </th>
@@ -666,7 +672,9 @@ function App() {
                     {filtradas.map((ll, idx) => (
                       <tr
                         key={ll.id}
-                        className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50 transition-colors`}
+                        className={`${
+                          idx % 2 === 0 ? "bg-white" : "bg-gray-50"
+                        } hover:bg-blue-50 transition-colors`}
                       >
                         <td className="p-3">
                           <input
@@ -692,6 +700,64 @@ function App() {
                               />
                             </td>
                             <td className="p-2">
+                              {/* Columna de búsqueda - solo muestra botones */}
+                              <div className="flex gap-2 justify-center">
+                                <button
+                                  onClick={() =>
+                                    window.open(
+                                      `https://www.llantar.com.co/search?q=${encodeURIComponent(
+                                        ll.referencia
+                                      )}`,
+                                      "_blank"
+                                    )
+                                  }
+                                  className="bg-blue-500 text-white px-3 py-1.5 rounded-lg hover:bg-blue-600 text-xs transition-all shadow-sm hover:shadow-md font-medium"
+                                >
+                                  Llantar
+                                </button>
+                              </div>
+                            </td>
+                            <td className="p-2">
+                              <input
+                                value={ll.marca}
+                                onChange={(e) =>
+                                  actualizarCampo(
+                                    ll.id,
+                                    "marca",
+                                    e.target.value
+                                  )
+                                }
+                                className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                              />
+                            </td>
+                            <td className="p-2">
+                              <input
+                                value={ll.proveedor}
+                                onChange={(e) =>
+                                  actualizarCampo(
+                                    ll.id,
+                                    "proveedor",
+                                    e.target.value
+                                  )
+                                }
+                                className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                              />
+                            </td>
+                            <td className="p-2">
+                              <input
+                                type="number"
+                                value={ll.costo_empresa}
+                                onChange={(e) =>
+                                  actualizarCampo(
+                                    ll.id,
+                                    "costo_empresa",
+                                    e.target.value
+                                  )
+                                }
+                                className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                              />
+                            </td>
+                            <td className="p-2">
                               <input
                                 type="number"
                                 value={ll.precio_cliente}
@@ -710,50 +776,14 @@ function App() {
                                 type="number"
                                 value={ll.stock}
                                 onChange={(e) =>
-                                  actualizarCampo(ll.id, "stock", e.target.value)
+                                  actualizarCampo(
+                                    ll.id,
+                                    "stock",
+                                    e.target.value
+                                  )
                                 }
                                 className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
                               />
-                            </td>
-                            <td className="p-3">
-                              <div className="flex flex-col gap-2 items-center">
-                                <button
-                                  onClick={() =>
-                                    actualizarCampo(
-                                      ll.id,
-                                      "consignacion",
-                                      !ll.consignacion
-                                    )
-                                  }
-                                  className={`px-3 py-1.5 text-xs rounded-lg font-semibold transition-all ${
-                                    ll.consignacion
-                                      ? "bg-red-500 text-white hover:bg-red-600 shadow-md"
-                                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                                  }`}
-                                >
-                                  {ll.consignacion ? "✓ Consignación" : "Marcar Consignación"}
-                                </button>
-                                <div className="flex gap-2">
-                                  <button
-                                    onClick={() => handleGuardar(ll)}
-                                    className="bg-green-500 text-white px-4 py-2 text-xs rounded-lg hover:bg-green-600 transition-all shadow-md font-medium"
-                                  >
-                                    💾 Guardar
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      setModoEdicion(null);
-                                      setLlantaOriginalEdicion(null);
-                                      axios
-                                        .get("https://mi-app-llantas.onrender.com/api/llantas")
-                                        .then((res) => setLlantas(res.data));
-                                    }}
-                                    className="bg-gray-400 text-white px-4 py-2 text-xs rounded-lg hover:bg-gray-500 transition-all shadow-md font-medium"
-                                  >
-                                    ✖ Cancelar
-                                  </button>
-                                </div>
-                              </div>
                             </td>
                           </>
                         ) : (
@@ -778,7 +808,9 @@ function App() {
                                     className="w-6 h-6 bg-red-600 rounded-full flex items-center justify-center shadow-sm"
                                     title="En consignación"
                                   >
-                                    <span className="text-white font-bold text-xs">C</span>
+                                    <span className="text-white font-bold text-xs">
+                                      C
+                                    </span>
                                   </div>
                                 )}
                               </div>
@@ -807,7 +839,9 @@ function App() {
                               </div>
                             </td>
                             <td className="p-3 text-gray-700">{ll.marca}</td>
-                            <td className="p-3 text-gray-700">{ll.proveedor}</td>
+                            <td className="p-3 text-gray-700">
+                              {ll.proveedor}
+                            </td>
                             <td className="p-3 text-right text-blue-600 font-semibold">
                               {mostrarCosto
                                 ? `$${(ll.costo_empresa || 0).toLocaleString()}`
@@ -816,7 +850,13 @@ function App() {
                             <td className="p-3 text-right text-green-600 font-semibold">
                               ${ll.precio_cliente.toLocaleString()}
                             </td>
-                            <td className={`p-3 text-center font-semibold ${ll.stock === 0 ? "text-red-600" : "text-gray-700"}`}>
+                            <td
+                              className={`p-3 text-center font-semibold ${
+                                ll.stock === 0
+                                  ? "text-red-600"
+                                  : "text-gray-700"
+                              }`}
+                            >
                               {ll.stock === 0 ? (
                                 <span className="inline-flex items-center gap-1 bg-red-100 px-2 py-1 rounded-full text-xs">
                                   ❌
@@ -894,7 +934,10 @@ function App() {
                       placeholder={`Ingrese ${campo.label.toLowerCase()}`}
                       value={nuevoItem[campo.key]}
                       onChange={(e) =>
-                        setNuevoItem({ ...nuevoItem, [campo.key]: e.target.value })
+                        setNuevoItem({
+                          ...nuevoItem,
+                          [campo.key]: e.target.value,
+                        })
                       }
                       className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-all"
                     />
@@ -1031,7 +1074,9 @@ function App() {
                       <option value="NUEVA LLANTA">Nueva Llanta</option>
                       <option value="EDICIÓN">Edición</option>
                       <option value="ELIMINACIÓN">Eliminación</option>
-                      <option value="ELIMINACIÓN MÚLTIPLE">Eliminación Múltiple</option>
+                      <option value="ELIMINACIÓN MÚLTIPLE">
+                        Eliminación Múltiple
+                      </option>
                       <option value="COMENTARIO">Comentario</option>
                     </select>
                   </div>
@@ -1047,7 +1092,9 @@ function App() {
                 </div>
 
                 <div className="mt-4 text-sm text-gray-600 bg-white px-4 py-2 rounded-lg inline-block">
-                  Mostrando <span className="font-bold">{logsFiltrados.length}</span> de <span className="font-bold">{logs.length}</span> registros
+                  Mostrando{" "}
+                  <span className="font-bold">{logsFiltrados.length}</span> de{" "}
+                  <span className="font-bold">{logs.length}</span> registros
                 </div>
               </div>
 
@@ -1058,18 +1105,23 @@ function App() {
                 {cargandoLogs ? (
                   <div className="text-center py-16">
                     <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-slate-700 mb-4"></div>
-                    <p className="text-gray-600 text-lg">Cargando historial...</p>
+                    <p className="text-gray-600 text-lg">
+                      Cargando historial...
+                    </p>
                   </div>
                 ) : logsFiltrados.length === 0 ? (
                   <div className="text-center py-16 text-gray-500">
                     <div className="text-7xl mb-6">📭</div>
-                    <p className="text-xl font-semibold">No hay registros que mostrar</p>
+                    <p className="text-xl font-semibold">
+                      No hay registros que mostrar
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {logsFiltrados.map((log, index) => {
                       const fecha = new Date(log.fecha);
-                      const esHoy = fecha.toDateString() === new Date().toDateString();
+                      const esHoy =
+                        fecha.toDateString() === new Date().toDateString();
 
                       let colorClase = "bg-blue-50 border-blue-300";
                       let iconoTipo = "📝";
@@ -1138,7 +1190,10 @@ function App() {
 
               <div className="bg-gray-100 p-6 border-t flex justify-between items-center">
                 <div className="text-sm text-gray-700 bg-white px-4 py-2 rounded-lg">
-                  Total de actividades: <span className="font-bold text-slate-700">{logs.length}</span>
+                  Total de actividades:{" "}
+                  <span className="font-bold text-slate-700">
+                    {logs.length}
+                  </span>
                 </div>
                 <button
                   onClick={() => setMostrarLogModal(false)}

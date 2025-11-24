@@ -98,31 +98,44 @@ function Rines() {
 
   const handleGuardar = async (rin) => {
     try {
+      // Asegurarnos de que todos los campos tengan valores válidos
+      const rinFormateado = {
+        id: rin.id,
+        marca: rin.marca || "",
+        referencia: rin.referencia || "",
+        proveedor: rin.proveedor || "",
+        medida: rin.medida || "",
+        costo: parseFloat(rin.costo) || 0,
+        precio: parseFloat(rin.precio) || 0,
+        stock: parseInt(rin.stock) || 0,
+      };
+
+      console.log("📤 Enviando al backend:", rinFormateado); // Para debugging
+
       await axios.post(
         "https://mi-app-llantas.onrender.com/api/editar-rin",
-        rin
+        rinFormateado
       );
+
       setMensaje("Cambios guardados ✅");
       setModoEdicion(null);
-      setTimeout(() => setMensaje(""), 2000);
-    } catch {
-      setMensaje("Error al guardar ❌");
-      setTimeout(() => setMensaje(""), 2000);
-    }
-  };
 
-  const handleEliminar = async (id) => {
-    if (!window.confirm("¿Eliminar este rin?")) return;
-    try {
-      await axios.post("https://mi-app-llantas.onrender.com/api/eliminar-rin", {
-        id,
-      });
-      setRines((prev) => prev.filter((r) => r.id !== id));
-      setMensaje("Rin eliminado ✅");
+      // Recargar los datos
+      const { data } = await axios.get(
+        "https://mi-app-llantas.onrender.com/api/rines"
+      );
+      setRines(data);
+
       setTimeout(() => setMensaje(""), 2000);
-    } catch {
-      setMensaje("Error al eliminar ❌");
-      setTimeout(() => setMensaje(""), 2000);
+    } catch (error) {
+      console.error("❌ Error completo:", error);
+      console.error("❌ Respuesta del servidor:", error.response?.data);
+      setMensaje(
+        `Error al guardar: ${
+          error.response?.data?.error || "Error desconocido"
+        }`
+      );
+      setTimeout(() => setMensaje(""), 3000);
     }
   };
 

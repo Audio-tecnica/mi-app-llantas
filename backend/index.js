@@ -323,7 +323,7 @@ app.post("/api/agregar-rin", async (req, res) => {
         marca,
         referencia,
         proveedor || "",
-        medida || "",
+        medida || "0",
         parseFloat(costo) || 0,
         parseFloat(precio) || 0,
         parseInt(stock) || 0,
@@ -353,8 +353,8 @@ app.post("/api/editar-rin", async (req, res) => {
       [
         marca,
         referencia,
-        proveedor,
-        medida,
+        proveedor || "",
+        medida || "0",            // ← 🔥 CORRECCIÓN APLICADA AQUÍ
         parseFloat(costo),
         parseFloat(precio),
         parseInt(stock),
@@ -367,6 +367,7 @@ app.post("/api/editar-rin", async (req, res) => {
     res.status(500).json({ error: "Error editando rin" });
   }
 });
+
 
 // Eliminar rin
 app.post("/api/eliminar-rin", async (req, res) => {

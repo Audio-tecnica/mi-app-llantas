@@ -323,7 +323,7 @@ app.post("/api/agregar-rin", async (req, res) => {
         marca,
         referencia,
         proveedor || "",
-        medida || "0",
+        medida || "",
         parseFloat(costo) || 0,
         parseFloat(precio) || 0,
         parseInt(stock) || 0,

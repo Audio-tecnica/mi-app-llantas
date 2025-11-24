@@ -487,13 +487,24 @@ function Rines() {
                           idx % 2 === 0 ? "bg-white" : "bg-gray-50"
                         } hover:bg-blue-50 transition-colors`}
                       >
-                        <td className="p-3">
-                          <input
-                            type="checkbox"
-                            checked={seleccionadas.includes(r.id)}
-                            onChange={() => toggleSeleccion(r.id)}
-                            className="cursor-pointer w-4 h-4"
-                          />
+                        <td className="p-3 text-center">
+                          {r.foto ? (
+                            <img
+                              src={r.foto}
+                              alt={r.referencia}
+                              onClick={() => setFotoModal(r.foto)}
+                              className="w-16 h-16 object-cover rounded-lg cursor-pointer hover:scale-110 transition-transform shadow-md mx-auto border-2 border-gray-200"
+                              onError={(e) => {
+                                e.target.style.display = "none";
+                              }}
+                            />
+                          ) : (
+                            <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto border-2 border-gray-200">
+                              <span className="text-gray-400 text-xs">
+                                Sin foto
+                              </span>
+                            </div>
+                          )}
                         </td>
 
                         {modoEdicion === r.id ? (

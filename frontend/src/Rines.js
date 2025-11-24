@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import "./index.css";
 
 function Rines() {
   const [mostrarCosto, setMostrarCosto] = useState(false);
@@ -417,13 +418,13 @@ function Rines() {
                           className="cursor-pointer w-4 h-4"
                         />
                       </th>
-                      <th className="p-3 text-center">Foto</th>
                       <th
                         onClick={() => ordenarPor("referencia")}
                         className="cursor-pointer p-3 text-left hover:bg-slate-600 transition-colors"
                       >
                         Referencia
                       </th>
+                    
                       <th
                         onClick={() => ordenarPor("marca")}
                         className="cursor-pointer p-3 text-left hover:bg-slate-600 transition-colors"
@@ -486,13 +487,24 @@ function Rines() {
                           idx % 2 === 0 ? "bg-white" : "bg-gray-50"
                         } hover:bg-blue-50 transition-colors`}
                       >
-                        <td className="p-3">
-                          <input
-                            type="checkbox"
-                            checked={seleccionadas.includes(r.id)}
-                            onChange={() => toggleSeleccion(r.id)}
-                            className="cursor-pointer w-4 h-4"
-                          />
+                        <td className="p-3 text-center">
+                          {r.foto ? (
+                            <img
+                              src={r.foto}
+                              alt={r.referencia}
+                              onClick={() => setFotoModal(r.foto)}
+                              className="w-16 h-16 object-cover rounded-lg cursor-pointer hover:scale-110 transition-transform shadow-md mx-auto border-2 border-gray-200"
+                              onError={(e) => {
+                                e.target.style.display = "none";
+                              }}
+                            />
+                          ) : (
+                            <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto border-2 border-gray-200">
+                              <span className="text-gray-400 text-xs">
+                                Sin foto
+                              </span>
+                            </div>
+                          )}
                         </td>
 
                         {modoEdicion === r.id ? (
@@ -510,6 +522,7 @@ function Rines() {
                                 className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
                               />
                             </td>
+                            <td></td>
                             <td className="p-2">
                               <input
                                 value={r.marca}
@@ -579,7 +592,6 @@ function Rines() {
                                 className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
                               />
                             </td>
-                            <td></td>
                             <td className="p-3">
                               <div className="flex flex-col gap-2 items-center">
                                 <button
@@ -603,6 +615,16 @@ function Rines() {
                               <span className="font-semibold text-gray-800">
                                 {r.referencia}
                               </span>
+                            </td>
+                            <td className="p-3 text-center">
+                              {r.foto && (
+                                <button
+                                  onClick={() => setFotoModal(r.foto)}
+                                  className="bg-purple-500 text-white px-3 py-1.5 rounded-lg hover:bg-purple-600 text-xs transition-all shadow-sm hover:shadow-md font-medium"
+                                >
+                                  📷
+                                </button>
+                              )}
                             </td>
                             <td className="p-3 text-gray-700">{r.marca}</td>
                             <td className="p-3 text-gray-700">
@@ -630,23 +652,6 @@ function Rines() {
                                 </span>
                               ) : (
                                 r.stock
-                              )}
-                            </td>
-                            <td className="p-3 text-center">
-                              {r.foto ? (
-                                <img
-                                  src={r.foto}
-                                  alt={r.referencia}
-                                  onClick={() => setFotoModal(r.foto)}
-                                  className="w-16 h-16 object-cover rounded-lg cursor-pointer hover:scale-110 transition-transform shadow-md mx-auto border-2 border-gray-200"
-                                  onError={(e) => {
-                                    e.target.style.display = 'none';
-                                  }}
-                                />
-                              ) : (
-                                <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto border-2 border-gray-200">
-                                  <span className="text-gray-400 text-xs">Sin foto</span>
-                                </div>
                               )}
                             </td>
                             <td className="p-3">

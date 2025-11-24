@@ -785,6 +785,50 @@ function App() {
                                 className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
                               />
                             </td>
+                            <td className="p-3">
+                              <div className="flex flex-col gap-2 items-center">
+                                <button
+                                  onClick={() =>
+                                    actualizarCampo(
+                                      ll.id,
+                                      "consignacion",
+                                      !ll.consignacion
+                                    )
+                                  }
+                                  className={`px-3 py-1.5 text-xs rounded-lg font-semibold transition-all ${
+                                    ll.consignacion
+                                      ? "bg-red-500 text-white hover:bg-red-600 shadow-md"
+                                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                  }`}
+                                >
+                                  {ll.consignacion
+                                    ? "✓ Consignación"
+                                    : "Marcar Consignación"}
+                                </button>
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => handleGuardar(ll)}
+                                    className="bg-green-500 text-white px-4 py-2 text-xs rounded-lg hover:bg-green-600 transition-all shadow-md font-medium"
+                                  >
+                                    💾 Guardar
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setModoEdicion(null);
+                                      setLlantaOriginalEdicion(null);
+                                      axios
+                                        .get(
+                                          "https://mi-app-llantas.onrender.com/api/llantas"
+                                        )
+                                        .then((res) => setLlantas(res.data));
+                                    }}
+                                    className="bg-gray-400 text-white px-4 py-2 text-xs rounded-lg hover:bg-gray-500 transition-all shadow-md font-medium"
+                                  >
+                                    ✖ Cancelar
+                                  </button>
+                                </div>
+                              </div>
+                            </td>
                           </>
                         ) : (
                           <>

@@ -49,11 +49,12 @@ function Rines() {
         rines
           .filter((r) => r.medida?.toString().startsWith(medidaSeleccionada))
           .map((r) => {
-            const match = r.medida?.match(/(\d+X\d+)/i);
+            // Buscar patrón como 6X139, 5X114.3, 6X139.7, etc.
+            const match = r.medida?.match(/(\d+X\d+(?:\.\d+)?)/i);
             return match ? match[1].toUpperCase() : null;
           })
           .filter(Boolean)
-      )]
+      )].sort()
     : [];
 
   const filtradas = rines.filter((r) => {
@@ -702,6 +703,7 @@ function Rines() {
                                 >
                                   💾 Guardar
                                 </button>
+
                                 <button
                                   onClick={() => setModoEdicion(null)}
                                   className="bg-gray-400 text-white px-4 py-2 text-xs rounded-lg hover:bg-gray-500 transition-all shadow-md font-medium"

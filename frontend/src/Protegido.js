@@ -2,7 +2,7 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 
 const PASSWORD = 'at2025';
-const MAX_TIEMPO = 15 * 60 * 1000; // 15 minutos
+const MAX_TIEMPO = 60 * 60 * 1000; // 60 minutos
 
 function Protegido({ children }) {
   const acceso = localStorage.getItem('acceso');

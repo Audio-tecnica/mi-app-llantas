@@ -10,6 +10,7 @@ function Rines() {
   const [busqueda, setBusqueda] = useState("");
   const [marcaSeleccionada, setMarcaSeleccionada] = useState("");
   const [medidaSeleccionada, setMedidaSeleccionada] = useState("");
+  const [submedidaSeleccionada, setSubmedidaSeleccionada] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [modoEdicion, setModoEdicion] = useState(null);
   const [mostrarModal, setMostrarModal] = useState(false);
@@ -41,6 +42,19 @@ function Rines() {
 
   const marcasUnicas = [...new Set(rines.map((r) => r.marca))];
   const medidasDisponibles = ["15", "16", "17", "18", "20"];
+  
+  // Extraer submedidas únicas según la medida seleccionada
+  const submedidasDisponibles = medidaSeleccionada
+    ? [...new Set(
+        rines
+          .filter((r) => r.medida?.toString().startsWith(medidaSeleccionada))
+          .map((r) => {
+            const match = r.medida?.match(/(\d+X\d+)/i);
+            return match ? match[1].toUpperCase() : null;
+          })
+          .filter(Boolean)
+      )]
+    : [];
 
   const filtradas = rines.filter((r) => {
     const coincideBusqueda = r.referencia
@@ -50,7 +64,10 @@ function Rines() {
     const coincideMedida =
       !medidaSeleccionada ||
       r.medida?.toString().startsWith(medidaSeleccionada);
-    return coincideBusqueda && coincideMarca && coincideMedida;
+    const coincideSubmedida = 
+      !submedidaSeleccionada ||
+      r.medida?.toUpperCase().includes(submedidaSeleccionada);
+    return coincideBusqueda && coincideMarca && coincideMedida && coincideSubmedida;
   });
 
   const ordenarPor = (campo) => {
@@ -252,6 +269,25 @@ function Rines() {
     }
   };
 
+  const handleEliminar = async (id) => {
+    if (!window.confirm("¿Estás seguro de eliminar este rin?")) return;
+    try {
+      await axios.post(
+        "https://mi-app-llantas.onrender.com/api/eliminar-rin",
+        { id }
+      );
+      const { data } = await axios.get(
+        "https://mi-app-llantas.onrender.com/api/rines"
+      );
+      setRines(data);
+      setMensaje("Rin eliminado ✅");
+      setTimeout(() => setMensaje(""), 2000);
+    } catch {
+      setMensaje("Error al eliminar ❌");
+      setTimeout(() => setMensaje(""), 2000);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="max-w-7xl mx-auto p-4 sm:p-6">
@@ -313,6 +349,7 @@ function Rines() {
                   setBusqueda("");
                   setMarcaSeleccionada("");
                   setMedidaSeleccionada("");
+                  setSubmedidaSeleccionada("");
                 }}
                 className="inline-flex items-center gap-2 bg-white text-slate-700 px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-50 transition-all duration-200 shadow-md hover:shadow-lg border border-slate-200"
               >
@@ -391,7 +428,10 @@ function Rines() {
                   </label>
                   <div className="flex flex-wrap gap-2">
                     <button
-                      onClick={() => setMedidaSeleccionada("")}
+                      onClick={() => {
+                        setMedidaSeleccionada("");
+                        setSubmedidaSeleccionada("");
+                      }}
                       className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
                         medidaSeleccionada === ""
                           ? "bg-slate-700 text-white shadow-lg"
@@ -403,7 +443,10 @@ function Rines() {
                     {medidasDisponibles.map((medida) => (
                       <button
                         key={medida}
-                        onClick={() => setMedidaSeleccionada(medida)}
+                        onClick={() => {
+                          setMedidaSeleccionada(medida);
+                          setSubmedidaSeleccionada("");
+                        }}
                         className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
                           medidaSeleccionada === medida
                             ? "bg-blue-600 text-white shadow-lg"
@@ -415,6 +458,39 @@ function Rines() {
                     ))}
                   </div>
                 </div>
+
+                {medidaSeleccionada && submedidasDisponibles.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Submedida
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        onClick={() => setSubmedidaSeleccionada("")}
+                        className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                          submedidaSeleccionada === ""
+                            ? "bg-slate-700 text-white shadow-lg"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        }`}
+                      >
+                        Todas
+                      </button>
+                      {submedidasDisponibles.map((submedida) => (
+                        <button
+                          key={submedida}
+                          onClick={() => setSubmedidaSeleccionada(submedida)}
+                          className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                            submedidaSeleccionada === submedida
+                              ? "bg-green-600 text-white shadow-lg"
+                              : "bg-green-50 text-green-700 hover:bg-green-100"
+                          }`}
+                        >
+                          {submedida}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="overflow-x-auto mt-6 rounded-xl border border-gray-200">

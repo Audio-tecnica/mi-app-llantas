@@ -49,8 +49,11 @@ function Rines() {
         rines
           .filter((r) => r.medida?.toString().startsWith(medidaSeleccionada))
           .map((r) => {
-            // Buscar patrón como 6X139, 5X114.3, 6X139.7, etc.
-            const match = r.medida?.match(/(\d+X\d+(?:\.\d+)?)/i);
+            // Buscar el segundo patrón numérico después de las pulgadas
+            // Por ejemplo: de "17X8 6X139" extraer "6X139"
+            // o de "17X9 5X114.3" extraer "5X114.3"
+            const medidaStr = r.medida?.toString() || "";
+            const match = medidaStr.match(/\s+(\d+X\d+(?:\.\d+)?)/i);
             return match ? match[1].toUpperCase() : null;
           })
           .filter(Boolean)
@@ -703,6 +706,7 @@ function Rines() {
                                 >
                                   💾 Guardar
                                 </button>
+
 
                                 <button
                                   onClick={() => setModoEdicion(null)}

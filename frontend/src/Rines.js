@@ -142,39 +142,57 @@ function Rines() {
     }
   };
 
-const handleGuardar = async (rin) => {
+const handleAgregar = async () => {
   try {
+    // Validar campos requeridos
+    if (!nuevoItem.referencia.trim()) {
+      setMensaje("La referencia es obligatoria ❌");
+      setTimeout(() => setMensaje(""), 2000);
+      return;
+    }
+
+    // Formatear datos antes de enviar
     const rinFormateado = {
-      id: rin.id,
-      referencia: rin.referencia?.trim() || "",
-      marca: rin.marca?.trim() || "",
-      proveedor: rin.proveedor?.trim() || "",
-      medida: rin.medida?.trim() || "",
-      costo: Number(rin.costo) || 0,
-      precio: Number(rin.precio) || 0,
-      stock: Number(rin.stock) || 0,
-      remision: rin.remision === true, // ✅ Booleano real
-      comentario: rin.comentario?.trim() || "" // ✅ Ya se guarda
+      referencia: nuevoItem.referencia.trim(),
+      marca: nuevoItem.marca.trim(),
+      proveedor: nuevoItem.proveedor.trim(),
+      medida: nuevoItem.medida.trim(),
+      costo: Number(nuevoItem.costo) || 0,
+      precio: Number(nuevoItem.precio) || 0,
+      stock: Number(nuevoItem.stock) || 0,
     };
 
+    // Enviar al servidor
     await axios.post(
-      "https://mi-app-llantas.onrender.com/api/editar-rin",
+      "https://mi-app-llantas.onrender.com/api/agregar-rin",
       rinFormateado
     );
 
-    // ✅ Recargar rines igual que handleAgregar
+    // Recargar datos
     const { data } = await axios.get(
       "https://mi-app-llantas.onrender.com/api/rines"
     );
-
     setRines(data);
 
-    setMensaje("Cambios guardados ✅");
+    // Limpiar formulario y cerrar modal
+    setNuevoItem({
+      referencia: "",
+      marca: "",
+      proveedor: "",
+      medida: "",
+      costo: "",
+      precio: "",
+      stock: "",
+    });
+    setMostrarModal(false);
+
+    // Mostrar mensaje de éxito
+    setMensaje("Rin agregado exitosamente ✅");
     setTimeout(() => setMensaje(""), 2000);
 
   } catch (error) {
-    console.error("❌ Error al guardar:", error);
-    setMensaje("Error al guardar ❌");
+    console.error("Error al agregar rin:", error);
+    setMensaje("Error al agregar rin ❌");
     setTimeout(() => setMensaje(""), 2000);
   }
 };

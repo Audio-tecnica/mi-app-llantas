@@ -124,14 +124,23 @@ function Rines() {
 
   const guardarComentario = async (rin, texto) => {
     try {
+      console.log("💬 Guardando comentario:", {
+        id: rin.id,
+        comentario: texto,
+      }); // Debug
+
       await axios.post("https://mi-app-llantas.onrender.com/api/editar-rin", {
         ...rin,
         comentario: texto,
       });
 
+      // ✅ Forzar recarga completa
       const { data } = await axios.get(
         "https://mi-app-llantas.onrender.com/api/rines"
       );
+
+      console.log("📥 Después del comentario:", data); // Debug
+
       setRines(data);
       setMensaje("Comentario guardado ✅");
       setTimeout(() => setMensaje(""), 2000);
@@ -143,94 +152,98 @@ function Rines() {
   };
 
   const handleGuardar = async (rin) => {
-  try {
-    const rinFormateado = {
-      id: rin.id,
-      referencia: rin.referencia?.trim() || "",
-      marca: rin.marca?.trim() || "",
-      proveedor: rin.proveedor?.trim() || "",
-      medida: rin.medida?.trim() || "",
-      costo: Number(rin.costo) || 0,
-      precio: Number(rin.precio) || 0,
-      stock: Number(rin.stock) || 0,
-      remision: rin.remision === true,
-      comentario: rin.comentario?.trim() || ""
-    };
+    try {
+      const rinFormateado = {
+        id: rin.id,
+        referencia: rin.referencia?.trim() || "",
+        marca: rin.marca?.trim() || "",
+        proveedor: rin.proveedor?.trim() || "",
+        medida: rin.medida?.trim() || "",
+        costo: Number(rin.costo) || 0,
+        precio: Number(rin.precio) || 0,
+        stock: Number(rin.stock) || 0,
+        remision: rin.remision === true,
+        comentario: rin.comentario?.trim() || "",
+      };
 
-    await axios.post(
-      "https://mi-app-llantas.onrender.com/api/editar-rin",
-      rinFormateado
-    );
+      console.log("🔍 Enviando:", rinFormateado); // Debug
 
-    const { data } = await axios.get(
-      "https://mi-app-llantas.onrender.com/api/rines"
-    );
-    setRines(data);
-    setModoEdicion(null);
-    setMensaje("Cambios guardados ✅");
-    setTimeout(() => setMensaje(""), 2000);
-  } catch (error) {
-    console.error("❌ Error al guardar:", error);
-    setMensaje("Error al guardar ❌");
-    setTimeout(() => setMensaje(""), 2000);
-  }
-};
+      await axios.post(
+        "https://mi-app-llantas.onrender.com/api/editar-rin",
+        rinFormateado
+      );
 
-const handleAgregar = async () => {
-  try {
-    // Validar campos requeridos
-    if (!nuevoItem.referencia.trim()) {
-      setMensaje("La referencia es obligatoria ❌");
+      // ✅ Forzar recarga completa
+      const { data } = await axios.get(
+        "https://mi-app-llantas.onrender.com/api/rines"
+      );
+
+      console.log("📥 Datos recibidos:", data); // Debug
+
+      setRines(data);
+      setModoEdicion(null);
+      setMensaje("Cambios guardados ✅");
       setTimeout(() => setMensaje(""), 2000);
-      return;
+    } catch (error) {
+      console.error("❌ Error al guardar:", error);
+      setMensaje("Error al guardar ❌");
+      setTimeout(() => setMensaje(""), 2000);
     }
+  };
 
-    // Formatear datos antes de enviar
-    const rinFormateado = {
-      referencia: nuevoItem.referencia.trim(),
-      marca: nuevoItem.marca.trim(),
-      proveedor: nuevoItem.proveedor.trim(),
-      medida: nuevoItem.medida.trim(),
-      costo: Number(nuevoItem.costo) || 0,
-      precio: Number(nuevoItem.precio) || 0,
-      stock: Number(nuevoItem.stock) || 0,
-    };
+  const handleAgregar = async () => {
+    try {
+      // Validar campos requeridos
+      if (!nuevoItem.referencia.trim()) {
+        setMensaje("La referencia es obligatoria ❌");
+        setTimeout(() => setMensaje(""), 2000);
+        return;
+      }
 
-    // Enviar al servidor
-    await axios.post(
-      "https://mi-app-llantas.onrender.com/api/agregar-rin",
-      rinFormateado
-    );
+      // Formatear datos antes de enviar
+      const rinFormateado = {
+        referencia: nuevoItem.referencia.trim(),
+        marca: nuevoItem.marca.trim(),
+        proveedor: nuevoItem.proveedor.trim(),
+        medida: nuevoItem.medida.trim(),
+        costo: Number(nuevoItem.costo) || 0,
+        precio: Number(nuevoItem.precio) || 0,
+        stock: Number(nuevoItem.stock) || 0,
+      };
 
-    // Recargar datos
-    const { data } = await axios.get(
-      "https://mi-app-llantas.onrender.com/api/rines"
-    );
-    setRines(data);
+      // Enviar al servidor
+      await axios.post(
+        "https://mi-app-llantas.onrender.com/api/agregar-rin",
+        rinFormateado
+      );
 
-    // Limpiar formulario y cerrar modal
-    setNuevoItem({
-      referencia: "",
-      marca: "",
-      proveedor: "",
-      medida: "",
-      costo: "",
-      precio: "",
-      stock: "",
-    });
-    setMostrarModal(false);
+      // Recargar datos
+      const { data } = await axios.get(
+        "https://mi-app-llantas.onrender.com/api/rines"
+      );
+      setRines(data);
 
-    // Mostrar mensaje de éxito
-    setMensaje("Rin agregado exitosamente ✅");
-    setTimeout(() => setMensaje(""), 2000);
+      // Limpiar formulario y cerrar modal
+      setNuevoItem({
+        referencia: "",
+        marca: "",
+        proveedor: "",
+        medida: "",
+        costo: "",
+        precio: "",
+        stock: "",
+      });
+      setMostrarModal(false);
 
-  } catch (error) {
-    console.error("Error al agregar rin:", error);
-    setMensaje("Error al agregar rin ❌");
-    setTimeout(() => setMensaje(""), 2000);
-  }
-};
-
+      // Mostrar mensaje de éxito
+      setMensaje("Rin agregado exitosamente ✅");
+      setTimeout(() => setMensaje(""), 2000);
+    } catch (error) {
+      console.error("Error al agregar rin:", error);
+      setMensaje("Error al agregar rin ❌");
+      setTimeout(() => setMensaje(""), 2000);
+    }
+  };
 
   const actualizarCampo = (id, campo, valor) => {
     setRines((prev) =>
@@ -892,7 +905,7 @@ const handleAgregar = async () => {
           </>
         )}
 
-      {mostrarModal && (
+        {mostrarModal && (
           <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
             <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md transform transition-all">
               <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-2">
@@ -1093,7 +1106,6 @@ const handleAgregar = async () => {
             </div>
           </div>
         )}
-
       </div>
     </div>
   );

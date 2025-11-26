@@ -793,7 +793,7 @@ const handleGuardar = async (rin) => {
                                 <span className="font-semibold text-gray-800">
                                   {r.referencia}
                                 </span>
-                                {r.comentario && r.comentario.trim() !== "" && (
+                                {r.comentario && typeof r.comentario === "string" && r.comentario.trim() !== "" && (
                                   <button
                                     type="button"
                                     onClick={() => setComentarioModal(r)}

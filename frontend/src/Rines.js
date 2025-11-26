@@ -160,7 +160,7 @@ const handleGuardar = async (rin) => {
     await axios.post("https://mi-app-llantas.onrender.com/api/editar-rin", rinFormateado);
 
     alert("Cambios guardados correctamente ✅");
-    fetchRines(); // vuelve a cargar y mantiene los datos
+    obtenerRines(); // vuelve a cargar y mantiene los datos 
   } catch (error) {
     console.error(error);
     alert("Error al guardar ❌");

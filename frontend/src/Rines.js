@@ -124,24 +124,17 @@ function Rines() {
 
   const guardarComentario = async (rin, texto) => {
     try {
-      console.log("💬 Guardando comentario:", {
-        id: rin.id,
-        comentario: texto,
-      }); // Debug
-
       await axios.post("https://mi-app-llantas.onrender.com/api/editar-rin", {
         ...rin,
         comentario: texto,
       });
 
-      // ✅ Forzar recarga completa
       const { data } = await axios.get(
         "https://mi-app-llantas.onrender.com/api/rines"
       );
 
-      console.log("📥 Después del comentario:", data); // Debug
-
       setRines(data);
+      setComentarioModal(null); // ✅ AGREGADO: Cerrar modal después de guardar
       setMensaje("Comentario guardado ✅");
       setTimeout(() => setMensaje(""), 2000);
     } catch (error) {
@@ -166,22 +159,17 @@ function Rines() {
         comentario: rin.comentario?.trim() || "",
       };
 
-      console.log("🔍 Enviando:", rinFormateado); // Debug
-
       await axios.post(
         "https://mi-app-llantas.onrender.com/api/editar-rin",
         rinFormateado
       );
 
-      // ✅ Forzar recarga completa
       const { data } = await axios.get(
         "https://mi-app-llantas.onrender.com/api/rines"
       );
 
-      console.log("📥 Datos recibidos:", data); // Debug
-
       setRines(data);
-      setModoEdicion(null);
+      setModoEdicion(null); // ✅ AGREGADO: Salir de modo edición
       setMensaje("Cambios guardados ✅");
       setTimeout(() => setMensaje(""), 2000);
     } catch (error) {
@@ -804,7 +792,7 @@ function Rines() {
                                 <span className="font-semibold text-gray-800">
                                   {r.referencia}
                                 </span>
-                                {r.comentario && (
+                                {r.comentario && r.comentario.trim() !== "" && (
                                   <button
                                     type="button"
                                     onClick={() => setComentarioModal(r)}

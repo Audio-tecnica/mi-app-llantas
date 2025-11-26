@@ -122,62 +122,63 @@ function Rines() {
     }
   };
 
-  const guardarComentario = async (rin, texto) => {
-    try {
-      await axios.post("https://mi-app-llantas.onrender.com/api/editar-rin", {
-        ...rin,
-        comentario: texto,
-      });
+const guardarComentario = async (rin, texto) => {
+  try {
+    await axios.post("https://mi-app-llantas.onrender.com/api/editar-rin", {
+      ...rin,
+      comentario: texto,
+    });
 
-      const { data } = await axios.get(
-        "https://mi-app-llantas.onrender.com/api/rines"
-      );
+    const { data } = await axios.get(
+      "https://mi-app-llantas.onrender.com/api/rines"
+    );
 
-      setRines(data);
-      setComentarioModal(null); // ✅ AGREGADO: Cerrar modal después de guardar
-      setMensaje("Comentario guardado ✅");
-      setTimeout(() => setMensaje(""), 2000);
-    } catch (error) {
-      console.error("Error guardando comentario:", error);
-      setMensaje("Error al guardar comentario ❌");
-      setTimeout(() => setMensaje(""), 2000);
-    }
-  };
+    setRines(data);
+    setComentarioModal(null); // ✅ AGREGAR ESTA LÍNEA
+    setMensaje("Comentario guardado ✅");
+    setTimeout(() => setMensaje(""), 2000);
+  } catch (error) {
+    console.error("Error guardando comentario:", error);
+    setMensaje("Error al guardar comentario ❌");
+    setTimeout(() => setMensaje(""), 2000);
+  }
+};
 
-  const handleGuardar = async (rin) => {
-    try {
-      const rinFormateado = {
-        id: rin.id,
-        referencia: rin.referencia?.trim() || "",
-        marca: rin.marca?.trim() || "",
-        proveedor: rin.proveedor?.trim() || "",
-        medida: rin.medida?.trim() || "",
-        costo: Number(rin.costo) || 0,
-        precio: Number(rin.precio) || 0,
-        stock: Number(rin.stock) || 0,
-        remision: rin.remision === true,
-        comentario: rin.comentario?.trim() || "",
-      };
+const handleGuardar = async (rin) => {
+  try {
+    const rinFormateado = {
+      id: rin.id,
+      referencia: rin.referencia?.trim() || "",
+      marca: rin.marca?.trim() || "",
+      proveedor: rin.proveedor?.trim() || "",
+      medida: rin.medida?.trim() || "",
+      costo: Number(rin.costo) || 0,
+      precio: Number(rin.precio) || 0,
+      stock: Number(rin.stock) || 0,
+      remision: rin.remision === true,
+      comentario: rin.comentario?.trim() || ""
+    };
 
-      await axios.post(
-        "https://mi-app-llantas.onrender.com/api/editar-rin",
-        rinFormateado
-      );
+    await axios.post(
+      "https://mi-app-llantas.onrender.com/api/editar-rin",
+      rinFormateado
+    );
 
-      const { data } = await axios.get(
-        "https://mi-app-llantas.onrender.com/api/rines"
-      );
+    const { data } = await axios.get(
+      "https://mi-app-llantas.onrender.com/api/rines"
+    );
 
-      setRines(data);
-      setModoEdicion(null); // ✅ AGREGADO: Salir de modo edición
-      setMensaje("Cambios guardados ✅");
-      setTimeout(() => setMensaje(""), 2000);
-    } catch (error) {
-      console.error("❌ Error al guardar:", error);
-      setMensaje("Error al guardar ❌");
-      setTimeout(() => setMensaje(""), 2000);
-    }
-  };
+    setRines(data);
+    setModoEdicion(null); // ✅ AGREGAR ESTA LÍNEA
+    setMensaje("Cambios guardados ✅");
+    setTimeout(() => setMensaje(""), 2000);
+
+  } catch (error) {
+    console.error("❌ Error al guardar:", error);
+    setMensaje("Error al guardar ❌");
+    setTimeout(() => setMensaje(""), 2000);
+  }
+};
 
   const handleAgregar = async () => {
     try {

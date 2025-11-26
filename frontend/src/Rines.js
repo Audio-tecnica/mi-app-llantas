@@ -146,74 +146,39 @@ const handleGuardar = async (rin) => {
   try {
     const rinFormateado = {
       id: rin.id,
-      marca: rin.marca || "",
-      referencia: rin.referencia || "",
-      proveedor: rin.proveedor || "",
-      medida: rin.medida || "",
-      costo: parseFloat(rin.costo) || 0,
-      precio: parseFloat(rin.precio) || 0,
-      stock: parseInt(rin.stock) || 0,
-      remision: rin.remision === true,
-      comentario: rin.comentario || ""
+      referencia: rin.referencia?.trim() || "",
+      marca: rin.marca?.trim() || "",
+      proveedor: rin.proveedor?.trim() || "",
+      medida: rin.medida?.trim() || "",
+      costo: Number(rin.costo) || 0,
+      precio: Number(rin.precio) || 0,
+      stock: Number(rin.stock) || 0,
+      remision: rin.remision === true, // ✅ Booleano real
+      comentario: rin.comentario?.trim() || "" // ✅ Ya se guarda
     };
 
-    await axios.post("https://mi-app-llantas.onrender.com/api/editar-rin", rinFormateado);
+    await axios.post(
+      "https://mi-app-llantas.onrender.com/api/editar-rin",
+      rinFormateado
+    );
 
-    alert("Cambios guardados correctamente ✅");
-    obtenerRines(); // vuelve a cargar y mantiene los datos 
+    // ✅ Recargar rines igual que handleAgregar
+    const { data } = await axios.get(
+      "https://mi-app-llantas.onrender.com/api/rines"
+    );
+
+    setRines(data);
+
+    setMensaje("Cambios guardados ✅");
+    setTimeout(() => setMensaje(""), 2000);
+
   } catch (error) {
-    console.error(error);
-    alert("Error al guardar ❌");
+    console.error("❌ Error al guardar:", error);
+    setMensaje("Error al guardar ❌");
+    setTimeout(() => setMensaje(""), 2000);
   }
 };
 
-
-  const handleAgregar = async () => {
-    if (!nuevoItem.referencia || !nuevoItem.marca || !nuevoItem.medida) {
-      setMensaje("Referencia, marca y medida son obligatorias ❌");
-      return;
-    }
-
-    try {
-      const nuevoRinFormateado = {
-        referencia: nuevoItem.referencia.trim(),
-        marca: nuevoItem.marca.trim(),
-        proveedor: nuevoItem.proveedor?.trim() || "",
-        medida: nuevoItem.medida.trim(),
-        costo: Number(nuevoItem.costo) || 0,
-        precio: Number(nuevoItem.precio) || 0,
-        stock: Number(nuevoItem.stock) || 0,
-      };
-
-      await axios.post(
-        "https://mi-app-llantas.onrender.com/api/agregar-rin",
-        nuevoRinFormateado
-      );
-
-      const { data } = await axios.get(
-        "https://mi-app-llantas.onrender.com/api/rines"
-      );
-
-      setRines(data);
-      setMostrarModal(false);
-      setNuevoItem({
-        referencia: "",
-        marca: "",
-        proveedor: "",
-        medida: "",
-        costo: "",
-        precio: "",
-        stock: "",
-      });
-
-      setMensaje("Rin agregado ✅");
-      setTimeout(() => setMensaje(""), 2000);
-    } catch (e) {
-      console.error("❌ Error al agregar rin:", e.response?.data || e);
-      setMensaje("Error al agregar ❌");
-      setTimeout(() => setMensaje(""), 2000);
-    }
-  };
 
   const actualizarCampo = (id, campo, valor) => {
     setRines((prev) =>

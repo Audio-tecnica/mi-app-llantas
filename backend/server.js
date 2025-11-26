@@ -93,30 +93,52 @@ app.post("/api/agregar-rin", async (req, res) => {
 // POST editar rin
 app.post("/api/editar-rin", async (req, res) => {
   try {
-    const { id, referencia, marca, proveedor, medida, costo, precio, stock } = req.body;
-    const result = await db.query(
-      `UPDATE rines
-       SET referencia=$1, marca=$2, proveedor=$3, medida=$4,
-           costo=$5, precio=$6, stock=$7
-       WHERE id=$8
-       RETURNING *`,
+    const {
+      id,
+      marca,
+      referencia,
+      proveedor,
+      medida,
+      costo,
+      precio,
+      stock,
+      remision,
+      comentario
+    } = req.body;
+
+    await pool.query(
+      `UPDATE rines SET
+        marca = $1,
+        referencia = $2,
+        proveedor = $3,
+        medida = $4,
+        costo = $5,
+        precio = $6,
+        stock = $7,
+        remision = $8,
+        comentario = $9
+      WHERE id = $10`,
       [
-        referencia,
         marca,
-        proveedor ?? "",
-        medida ?? "",
-        Number(costo) ?? 0,
-        Number(precio) ?? 0,
-        Number(stock) ?? 0,
+        referencia,
+        proveedor,
+        medida,
+        costo,
+        precio,
+        stock,
+        remision,
+        comentario,
         id
       ]
     );
-    res.json(result.rows[0]);
+
+    res.json({ success: true });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error al editar rin" });
+    res.status(500).json({ error: "Error al editar el rin" });
   }
 });
+
 
 // POST eliminar rin
 app.post("/api/eliminar-rin", async (req, res) => {

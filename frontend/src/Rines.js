@@ -142,49 +142,31 @@ function Rines() {
     }
   };
 
-  const handleGuardar = async (rin) => {
-    try {
-      // Asegurarnos de que todos los campos tengan valores válidos
-      const rinFormateado = {
-        id: rin.id,
-        marca: rin.marca || "",
-        referencia: rin.referencia || "",
-        proveedor: rin.proveedor || "",
-        medida: rin.medida || "",
-        costo: parseFloat(rin.costo) || 0,
-        precio: parseFloat(rin.precio) || 0,
-        stock: parseInt(rin.stock) || 0,
-        remision: rin.remision || false,
-      };
+const handleGuardar = async (rin) => {
+  try {
+    const rinFormateado = {
+      id: rin.id,
+      marca: rin.marca || "",
+      referencia: rin.referencia || "",
+      proveedor: rin.proveedor || "",
+      medida: rin.medida || "",
+      costo: parseFloat(rin.costo) || 0,
+      precio: parseFloat(rin.precio) || 0,
+      stock: parseInt(rin.stock) || 0,
+      remision: rin.remision === true,
+      comentario: rin.comentario || ""
+    };
 
-      console.log("📤 Enviando al backend:", rinFormateado); // Para debugging
+    await axios.post("https://mi-app-llantas.onrender.com/api/editar-rin", rinFormateado);
 
-      await axios.post(
-        "https://mi-app-llantas.onrender.com/api/editar-rin",
-        rinFormateado
-      );
+    alert("Cambios guardados correctamente ✅");
+    fetchRines(); // vuelve a cargar y mantiene los datos
+  } catch (error) {
+    console.error(error);
+    alert("Error al guardar ❌");
+  }
+};
 
-      setMensaje("Cambios guardados ✅");
-      setModoEdicion(null);
-
-      // Recargar los datos
-      const { data } = await axios.get(
-        "https://mi-app-llantas.onrender.com/api/rines"
-      );
-      setRines(data);
-
-      setTimeout(() => setMensaje(""), 2000);
-    } catch (error) {
-      console.error("❌ Error completo:", error);
-      console.error("❌ Respuesta del servidor:", error.response?.data);
-      setMensaje(
-        `Error al guardar: ${
-          error.response?.data?.error || "Error desconocido"
-        }`
-      );
-      setTimeout(() => setMensaje(""), 3000);
-    }
-  };
 
   const handleAgregar = async () => {
     if (!nuevoItem.referencia || !nuevoItem.marca || !nuevoItem.medida) {
@@ -235,7 +217,14 @@ function Rines() {
 
   const actualizarCampo = (id, campo, valor) => {
     setRines((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, [campo]: valor } : r))
+      prev.map((r) =>
+        r.id === id
+          ? {
+              ...r,
+              [campo]: campo === "remision" ? Boolean(valor) : valor,
+            }
+          : r
+      )
     );
   };
 

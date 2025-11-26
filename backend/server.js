@@ -49,7 +49,6 @@ app.post("/api/accesorios", async (req, res) => {
     res.status(500).json({ error: "Error al agregar accesorio" });
   }
 });
-
 // ===========================
 //  RINES
 // ===========================
@@ -68,10 +67,11 @@ app.get("/api/rines", async (req, res) => {
 // POST agregar rin
 app.post("/api/agregar-rin", async (req, res) => {
   try {
-    const { referencia, marca, proveedor, medida, costo, precio, stock } = req.body;
+    const { referencia, marca, proveedor, medida, costo, precio, stock, remision, comentario } = req.body;
+
     const result = await db.query(
-      `INSERT INTO rines (referencia, marca, proveedor, medida, costo, precio, stock)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO rines (referencia, marca, proveedor, medida, costo, precio, stock, remision, comentario)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING *`,
       [
         referencia,
@@ -80,9 +80,12 @@ app.post("/api/agregar-rin", async (req, res) => {
         medida ?? "",
         Number(costo) ?? 0,
         Number(precio) ?? 0,
-        Number(stock) ?? 0
+        Number(stock) ?? 0,
+        remision ?? false,
+        comentario ?? ""
       ]
     );
+
     res.json(result.rows[0]);
   } catch (error) {
     console.error(error);
@@ -106,7 +109,7 @@ app.post("/api/editar-rin", async (req, res) => {
       comentario
     } = req.body;
 
-    await pool.query(
+    await db.query(
       `UPDATE rines SET
         marca = $1,
         referencia = $2,
@@ -138,7 +141,6 @@ app.post("/api/editar-rin", async (req, res) => {
     res.status(500).json({ error: "Error al editar el rin" });
   }
 });
-
 
 // POST eliminar rin
 app.post("/api/eliminar-rin", async (req, res) => {

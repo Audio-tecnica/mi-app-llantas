@@ -31,6 +31,7 @@ function Rines() {
   const [subirFotoId, setSubirFotoId] = useState(null);
   const [archivoFoto, setArchivoFoto] = useState(null);
   const [subiendoFoto, setSubiendoFoto] = useState(false);
+  const [comentarioModal, setComentarioModal] = useState(null);
 
   useEffect(() => {
     axios
@@ -42,22 +43,24 @@ function Rines() {
 
   const marcasUnicas = [...new Set(rines.map((r) => r.marca))];
   const medidasDisponibles = ["15", "16", "17", "18", "20"];
-  
+
   // Extraer submedidas únicas según la medida seleccionada
   const submedidasDisponibles = medidaSeleccionada
-    ? [...new Set(
-        rines
-          .filter((r) => r.medida?.toString().startsWith(medidaSeleccionada))
-          .map((r) => {
-            // Buscar el segundo patrón numérico después de las pulgadas
-            // Por ejemplo: de "17X8 6X139" extraer "6X139"
-            // o de "17X9 5X114.3" extraer "5X114.3"
-            const medidaStr = r.medida?.toString() || "";
-            const match = medidaStr.match(/\s+(\d+X\d+(?:\.\d+)?)/i);
-            return match ? match[1].toUpperCase() : null;
-          })
-          .filter(Boolean)
-      )].sort()
+    ? [
+        ...new Set(
+          rines
+            .filter((r) => r.medida?.toString().startsWith(medidaSeleccionada))
+            .map((r) => {
+              // Buscar el segundo patrón numérico después de las pulgadas
+              // Por ejemplo: de "17X8 6X139" extraer "6X139"
+              // o de "17X9 5X114.3" extraer "5X114.3"
+              const medidaStr = r.medida?.toString() || "";
+              const match = medidaStr.match(/\s+(\d+X\d+(?:\.\d+)?)/i);
+              return match ? match[1].toUpperCase() : null;
+            })
+            .filter(Boolean)
+        ),
+      ].sort()
     : [];
 
   const filtradas = rines.filter((r) => {
@@ -68,10 +71,12 @@ function Rines() {
     const coincideMedida =
       !medidaSeleccionada ||
       r.medida?.toString().startsWith(medidaSeleccionada);
-    const coincideSubmedida = 
+    const coincideSubmedida =
       !submedidaSeleccionada ||
       r.medida?.toUpperCase().includes(submedidaSeleccionada);
-    return coincideBusqueda && coincideMarca && coincideMedida && coincideSubmedida;
+    return (
+      coincideBusqueda && coincideMarca && coincideMedida && coincideSubmedida
+    );
   });
 
   const ordenarPor = (campo) => {
@@ -117,6 +122,26 @@ function Rines() {
     }
   };
 
+  const guardarComentario = async (rin, texto) => {
+    try {
+      await axios.post("https://mi-app-llantas.onrender.com/api/editar-rin", {
+        ...rin,
+        comentario: texto,
+      });
+
+      const { data } = await axios.get(
+        "https://mi-app-llantas.onrender.com/api/rines"
+      );
+      setRines(data);
+      setMensaje("Comentario guardado ✅");
+      setTimeout(() => setMensaje(""), 2000);
+    } catch (error) {
+      console.error("Error guardando comentario:", error);
+      setMensaje("Error al guardar comentario ❌");
+      setTimeout(() => setMensaje(""), 2000);
+    }
+  };
+
   const handleGuardar = async (rin) => {
     try {
       // Asegurarnos de que todos los campos tengan valores válidos
@@ -129,6 +154,7 @@ function Rines() {
         costo: parseFloat(rin.costo) || 0,
         precio: parseFloat(rin.precio) || 0,
         stock: parseInt(rin.stock) || 0,
+        remision: rin.remision || false,
       };
 
       console.log("📤 Enviando al backend:", rinFormateado); // Para debugging
@@ -276,10 +302,9 @@ function Rines() {
   const handleEliminar = async (id) => {
     if (!window.confirm("¿Estás seguro de eliminar este rin?")) return;
     try {
-      await axios.post(
-        "https://mi-app-llantas.onrender.com/api/eliminar-rin",
-        { id }
-      );
+      await axios.post("https://mi-app-llantas.onrender.com/api/eliminar-rin", {
+        id,
+      });
       const { data } = await axios.get(
         "https://mi-app-llantas.onrender.com/api/rines"
       );
@@ -701,12 +726,29 @@ function Rines() {
                             <td className="p-3">
                               <div className="flex flex-col gap-2 items-center">
                                 <button
+                                  onClick={() =>
+                                    actualizarCampo(
+                                      r.id,
+                                      "remision",
+                                      !r.remision
+                                    )
+                                  }
+                                  className={`px-3 py-1.5 text-xs rounded-lg font-semibold transition-all ${
+                                    r.remision
+                                      ? "bg-red-500 text-white hover:bg-red-600 shadow-md"
+                                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                  }`}
+                                >
+                                  {r.remision
+                                    ? "✓ Remisión"
+                                    : "Marcar Remisión"}
+                                </button>
+                                <button
                                   onClick={() => handleGuardar(r)}
                                   className="bg-green-500 text-white px-4 py-2 text-xs rounded-lg hover:bg-green-600 transition-all shadow-md font-medium"
                                 >
                                   💾 Guardar
                                 </button>
-
 
                                 <button
                                   onClick={() => setModoEdicion(null)}
@@ -739,9 +781,31 @@ function Rines() {
                               )}
                             </td>
                             <td className="p-3">
-                              <span className="font-semibold text-gray-800">
-                                {r.referencia}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold text-gray-800">
+                                  {r.referencia}
+                                </span>
+                                {r.comentario && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setComentarioModal(r)}
+                                    className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white hover:bg-blue-600 transition-all shadow-sm hover:shadow-md"
+                                    title="Ver comentario"
+                                  >
+                                    💬
+                                  </button>
+                                )}
+                                {r.remision && (
+                                  <div
+                                    className="w-6 h-6 bg-red-600 rounded-full flex items-center justify-center shadow-sm"
+                                    title="En remisión"
+                                  >
+                                    <span className="text-white font-bold text-xs">
+                                      R
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
                             </td>
                             <td className="p-3 text-gray-700">{r.marca}</td>
                             <td className="p-3 text-gray-700">
@@ -779,6 +843,21 @@ function Rines() {
                                   title="Editar"
                                 >
                                   ✏️
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    const texto = prompt(
+                                      "Escribe un comentario para este rin:",
+                                      r.comentario || ""
+                                    );
+                                    if (texto !== null) {
+                                      await guardarComentario(r, texto);
+                                    }
+                                  }}
+                                  className="bg-yellow-500 text-white px-3 py-1.5 text-sm rounded-lg hover:bg-yellow-600 transition-all shadow-sm hover:shadow-md"
+                                  title="Comentario"
+                                >
+                                  💬
                                 </button>
                                 <button
                                   onClick={() => setSubirFotoId(r.id)}
@@ -942,6 +1021,68 @@ function Rines() {
                   }}
                 />
               </div>
+              {comentarioModal && (
+                <div
+                  className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm"
+                  onClick={() => setComentarioModal(null)}
+                >
+                  <div
+                    className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-lg transform transition-all"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex justify-between items-start mb-6">
+                      <div>
+                        <h3 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                          <span>💬</span>
+                          Comentario
+                        </h3>
+                        <p className="text-sm text-gray-500 mt-1">
+                          Ref: {comentarioModal.referencia}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setComentarioModal(null)}
+                        className="text-gray-400 hover:text-gray-600 text-4xl leading-none hover:bg-gray-100 w-10 h-10 rounded-full transition-all"
+                      >
+                        ×
+                      </button>
+                    </div>
+
+                    <div className="bg-gray-50 p-6 rounded-xl mb-6 border-2 border-gray-100">
+                      <p className="text-gray-800 whitespace-pre-wrap break-words leading-relaxed">
+                        {comentarioModal.comentario}
+                      </p>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <button
+                        onClick={async () => {
+                          const nuevoTexto = prompt(
+                            "Editar comentario:",
+                            comentarioModal.comentario
+                          );
+                          if (nuevoTexto !== null) {
+                            await guardarComentario(
+                              comentarioModal,
+                              nuevoTexto
+                            );
+                            setComentarioModal(null);
+                          }
+                        }}
+                        className="flex-1 bg-yellow-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-yellow-600 transition-all shadow-lg hover:shadow-xl"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        onClick={() => setComentarioModal(null)}
+                        className="flex-1 bg-gray-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-600 transition-all shadow-lg hover:shadow-xl"
+                      >
+                        Cerrar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="bg-gray-100 p-6 border-t flex justify-end">
                 <button

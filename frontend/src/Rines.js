@@ -142,6 +142,40 @@ function Rines() {
     }
   };
 
+  const handleGuardar = async (rin) => {
+  try {
+    const rinFormateado = {
+      id: rin.id,
+      referencia: rin.referencia?.trim() || "",
+      marca: rin.marca?.trim() || "",
+      proveedor: rin.proveedor?.trim() || "",
+      medida: rin.medida?.trim() || "",
+      costo: Number(rin.costo) || 0,
+      precio: Number(rin.precio) || 0,
+      stock: Number(rin.stock) || 0,
+      remision: rin.remision === true,
+      comentario: rin.comentario?.trim() || ""
+    };
+
+    await axios.post(
+      "https://mi-app-llantas.onrender.com/api/editar-rin",
+      rinFormateado
+    );
+
+    const { data } = await axios.get(
+      "https://mi-app-llantas.onrender.com/api/rines"
+    );
+    setRines(data);
+    setModoEdicion(null);
+    setMensaje("Cambios guardados ✅");
+    setTimeout(() => setMensaje(""), 2000);
+  } catch (error) {
+    console.error("❌ Error al guardar:", error);
+    setMensaje("Error al guardar ❌");
+    setTimeout(() => setMensaje(""), 2000);
+  }
+};
+
 const handleAgregar = async () => {
   try {
     // Validar campos requeridos

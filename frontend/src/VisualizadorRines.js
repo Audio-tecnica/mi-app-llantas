@@ -877,6 +877,8 @@ function VisualizadorRines() {
                     <div className="bg-white rounded-xl border-2 border-gray-200 w-full">
                       <canvas
                         ref={canvasDelRef}
+                        width={400}
+                        height={320}
                         className="w-full h-80 block rounded-lg"
                       />
                     </div>
@@ -890,6 +892,8 @@ function VisualizadorRines() {
                     <div className="bg-white rounded-xl border-2 border-gray-200 w-full">
                       <canvas
                         ref={canvasTrasRef}
+                        width={400}
+                        height={320}
                         className="w-full h-80 block rounded-lg"
                       />
                     </div>
@@ -945,13 +949,27 @@ function VisualizadorRines() {
                   onClick={() => {
                     const canvas = canvasDelRef.current;
                     if (canvas) {
-                      const link = document.createElement("a");
-                      link.href = canvas.toDataURL("image/png");
-                      link.download = `rueda-delantera-${rinSeleccionado?.referencia}.png`;
-                      link.click();
+                      try {
+                        canvas.toBlob((blob) => {
+                          const url = URL.createObjectURL(blob);
+                          const link = document.createElement("a");
+                          link.href = url;
+                          link.download = `rueda-delantera-${
+                            rinSeleccionado?.referencia || "rin"
+                          }.png`;
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                          URL.revokeObjectURL(url);
+                        });
+                        setMensaje("✅ Rueda delantera descargada");
+                        setTimeout(() => setMensaje(""), 3000);
+                      } catch (error) {
+                        console.error("Error al descargar:", error);
+                        setMensaje("❌ Error al descargar la imagen");
+                        setTimeout(() => setMensaje(""), 3000);
+                      }
                     }
-                    setMensaje("✅ Rueda delantera descargada");
-                    setTimeout(() => setMensaje(""), 3000);
                   }}
                   className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl"
                 >
@@ -962,13 +980,27 @@ function VisualizadorRines() {
                   onClick={() => {
                     const canvas = canvasTrasRef.current;
                     if (canvas) {
-                      const link = document.createElement("a");
-                      link.href = canvas.toDataURL("image/png");
-                      link.download = `rueda-trasera-${rinSeleccionado?.referencia}.png`;
-                      link.click();
+                      try {
+                        canvas.toBlob((blob) => {
+                          const url = URL.createObjectURL(blob);
+                          const link = document.createElement("a");
+                          link.href = url;
+                          link.download = `rueda-trasera-${
+                            rinSeleccionado?.referencia || "rin"
+                          }.png`;
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                          URL.revokeObjectURL(url);
+                        });
+                        setMensaje("✅ Rueda trasera descargada");
+                        setTimeout(() => setMensaje(""), 3000);
+                      } catch (error) {
+                        console.error("Error al descargar:", error);
+                        setMensaje("❌ Error al descargar la imagen");
+                        setTimeout(() => setMensaje(""), 3000);
+                      }
                     }
-                    setMensaje("✅ Rueda trasera descargada");
-                    setTimeout(() => setMensaje(""), 3000);
                   }}
                   className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-all shadow-lg hover:shadow-xl"
                 >
@@ -977,19 +1009,10 @@ function VisualizadorRines() {
 
                 <button
                   onClick={() => {
-                    const canvas1 = canvasDelRef.current;
-                    const canvas2 = canvasTrasRef.current;
-                    if (canvas1 && canvas2) {
-                      const link = document.createElement("a");
-                      const dataUrl = `${canvas1.toDataURL(
-                        "image/png"
-                      )} | ${canvas2.toDataURL("image/png")}`;
-                      link.href = canvas1.toDataURL("image/png");
-                      link.download = `visualizacion-completa-${rinSeleccionado?.referencia}.png`;
-                      link.click();
-                    }
-                    setMensaje("✅ Visualización completa descargada");
-                    setTimeout(() => setMensaje(""), 3000);
+                    setMensaje(
+                      "💡 Tip: Descarga ambas imágenes individualmente"
+                    );
+                    setTimeout(() => setMensaje(""), 4000);
                   }}
                   className="bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-all shadow-lg hover:shadow-xl"
                 >
@@ -999,7 +1022,7 @@ function VisualizadorRines() {
             </div>
 
             {/* Botones de navegación */}
-            <div className="flex gap-4 justify-between pt-6 border-t mt-8">
+            <div className="flex gap-4 justify-between pt-6 border-t mt-8 flex-wrap">
               <button
                 onClick={() => setPaso(3)}
                 className="bg-gray-400 text-white px-8 py-3 rounded-xl font-semibold hover:bg-gray-500 transition-all shadow-lg"
@@ -1007,7 +1030,7 @@ function VisualizadorRines() {
                 ← Volver a Ajustes
               </button>
 
-              <div className="flex gap-4">
+              <div className="flex gap-4 flex-wrap">
                 <button
                   onClick={() => {
                     setPaso(1);
@@ -1018,6 +1041,8 @@ function VisualizadorRines() {
                     setRotacion(0);
                     setPosicionDelantera({ x: 0, y: 0 });
                     setPosicionTrasera({ x: 0, y: 0 });
+                    setMensaje("🔄 Comenzando de nuevo...");
+                    setTimeout(() => setMensaje(""), 2000);
                   }}
                   className="bg-orange-500 text-white px-8 py-3 rounded-xl font-semibold hover:bg-orange-600 transition-all shadow-lg"
                 >

@@ -110,8 +110,9 @@ function Rines() {
   // ✅ FUNCIÓN AGREGAR QUE FALTABA
   const handleAgregar = async () => {
     try {
-      const { referencia, marca, proveedor, medida, costo, precio, stock } = nuevoItem;
-      
+      const { referencia, marca, proveedor, medida, costo, precio, stock } =
+        nuevoItem;
+
       if (!referencia || !marca) {
         setMensaje("Referencia y marca son obligatorios ❌");
         setTimeout(() => setMensaje(""), 2000);
@@ -133,10 +134,10 @@ function Rines() {
       console.log("📤 Enviando nuevo rin:", nuevoRin);
 
       const response = await axios.post(`${API_URL}/api/agregar-rin`, nuevoRin);
-      
+
       // Recargar la lista completa para asegurar sincronización
       await cargarRines();
-      
+
       setMostrarModal(false);
       setNuevoItem({
         referencia: "",
@@ -190,7 +191,10 @@ function Rines() {
 
       console.log("📤 Guardando comentario:", rinFormateado);
 
-      const response = await axios.post(`${API_URL}/api/editar-rin`, rinFormateado);
+      const response = await axios.post(
+        `${API_URL}/api/editar-rin`,
+        rinFormateado
+      );
 
       console.log("📥 Respuesta del servidor:", response.data);
 
@@ -227,7 +231,10 @@ function Rines() {
 
       console.log("📤 Guardando rin completo:", rinFormateado);
 
-      const response = await axios.post(`${API_URL}/api/editar-rin`, rinFormateado);
+      const response = await axios.post(
+        `${API_URL}/api/editar-rin`,
+        rinFormateado
+      );
 
       console.log("📥 Respuesta del servidor:", response.data);
 
@@ -876,7 +883,7 @@ function Rines() {
                               <div className="grid grid-cols-2 gap-6 justify-items-center">
                                 <button
                                   onClick={() => setModoEdicion(r.id)}
-                                  className="bg-slate-200 hover:bg-slate-300 px-3 py-1.5 text-sm rounded-lg transition-all shadow-sm hover:shadow-md"
+                                  className="bg-slate-200 hover:bg-slate-300 w-10 h-10 text-lg rounded-lg transition-all shadow-sm hover:shadow-md flex items-center justify-center"
                                   title="Editar"
                                 >
                                   ✏️
@@ -891,21 +898,21 @@ function Rines() {
                                       await guardarComentario(r, texto);
                                     }
                                   }}
-                                  className="bg-yellow-500 text-white px-3 py-1.5 text-sm rounded-lg hover:bg-yellow-600 transition-all shadow-sm hover:shadow-md"
+                                  className="bg-yellow-500 text-white w-10 h-10 text-lg rounded-lg hover:bg-yellow-600 transition-all shadow-sm hover:shadow-md flex items-center justify-center"
                                   title="Comentario"
                                 >
                                   💬
                                 </button>
                                 <button
                                   onClick={() => setSubirFotoId(r.id)}
-                                  className="bg-green-500 text-white hover:bg-green-600 px-3 py-1.5 text-sm rounded-lg transition-all shadow-sm hover:shadow-md"
+                                  className="bg-green-500 text-white w-10 h-10 text-lg rounded-lg hover:bg-green-600 transition-all shadow-sm hover:shadow-md flex items-center justify-center"
                                   title="Subir foto"
                                 >
                                   📷
                                 </button>
                                 <button
                                   onClick={() => handleEliminar(r.id)}
-                                  className="bg-red-500 text-white hover:bg-red-600 px-3 py-1.5 text-sm rounded-lg transition-all shadow-sm hover:shadow-md"
+                                  className="bg-red-500 text-white w-10 h-10 text-lg rounded-lg hover:bg-red-600 transition-all shadow-sm hover:shadow-md flex items-center justify-center"
                                   title="Eliminar"
                                 >
                                   🗑️

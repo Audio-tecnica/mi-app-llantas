@@ -122,134 +122,78 @@ function Rines() {
     }
   };
 
-const guardarComentario = async (rin, texto) => {
-  try {
-    const rinFormateado = {
-      id: rin.id,
-      referencia: rin.referencia?.trim() || "",
-      marca: rin.marca?.trim() || "",
-      proveedor: rin.proveedor?.trim() || "",
-      medida: rin.medida?.trim() || "",
-      costo: Number(rin.costo) || 0,
-      precio: Number(rin.precio) || 0,
-      stock: Number(rin.stock) || 0,
-      remision: rin.remision === true,
-      comentario: texto?.trim() || ""
-    };
-
-    console.log("📤 Enviando al servidor:", rinFormateado);
-    console.log("📤 Comentario enviado:", rinFormateado.comentario);
-    console.log("📤 Remisión enviada:", rinFormateado.remision);
-
-    await axios.post("https://mi-app-llantas.onrender.com/api/editar-rin", rinFormateado);
-
-    const { data } = await axios.get(
-      "https://mi-app-llantas.onrender.com/api/rines"
-    );
-
-    const rinGuardado = data.find(r => r.id === rin.id);
-    console.log("📥 Datos recibidos del servidor:", data);
-    console.log("🔍 Rin específico guardado:", rinGuardado);
-    console.log("🔍 Comentario recibido:", rinGuardado?.comentario);
-    console.log("🔍 Remisión recibida:", rinGuardado?.remision);
-
-    setRines(data);
-    setComentarioModal(null);
-    setMensaje("Comentario guardado ✅");
-    setTimeout(() => setMensaje(""), 2000);
-  } catch (error) {
-    console.error("Error guardando comentario:", error);
-    setMensaje("Error al guardar comentario ❌");
-    setTimeout(() => setMensaje(""), 2000);
-  }
-};
-
-const handleGuardar = async (rin) => {
-  try {
-    const rinFormateado = {
-      id: rin.id,
-      referencia: rin.referencia?.trim() || "",
-      marca: rin.marca?.trim() || "",
-      proveedor: rin.proveedor?.trim() || "",
-      medida: rin.medida?.trim() || "",
-      costo: Number(rin.costo) || 0,
-      precio: Number(rin.precio) || 0,
-      stock: Number(rin.stock) || 0,
-      remision: rin.remision === true,
-      comentario: rin.comentario?.trim() || ""
-    };
-
-    await axios.post(
-      "https://mi-app-llantas.onrender.com/api/editar-rin",
-      rinFormateado
-    );
-
-    const { data } = await axios.get(
-      "https://mi-app-llantas.onrender.com/api/rines"
-    );
-
-    setRines(data);
-    setModoEdicion(null); // ✅ AGREGAR ESTA LÍNEA
-    setMensaje("Cambios guardados ✅");
-    setTimeout(() => setMensaje(""), 2000);
-
-  } catch (error) {
-    console.error("❌ Error al guardar:", error);
-    setMensaje("Error al guardar ❌");
-    setTimeout(() => setMensaje(""), 2000);
-  }
-};
-
-  const handleAgregar = async () => {
+  const guardarComentario = async (rin, texto) => {
     try {
-      // Validar campos requeridos
-      if (!nuevoItem.referencia.trim()) {
-        setMensaje("La referencia es obligatoria ❌");
-        setTimeout(() => setMensaje(""), 2000);
-        return;
-      }
-
-      // Formatear datos antes de enviar
       const rinFormateado = {
-        referencia: nuevoItem.referencia.trim(),
-        marca: nuevoItem.marca.trim(),
-        proveedor: nuevoItem.proveedor.trim(),
-        medida: nuevoItem.medida.trim(),
-        costo: Number(nuevoItem.costo) || 0,
-        precio: Number(nuevoItem.precio) || 0,
-        stock: Number(nuevoItem.stock) || 0,
+        id: rin.id,
+        referencia: rin.referencia?.trim() || "",
+        marca: rin.marca?.trim() || "",
+        proveedor: rin.proveedor?.trim() || "",
+        medida: rin.medida?.trim() || "",
+        costo: Number(rin.costo) || 0,
+        precio: Number(rin.precio) || 0,
+        stock: Number(rin.stock) || 0,
+        remision: rin.remision === true,
+        comentario: texto?.trim() || "",
       };
 
-      // Enviar al servidor
+      console.log("📤 Enviando al servidor:", rinFormateado);
+
       await axios.post(
-        "https://mi-app-llantas.onrender.com/api/agregar-rin",
+        "https://mi-app-llantas.onrender.com/api/editar-rin",
         rinFormateado
       );
 
-      // Recargar datos
-      const { data } = await axios.get(
-        "https://mi-app-llantas.onrender.com/api/rines"
+      // Actualizar el estado local directamente sin recargar todo
+      setRines((prev) =>
+        prev.map((r) =>
+          r.id === rin.id ? { ...r, comentario: texto?.trim() || "" } : r
+        )
       );
-      setRines(data);
 
-      // Limpiar formulario y cerrar modal
-      setNuevoItem({
-        referencia: "",
-        marca: "",
-        proveedor: "",
-        medida: "",
-        costo: "",
-        precio: "",
-        stock: "",
-      });
-      setMostrarModal(false);
-
-      // Mostrar mensaje de éxito
-      setMensaje("Rin agregado exitosamente ✅");
+      setComentarioModal(null);
+      setMensaje("Comentario guardado ✅");
       setTimeout(() => setMensaje(""), 2000);
     } catch (error) {
-      console.error("Error al agregar rin:", error);
-      setMensaje("Error al agregar rin ❌");
+      console.error("Error guardando comentario:", error);
+      setMensaje("Error al guardar comentario ❌");
+      setTimeout(() => setMensaje(""), 2000);
+    }
+  };
+
+  const handleGuardar = async (rin) => {
+    try {
+      const rinFormateado = {
+        id: rin.id,
+        referencia: rin.referencia?.trim() || "",
+        marca: rin.marca?.trim() || "",
+        proveedor: rin.proveedor?.trim() || "",
+        medida: rin.medida?.trim() || "",
+        costo: Number(rin.costo) || 0,
+        precio: Number(rin.precio) || 0,
+        stock: Number(rin.stock) || 0,
+        remision: rin.remision === true,
+        comentario: rin.comentario?.trim() || "",
+      };
+
+      console.log("📤 Guardando rin:", rinFormateado);
+
+      const response = await axios.post(
+        "https://mi-app-llantas.onrender.com/api/editar-rin",
+        rinFormateado
+      );
+
+      // Actualizar el estado local con la respuesta del servidor
+      setRines((prev) =>
+        prev.map((r) => (r.id === rin.id ? response.data : r))
+      );
+
+      setModoEdicion(null);
+      setMensaje("Cambios guardados ✅");
+      setTimeout(() => setMensaje(""), 2000);
+    } catch (error) {
+      console.error("❌ Error al guardar:", error);
+      setMensaje("Error al guardar ❌");
       setTimeout(() => setMensaje(""), 2000);
     }
   };
@@ -753,6 +697,7 @@ const handleGuardar = async (rin) => {
                             </td>
                             <td className="p-3">
                               <div className="flex flex-col gap-2 items-center">
+                                {/* BOTÓN REMISIÓN */}
                                 <button
                                   onClick={() =>
                                     actualizarCampo(
@@ -761,26 +706,42 @@ const handleGuardar = async (rin) => {
                                       !r.remision
                                     )
                                   }
-                                  className={`px-3 py-1.5 text-xs rounded-lg font-semibold transition-all ${
+                                  className={`px-3 py-1.5 text-xs rounded-lg font-semibold transition-all w-full ${
                                     r.remision
                                       ? "bg-red-500 text-white hover:bg-red-600 shadow-md"
                                       : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                                   }`}
                                 >
-                                  {r.remision
-                                    ? "✓ Remisión"
-                                    : "Marcar Remisión"}
+                                  {r.remision ? "✓ Remisión" : "Sin Remisión"}
                                 </button>
+
+                                {/* CAMPO COMENTARIO */}
+                                <textarea
+                                  value={r.comentario || ""}
+                                  onChange={(e) =>
+                                    actualizarCampo(
+                                      r.id,
+                                      "comentario",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="Escribe un comentario..."
+                                  className="w-full border-2 border-blue-300 rounded-lg text-xs p-2 focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                                  rows="2"
+                                />
+
+                                {/* BOTÓN GUARDAR */}
                                 <button
                                   onClick={() => handleGuardar(r)}
-                                  className="bg-green-500 text-white px-4 py-2 text-xs rounded-lg hover:bg-green-600 transition-all shadow-md font-medium"
+                                  className="bg-green-500 text-white px-4 py-2 text-xs rounded-lg hover:bg-green-600 transition-all shadow-md font-medium w-full"
                                 >
                                   💾 Guardar
                                 </button>
 
+                                {/* BOTÓN CANCELAR */}
                                 <button
                                   onClick={() => setModoEdicion(null)}
-                                  className="bg-gray-400 text-white px-4 py-2 text-xs rounded-lg hover:bg-gray-500 transition-all shadow-md font-medium"
+                                  className="bg-gray-400 text-white px-4 py-2 text-xs rounded-lg hover:bg-gray-500 transition-all shadow-md font-medium w-full"
                                 >
                                   ✖ Cancelar
                                 </button>
@@ -813,16 +774,18 @@ const handleGuardar = async (rin) => {
                                 <span className="font-semibold text-gray-800">
                                   {r.referencia}
                                 </span>
-                                {r.comentario && typeof r.comentario === "string" && r.comentario.trim() !== "" && (
-                                  <button
-                                    type="button"
-                                    onClick={() => setComentarioModal(r)}
-                                    className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white hover:bg-blue-600 transition-all shadow-sm hover:shadow-md"
-                                    title="Ver comentario"
-                                  >
-                                    💬
-                                  </button>
-                                )}
+                                {r.comentario &&
+                                  typeof r.comentario === "string" &&
+                                  r.comentario.trim() !== "" && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setComentarioModal(r)}
+                                      className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white hover:bg-blue-600 transition-all shadow-sm hover:shadow-md"
+                                      title="Ver comentario"
+                                    >
+                                      💬
+                                    </button>
+                                  )}
                                 {r.remision && (
                                   <div
                                     className="w-6 h-6 bg-red-600 rounded-full flex items-center justify-center shadow-sm"

@@ -35,6 +35,18 @@ function Rines() {
 
   const API_URL = "https://mi-app-llantas.onrender.com";
 
+  const registrarActividad = async (tipo, detalles) => {
+    try {
+      await axios.post(`${API_URL}/api/log-actividad`, {
+        tipo,
+        detalles,
+        fecha: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error("Error registrando actividad:", error);
+    }
+  };
+
   useEffect(() => {
     cargarRines();
   }, []);
@@ -138,6 +150,11 @@ function Rines() {
       // Recargar la lista completa para asegurar sincronización
       await cargarRines();
 
+      await registrarActividad(
+        "NUEVO RIN",
+        `Se agregó: ${nuevoRin.referencia} - ${nuevoRin.marca} (Stock: ${nuevoRin.stock})`
+      );
+
       setMostrarModal(false);
       setNuevoItem({
         referencia: "",
@@ -205,6 +222,12 @@ function Rines() {
 
       setComentarioModal(null);
       setMensaje("Comentario guardado ✅");
+      await registrarActividad(
+        "COMENTARIO RIN",
+        `${rin.referencia}: ${
+          texto ? "Comentario agregado/editado" : "Comentario eliminado"
+        }`
+      );
       setTimeout(() => setMensaje(""), 2000);
     } catch (error) {
       console.error("❌ Error guardando comentario:", error);
@@ -245,6 +268,9 @@ function Rines() {
 
       setModoEdicion(null);
       setMensaje("Cambios guardados ✅");
+
+      await registrarActividad("EDICIÓN RIN", `Rin editado: ${rin.referencia}`);
+
       setTimeout(() => setMensaje(""), 2000);
     } catch (error) {
       console.error("❌ Error al guardar:", error);
@@ -328,9 +354,14 @@ function Rines() {
 
   const handleEliminar = async (id) => {
     if (!window.confirm("¿Estás seguro de eliminar este rin?")) return;
+    const rin = rines.find((r) => r.id === id);
     try {
       await axios.post(`${API_URL}/api/eliminar-rin`, { id });
       await cargarRines();
+      await registrarActividad(
+        "ELIMINACIÓN RIN",
+        `Se eliminó: ${rin.referencia} - ${rin.marca}`
+      );
       setMensaje("Rin eliminado ✅");
       setTimeout(() => setMensaje(""), 2000);
     } catch {

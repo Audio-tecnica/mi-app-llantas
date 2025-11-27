@@ -25,6 +25,9 @@ function Tapetes() {
   const [orden, setOrden] = useState({ campo: "", asc: true });
   const [seleccionadas, setSeleccionadas] = useState([]);
 
+  // ✅ Estado para guardar valores originales antes de editar
+  const [tapeteOriginalEdicion, setTapeteOriginalEdicion] = useState(null);
+
   const API_URL = "https://mi-app-llantas.onrender.com";
 
   // ✅ Función para registrar actividad en el historial
@@ -109,17 +112,56 @@ function Tapetes() {
     }
   };
 
+  // ✅ Función para iniciar edición guardando valores originales
+  const iniciarEdicion = (id) => {
+    const tapete = tapetes.find((t) => t.id === id);
+    if (tapete) {
+      setTapeteOriginalEdicion(JSON.parse(JSON.stringify(tapete)));
+      setModoEdicion(id);
+    }
+  };
+
+  // ✅ Función guardar con detalle de cambios
   const handleGuardar = async (tapete) => {
     try {
+      if (!tapeteOriginalEdicion) {
+        setMensaje("Error: No se encontró el tapete original ❌");
+        return;
+      }
+
+      const cambios = [];
+
+      if (String(tapeteOriginalEdicion.referencia) !== String(tapete.referencia)) {
+        cambios.push(`Referencia: ${tapeteOriginalEdicion.referencia} → ${tapete.referencia}`);
+      }
+      if (String(tapeteOriginalEdicion.marca) !== String(tapete.marca)) {
+        cambios.push(`Marca: ${tapeteOriginalEdicion.marca} → ${tapete.marca}`);
+      }
+      if (String(tapeteOriginalEdicion.proveedor || "") !== String(tapete.proveedor || "")) {
+        cambios.push(`Proveedor: ${tapeteOriginalEdicion.proveedor || "vacío"} → ${tapete.proveedor || "vacío"}`);
+      }
+      if (Number(tapeteOriginalEdicion.costo) !== Number(tapete.costo)) {
+        cambios.push(`Costo: $${Number(tapeteOriginalEdicion.costo).toLocaleString("es-CO")} → $${Number(tapete.costo).toLocaleString("es-CO")}`);
+      }
+      if (Number(tapeteOriginalEdicion.precio) !== Number(tapete.precio)) {
+        cambios.push(`Precio: $${Number(tapeteOriginalEdicion.precio).toLocaleString("es-CO")} → $${Number(tapete.precio).toLocaleString("es-CO")}`);
+      }
+      if (Number(tapeteOriginalEdicion.stock) !== Number(tapete.stock)) {
+        cambios.push(`Stock: ${tapeteOriginalEdicion.stock} → ${tapete.stock}`);
+      }
+
       await axios.post(`${API_URL}/api/editar-tapete`, tapete);
 
-      await registrarActividad(
-        "EDICIÓN TAPETE",
-        `Tapete editado: ${tapete.referencia} - ${tapete.marca}`
-      );
+      if (cambios.length > 0) {
+        await registrarActividad(
+          "EDICIÓN TAPETE",
+          `Tapete ${tapete.referencia}: ${cambios.join(", ")}`
+        );
+      }
 
       setMensaje("Cambios guardados ✅");
       setModoEdicion(null);
+      setTapeteOriginalEdicion(null);
       setTimeout(() => setMensaje(""), 2000);
     } catch {
       setMensaje("Error al guardar ❌");
@@ -485,7 +527,14 @@ function Tapetes() {
                                     💾 Guardar
                                   </button>
                                   <button
-                                    onClick={() => setModoEdicion(null)}
+                                    onClick={() => {
+                                      setModoEdicion(null);
+                                      setTapeteOriginalEdicion(null);
+                                      // Recargar datos para descartar cambios
+                                      axios
+                                        .get(`${API_URL}/api/tapetes`)
+                                        .then((res) => setTapetes(res.data));
+                                    }}
                                     className="bg-gray-400 text-white px-4 py-2 text-xs rounded-lg hover:bg-gray-500 transition-all shadow-md font-medium"
                                   >
                                     ✖ Cancelar
@@ -523,7 +572,7 @@ function Tapetes() {
                             <td className="p-3">
                               <div className="flex gap-2 justify-center items-center">
                                 <button
-                                  onClick={() => setModoEdicion(t.id)}
+                                  onClick={() => iniciarEdicion(t.id)}
                                   className="bg-slate-200 hover:bg-slate-300 px-3 py-1.5 text-sm rounded-lg transition-all shadow-sm hover:shadow-md"
                                   title="Editar"
                                 >

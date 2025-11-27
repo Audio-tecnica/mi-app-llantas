@@ -33,8 +33,12 @@ function Rines() {
   const [subiendoFoto, setSubiendoFoto] = useState(false);
   const [comentarioModal, setComentarioModal] = useState(null);
 
+  // ✅ Estado para guardar valores originales antes de editar
+  const [rinOriginalEdicion, setRinOriginalEdicion] = useState(null);
+
   const API_URL = "https://mi-app-llantas.onrender.com";
 
+  // ✅ Función para registrar actividad en el historial
   const registrarActividad = async (tipo, detalles) => {
     try {
       await axios.post(`${API_URL}/api/log-actividad`, {
@@ -119,7 +123,7 @@ function Rines() {
     );
   };
 
-  // ✅ FUNCIÓN AGREGAR QUE FALTABA
+  // ✅ Función AGREGAR con registro de actividad
   const handleAgregar = async () => {
     try {
       const { referencia, marca, proveedor, medida, costo, precio, stock } =
@@ -143,17 +147,14 @@ function Rines() {
         comentario: "",
       };
 
-      console.log("📤 Enviando nuevo rin:", nuevoRin);
-
-      const response = await axios.post(`${API_URL}/api/agregar-rin`, nuevoRin);
-
-      // Recargar la lista completa para asegurar sincronización
-      await cargarRines();
+      await axios.post(`${API_URL}/api/agregar-rin`, nuevoRin);
 
       await registrarActividad(
         "NUEVO RIN",
         `Se agregó: ${nuevoRin.referencia} - ${nuevoRin.marca} (Stock: ${nuevoRin.stock})`
       );
+
+      await cargarRines();
 
       setMostrarModal(false);
       setNuevoItem({
@@ -177,9 +178,20 @@ function Rines() {
   const handleEliminarMultiples = async () => {
     if (!window.confirm("¿Eliminar los rines seleccionados?")) return;
     try {
+      const referencias = rines
+        .filter((r) => seleccionadas.includes(r.id))
+        .map((r) => r.referencia)
+        .join(", ");
+
       for (let id of seleccionadas) {
         await axios.post(`${API_URL}/api/eliminar-rin`, { id });
       }
+
+      await registrarActividad(
+        "ELIMINACIÓN MÚLTIPLE RINES",
+        `Se eliminaron ${seleccionadas.length} rines: ${referencias}`
+      );
+
       await cargarRines();
       setSeleccionadas([]);
       setMensaje("Rines eliminados ✅");
@@ -190,7 +202,16 @@ function Rines() {
     }
   };
 
-  // ✅ FUNCIÓN GUARDAR COMENTARIO CORREGIDA
+  // ✅ Función para iniciar edición guardando valores originales
+  const iniciarEdicion = (id) => {
+    const rin = rines.find((r) => r.id === id);
+    if (rin) {
+      setRinOriginalEdicion(JSON.parse(JSON.stringify(rin)));
+      setModoEdicion(id);
+    }
+  };
+
+  // ✅ Función GUARDAR COMENTARIO con registro de actividad
   const guardarComentario = async (rin, texto) => {
     try {
       const rinFormateado = {
@@ -206,28 +227,22 @@ function Rines() {
         comentario: texto?.trim() || "",
       };
 
-      console.log("📤 Guardando comentario:", rinFormateado);
-
       const response = await axios.post(
         `${API_URL}/api/editar-rin`,
         rinFormateado
       );
 
-      console.log("📥 Respuesta del servidor:", response.data);
+      await registrarActividad(
+        "COMENTARIO RIN",
+        `${rin.referencia}: ${texto ? "Comentario agregado/editado" : "Comentario eliminado"}`
+      );
 
-      // Actualizar el estado local con la respuesta del servidor
       setRines((prev) =>
         prev.map((r) => (r.id === rin.id ? { ...r, ...response.data } : r))
       );
 
       setComentarioModal(null);
       setMensaje("Comentario guardado ✅");
-      await registrarActividad(
-        "COMENTARIO RIN",
-        `${rin.referencia}: ${
-          texto ? "Comentario agregado/editado" : "Comentario eliminado"
-        }`
-      );
       setTimeout(() => setMensaje(""), 2000);
     } catch (error) {
       console.error("❌ Error guardando comentario:", error);
@@ -236,9 +251,44 @@ function Rines() {
     }
   };
 
-  // ✅ FUNCIÓN GUARDAR CORREGIDA
+  // ✅ Función GUARDAR con detalle de cambios
   const handleGuardar = async (rin) => {
     try {
+      if (!rinOriginalEdicion) {
+        setMensaje("Error: No se encontró el rin original ❌");
+        return;
+      }
+
+      const cambios = [];
+
+      if (String(rinOriginalEdicion.referencia) !== String(rin.referencia)) {
+        cambios.push(`Referencia: ${rinOriginalEdicion.referencia} → ${rin.referencia}`);
+      }
+      if (String(rinOriginalEdicion.marca) !== String(rin.marca)) {
+        cambios.push(`Marca: ${rinOriginalEdicion.marca} → ${rin.marca}`);
+      }
+      if (String(rinOriginalEdicion.medida || "") !== String(rin.medida || "")) {
+        cambios.push(`Medida: ${rinOriginalEdicion.medida || "vacío"} → ${rin.medida || "vacío"}`);
+      }
+      if (String(rinOriginalEdicion.proveedor || "") !== String(rin.proveedor || "")) {
+        cambios.push(`Proveedor: ${rinOriginalEdicion.proveedor || "vacío"} → ${rin.proveedor || "vacío"}`);
+      }
+      if (Number(rinOriginalEdicion.costo) !== Number(rin.costo)) {
+        cambios.push(`Costo: $${Number(rinOriginalEdicion.costo).toLocaleString("es-CO")} → $${Number(rin.costo).toLocaleString("es-CO")}`);
+      }
+      if (Number(rinOriginalEdicion.precio) !== Number(rin.precio)) {
+        cambios.push(`Precio: $${Number(rinOriginalEdicion.precio).toLocaleString("es-CO")} → $${Number(rin.precio).toLocaleString("es-CO")}`);
+      }
+      if (Number(rinOriginalEdicion.stock) !== Number(rin.stock)) {
+        cambios.push(`Stock: ${rinOriginalEdicion.stock} → ${rin.stock}`);
+      }
+      if (Boolean(rinOriginalEdicion.remision) !== Boolean(rin.remision)) {
+        cambios.push(`Remisión: ${rinOriginalEdicion.remision ? "Sí" : "No"} → ${rin.remision ? "Sí" : "No"}`);
+      }
+      if (String(rinOriginalEdicion.comentario || "") !== String(rin.comentario || "")) {
+        cambios.push(`Comentario: ${rinOriginalEdicion.comentario ? "modificado" : "agregado"}`);
+      }
+
       const rinFormateado = {
         id: rin.id,
         referencia: rin.referencia?.trim() || "",
@@ -252,25 +302,25 @@ function Rines() {
         comentario: rin.comentario?.trim() || "",
       };
 
-      console.log("📤 Guardando rin completo:", rinFormateado);
-
       const response = await axios.post(
         `${API_URL}/api/editar-rin`,
         rinFormateado
       );
 
-      console.log("📥 Respuesta del servidor:", response.data);
+      if (cambios.length > 0) {
+        await registrarActividad(
+          "EDICIÓN RIN",
+          `Rin ${rin.referencia}: ${cambios.join(", ")}`
+        );
+      }
 
-      // Actualizar el estado local con la respuesta del servidor
       setRines((prev) =>
         prev.map((r) => (r.id === rin.id ? { ...r, ...response.data } : r))
       );
 
       setModoEdicion(null);
+      setRinOriginalEdicion(null);
       setMensaje("Cambios guardados ✅");
-
-      await registrarActividad("EDICIÓN RIN", `Rin editado: ${rin.referencia}`);
-
       setTimeout(() => setMensaje(""), 2000);
     } catch (error) {
       console.error("❌ Error al guardar:", error);
@@ -328,6 +378,12 @@ function Rines() {
         }
       );
 
+      const rin = rines.find((r) => r.id === id);
+      await registrarActividad(
+        "FOTO RIN",
+        `Se subió foto para: ${rin?.referencia || "Rin ID " + id}`
+      );
+
       setRines((prev) =>
         prev.map((r) => (r.id === id ? { ...r, foto: data.foto } : r))
       );
@@ -352,16 +408,20 @@ function Rines() {
     }
   };
 
+  // ✅ Función ELIMINAR con registro de actividad
   const handleEliminar = async (id) => {
     if (!window.confirm("¿Estás seguro de eliminar este rin?")) return;
-    const rin = rines.find((r) => r.id === id);
     try {
+      const rin = rines.find((r) => r.id === id);
+
       await axios.post(`${API_URL}/api/eliminar-rin`, { id });
-      await cargarRines();
+
       await registrarActividad(
         "ELIMINACIÓN RIN",
-        `Se eliminó: ${rin.referencia} - ${rin.marca}`
+        `Se eliminó: ${rin?.referencia} - ${rin?.marca}`
       );
+
+      await cargarRines();
       setMensaje("Rin eliminado ✅");
       setTimeout(() => setMensaje(""), 2000);
     } catch {
@@ -778,7 +838,6 @@ function Rines() {
                             </td>
                             <td className="p-3">
                               <div className="flex flex-col gap-2 items-center">
-                                {/* BOTÓN REMISIÓN */}
                                 <button
                                   onClick={() =>
                                     actualizarCampo(
@@ -796,7 +855,6 @@ function Rines() {
                                   {r.remision ? "✓ Remisión" : "Sin Remisión"}
                                 </button>
 
-                                {/* CAMPO COMENTARIO */}
                                 <textarea
                                   value={r.comentario || ""}
                                   onChange={(e) =>
@@ -811,7 +869,6 @@ function Rines() {
                                   rows="2"
                                 />
 
-                                {/* BOTÓN GUARDAR */}
                                 <button
                                   onClick={() => handleGuardar(r)}
                                   className="bg-green-500 text-white px-4 py-2 text-xs rounded-lg hover:bg-green-600 transition-all shadow-md font-medium w-full"
@@ -819,11 +876,11 @@ function Rines() {
                                   💾 Guardar
                                 </button>
 
-                                {/* BOTÓN CANCELAR */}
                                 <button
                                   onClick={() => {
                                     setModoEdicion(null);
-                                    cargarRines(); // Recargar para descartar cambios
+                                    setRinOriginalEdicion(null);
+                                    cargarRines();
                                   }}
                                   className="bg-gray-400 text-white px-4 py-2 text-xs rounded-lg hover:bg-gray-500 transition-all shadow-md font-medium w-full"
                                 >
@@ -913,7 +970,7 @@ function Rines() {
                             <td className="p-3">
                               <div className="grid grid-cols-2 gap-x-4 gap-y-2 justify-items-center">
                                 <button
-                                  onClick={() => setModoEdicion(r.id)}
+                                  onClick={() => iniciarEdicion(r.id)}
                                   className="bg-slate-200 hover:bg-slate-300 w-10 h-10 text-lg rounded-lg transition-all shadow-sm hover:shadow-md flex items-center justify-center"
                                   title="Editar"
                                 >

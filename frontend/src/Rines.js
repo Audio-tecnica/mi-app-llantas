@@ -124,17 +124,27 @@ function Rines() {
 
 const guardarComentario = async (rin, texto) => {
   try {
-    await axios.post("https://mi-app-llantas.onrender.com/api/editar-rin", {
-      ...rin,
-      comentario: texto,
-    });
+    const rinFormateado = {
+      id: rin.id,
+      referencia: rin.referencia?.trim() || "",
+      marca: rin.marca?.trim() || "",
+      proveedor: rin.proveedor?.trim() || "",
+      medida: rin.medida?.trim() || "",
+      costo: Number(rin.costo) || 0,
+      precio: Number(rin.precio) || 0,
+      stock: Number(rin.stock) || 0,
+      remision: rin.remision === true,
+      comentario: texto?.trim() || ""
+    };
+
+    await axios.post("https://mi-app-llantas.onrender.com/api/editar-rin", rinFormateado);
 
     const { data } = await axios.get(
       "https://mi-app-llantas.onrender.com/api/rines"
     );
 
     setRines(data);
-    setComentarioModal(null); // ✅ AGREGAR ESTA LÍNEA
+    setComentarioModal(null);
     setMensaje("Comentario guardado ✅");
     setTimeout(() => setMensaje(""), 2000);
   } catch (error) {

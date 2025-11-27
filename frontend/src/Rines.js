@@ -873,7 +873,7 @@ function Rines() {
                               )}
                             </td>
                             <td className="p-3">
-                              <div className="grid grid-cols-2 gap-4 justify-items-center">
+                              <div className="grid grid-cols-2 gap-6 justify-items-center">
                                 <button
                                   onClick={() => setModoEdicion(r.id)}
                                   className="bg-slate-200 hover:bg-slate-300 px-3 py-1.5 text-sm rounded-lg transition-all shadow-sm hover:shadow-md"

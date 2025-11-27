@@ -59,6 +59,30 @@ function VisualizadorRines() {
     rinSeleccionado,
   ]);
 
+  // Redibujar cuando llegamos al paso 4
+  useEffect(() => {
+    if (paso === 4 && imagenVehiculoURL && rinSeleccionado) {
+      setTimeout(() => {
+        dibujarRin(
+          canvasDelRef.current,
+          imagenVehiculoURL,
+          rinSeleccionado.foto,
+          posicionDelantera,
+          escala,
+          rotacion
+        );
+        dibujarRin(
+          canvasTrasRef.current,
+          imagenVehiculoURL,
+          rinSeleccionado.foto,
+          posicionTrasera,
+          escala,
+          rotacion
+        );
+      }, 100);
+    }
+  }, [paso]);
+
   // Detectar si es dispositivo móvil
   const esMovil = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 

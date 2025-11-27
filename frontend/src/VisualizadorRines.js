@@ -8,7 +8,7 @@ function VisualizadorRines() {
   const [imagenVehiculo, setImagenVehiculo] = useState(null);
   const [imagenVehiculoURL, setImagenVehiculoURL] = useState(null);
   const [mensaje, setMensaje] = useState("");
-  
+
   // Estados para el Paso 2
   const [rines, setRines] = useState([]);
   const [cargandoRines, setCargandoRines] = useState(false);
@@ -16,10 +16,48 @@ function VisualizadorRines() {
   const [busquedaRin, setBusquedaRin] = useState("");
   const [marcaFiltro, setMarcaFiltro] = useState("");
   const [medidaFiltro, setMedidaFiltro] = useState("");
-  
+
+  // Estados para el Paso 3
+  const [escala, setEscala] = useState(1);
+  const [rotacion, setRotacion] = useState(0);
+  const [posicionDelantera, setPosicionDelantera] = useState({ x: 0, y: 0 });
+  const [posicionTrasera, setPosicionTrasera] = useState({ x: 0, y: 0 });
+  const [mostrandoControles, setMostrandoControles] = useState("delantera");
+
   const inputFileRef = useRef(null);
   const videoRef = useRef(null);
   const [usandoCamara, setUsandoCamara] = useState(false);
+  const canvasDelRef = useRef(null);
+  const canvasTrasRef = useRef(null);
+
+  // Dibujar rines en canvas cuando cambia algo
+  useEffect(() => {
+    if (paso === 3 && imagenVehiculoURL && rinSeleccionado) {
+      const posicion =
+        mostrandoControles === "delantera"
+          ? posicionDelantera
+          : posicionTrasera;
+      dibujarRin(
+        mostrandoControles === "delantera"
+          ? canvasDelRef.current
+          : canvasTrasRef.current,
+        imagenVehiculoURL,
+        rinSeleccionado.foto,
+        posicion,
+        escala,
+        rotacion
+      );
+    }
+  }, [
+    paso,
+    escala,
+    rotacion,
+    posicionDelantera,
+    posicionTrasera,
+    mostrandoControles,
+    imagenVehiculoURL,
+    rinSeleccionado,
+  ]);
 
   // Detectar si es dispositivo móvil
   const esMovil = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -81,7 +119,7 @@ function VisualizadorRines() {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "environment" }, // Cámara trasera
       });
-      
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         setUsandoCamara(true);
@@ -105,17 +143,19 @@ function VisualizadorRines() {
 
     canvas.toBlob((blob) => {
       const url = URL.createObjectURL(blob);
-      const archivo = new File([blob], "foto-vehiculo.jpg", { type: "image/jpeg" });
-      
+      const archivo = new File([blob], "foto-vehiculo.jpg", {
+        type: "image/jpeg",
+      });
+
       setImagenVehiculo(archivo);
       setImagenVehiculoURL(url);
-      
+
       // Detener cámara
       const stream = videoRef.current.srcObject;
       const tracks = stream.getTracks();
       tracks.forEach((track) => track.stop());
       setUsandoCamara(false);
-      
+
       setMensaje("Foto capturada exitosamente ✅");
       setTimeout(() => setMensaje(""), 2000);
     }, "image/jpeg");
@@ -129,6 +169,68 @@ function VisualizadorRines() {
       tracks.forEach((track) => track.stop());
     }
     setUsandoCamara(false);
+  };
+
+  // Función para dibujar rin en canvas
+  const dibujarRin = (
+    canvas,
+    imagenVehiculo,
+    fotoRin,
+    posicion,
+    escala,
+    rotacion
+  ) => {
+    if (!canvas || !imagenVehiculo) return;
+
+    const ctx = canvas.getContext("2d");
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+
+    // Dibujar imagen del vehículo
+    const img = new Image();
+    img.onload = () => {
+      // Calcular escalado manteniendo proporción
+      const ratio = Math.min(
+        canvas.width / img.width,
+        canvas.height / img.height
+      );
+      const ancho = img.width * ratio;
+      const alto = img.height * ratio;
+      const x = (canvas.width - ancho) / 2;
+      const y = (canvas.height - alto) / 2;
+
+      ctx.drawImage(img, x, y, ancho, alto);
+
+      // Dibujar rin si existe
+      if (fotoRin) {
+        const rinImg = new Image();
+        rinImg.onload = () => {
+          ctx.save();
+
+          // Calcular posición del rin
+          const rinX = canvas.width / 2 + posicion.x;
+          const rinY = canvas.height / 2 + posicion.y;
+
+          // Aplicar transformaciones
+          ctx.translate(rinX, rinY);
+          ctx.rotate((rotacion * Math.PI) / 180);
+          ctx.scale(escala, escala);
+
+          // Dibujar rin centrado
+          ctx.drawImage(
+            rinImg,
+            -rinImg.width / 2,
+            -rinImg.height / 2,
+            rinImg.width,
+            rinImg.height
+          );
+
+          ctx.restore();
+        };
+        rinImg.src = fotoRin;
+      }
+    };
+    img.src = imagenVehiculo;
   };
 
   // Función para continuar al siguiente paso
@@ -150,7 +252,9 @@ function VisualizadorRines() {
             <div className="flex items-center gap-4">
               <img src="/logowp.PNG" className="h-12 w-auto" alt="Logo" />
               <div>
-                <h1 className="text-2xl font-bold text-gray-800">Visualizador de Rines</h1>
+                <h1 className="text-2xl font-bold text-gray-800">
+                  Visualizador de Rines
+                </h1>
                 <p className="text-sm text-gray-500">Paso {paso} de 4</p>
               </div>
             </div>
@@ -184,7 +288,7 @@ function VisualizadorRines() {
               Paso 1: Foto del Vehículo
             </h2>
             <p className="text-gray-600 mb-8">
-              {esMovil 
+              {esMovil
                 ? "Toma una foto del vehículo o selecciona una de tu galería"
                 : "Selecciona una imagen del vehículo desde tu computadora"}
             </p>
@@ -260,7 +364,7 @@ function VisualizadorRines() {
                         <span>Tomar Foto</span>
                       </div>
                     </button>
-                    
+
                     <button
                       onClick={() => inputFileRef.current?.click()}
                       className="bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-6 rounded-xl font-semibold hover:from-green-600 hover:to-green-700 transition-all shadow-lg hover:shadow-xl text-lg"
@@ -316,13 +420,17 @@ function VisualizadorRines() {
             {cargandoRines ? (
               <div className="text-center py-12">
                 <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-slate-700 mb-4"></div>
-                <p className="text-gray-600 text-lg">Cargando catálogo de rines...</p>
+                <p className="text-gray-600 text-lg">
+                  Cargando catálogo de rines...
+                </p>
               </div>
             ) : (
               <>
                 {/* Filtros */}
                 <div className="bg-gray-50 rounded-xl p-6 mb-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Filtros de búsqueda</h3>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                    Filtros de búsqueda
+                  </h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -347,11 +455,13 @@ function VisualizadorRines() {
                         className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
                       >
                         <option value="">Todas las marcas</option>
-                        {[...new Set(rines.map((r) => r.marca))].map((marca) => (
-                          <option key={marca} value={marca}>
-                            {marca}
-                          </option>
-                        ))}
+                        {[...new Set(rines.map((r) => r.marca))].map(
+                          (marca) => (
+                            <option key={marca} value={marca}>
+                              {marca}
+                            </option>
+                          )
+                        )}
                       </select>
                     </div>
 
@@ -393,10 +503,14 @@ function VisualizadorRines() {
                       const coincideReferencia = r.referencia
                         ?.toLowerCase()
                         .includes(busquedaRin.toLowerCase());
-                      const coincideMarca = !marcaFiltro || r.marca === marcaFiltro;
+                      const coincideMarca =
+                        !marcaFiltro || r.marca === marcaFiltro;
                       const coincideMedida =
-                        !medidaFiltro || r.medida?.toString().startsWith(medidaFiltro);
-                      return coincideReferencia && coincideMarca && coincideMedida;
+                        !medidaFiltro ||
+                        r.medida?.toString().startsWith(medidaFiltro);
+                      return (
+                        coincideReferencia && coincideMarca && coincideMedida
+                      );
                     })
                     .map((rin) => (
                       <div
@@ -420,7 +534,9 @@ function VisualizadorRines() {
                             />
                           ) : (
                             <div className="w-full h-32 bg-gray-100 rounded-lg flex items-center justify-center mb-3">
-                              <span className="text-gray-400 text-xs">Sin foto</span>
+                              <span className="text-gray-400 text-xs">
+                                Sin foto
+                              </span>
                             </div>
                           )}
 
@@ -459,7 +575,9 @@ function VisualizadorRines() {
 
                   {rinSeleccionado && (
                     <div className="flex-1 bg-purple-50 rounded-xl p-4 mx-4 border-2 border-purple-200">
-                      <p className="text-sm text-gray-600 mb-1">Rin seleccionado:</p>
+                      <p className="text-sm text-gray-600 mb-1">
+                        Rin seleccionado:
+                      </p>
                       <p className="font-bold text-purple-700 text-lg">
                         {rinSeleccionado.referencia} - {rinSeleccionado.marca}
                       </p>
@@ -486,19 +604,217 @@ function VisualizadorRines() {
           </div>
         )}
 
-        {/* Paso 3: Edición (por ahora vacío) */}
+        {/* Paso 3: Edición */}
         {paso === 3 && (
           <div className="bg-white rounded-2xl shadow-lg p-8">
-            <h2 className="text-3xl font-bold text-gray-800 mb-4">
+            <h2 className="text-3xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <span>🎨</span>
               Paso 3: Ajustar Visualización
             </h2>
-            <p className="text-gray-600">En desarrollo...</p>
-            <button
-              onClick={() => setPaso(2)}
-              className="mt-4 bg-gray-400 text-white px-6 py-2 rounded-lg"
-            >
-              ← Volver
-            </button>
+            <p className="text-gray-600 mb-6">
+              Personaliza cómo se ve el rin en tu vehículo
+            </p>
+
+            {/* Tabs para seleccionar rueda */}
+            <div className="flex gap-4 mb-6 border-b-2 border-gray-200">
+              <button
+                onClick={() => setMostrandoControles("delantera")}
+                className={`py-3 px-6 font-semibold transition-all ${
+                  mostrandoControles === "delantera"
+                    ? "text-purple-600 border-b-2 border-purple-600"
+                    : "text-gray-600 hover:text-gray-800"
+                }`}
+              >
+                🔴 Rueda Delantera
+              </button>
+              <button
+                onClick={() => setMostrandoControles("trasera")}
+                className={`py-3 px-6 font-semibold transition-all ${
+                  mostrandoControles === "trasera"
+                    ? "text-purple-600 border-b-2 border-purple-600"
+                    : "text-gray-600 hover:text-gray-800"
+                }`}
+              >
+                🔵 Rueda Trasera
+              </button>
+            </div>
+
+            {/* Grid: Canvas + Controles */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+              {/* Canvas - Visualización */}
+              <div className="lg:col-span-2">
+                <div className="bg-gray-100 rounded-xl border-2 border-gray-300 overflow-hidden">
+                  <canvas
+                    ref={
+                      mostrandoControles === "delantera"
+                        ? canvasDelRef
+                        : canvasTrasRef
+                    }
+                    className="w-full h-96 block"
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-2 text-center">
+                  Usa los controles de la derecha para ajustar el rin
+                </p>
+              </div>
+
+              {/* Controles */}
+              <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-6 border-2 border-purple-200">
+                <h3 className="text-lg font-bold text-gray-800 mb-6">
+                  {mostrandoControles === "delantera"
+                    ? "🔴 Delantera"
+                    : "🔵 Trasera"}
+                </h3>
+
+                {/* Tamaño */}
+                <div className="mb-6">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Tamaño
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="range"
+                      min="0.5"
+                      max="3"
+                      step="0.1"
+                      value={escala}
+                      onChange={(e) => setEscala(parseFloat(e.target.value))}
+                      className="flex-1 h-2 bg-purple-300 rounded-lg appearance-none cursor-pointer"
+                    />
+                    <span className="text-sm font-bold text-purple-600 w-12 text-right">
+                      {(escala * 100).toFixed(0)}%
+                    </span>
+                  </div>
+                </div>
+
+                {/* Rotación */}
+                <div className="mb-6">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Rotación
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="range"
+                      min="0"
+                      max="360"
+                      step="5"
+                      value={rotacion}
+                      onChange={(e) => setRotacion(parseInt(e.target.value))}
+                      className="flex-1 h-2 bg-blue-300 rounded-lg appearance-none cursor-pointer"
+                    />
+                    <span className="text-sm font-bold text-blue-600 w-12 text-right">
+                      {rotacion}°
+                    </span>
+                  </div>
+                </div>
+
+                {/* Posición X */}
+                <div className="mb-6">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Posición Horizontal
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="range"
+                      min="-150"
+                      max="150"
+                      step="5"
+                      value={
+                        mostrandoControles === "delantera"
+                          ? posicionDelantera.x
+                          : posicionTrasera.x
+                      }
+                      onChange={(e) => {
+                        const valor = parseInt(e.target.value);
+                        if (mostrandoControles === "delantera") {
+                          setPosicionDelantera({
+                            ...posicionDelantera,
+                            x: valor,
+                          });
+                        } else {
+                          setPosicionTrasera({ ...posicionTrasera, x: valor });
+                        }
+                      }}
+                      className="flex-1 h-2 bg-green-300 rounded-lg appearance-none cursor-pointer"
+                    />
+                    <span className="text-sm font-bold text-green-600 w-12 text-right">
+                      {mostrandoControles === "delantera"
+                        ? posicionDelantera.x
+                        : posicionTrasera.x}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Posición Y */}
+                <div className="mb-6">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Posición Vertical
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="range"
+                      min="-150"
+                      max="150"
+                      step="5"
+                      value={
+                        mostrandoControles === "delantera"
+                          ? posicionDelantera.y
+                          : posicionTrasera.y
+                      }
+                      onChange={(e) => {
+                        const valor = parseInt(e.target.value);
+                        if (mostrandoControles === "delantera") {
+                          setPosicionDelantera({
+                            ...posicionDelantera,
+                            y: valor,
+                          });
+                        } else {
+                          setPosicionTrasera({ ...posicionTrasera, y: valor });
+                        }
+                      }}
+                      className="flex-1 h-2 bg-orange-300 rounded-lg appearance-none cursor-pointer"
+                    />
+                    <span className="text-sm font-bold text-orange-600 w-12 text-right">
+                      {mostrandoControles === "delantera"
+                        ? posicionDelantera.y
+                        : posicionTrasera.y}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Botón Reset */}
+                <button
+                  onClick={() => {
+                    if (mostrandoControles === "delantera") {
+                      setPosicionDelantera({ x: 0, y: 0 });
+                    } else {
+                      setPosicionTrasera({ x: 0, y: 0 });
+                    }
+                    setEscala(1);
+                    setRotacion(0);
+                  }}
+                  className="w-full bg-gray-400 text-white py-2 rounded-lg font-semibold hover:bg-gray-500 transition-all"
+                >
+                  ↺ Resetear
+                </button>
+              </div>
+            </div>
+
+            {/* Botones de navegación */}
+            <div className="flex gap-4 justify-between pt-6 border-t">
+              <button
+                onClick={() => setPaso(2)}
+                className="bg-gray-400 text-white px-8 py-3 rounded-xl font-semibold hover:bg-gray-500 transition-all shadow-lg"
+              >
+                ← Volver
+              </button>
+              <button
+                onClick={() => setPaso(4)}
+                className="bg-blue-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-all shadow-lg"
+              >
+                Ver Resultado →
+              </button>
+            </div>
           </div>
         )}
       </div>

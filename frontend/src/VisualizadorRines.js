@@ -195,7 +195,7 @@ function VisualizadorRines() {
     setUsandoCamara(false);
   };
 
-  // Función para dibujar rin en canvas
+  // Reemplaza la función dibujarRin por esta:
   const dibujarRin = (
     canvas,
     imagenVehiculo,
@@ -207,23 +207,30 @@ function VisualizadorRines() {
     if (!canvas || !imagenVehiculo) return;
 
     const ctx = canvas.getContext("2d");
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
+
+    // Establecer tamaño del canvas (importante para que funcione bien)
+    const ancho = canvas.clientWidth || canvas.width || 400;
+    const alto = canvas.clientHeight || canvas.height || 320;
+
+    canvas.width = ancho;
+    canvas.height = alto;
 
     // Dibujar imagen del vehículo
     const img = new Image();
     img.onload = () => {
       // Calcular escalado manteniendo proporción
-      const ratio = Math.min(
-        canvas.width / img.width,
-        canvas.height / img.height
-      );
-      const ancho = img.width * ratio;
-      const alto = img.height * ratio;
-      const x = (canvas.width - ancho) / 2;
-      const y = (canvas.height - alto) / 2;
+      const ratio = Math.min(ancho / img.width, alto / img.height);
+      const imgAncho = img.width * ratio;
+      const imgAlto = img.height * ratio;
+      const imgX = (ancho - imgAncho) / 2;
+      const imgY = (alto - imgAlto) / 2;
 
-      ctx.drawImage(img, x, y, ancho, alto);
+      // Limpiar canvas
+      ctx.fillStyle = "white";
+      ctx.fillRect(0, 0, ancho, alto);
+
+      // Dibujar imagen del vehículo
+      ctx.drawImage(img, imgX, imgY, imgAncho, imgAlto);
 
       // Dibujar rin si existe
       if (fotoRin) {
@@ -231,9 +238,9 @@ function VisualizadorRines() {
         rinImg.onload = () => {
           ctx.save();
 
-          // Calcular posición del rin
-          const rinX = canvas.width / 2 + posicion.x;
-          const rinY = canvas.height / 2 + posicion.y;
+          // Calcular posición del rin (centrado)
+          const rinX = ancho / 2 + posicion.x;
+          const rinY = alto / 2 + posicion.y;
 
           // Aplicar transformaciones
           ctx.translate(rinX, rinY);
@@ -251,8 +258,14 @@ function VisualizadorRines() {
 
           ctx.restore();
         };
+        rinImg.onerror = () => {
+          console.error("Error al cargar imagen del rin:", fotoRin);
+        };
         rinImg.src = fotoRin;
       }
+    };
+    img.onerror = () => {
+      console.error("Error al cargar imagen del vehículo");
     };
     img.src = imagenVehiculo;
   };

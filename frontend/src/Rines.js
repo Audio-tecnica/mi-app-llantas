@@ -234,7 +234,9 @@ function Rines() {
 
       await registrarActividad(
         "COMENTARIO RIN",
-        `${rin.referencia}: ${texto ? "Comentario agregado/editado" : "Comentario eliminado"}`
+        `${rin.referencia}: ${
+          texto ? "Comentario agregado/editado" : "Comentario eliminado"
+        }`
       );
 
       setRines((prev) =>
@@ -262,31 +264,65 @@ function Rines() {
       const cambios = [];
 
       if (String(rinOriginalEdicion.referencia) !== String(rin.referencia)) {
-        cambios.push(`Referencia: ${rinOriginalEdicion.referencia} → ${rin.referencia}`);
+        cambios.push(
+          `Referencia: ${rinOriginalEdicion.referencia} → ${rin.referencia}`
+        );
       }
       if (String(rinOriginalEdicion.marca) !== String(rin.marca)) {
         cambios.push(`Marca: ${rinOriginalEdicion.marca} → ${rin.marca}`);
       }
-      if (String(rinOriginalEdicion.medida || "") !== String(rin.medida || "")) {
-        cambios.push(`Medida: ${rinOriginalEdicion.medida || "vacío"} → ${rin.medida || "vacío"}`);
+      if (
+        String(rinOriginalEdicion.medida || "") !== String(rin.medida || "")
+      ) {
+        cambios.push(
+          `Medida: ${rinOriginalEdicion.medida || "vacío"} → ${
+            rin.medida || "vacío"
+          }`
+        );
       }
-      if (String(rinOriginalEdicion.proveedor || "") !== String(rin.proveedor || "")) {
-        cambios.push(`Proveedor: ${rinOriginalEdicion.proveedor || "vacío"} → ${rin.proveedor || "vacío"}`);
+      if (
+        String(rinOriginalEdicion.proveedor || "") !==
+        String(rin.proveedor || "")
+      ) {
+        cambios.push(
+          `Proveedor: ${rinOriginalEdicion.proveedor || "vacío"} → ${
+            rin.proveedor || "vacío"
+          }`
+        );
       }
       if (Number(rinOriginalEdicion.costo) !== Number(rin.costo)) {
-        cambios.push(`Costo: $${Number(rinOriginalEdicion.costo).toLocaleString("es-CO")} → $${Number(rin.costo).toLocaleString("es-CO")}`);
+        cambios.push(
+          `Costo: $${Number(rinOriginalEdicion.costo).toLocaleString(
+            "es-CO"
+          )} → $${Number(rin.costo).toLocaleString("es-CO")}`
+        );
       }
       if (Number(rinOriginalEdicion.precio) !== Number(rin.precio)) {
-        cambios.push(`Precio: $${Number(rinOriginalEdicion.precio).toLocaleString("es-CO")} → $${Number(rin.precio).toLocaleString("es-CO")}`);
+        cambios.push(
+          `Precio: $${Number(rinOriginalEdicion.precio).toLocaleString(
+            "es-CO"
+          )} → $${Number(rin.precio).toLocaleString("es-CO")}`
+        );
       }
       if (Number(rinOriginalEdicion.stock) !== Number(rin.stock)) {
         cambios.push(`Stock: ${rinOriginalEdicion.stock} → ${rin.stock}`);
       }
       if (Boolean(rinOriginalEdicion.remision) !== Boolean(rin.remision)) {
-        cambios.push(`Remisión: ${rinOriginalEdicion.remision ? "Sí" : "No"} → ${rin.remision ? "Sí" : "No"}`);
+        cambios.push(
+          `Remisión: ${rinOriginalEdicion.remision ? "Sí" : "No"} → ${
+            rin.remision ? "Sí" : "No"
+          }`
+        );
       }
-      if (String(rinOriginalEdicion.comentario || "") !== String(rin.comentario || "")) {
-        cambios.push(`Comentario: ${rinOriginalEdicion.comentario ? "modificado" : "agregado"}`);
+      if (
+        String(rinOriginalEdicion.comentario || "") !==
+        String(rin.comentario || "")
+      ) {
+        cambios.push(
+          `Comentario: ${
+            rinOriginalEdicion.comentario ? "modificado" : "agregado"
+          }`
+        );
       }
 
       const rinFormateado = {
@@ -444,6 +480,14 @@ function Rines() {
               >
                 <span className="text-lg">+</span>
                 Agregar rin
+              </button>
+
+              <button
+                onClick={() => navigate("/visualizador-rines")}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-md hover:shadow-lg"
+              >
+                <span className="text-lg">🎨</span>
+                Visualizador AR
               </button>
 
               <button

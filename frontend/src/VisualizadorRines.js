@@ -711,9 +711,9 @@ function VisualizadorRines() {
                   <div className="flex items-center gap-3">
                     <input
                       type="range"
-                      min="0.5"
+                      min="0.1"
                       max="3"
-                      step="0.1"
+                      step="0.05"
                       value={escala}
                       onChange={(e) => setEscala(parseFloat(e.target.value))}
                       className="flex-1 h-2 bg-purple-300 rounded-lg appearance-none cursor-pointer"

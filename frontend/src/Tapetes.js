@@ -25,10 +25,25 @@ function Tapetes() {
   const [orden, setOrden] = useState({ campo: "", asc: true });
   const [seleccionadas, setSeleccionadas] = useState([]);
 
+  const API_URL = "https://mi-app-llantas.onrender.com";
+
+  // ✅ Función para registrar actividad en el historial
+  const registrarActividad = async (tipo, detalles) => {
+    try {
+      await axios.post(`${API_URL}/api/log-actividad`, {
+        tipo,
+        detalles,
+        fecha: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error("Error registrando actividad:", error);
+    }
+  };
+
   // 📦 Cargar tapetes
   useEffect(() => {
     axios
-      .get("https://mi-app-llantas.onrender.com/api/tapetes")
+      .get(`${API_URL}/api/tapetes`)
       .then((res) => setTapetes(res.data))
       .catch(() => setMensaje("Error al cargar tapetes ❌"))
       .finally(() => setCargando(false));
@@ -69,15 +84,21 @@ function Tapetes() {
   const handleEliminarMultiples = async () => {
     if (!window.confirm("¿Eliminar los tapetes seleccionados?")) return;
     try {
+      const referencias = tapetes
+        .filter((t) => seleccionadas.includes(t.id))
+        .map((t) => t.referencia)
+        .join(", ");
+
       for (let id of seleccionadas) {
-        await axios.post(
-          "https://mi-app-llantas.onrender.com/api/eliminar-tapete",
-          { id }
-        );
+        await axios.post(`${API_URL}/api/eliminar-tapete`, { id });
       }
-      const { data } = await axios.get(
-        "https://mi-app-llantas.onrender.com/api/tapetes"
+
+      await registrarActividad(
+        "ELIMINACIÓN MÚLTIPLE TAPETES",
+        `Se eliminaron ${seleccionadas.length} tapetes: ${referencias}`
       );
+
+      const { data } = await axios.get(`${API_URL}/api/tapetes`);
       setTapetes(data);
       setSeleccionadas([]);
       setMensaje("Tapetes eliminados ✅");
@@ -90,10 +111,13 @@ function Tapetes() {
 
   const handleGuardar = async (tapete) => {
     try {
-      await axios.post(
-        "https://mi-app-llantas.onrender.com/api/editar-tapete",
-        tapete
+      await axios.post(`${API_URL}/api/editar-tapete`, tapete);
+
+      await registrarActividad(
+        "EDICIÓN TAPETE",
+        `Tapete editado: ${tapete.referencia} - ${tapete.marca}`
       );
+
       setMensaje("Cambios guardados ✅");
       setModoEdicion(null);
       setTimeout(() => setMensaje(""), 2000);
@@ -106,10 +130,15 @@ function Tapetes() {
   const handleEliminar = async (id) => {
     if (!window.confirm("¿Eliminar este tapete?")) return;
     try {
-      await axios.post(
-        "https://mi-app-llantas.onrender.com/api/eliminar-tapete",
-        { id }
+      const tapete = tapetes.find((t) => t.id === id);
+
+      await axios.post(`${API_URL}/api/eliminar-tapete`, { id });
+
+      await registrarActividad(
+        "ELIMINACIÓN TAPETE",
+        `Se eliminó: ${tapete.referencia} - ${tapete.marca}`
       );
+
       setTapetes((prev) => prev.filter((t) => t.id !== id));
       setMensaje("Tapete eliminado ✅");
       setTimeout(() => setMensaje(""), 2000);
@@ -130,14 +159,14 @@ function Tapetes() {
         stock: parseInt(nuevoItem.stock) || 0,
       };
 
-      await axios.post(
-        "https://mi-app-llantas.onrender.com/api/agregar-tapete",
-        nuevoTapeteFormateado
+      await axios.post(`${API_URL}/api/agregar-tapete`, nuevoTapeteFormateado);
+
+      await registrarActividad(
+        "NUEVO TAPETE",
+        `Se agregó: ${nuevoItem.referencia} - ${nuevoItem.marca} (Stock: ${nuevoItem.stock})`
       );
 
-      const { data } = await axios.get(
-        "https://mi-app-llantas.onrender.com/api/tapetes"
-      );
+      const { data } = await axios.get(`${API_URL}/api/tapetes`);
       setTapetes(data);
       setMostrarModal(false);
       setNuevoItem({

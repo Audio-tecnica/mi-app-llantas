@@ -753,8 +753,8 @@ function VisualizadorRines() {
                   <div className="flex items-center gap-3">
                     <input
                       type="range"
-                      min="-150"
-                      max="150"
+                      min="-200"
+                      max="200"
                       step="5"
                       value={
                         mostrandoControles === "delantera"
@@ -790,8 +790,8 @@ function VisualizadorRines() {
                   <div className="flex items-center gap-3">
                     <input
                       type="range"
-                      min="-150"
-                      max="150"
+                      min="-200"
+                      max="200"
                       step="5"
                       value={
                         mostrandoControles === "delantera"

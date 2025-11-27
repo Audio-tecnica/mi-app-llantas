@@ -482,13 +482,13 @@ function Rines() {
                 Agregar rin
               </button>
 
-              <button
+              {/*<button
                 onClick={() => navigate("/visualizador-rines")}
                 className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-md hover:shadow-lg"
               >
                 <span className="text-lg">🎨</span>
                 Visualizador AR
-              </button>
+              </button>*/}
 
               <button
                 onClick={handleEliminarMultiples}

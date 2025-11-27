@@ -94,6 +94,7 @@ app.post("/api/agregar-rin", async (req, res) => {
 });
 
 // POST editar rin
+// POST editar rin
 app.post("/api/editar-rin", async (req, res) => {
   try {
     const {
@@ -109,15 +110,8 @@ app.post("/api/editar-rin", async (req, res) => {
       comentario
     } = req.body;
 
-    console.log("📥 Backend recibió:", { 
-      id, 
-      remision, 
-      comentario,
-      tipoRemision: typeof remision,
-      tipoComentario: typeof comentario 
-    });
+    console.log("📥 Backend recibió:", { id, remision, comentario });
 
-    // Validar que el ID existe
     if (!id) {
       return res.status(400).json({ error: "ID es requerido" });
     }
@@ -153,9 +147,10 @@ app.post("/api/editar-rin", async (req, res) => {
       return res.status(404).json({ error: "Rin no encontrado" });
     }
 
+    // ⚠️ IMPORTANTE: Debe devolver result.rows[0], NO {success: true}
     console.log("📤 Backend devuelve:", result.rows[0]);
-
     res.json(result.rows[0]);
+    
   } catch (error) {
     console.error("❌ Error en backend:", error);
     res.status(500).json({ error: "Error al editar el rin" });

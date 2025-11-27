@@ -338,13 +338,14 @@ app.post("/api/agregar-rin", async (req, res) => {
 });
 
 // Editar rin
+// Editar rin
 app.post("/api/editar-rin", async (req, res) => {
-  const { id, marca, referencia, proveedor, medida, costo, precio, stock } = req.body;
+  const { id, marca, referencia, proveedor, medida, costo, precio, stock, remision, comentario } = req.body;
 
-  console.log("📥 Datos recibidos para editar:", req.body); // Para debugging
+  console.log("📥 Datos recibidos para editar:", req.body);
 
   try {
-    await pool.query(
+    const result = await pool.query(
       `UPDATE rines SET
        marca = $1, 
        referencia = $2, 
@@ -352,8 +353,11 @@ app.post("/api/editar-rin", async (req, res) => {
        medida = $4,
        costo = $5, 
        precio = $6, 
-       stock = $7
-       WHERE id = $8`,
+       stock = $7,
+       remision = $8,
+       comentario = $9
+       WHERE id = $10
+       RETURNING *`,
       [
         marca || "",
         referencia || "",
@@ -362,12 +366,14 @@ app.post("/api/editar-rin", async (req, res) => {
         parseFloat(costo) || 0,
         parseFloat(precio) || 0,
         parseInt(stock) || 0,
+        remision === true || remision === "true",
+        comentario || "",
         id,
       ]
     );
     
-    console.log("✅ Rin actualizado exitosamente, ID:", id);
-    res.json({ success: true });
+    console.log("✅ Rin actualizado:", result.rows[0]);
+    res.json(result.rows[0]);
   } catch (error) {
     console.error("❌ Error editando rin:", error);
     res.status(500).json({ 
@@ -376,7 +382,6 @@ app.post("/api/editar-rin", async (req, res) => {
     });
   }
 });
-
 
 // Eliminar rin
 app.post("/api/eliminar-rin", async (req, res) => {

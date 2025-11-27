@@ -817,6 +817,186 @@ function VisualizadorRines() {
             </div>
           </div>
         )}
+        {/* Paso 4: Resultado Final */}
+        {paso === 4 && (
+          <div className="bg-white rounded-2xl shadow-lg p-8">
+            <h2 className="text-3xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <span>✨</span>
+              Paso 4: Resultado Final
+            </h2>
+            <p className="text-gray-600 mb-8">
+              Aquí está tu vehículo con los rines personalizados
+            </p>
+
+            {/* Contenedor de visualización */}
+            <div className="mb-8">
+              <div className="bg-gray-100 rounded-2xl border-4 border-gray-300 p-8 overflow-hidden">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Rueda Delantera */}
+                  <div className="flex flex-col items-center">
+                    <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                      <span>🔴</span> Rueda Delantera
+                    </h3>
+                    <div className="bg-white rounded-xl border-2 border-gray-200 w-full">
+                      <canvas
+                        ref={canvasDelRef}
+                        className="w-full h-80 block rounded-lg"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Rueda Trasera */}
+                  <div className="flex flex-col items-center">
+                    <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                      <span>🔵</span> Rueda Trasera
+                    </h3>
+                    <div className="bg-white rounded-xl border-2 border-gray-200 w-full">
+                      <canvas
+                        ref={canvasTrasRef}
+                        className="w-full h-80 block rounded-lg"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Información del rin seleccionado */}
+            <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 border-2 border-purple-200 mb-8">
+              <h3 className="text-lg font-bold text-gray-800 mb-4">
+                📋 Detalles de tu Personalización
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-white rounded-lg p-4 border border-purple-200">
+                  <p className="text-sm text-gray-600 mb-1">Rin Seleccionado</p>
+                  <p className="font-bold text-purple-700">
+                    {rinSeleccionado?.referencia}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {rinSeleccionado?.marca}
+                  </p>
+                </div>
+
+                <div className="bg-white rounded-lg p-4 border border-blue-200">
+                  <p className="text-sm text-gray-600 mb-1">Medida</p>
+                  <p className="font-bold text-blue-700">
+                    {rinSeleccionado?.medida}"
+                  </p>
+                </div>
+
+                <div className="bg-white rounded-lg p-4 border border-green-200">
+                  <p className="text-sm text-gray-600 mb-1">Tamaño Aplicado</p>
+                  <p className="font-bold text-green-700">
+                    {(escala * 100).toFixed(0)}%
+                  </p>
+                </div>
+
+                <div className="bg-white rounded-lg p-4 border border-orange-200">
+                  <p className="text-sm text-gray-600 mb-1">Rotación</p>
+                  <p className="font-bold text-orange-700">{rotacion}°</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Botones de acción */}
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border-2 border-blue-200">
+              <h3 className="text-lg font-bold text-gray-800 mb-4">
+                💾 Descargar y Compartir
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <button
+                  onClick={() => {
+                    const canvas = canvasDelRef.current;
+                    if (canvas) {
+                      const link = document.createElement("a");
+                      link.href = canvas.toDataURL("image/png");
+                      link.download = `rueda-delantera-${rinSeleccionado?.referencia}.png`;
+                      link.click();
+                    }
+                    setMensaje("✅ Rueda delantera descargada");
+                    setTimeout(() => setMensaje(""), 3000);
+                  }}
+                  className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl"
+                >
+                  📥 Descargar Delantera
+                </button>
+
+                <button
+                  onClick={() => {
+                    const canvas = canvasTrasRef.current;
+                    if (canvas) {
+                      const link = document.createElement("a");
+                      link.href = canvas.toDataURL("image/png");
+                      link.download = `rueda-trasera-${rinSeleccionado?.referencia}.png`;
+                      link.click();
+                    }
+                    setMensaje("✅ Rueda trasera descargada");
+                    setTimeout(() => setMensaje(""), 3000);
+                  }}
+                  className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-all shadow-lg hover:shadow-xl"
+                >
+                  📥 Descargar Trasera
+                </button>
+
+                <button
+                  onClick={() => {
+                    const canvas1 = canvasDelRef.current;
+                    const canvas2 = canvasTrasRef.current;
+                    if (canvas1 && canvas2) {
+                      const link = document.createElement("a");
+                      const dataUrl = `${canvas1.toDataURL(
+                        "image/png"
+                      )} | ${canvas2.toDataURL("image/png")}`;
+                      link.href = canvas1.toDataURL("image/png");
+                      link.download = `visualizacion-completa-${rinSeleccionado?.referencia}.png`;
+                      link.click();
+                    }
+                    setMensaje("✅ Visualización completa descargada");
+                    setTimeout(() => setMensaje(""), 3000);
+                  }}
+                  className="bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-all shadow-lg hover:shadow-xl"
+                >
+                  📥 Descargar Todo
+                </button>
+              </div>
+            </div>
+
+            {/* Botones de navegación */}
+            <div className="flex gap-4 justify-between pt-6 border-t mt-8">
+              <button
+                onClick={() => setPaso(3)}
+                className="bg-gray-400 text-white px-8 py-3 rounded-xl font-semibold hover:bg-gray-500 transition-all shadow-lg"
+              >
+                ← Volver a Ajustes
+              </button>
+
+              <div className="flex gap-4">
+                <button
+                  onClick={() => {
+                    setPaso(1);
+                    setImagenVehiculo(null);
+                    setImagenVehiculoURL(null);
+                    setRinSeleccionado(null);
+                    setEscala(1);
+                    setRotacion(0);
+                    setPosicionDelantera({ x: 0, y: 0 });
+                    setPosicionTrasera({ x: 0, y: 0 });
+                  }}
+                  className="bg-orange-500 text-white px-8 py-3 rounded-xl font-semibold hover:bg-orange-600 transition-all shadow-lg"
+                >
+                  🔄 Comenzar de Nuevo
+                </button>
+
+                <button
+                  onClick={() => navigate("/rines")}
+                  className="bg-blue-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-all shadow-lg"
+                >
+                  ← Volver a Rines
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -138,6 +138,8 @@ const guardarComentario = async (rin, texto) => {
     };
 
     console.log("📤 Enviando al servidor:", rinFormateado);
+    console.log("📤 Comentario enviado:", rinFormateado.comentario);
+    console.log("📤 Remisión enviada:", rinFormateado.remision);
 
     await axios.post("https://mi-app-llantas.onrender.com/api/editar-rin", rinFormateado);
 
@@ -145,8 +147,11 @@ const guardarComentario = async (rin, texto) => {
       "https://mi-app-llantas.onrender.com/api/rines"
     );
 
+    const rinGuardado = data.find(r => r.id === rin.id);
     console.log("📥 Datos recibidos del servidor:", data);
-    console.log("🔍 Rin específico guardado:", data.find(r => r.id === rin.id));
+    console.log("🔍 Rin específico guardado:", rinGuardado);
+    console.log("🔍 Comentario recibido:", rinGuardado?.comentario);
+    console.log("🔍 Remisión recibida:", rinGuardado?.remision);
 
     setRines(data);
     setComentarioModal(null);

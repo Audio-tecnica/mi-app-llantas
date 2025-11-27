@@ -5,8 +5,6 @@ const xlsx = require("xlsx");
 const { Pool } = require("pg");
 const path = require("path");
 const fs = require("fs");
-const axios = require("axios"); // ⬅️ NUEVO: Para remove.bg
-const FormData = require("form-data"); // ⬅️ NUEVO: Para remove.bg
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -23,11 +21,6 @@ cloudinary.config({
   api_key: '971754543599966',
   api_secret: 'q8N34PNwLpnmBSvfhGYuk6jmYR4'
 });
-
-// ⬇️⬇️⬇️ NUEVO: API KEY DE REMOVE.BG ⬇️⬇️⬇️
-// Consigue tu API key gratis en: https://remove.bg/api
-const REMOVE_BG_API_KEY = process.env.REMOVE_BG_API_KEY || 'BFz2WwvkwPfh33YAbnMiD7Ke';
-// ⬆️⬆️⬆️ IMPORTANTE: Reemplaza 'TU_API_KEY_AQUI' con tu API key real ⬆️⬆️⬆️
 
 // Configurar almacenamiento en Cloudinary
 const storage = new CloudinaryStorage({
@@ -102,211 +95,6 @@ async function crearTabla() {
   }
 }
 crearTabla();
-
-// ⬇️⬇️⬇️ NUEVAS FUNCIONES PARA REMOVE.BG ⬇️⬇️⬇️
-
-/**
- * Función para remover el fondo de una imagen usando remove.bg
- * @param {string} imageUrl - URL de la imagen en Cloudinary
- * @returns {Promise<string>} - URL de la imagen procesada en Cloudinary
- */
-async function removerFondoRin(imageUrl) {
-  try {
-    console.log('🔄 Procesando imagen con remove.bg:', imageUrl);
-
-    // Descargar la imagen desde Cloudinary
-    const imageResponse = await axios.get(imageUrl, { 
-      responseType: 'arraybuffer' 
-    });
-
-    // Crear FormData para enviar a remove.bg
-    const formData = new FormData();
-    formData.append('image_file_b64', Buffer.from(imageResponse.data).toString('base64'));
-    formData.append('size', 'auto');
-
-    // Llamar a la API de remove.bg
-    const response = await axios({
-      method: 'post',
-      url: 'https://api.remove.bg/v1.0/removebg',
-      data: formData,
-      responseType: 'arraybuffer',
-      headers: {
-        ...formData.getHeaders(),
-        'X-Api-Key': REMOVE_BG_API_KEY,
-      },
-    });
-
-    if (response.status !== 200) {
-      throw new Error(`remove.bg retornó status ${response.status}`);
-    }
-
-    console.log('✅ Fondo removido exitosamente');
-
-    // Subir la imagen procesada de vuelta a Cloudinary
-    return new Promise((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
-        {
-          folder: 'rines',
-          format: 'png', // Importante: guardar como PNG para mantener transparencia
-          public_id: `sin-fondo-${Date.now()}`,
-        },
-        (error, result) => {
-          if (error) {
-            console.error('❌ Error subiendo a Cloudinary:', error);
-            reject(error);
-          } else {
-            console.log('✅ Imagen sin fondo subida a Cloudinary:', result.secure_url);
-            resolve(result.secure_url);
-          }
-        }
-      );
-
-      uploadStream.end(Buffer.from(response.data));
-    });
-
-  } catch (error) {
-    console.error('❌ Error al remover fondo:', error.message);
-    
-    // Si falla, retornar la imagen original
-    if (error.response?.status === 403) {
-      console.error('❌ API Key inválida o límite de remove.bg alcanzado');
-    }
-    
-    return imageUrl; // Retornar imagen original si falla
-  }
-}
-
-/**
- * Endpoint para procesar un rin específico y remover su fondo
- */
-app.post("/api/rines/:id/procesar-fondo", async (req, res) => {
-  try {
-    const { id } = req.params;
-    
-    console.log(`🔄 Procesando fondo del rin ID: ${id}`);
-
-    // Obtener el rin de la base de datos
-    const result = await pool.query("SELECT * FROM rines WHERE id = $1", [id]);
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Rin no encontrado" });
-    }
-
-    const rin = result.rows[0];
-    
-    if (!rin.foto) {
-      return res.status(400).json({ error: "El rin no tiene foto" });
-    }
-
-    // Procesar la imagen
-    const urlSinFondo = await removerFondoRin(rin.foto);
-    
-    // Actualizar en la base de datos
-    await pool.query(
-      "UPDATE rines SET foto = $1, foto_original = $2 WHERE id = $3",
-      [urlSinFondo, rin.foto, id]
-    );
-
-    res.json({
-      success: true,
-      message: 'Fondo removido correctamente',
-      foto_nueva: urlSinFondo,
-      foto_original: rin.foto
-    });
-
-  } catch (error) {
-    console.error('❌ Error procesando fondo:', error);
-    res.status(500).json({ 
-      error: 'Error al procesar imagen',
-      detalle: error.message 
-    });
-  }
-});
-
-/**
- * Endpoint para procesar TODOS los rines en lote
- */
-app.post("/api/rines/procesar-todos", async (req, res) => {
-  try {
-    console.log('🔄 Iniciando procesamiento en lote...');
-
-    const result = await pool.query("SELECT * FROM rines WHERE foto IS NOT NULL");
-    const rines = result.rows;
-
-    const resultados = {
-      total: rines.length,
-      exitosos: 0,
-      fallidos: 0,
-      detalles: []
-    };
-
-    for (const rin of rines) {
-      try {
-        // Saltar si ya tiene foto_original (ya fue procesado)
-        if (rin.foto_original) {
-          console.log(`⏭️ Rin ${rin.id} ya fue procesado, saltando...`);
-          continue;
-        }
-
-        console.log(`🔄 Procesando rin ${rin.id}: ${rin.referencia}`);
-        
-        const urlSinFondo = await removerFondoRin(rin.foto);
-        
-        // Solo actualizar si cambió la URL (remove.bg funcionó)
-        if (urlSinFondo !== rin.foto) {
-          await pool.query(
-            "UPDATE rines SET foto = $1, foto_original = $2 WHERE id = $3",
-            [urlSinFondo, rin.foto, rin.id]
-          );
-          
-          resultados.exitosos++;
-          resultados.detalles.push({
-            id: rin.id,
-            referencia: rin.referencia,
-            estado: 'exitoso'
-          });
-        } else {
-          resultados.fallidos++;
-          resultados.detalles.push({
-            id: rin.id,
-            referencia: rin.referencia,
-            estado: 'fallido'
-          });
-        }
-
-        // Esperar 1 segundo entre cada imagen (límite de rate de remove.bg)
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-      } catch (error) {
-        console.error(`❌ Error procesando rin ${rin.id}:`, error.message);
-        resultados.fallidos++;
-        resultados.detalles.push({
-          id: rin.id,
-          referencia: rin.referencia,
-          estado: 'error',
-          error: error.message
-        });
-      }
-    }
-
-    console.log('✅ Procesamiento completado:', resultados);
-
-    res.json({
-      success: true,
-      message: 'Procesamiento completado',
-      resultados
-    });
-
-  } catch (error) {
-    console.error('❌ Error en procesamiento en lote:', error);
-    res.status(500).json({ 
-      error: 'Error al procesar lote',
-      detalle: error.message 
-    });
-  }
-});
-
-// ⬆️⬆️⬆️ FIN DE NUEVAS FUNCIONES ⬆️⬆️⬆️
 
 // ---------------- LLANTAS ----------------
 
@@ -550,6 +338,7 @@ app.post("/api/agregar-rin", async (req, res) => {
 });
 
 // Editar rin
+// Editar rin
 app.post("/api/editar-rin", async (req, res) => {
   const { id, marca, referencia, proveedor, medida, costo, precio, stock, remision, comentario } = req.body;
 
@@ -608,13 +397,12 @@ app.post("/api/eliminar-rin", async (req, res) => {
 // ===========================
 //   SUBIR FOTO PARA RINES 
 // ===========================
-// ⬇️ MODIFICADO: Ahora procesa automáticamente con remove.bg
 app.post("/api/rines/subir-foto", upload.single('foto'), async (req, res) => {
   try {
     console.log("📥 Body recibido:", req.body);
     console.log("📸 Archivo recibido:", req.file);
     
-    const { id, procesarFondo } = req.body;
+    const { id } = req.body;
     
     if (!id) {
       console.error("❌ ID no proporcionado");
@@ -626,38 +414,15 @@ app.post("/api/rines/subir-foto", upload.single('foto'), async (req, res) => {
       return res.status(400).json({ error: "No se recibió ninguna imagen" });
     }
 
-    let urlFoto = req.file.path;
+    const urlFoto = req.file.path;
 
     console.log("✅ Foto subida a Cloudinary:", urlFoto);
 
-    // Si procesarFondo es true, remover el fondo
-    if (procesarFondo === 'true' || procesarFondo === true) {
-      console.log("🔄 Procesando fondo automáticamente...");
-      const urlSinFondo = await removerFondoRin(urlFoto);
-      
-      if (urlSinFondo !== urlFoto) {
-        // Guardar original y usar la procesada
-        await pool.query(
-          "UPDATE rines SET foto = $1, foto_original = $2 WHERE id = $3", 
-          [urlSinFondo, urlFoto, id]
-        );
-        
-        console.log("✅ Foto procesada y guardada");
-        return res.json({ 
-          success: true, 
-          foto: urlSinFondo,
-          foto_original: urlFoto,
-          procesada: true
-        });
-      }
-    }
-
-    // Si no se procesa o falla, guardar original
     await pool.query("UPDATE rines SET foto = $1 WHERE id = $2", [urlFoto, id]);
 
     console.log("✅ URL guardada en BD para rin ID:", id);
 
-    res.json({ success: true, foto: urlFoto, procesada: false });
+    res.json({ success: true, foto: urlFoto });
   } catch (error) {
     console.error("❌ Error completo al subir foto:", error);
     res.status(500).json({ 
@@ -671,11 +436,12 @@ app.post("/api/rines/subir-foto", upload.single('foto'), async (req, res) => {
 //        LOGS ACTIVIDAD
 // ===========================
 
-// Guardar log
+// Guardar log (CORREGIDO para que funcione sin fecha enviada)
 app.post("/api/log-actividad", async (req, res) => {
   const { tipo, detalles, fecha } = req.body;
 
   try {
+    // COALESCE usa la fecha enviada o NOW() si no se envía
     const result = await pool.query(
       "INSERT INTO logs_actividad (tipo, detalles, fecha) VALUES ($1, $2, COALESCE($3, NOW())) RETURNING id",
       [tipo, detalles, fecha]
@@ -688,7 +454,7 @@ app.post("/api/log-actividad", async (req, res) => {
   }
 });
 
-// Obtener logs
+// Obtener logs (CORREGIDO)
 app.get("/api/logs", async (req, res) => {
   try {
     const result = await pool.query(
@@ -702,10 +468,9 @@ app.get("/api/logs", async (req, res) => {
   }
 });
 
+
 // Run server
 app.listen(PORT, () => {
   console.log(`✅ Servidor escuchando en puerto ${PORT}`);
   console.log(`📁 Cloudinary configurado correctamente`);
-  console.log(`🎨 Remove.bg ${REMOVE_BG_API_KEY !== 'TU_API_KEY_AQUI' ? 'ACTIVADO ✅' : 'PENDIENTE (configura tu API key)'}`);
 });
-

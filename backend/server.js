@@ -94,7 +94,6 @@ app.post("/api/agregar-rin", async (req, res) => {
 });
 
 // POST editar rin
-// POST editar rin (VERSIÓN CORREGIDA)
 app.post("/api/editar-rin", async (req, res) => {
   try {
     const {
@@ -110,7 +109,18 @@ app.post("/api/editar-rin", async (req, res) => {
       comentario
     } = req.body;
 
-    console.log("📥 Backend recibió:", { id, remision, comentario }); // Para debug
+    console.log("📥 Backend recibió:", { 
+      id, 
+      remision, 
+      comentario,
+      tipoRemision: typeof remision,
+      tipoComentario: typeof comentario 
+    });
+
+    // Validar que el ID existe
+    if (!id) {
+      return res.status(400).json({ error: "ID es requerido" });
+    }
 
     const result = await db.query(
       `UPDATE rines SET
@@ -124,29 +134,34 @@ app.post("/api/editar-rin", async (req, res) => {
         remision = $8,
         comentario = $9
       WHERE id = $10
-      RETURNING *`,  // ⬅️ ESTO ES LO QUE FALTABA
+      RETURNING *`,
       [
-        marca,
-        referencia,
+        marca || "",
+        referencia || "",
         proveedor || "",
         medida || "",
         Number(costo) || 0,
         Number(precio) || 0,
         Number(stock) || 0,
-        remision === true || remision === "true",  // Asegurar boolean
+        remision === true || remision === "true",
         comentario || "",
         id
       ]
     );
 
-    console.log("📤 Backend devuelve:", result.rows[0]); // Para debug
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Rin no encontrado" });
+    }
 
-    res.json(result.rows[0]);  // ⬅️ Devolver el registro actualizado
+    console.log("📤 Backend devuelve:", result.rows[0]);
+
+    res.json(result.rows[0]);
   } catch (error) {
     console.error("❌ Error en backend:", error);
     res.status(500).json({ error: "Error al editar el rin" });
   }
 });
+
 
 // POST eliminar rin
 app.post("/api/eliminar-rin", async (req, res) => {

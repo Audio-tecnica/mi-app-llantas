@@ -33,27 +33,34 @@ function Rines() {
   const [subiendoFoto, setSubiendoFoto] = useState(false);
   const [comentarioModal, setComentarioModal] = useState(null);
 
+  const API_URL = "https://mi-app-llantas.onrender.com";
+
   useEffect(() => {
-    axios
-      .get("https://mi-app-llantas.onrender.com/api/rines")
-      .then((res) => setRines(res.data))
-      .catch(() => setMensaje("Error al cargar rines ❌"))
-      .finally(() => setCargando(false));
+    cargarRines();
   }, []);
+
+  const cargarRines = async () => {
+    try {
+      setCargando(true);
+      const res = await axios.get(`${API_URL}/api/rines`);
+      setRines(res.data);
+    } catch (error) {
+      console.error("Error al cargar rines:", error);
+      setMensaje("Error al cargar rines ❌");
+    } finally {
+      setCargando(false);
+    }
+  };
 
   const marcasUnicas = [...new Set(rines.map((r) => r.marca))];
   const medidasDisponibles = ["15", "16", "17", "18", "20"];
 
-  // Extraer submedidas únicas según la medida seleccionada
   const submedidasDisponibles = medidaSeleccionada
     ? [
         ...new Set(
           rines
             .filter((r) => r.medida?.toString().startsWith(medidaSeleccionada))
             .map((r) => {
-              // Buscar el segundo patrón numérico después de las pulgadas
-              // Por ejemplo: de "17X8 6X139" extraer "6X139"
-              // o de "17X9 5X114.3" extraer "5X114.3"
               const medidaStr = r.medida?.toString() || "";
               const match = medidaStr.match(/\s+(\d+X\d+(?:\.\d+)?)/i);
               return match ? match[1].toUpperCase() : null;
@@ -100,19 +107,62 @@ function Rines() {
     );
   };
 
+  // ✅ FUNCIÓN AGREGAR QUE FALTABA
+  const handleAgregar = async () => {
+    try {
+      const { referencia, marca, proveedor, medida, costo, precio, stock } = nuevoItem;
+      
+      if (!referencia || !marca) {
+        setMensaje("Referencia y marca son obligatorios ❌");
+        setTimeout(() => setMensaje(""), 2000);
+        return;
+      }
+
+      const nuevoRin = {
+        referencia: referencia.trim(),
+        marca: marca.trim(),
+        proveedor: proveedor?.trim() || "",
+        medida: medida?.trim() || "",
+        costo: Number(costo) || 0,
+        precio: Number(precio) || 0,
+        stock: Number(stock) || 0,
+        remision: false,
+        comentario: "",
+      };
+
+      console.log("📤 Enviando nuevo rin:", nuevoRin);
+
+      const response = await axios.post(`${API_URL}/api/agregar-rin`, nuevoRin);
+      
+      // Recargar la lista completa para asegurar sincronización
+      await cargarRines();
+      
+      setMostrarModal(false);
+      setNuevoItem({
+        referencia: "",
+        marca: "",
+        proveedor: "",
+        medida: "",
+        costo: "",
+        precio: "",
+        stock: "",
+      });
+      setMensaje("Rin agregado exitosamente ✅");
+      setTimeout(() => setMensaje(""), 2000);
+    } catch (error) {
+      console.error("❌ Error al agregar:", error);
+      setMensaje("Error al agregar rin ❌");
+      setTimeout(() => setMensaje(""), 2000);
+    }
+  };
+
   const handleEliminarMultiples = async () => {
     if (!window.confirm("¿Eliminar los rines seleccionados?")) return;
     try {
       for (let id of seleccionadas) {
-        await axios.post(
-          "https://mi-app-llantas.onrender.com/api/eliminar-rin",
-          { id }
-        );
+        await axios.post(`${API_URL}/api/eliminar-rin`, { id });
       }
-      const { data } = await axios.get(
-        "https://mi-app-llantas.onrender.com/api/rines"
-      );
-      setRines(data);
+      await cargarRines();
       setSeleccionadas([]);
       setMensaje("Rines eliminados ✅");
       setTimeout(() => setMensaje(""), 2000);
@@ -122,6 +172,7 @@ function Rines() {
     }
   };
 
+  // ✅ FUNCIÓN GUARDAR COMENTARIO CORREGIDA
   const guardarComentario = async (rin, texto) => {
     try {
       const rinFormateado = {
@@ -129,38 +180,36 @@ function Rines() {
         referencia: rin.referencia?.trim() || "",
         marca: rin.marca?.trim() || "",
         proveedor: rin.proveedor?.trim() || "",
-        medida: rin.medida?.trim() || "",
+        medida: rin.medida?.toString().trim() || "",
         costo: Number(rin.costo) || 0,
         precio: Number(rin.precio) || 0,
         stock: Number(rin.stock) || 0,
-        remision: rin.remision === true,
+        remision: Boolean(rin.remision),
         comentario: texto?.trim() || "",
       };
 
-      console.log("📤 Enviando al servidor:", rinFormateado);
+      console.log("📤 Guardando comentario:", rinFormateado);
 
-      await axios.post(
-        "https://mi-app-llantas.onrender.com/api/editar-rin",
-        rinFormateado
-      );
+      const response = await axios.post(`${API_URL}/api/editar-rin`, rinFormateado);
 
-      // Actualizar el estado local directamente sin recargar todo
+      console.log("📥 Respuesta del servidor:", response.data);
+
+      // Actualizar el estado local con la respuesta del servidor
       setRines((prev) =>
-        prev.map((r) =>
-          r.id === rin.id ? { ...r, comentario: texto?.trim() || "" } : r
-        )
+        prev.map((r) => (r.id === rin.id ? { ...r, ...response.data } : r))
       );
 
       setComentarioModal(null);
       setMensaje("Comentario guardado ✅");
       setTimeout(() => setMensaje(""), 2000);
     } catch (error) {
-      console.error("Error guardando comentario:", error);
+      console.error("❌ Error guardando comentario:", error);
       setMensaje("Error al guardar comentario ❌");
       setTimeout(() => setMensaje(""), 2000);
     }
   };
 
+  // ✅ FUNCIÓN GUARDAR CORREGIDA
   const handleGuardar = async (rin) => {
     try {
       const rinFormateado = {
@@ -168,24 +217,23 @@ function Rines() {
         referencia: rin.referencia?.trim() || "",
         marca: rin.marca?.trim() || "",
         proveedor: rin.proveedor?.trim() || "",
-        medida: rin.medida?.trim() || "",
+        medida: rin.medida?.toString().trim() || "",
         costo: Number(rin.costo) || 0,
         precio: Number(rin.precio) || 0,
         stock: Number(rin.stock) || 0,
-        remision: rin.remision === true,
+        remision: Boolean(rin.remision),
         comentario: rin.comentario?.trim() || "",
       };
 
-      console.log("📤 Guardando rin:", rinFormateado);
+      console.log("📤 Guardando rin completo:", rinFormateado);
 
-      const response = await axios.post(
-        "https://mi-app-llantas.onrender.com/api/editar-rin",
-        rinFormateado
-      );
+      const response = await axios.post(`${API_URL}/api/editar-rin`, rinFormateado);
+
+      console.log("📥 Respuesta del servidor:", response.data);
 
       // Actualizar el estado local con la respuesta del servidor
       setRines((prev) =>
-        prev.map((r) => (r.id === rin.id ? response.data : r))
+        prev.map((r) => (r.id === rin.id ? { ...r, ...response.data } : r))
       );
 
       setModoEdicion(null);
@@ -239,7 +287,7 @@ function Rines() {
       formData.append("id", id);
 
       const { data } = await axios.post(
-        "https://mi-app-llantas.onrender.com/api/rines/subir-foto",
+        `${API_URL}/api/rines/subir-foto`,
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -274,13 +322,8 @@ function Rines() {
   const handleEliminar = async (id) => {
     if (!window.confirm("¿Estás seguro de eliminar este rin?")) return;
     try {
-      await axios.post("https://mi-app-llantas.onrender.com/api/eliminar-rin", {
-        id,
-      });
-      const { data } = await axios.get(
-        "https://mi-app-llantas.onrender.com/api/rines"
-      );
-      setRines(data);
+      await axios.post(`${API_URL}/api/eliminar-rin`, { id });
+      await cargarRines();
       setMensaje("Rin eliminado ✅");
       setTimeout(() => setMensaje(""), 2000);
     } catch {
@@ -740,7 +783,10 @@ function Rines() {
 
                                 {/* BOTÓN CANCELAR */}
                                 <button
-                                  onClick={() => setModoEdicion(null)}
+                                  onClick={() => {
+                                    setModoEdicion(null);
+                                    cargarRines(); // Recargar para descartar cambios
+                                  }}
                                   className="bg-gray-400 text-white px-4 py-2 text-xs rounded-lg hover:bg-gray-500 transition-all shadow-md font-medium w-full"
                                 >
                                   ✖ Cancelar
@@ -1061,7 +1107,6 @@ function Rines() {
                     );
                     if (nuevoTexto !== null) {
                       await guardarComentario(comentarioModal, nuevoTexto);
-                      setComentarioModal(null);
                     }
                   }}
                   className="flex-1 bg-yellow-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-yellow-600 transition-all shadow-lg hover:shadow-xl"

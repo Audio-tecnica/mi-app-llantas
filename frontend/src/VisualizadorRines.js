@@ -137,6 +137,8 @@ function VisualizadorRines() {
           y: alto * 0.75,
           radio: radioBase,
           escala: 1,
+          escalaX: 1, // Para ajustar ancho (perspectiva)
+          escalaY: 1, // Para ajustar alto
           rotacion: 0,
           colorOcultar: "#8a8a8a",
           radioOcultar: radioBase * 1.1,
@@ -148,6 +150,8 @@ function VisualizadorRines() {
           y: alto * 0.75,
           radio: radioBase,
           escala: 1,
+          escalaX: 1,
+          escalaY: 1,
           rotacion: 0,
           colorOcultar: "#8a8a8a",
           radioOcultar: radioBase * 1.1,
@@ -167,8 +171,8 @@ function VisualizadorRines() {
       setDetectandoRuedas(false);
       
       const ruedasDefault = [
-        { id: 1, nombre: "Rueda Trasera", x: 200, y: 400, radio: 60, escala: 1, rotacion: 0, colorOcultar: "#8a8a8a", radioOcultar: 70 },
-        { id: 2, nombre: "Rueda Delantera", x: 600, y: 400, radio: 60, escala: 1, rotacion: 0, colorOcultar: "#8a8a8a", radioOcultar: 70 },
+        { id: 1, nombre: "Rueda Trasera", x: 200, y: 400, radio: 60, escala: 1, escalaX: 1, escalaY: 1, rotacion: 0, colorOcultar: "#8a8a8a", radioOcultar: 70 },
+        { id: 2, nombre: "Rueda Delantera", x: 600, y: 400, radio: 60, escala: 1, escalaX: 1, escalaY: 1, rotacion: 0, colorOcultar: "#8a8a8a", radioOcultar: 70 },
       ];
       
       setAjustesRuedas(ruedasDefault);
@@ -247,14 +251,18 @@ function VisualizadorRines() {
           if (ocultarRuedasOriginales) {
             ctx.save();
             
+            // Aplicar escala de perspectiva al círculo de ocultación
+            const radioOcultarX = radioOcultarEscalado * (rueda.escalaX || 1);
+            const radioOcultarY = radioOcultarEscalado * (rueda.escalaY || 1);
+            
             // Crear gradiente radial para simular la rueda/guardafango
-            const gradiente = ctx.createRadialGradient(x, y, 0, x, y, radioOcultarEscalado);
+            const gradiente = ctx.createRadialGradient(x, y, 0, x, y, Math.max(radioOcultarX, radioOcultarY));
             gradiente.addColorStop(0, rueda.colorOcultar || "#8a8a8a");
             gradiente.addColorStop(0.7, rueda.colorOcultar || "#8a8a8a");
             gradiente.addColorStop(1, adjustColor(rueda.colorOcultar || "#8a8a8a", -20));
             
             ctx.beginPath();
-            ctx.arc(x, y, radioOcultarEscalado, 0, Math.PI * 2);
+            ctx.ellipse(x, y, radioOcultarX, radioOcultarY, 0, 0, Math.PI * 2);
             ctx.fillStyle = gradiente;
             ctx.fill();
             
@@ -272,9 +280,10 @@ function VisualizadorRines() {
             ctx.translate(x + 5, y + 5);
             ctx.rotate((rueda.rotacion * Math.PI) / 180);
             
-            const tamaño = radioEscalado * 2;
+            const tamañoX = radioEscalado * (rueda.escalaX || 1);
+            const tamañoY = radioEscalado * (rueda.escalaY || 1);
             ctx.beginPath();
-            ctx.arc(0, 0, tamaño / 2, 0, Math.PI * 2);
+            ctx.ellipse(0, 0, tamañoX, tamañoY, 0, 0, Math.PI * 2);
             ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
             ctx.filter = "blur(8px)";
             ctx.fill();
@@ -293,8 +302,13 @@ function VisualizadorRines() {
               ctx.globalAlpha = opacidadRin;
               ctx.translate(x, y);
               ctx.rotate((rueda.rotacion * Math.PI) / 180);
+              
+              // Aplicar escala con perspectiva (escalaX para ancho, escalaY para alto)
+              const escalaXFinal = rueda.escala * (rueda.escalaX || 1);
+              const escalaYFinal = rueda.escala * (rueda.escalaY || 1);
+              ctx.scale(escalaXFinal, escalaYFinal);
 
-              const tamaño = radioEscalado * 2;
+              const tamaño = radioEscalado * 2 / rueda.escala; // Compensar la escala base
               ctx.drawImage(rinImg, -tamaño / 2, -tamaño / 2, tamaño, tamaño);
 
               ctx.restore();
@@ -306,7 +320,7 @@ function VisualizadorRines() {
                 ctx.lineWidth = 3;
                 ctx.setLineDash([5, 5]);
                 ctx.beginPath();
-                ctx.arc(x, y, radioEscalado + 10, 0, Math.PI * 2);
+                ctx.ellipse(x, y, radioEscalado * (rueda.escalaX || 1) + 10, radioEscalado * (rueda.escalaY || 1) + 10, 0, 0, Math.PI * 2);
                 ctx.stroke();
                 ctx.restore();
               }
@@ -475,6 +489,8 @@ function VisualizadorRines() {
       ...rueda,
       radio: ruedaOrigen.radio,
       escala: ruedaOrigen.escala,
+      escalaX: ruedaOrigen.escalaX || 1,
+      escalaY: ruedaOrigen.escalaY || 1,
       rotacion: ruedaOrigen.rotacion,
       radioOcultar: ruedaOrigen.radioOcultar,
       colorOcultar: ruedaOrigen.colorOcultar,
@@ -494,6 +510,8 @@ function VisualizadorRines() {
       y: dimensionesImagen.alto * 0.75,
       radio: dimensionesImagen.ancho * 0.065,
       escala: 1,
+      escalaX: 1,
+      escalaY: 1,
       rotacion: 0,
       colorOcultar: "#8a8a8a",
       radioOcultar: dimensionesImagen.ancho * 0.07,
@@ -1160,7 +1178,7 @@ function VisualizadorRines() {
                     </div>
 
                     <div className="space-y-3">
-                      {/* Tamaño */}
+                      {/* Tamaño general */}
                       <div>
                         <label className="block text-sm text-gray-600 mb-1">
                           Tamaño: {(rueda.escala * 100).toFixed(0)}%
@@ -1175,6 +1193,42 @@ function VisualizadorRines() {
                           onMouseUp={finalizarAjuste}
                           onTouchEnd={finalizarAjuste}
                           className="w-full h-2 bg-purple-200 rounded-lg appearance-none cursor-pointer"
+                        />
+                      </div>
+
+                      {/* Ajuste de Ancho (perspectiva horizontal) */}
+                      <div>
+                        <label className="block text-sm text-gray-600 mb-1">
+                          ↔️ Ancho (perspectiva): {((rueda.escalaX || 1) * 100).toFixed(0)}%
+                        </label>
+                        <input
+                          type="range"
+                          min="0.5"
+                          max="1.5"
+                          step="0.02"
+                          value={rueda.escalaX || 1}
+                          onChange={(e) => ajustarRueda(rueda.id, "escalaX", parseFloat(e.target.value))}
+                          onMouseUp={finalizarAjuste}
+                          onTouchEnd={finalizarAjuste}
+                          className="w-full h-2 bg-pink-200 rounded-lg appearance-none cursor-pointer"
+                        />
+                      </div>
+
+                      {/* Ajuste de Alto (perspectiva vertical) */}
+                      <div>
+                        <label className="block text-sm text-gray-600 mb-1">
+                          ↕️ Alto (perspectiva): {((rueda.escalaY || 1) * 100).toFixed(0)}%
+                        </label>
+                        <input
+                          type="range"
+                          min="0.5"
+                          max="1.5"
+                          step="0.02"
+                          value={rueda.escalaY || 1}
+                          onChange={(e) => ajustarRueda(rueda.id, "escalaY", parseFloat(e.target.value))}
+                          onMouseUp={finalizarAjuste}
+                          onTouchEnd={finalizarAjuste}
+                          className="w-full h-2 bg-indigo-200 rounded-lg appearance-none cursor-pointer"
                         />
                       </div>
 

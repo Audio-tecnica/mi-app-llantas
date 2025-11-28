@@ -4,11 +4,11 @@ import axios from "axios";
 
 function VisualizadorRines() {
   const navigate = useNavigate();
-  const [paso, setPaso] = useState(1); // 1: Captura, 2: Selección, 3: Resultado
+  const [paso, setPaso] = useState(1);
   const [imagenVehiculo, setImagenVehiculo] = useState(null);
   const [imagenVehiculoURL, setImagenVehiculoURL] = useState(null);
   const [mensaje, setMensaje] = useState("");
-  const [tipoMensaje, setTipoMensaje] = useState("info"); // info, success, error, loading
+  const [tipoMensaje, setTipoMensaje] = useState("info");
 
   // Estados para el Paso 2
   const [rines, setRines] = useState([]);
@@ -20,11 +20,25 @@ function VisualizadorRines() {
 
   // Estados para detección automática de ruedas
   const [detectandoRuedas, setDetectandoRuedas] = useState(false);
-  const [ruedasDetectadas, setRuedasDetectadas] = useState([]);
   const [modoEdicionManual, setModoEdicionManual] = useState(false);
 
-  // Estados para ajustes manuales (si la detección falla)
+  // Estados para ajustes de ruedas
   const [ajustesRuedas, setAjustesRuedas] = useState([]);
+  const [ruedaSeleccionada, setRuedaSeleccionada] = useState(null);
+  const [arrastrando, setArrastrando] = useState(false);
+
+  // Estados para opciones avanzadas
+  const [ocultarRuedasOriginales, setOcultarRuedasOriginales] = useState(true);
+  const [mostrarSombras, setMostrarSombras] = useState(true);
+  const [opacidadRin, setOpacidadRin] = useState(1);
+  const [zoom, setZoom] = useState(1);
+
+  // Historial para deshacer/rehacer
+  const [historial, setHistorial] = useState([]);
+  const [indiceHistorial, setIndiceHistorial] = useState(-1);
+
+  // Dimensiones de la imagen original
+  const [dimensionesImagen, setDimensionesImagen] = useState({ ancho: 0, alto: 0 });
 
   const inputFileRef = useRef(null);
   const canvasRef = useRef(null);
@@ -41,6 +55,30 @@ function VisualizadorRines() {
     }
   }, []);
 
+  // Guardar en historial
+  const guardarEnHistorial = useCallback((nuevosAjustes) => {
+    const nuevoHistorial = historial.slice(0, indiceHistorial + 1);
+    nuevoHistorial.push(JSON.parse(JSON.stringify(nuevosAjustes)));
+    setHistorial(nuevoHistorial);
+    setIndiceHistorial(nuevoHistorial.length - 1);
+  }, [historial, indiceHistorial]);
+
+  // Deshacer
+  const deshacer = () => {
+    if (indiceHistorial > 0) {
+      setIndiceHistorial(indiceHistorial - 1);
+      setAjustesRuedas(JSON.parse(JSON.stringify(historial[indiceHistorial - 1])));
+    }
+  };
+
+  // Rehacer
+  const rehacer = () => {
+    if (indiceHistorial < historial.length - 1) {
+      setIndiceHistorial(indiceHistorial + 1);
+      setAjustesRuedas(JSON.parse(JSON.stringify(historial[indiceHistorial + 1])));
+    }
+  };
+
   // Cargar rines cuando llegamos al paso 2
   useEffect(() => {
     if (paso === 2 && rines.length === 0) {
@@ -53,7 +91,7 @@ function VisualizadorRines() {
     if (paso === 3 && imagenVehiculoURL && rinSeleccionado && ajustesRuedas.length > 0) {
       dibujarResultado();
     }
-  }, [paso, imagenVehiculoURL, rinSeleccionado, ajustesRuedas]);
+  }, [paso, imagenVehiculoURL, rinSeleccionado, ajustesRuedas, ocultarRuedasOriginales, mostrarSombras, opacidadRin, zoom, ruedaSeleccionada, modoEdicionManual]);
 
   // Función para cargar rines desde el backend
   const cargarRines = async () => {
@@ -69,13 +107,12 @@ function VisualizadorRines() {
     }
   };
 
-  // Función para detectar ruedas automáticamente usando análisis de imagen
+  // Función para detectar ruedas automáticamente
   const detectarRuedasAutomaticamente = async (imagenURL) => {
     setDetectandoRuedas(true);
     mostrarMensaje("🤖 Analizando imagen con IA...", "loading", 0);
 
     try {
-      // Crear un canvas temporal para analizar la imagen
       const img = new Image();
       img.crossOrigin = "anonymous";
       
@@ -85,65 +122,59 @@ function VisualizadorRines() {
         img.src = imagenURL;
       });
 
-      // Análisis heurístico de la imagen para detectar ruedas
-      // Basado en que las ruedas suelen estar en el tercio inferior de la imagen
-      // y a los lados del vehículo
-      
       const ancho = img.width;
       const alto = img.height;
 
-      // Heurística mejorada para fotos laterales de vehículos:
-      // - Las ruedas suelen estar en el 75-85% desde arriba (parte inferior)
-      // - Rueda trasera (izquierda en foto): 15-25% desde la izquierda
-      // - Rueda delantera (derecha en foto): 75-85% desde la izquierda
-      // - El radio típico es aproximadamente 8-12% del ancho de la imagen
-      
-      const radioBase = ancho * 0.08; // Radio base proporcional al ancho
+      setDimensionesImagen({ ancho, alto });
+
+      const radioBase = ancho * 0.065;
       
       const ruedas = [
         {
           id: 1,
           nombre: "Rueda Trasera",
           x: ancho * 0.18,
-          y: alto * 0.78,
+          y: alto * 0.75,
           radio: radioBase,
           escala: 1,
           rotacion: 0,
+          colorOcultar: "#8a8a8a",
+          radioOcultar: radioBase * 1.1,
         },
         {
           id: 2,
           nombre: "Rueda Delantera",
           x: ancho * 0.82,
-          y: alto * 0.78,
+          y: alto * 0.75,
           radio: radioBase,
           escala: 1,
           rotacion: 0,
+          colorOcultar: "#8a8a8a",
+          radioOcultar: radioBase * 1.1,
         },
       ];
 
-      // Simular un pequeño delay para dar sensación de procesamiento
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      setRuedasDetectadas(ruedas);
       setAjustesRuedas(ruedas);
+      guardarEnHistorial(ruedas);
       setDetectandoRuedas(false);
-      mostrarMensaje("✅ Ruedas detectadas automáticamente. Puedes ajustar si es necesario.", "success", 4000);
+      mostrarMensaje("✅ Ruedas detectadas. Puedes ajustar arrastrando o con controles.", "success", 4000);
       
       return ruedas;
     } catch (error) {
       console.error("Error en detección:", error);
       setDetectandoRuedas(false);
       
-      // Fallback: posiciones por defecto
       const ruedasDefault = [
-        { id: 1, nombre: "Rueda Delantera", x: 150, y: 250, radio: 50, escala: 1, rotacion: 0 },
-        { id: 2, nombre: "Rueda Trasera", x: 350, y: 250, radio: 50, escala: 1, rotacion: 0 },
+        { id: 1, nombre: "Rueda Trasera", x: 200, y: 400, radio: 60, escala: 1, rotacion: 0, colorOcultar: "#8a8a8a", radioOcultar: 70 },
+        { id: 2, nombre: "Rueda Delantera", x: 600, y: 400, radio: 60, escala: 1, rotacion: 0, colorOcultar: "#8a8a8a", radioOcultar: 70 },
       ];
       
-      setRuedasDetectadas(ruedasDefault);
       setAjustesRuedas(ruedasDefault);
+      guardarEnHistorial(ruedasDefault);
       setModoEdicionManual(true);
-      mostrarMensaje("⚠️ No se pudieron detectar las ruedas automáticamente. Ajusta manualmente.", "error", 5000);
+      mostrarMensaje("⚠️ Ajusta las ruedas manualmente arrastrándolas.", "error", 5000);
       
       return ruedasDefault;
     }
@@ -154,24 +185,20 @@ function VisualizadorRines() {
     const archivo = e.target.files[0];
     if (!archivo) return;
 
-    // Validar que sea imagen
     if (!archivo.type.startsWith("image/")) {
       mostrarMensaje("Por favor selecciona un archivo de imagen", "error");
       return;
     }
 
-    // Validar tamaño (max 10MB)
     if (archivo.size > 10 * 1024 * 1024) {
       mostrarMensaje("La imagen no puede superar 10MB", "error");
       return;
     }
 
-    // Crear URL de la imagen
     const url = URL.createObjectURL(archivo);
     setImagenVehiculo(archivo);
     setImagenVehiculoURL(url);
     
-    // Detectar ruedas automáticamente
     await detectarRuedasAutomaticamente(url);
   };
 
@@ -183,74 +210,313 @@ function VisualizadorRines() {
     const ctx = canvas.getContext("2d");
     const container = containerRef.current;
     
-    // Obtener dimensiones del contenedor
     const containerWidth = container?.clientWidth || 800;
-    const maxHeight = 500;
+    const maxHeight = 600;
 
     const img = new Image();
     img.crossOrigin = "anonymous";
     
     img.onload = () => {
-      // Calcular dimensiones manteniendo proporción
-      const ratio = Math.min(containerWidth / img.width, maxHeight / img.height);
+      const ratio = Math.min(containerWidth / img.width, maxHeight / img.height) * zoom;
       const canvasWidth = img.width * ratio;
       const canvasHeight = img.height * ratio;
 
       canvas.width = canvasWidth;
       canvas.height = canvasHeight;
 
-      // Limpiar y dibujar imagen del vehículo
-      ctx.fillStyle = "#f5f5f5";
+      // Limpiar canvas
+      ctx.fillStyle = "#f0f0f0";
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      
+      // Dibujar imagen del vehículo
       ctx.drawImage(img, 0, 0, canvasWidth, canvasHeight);
 
-      // Dibujar cada rueda con el rin seleccionado
-      if (rinSeleccionado.foto && ajustesRuedas.length > 0) {
-        ajustesRuedas.forEach((rueda) => {
-          const rinImg = new Image();
-          rinImg.crossOrigin = "anonymous";
-          
-          rinImg.onload = () => {
+      // Contador para saber cuándo todas las ruedas están dibujadas
+      let ruedasDibujadas = 0;
+      const totalRuedas = ajustesRuedas.length;
+
+      // Procesar cada rueda
+      if (ajustesRuedas.length > 0) {
+        ajustesRuedas.forEach((rueda, index) => {
+          const x = (rueda.x / img.width) * canvasWidth;
+          const y = (rueda.y / img.height) * canvasHeight;
+          const radioEscalado = (rueda.radio / img.width) * canvasWidth * rueda.escala;
+          const radioOcultarEscalado = ((rueda.radioOcultar || rueda.radio * 1.1) / img.width) * canvasWidth * rueda.escala;
+
+          // 1. Ocultar rueda original (si está activado)
+          if (ocultarRuedasOriginales) {
             ctx.save();
-
-            // Calcular posición escalada
-            const x = (rueda.x / img.width) * canvasWidth;
-            const y = (rueda.y / img.height) * canvasHeight;
-            const radioEscalado = (rueda.radio / img.width) * canvasWidth * rueda.escala;
-
-            ctx.translate(x, y);
-            ctx.rotate((rueda.rotacion * Math.PI) / 180);
-
-            // Dibujar rin
-            const tamaño = radioEscalado * 2;
-            ctx.drawImage(rinImg, -tamaño / 2, -tamaño / 2, tamaño, tamaño);
-
+            
+            // Crear gradiente radial para simular la rueda/guardafango
+            const gradiente = ctx.createRadialGradient(x, y, 0, x, y, radioOcultarEscalado);
+            gradiente.addColorStop(0, rueda.colorOcultar || "#8a8a8a");
+            gradiente.addColorStop(0.7, rueda.colorOcultar || "#8a8a8a");
+            gradiente.addColorStop(1, adjustColor(rueda.colorOcultar || "#8a8a8a", -20));
+            
+            ctx.beginPath();
+            ctx.arc(x, y, radioOcultarEscalado, 0, Math.PI * 2);
+            ctx.fillStyle = gradiente;
+            ctx.fill();
+            
+            // Borde sutil
+            ctx.strokeStyle = adjustColor(rueda.colorOcultar || "#8a8a8a", -30);
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
             ctx.restore();
-          };
-          
-          rinImg.onerror = () => {
-            console.error("Error cargando imagen del rin");
-          };
-          
-          rinImg.src = rinSeleccionado.foto;
+          }
+
+          // 2. Dibujar sombra del rin (si está activado)
+          if (mostrarSombras && rinSeleccionado.foto) {
+            ctx.save();
+            ctx.translate(x + 5, y + 5);
+            ctx.rotate((rueda.rotacion * Math.PI) / 180);
+            
+            const tamaño = radioEscalado * 2;
+            ctx.beginPath();
+            ctx.arc(0, 0, tamaño / 2, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+            ctx.filter = "blur(8px)";
+            ctx.fill();
+            ctx.filter = "none";
+            
+            ctx.restore();
+          }
+
+          // 3. Dibujar rin nuevo
+          if (rinSeleccionado.foto) {
+            const rinImg = new Image();
+            rinImg.crossOrigin = "anonymous";
+            
+            rinImg.onload = () => {
+              ctx.save();
+              ctx.globalAlpha = opacidadRin;
+              ctx.translate(x, y);
+              ctx.rotate((rueda.rotacion * Math.PI) / 180);
+
+              const tamaño = radioEscalado * 2;
+              ctx.drawImage(rinImg, -tamaño / 2, -tamaño / 2, tamaño, tamaño);
+
+              ctx.restore();
+              
+              // Dibujar indicador si la rueda está seleccionada (modo edición)
+              if (modoEdicionManual && ruedaSeleccionada === rueda.id) {
+                ctx.save();
+                ctx.strokeStyle = "#8b5cf6";
+                ctx.lineWidth = 3;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.arc(x, y, radioEscalado + 10, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+              }
+
+              ruedasDibujadas++;
+            };
+            
+            rinImg.onerror = () => {
+              ruedasDibujadas++;
+            };
+            
+            rinImg.src = rinSeleccionado.foto;
+          } else {
+            ruedasDibujadas++;
+          }
         });
       }
-    };
-
-    img.onerror = () => {
-      console.error("Error cargando imagen del vehículo");
     };
 
     img.src = imagenVehiculoURL;
   };
 
+  // Función auxiliar para ajustar color
+  const adjustColor = (color, amount) => {
+    try {
+      const hex = color.replace("#", "");
+      const r = Math.max(0, Math.min(255, parseInt(hex.substr(0, 2), 16) + amount));
+      const g = Math.max(0, Math.min(255, parseInt(hex.substr(2, 2), 16) + amount));
+      const b = Math.max(0, Math.min(255, parseInt(hex.substr(4, 2), 16) + amount));
+      return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+    } catch {
+      return color;
+    }
+  };
+
+  // Obtener posición del mouse/touch relativa al canvas
+  const obtenerPosicionCanvas = (e) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    
+    const rect = canvas.getBoundingClientRect();
+    let clientX, clientY;
+    
+    if (e.touches && e.touches.length > 0) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+    
+    return {
+      x: clientX - rect.left,
+      y: clientY - rect.top
+    };
+  };
+
+  // Manejar clic en canvas para seleccionar rueda
+  const handleCanvasClick = (e) => {
+    if (!modoEdicionManual) return;
+    
+    const canvas = canvasRef.current;
+    const { x, y } = obtenerPosicionCanvas(e);
+
+    const img = new Image();
+    img.src = imagenVehiculoURL;
+    
+    img.onload = () => {
+      // Verificar si se hizo clic en alguna rueda
+      for (const rueda of ajustesRuedas) {
+        const ruedaX = (rueda.x / img.width) * canvas.width;
+        const ruedaY = (rueda.y / img.height) * canvas.height;
+        const radioEscalado = (rueda.radio / img.width) * canvas.width * rueda.escala;
+        
+        const distancia = Math.sqrt(Math.pow(x - ruedaX, 2) + Math.pow(y - ruedaY, 2));
+        
+        if (distancia <= radioEscalado + 20) {
+          setRuedaSeleccionada(rueda.id);
+          return;
+        }
+      }
+      
+      setRuedaSeleccionada(null);
+    };
+  };
+
+  // Manejar inicio de arrastre
+  const handleMouseDown = (e) => {
+    if (!modoEdicionManual) return;
+    
+    const canvas = canvasRef.current;
+    const { x, y } = obtenerPosicionCanvas(e);
+
+    const img = new Image();
+    img.src = imagenVehiculoURL;
+    
+    img.onload = () => {
+      for (const rueda of ajustesRuedas) {
+        const ruedaX = (rueda.x / img.width) * canvas.width;
+        const ruedaY = (rueda.y / img.height) * canvas.height;
+        const radioEscalado = (rueda.radio / img.width) * canvas.width * rueda.escala;
+        
+        const distancia = Math.sqrt(Math.pow(x - ruedaX, 2) + Math.pow(y - ruedaY, 2));
+        
+        if (distancia <= radioEscalado + 20) {
+          setRuedaSeleccionada(rueda.id);
+          setArrastrando(true);
+          return;
+        }
+      }
+    };
+  };
+
+  // Manejar movimiento del mouse
+  const handleMouseMove = (e) => {
+    if (!arrastrando || !ruedaSeleccionada || !modoEdicionManual) return;
+
+    e.preventDefault();
+    
+    const canvas = canvasRef.current;
+    const { x: mouseX, y: mouseY } = obtenerPosicionCanvas(e);
+
+    const img = new Image();
+    img.src = imagenVehiculoURL;
+    
+    const nuevoX = (mouseX / canvas.width) * img.width;
+    const nuevoY = (mouseY / canvas.height) * img.height;
+
+    setAjustesRuedas(prev =>
+      prev.map(rueda =>
+        rueda.id === ruedaSeleccionada
+          ? { ...rueda, x: nuevoX, y: nuevoY }
+          : rueda
+      )
+    );
+  };
+
+  // Manejar fin de arrastre
+  const handleMouseUp = () => {
+    if (arrastrando) {
+      setArrastrando(false);
+      guardarEnHistorial(ajustesRuedas);
+    }
+  };
+
   // Función para ajustar una rueda específica
   const ajustarRueda = (id, campo, valor) => {
-    setAjustesRuedas(prev => 
-      prev.map(rueda => 
+    setAjustesRuedas(prev =>
+      prev.map(rueda =>
         rueda.id === id ? { ...rueda, [campo]: valor } : rueda
       )
     );
+  };
+
+  // Guardar ajuste en historial cuando termina de mover slider
+  const finalizarAjuste = () => {
+    guardarEnHistorial(ajustesRuedas);
+  };
+
+  // Copiar configuración de una rueda a otra
+  const copiarConfiguracion = (desdeId) => {
+    const ruedaOrigen = ajustesRuedas.find(r => r.id === desdeId);
+    if (!ruedaOrigen) return;
+
+    const nuevosAjustes = ajustesRuedas.map(rueda => ({
+      ...rueda,
+      radio: ruedaOrigen.radio,
+      escala: ruedaOrigen.escala,
+      rotacion: ruedaOrigen.rotacion,
+      radioOcultar: ruedaOrigen.radioOcultar,
+      colorOcultar: ruedaOrigen.colorOcultar,
+    }));
+    
+    setAjustesRuedas(nuevosAjustes);
+    guardarEnHistorial(nuevosAjustes);
+    mostrarMensaje("✅ Configuración copiada a todas las ruedas", "success");
+  };
+
+  // Agregar nueva rueda
+  const agregarRueda = () => {
+    const nuevaRueda = {
+      id: Date.now(),
+      nombre: `Rueda ${ajustesRuedas.length + 1}`,
+      x: dimensionesImagen.ancho * 0.5,
+      y: dimensionesImagen.alto * 0.75,
+      radio: dimensionesImagen.ancho * 0.065,
+      escala: 1,
+      rotacion: 0,
+      colorOcultar: "#8a8a8a",
+      radioOcultar: dimensionesImagen.ancho * 0.07,
+    };
+    
+    const nuevosAjustes = [...ajustesRuedas, nuevaRueda];
+    setAjustesRuedas(nuevosAjustes);
+    guardarEnHistorial(nuevosAjustes);
+    mostrarMensaje("✅ Rueda agregada", "success");
+  };
+
+  // Eliminar rueda
+  const eliminarRueda = (id) => {
+    if (ajustesRuedas.length <= 1) {
+      mostrarMensaje("Debe haber al menos una rueda", "error");
+      return;
+    }
+    
+    const nuevosAjustes = ajustesRuedas.filter(r => r.id !== id);
+    setAjustesRuedas(nuevosAjustes);
+    guardarEnHistorial(nuevosAjustes);
+    setRuedaSeleccionada(null);
+    mostrarMensaje("✅ Rueda eliminada", "success");
   };
 
   // Función para descargar la imagen final
@@ -262,11 +528,18 @@ function VisualizadorRines() {
     }
 
     try {
-      // Esperar un momento para asegurar que el canvas esté completamente renderizado
+      // Desactivar temporalmente el modo edición para que no se vea el borde
+      const modoEdicionAnterior = modoEdicionManual;
+      const ruedaSeleccionadaAnterior = ruedaSeleccionada;
+      setModoEdicionManual(false);
+      setRuedaSeleccionada(null);
+      
       setTimeout(() => {
         canvas.toBlob((blob) => {
           if (!blob) {
             mostrarMensaje("Error al generar la imagen", "error");
+            setModoEdicionManual(modoEdicionAnterior);
+            setRuedaSeleccionada(ruedaSeleccionadaAnterior);
             return;
           }
           
@@ -275,17 +548,17 @@ function VisualizadorRines() {
           link.href = url;
           link.download = `vehiculo-con-${rinSeleccionado?.referencia || "rines"}.png`;
           
-          // Agregar al DOM, hacer clic, y remover
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
           
-          // Limpiar URL
           URL.revokeObjectURL(url);
           
+          setModoEdicionManual(modoEdicionAnterior);
+          setRuedaSeleccionada(ruedaSeleccionadaAnterior);
           mostrarMensaje("✅ Imagen descargada exitosamente", "success");
         }, "image/png", 1.0);
-      }, 100);
+      }, 200);
     } catch (error) {
       console.error("Error al descargar:", error);
       mostrarMensaje("Error al descargar la imagen", "error");
@@ -324,7 +597,7 @@ function VisualizadorRines() {
     };
 
     return (
-      <div className={`border-l-4 p-4 rounded-lg mb-6 shadow-md animate-pulse ${estilos[tipoMensaje]}`}>
+      <div className={`border-l-4 p-4 rounded-lg mb-6 shadow-md ${estilos[tipoMensaje]}`}>
         <div className="flex items-center gap-2">
           <span className="text-xl">{iconos[tipoMensaje]}</span>
           <span className="font-medium">{mensaje}</span>
@@ -428,11 +701,11 @@ function VisualizadorRines() {
                   )}
                   
                   {/* Mostrar ruedas detectadas */}
-                  {!detectandoRuedas && ruedasDetectadas.length > 0 && (
+                  {!detectandoRuedas && ajustesRuedas.length > 0 && (
                     <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-4">
                       <p className="text-green-800 font-medium flex items-center gap-2">
                         <span>✅</span>
-                        Se detectaron {ruedasDetectadas.length} ruedas en la imagen
+                        Se detectaron {ajustesRuedas.length} ruedas en la imagen
                       </p>
                     </div>
                   )}
@@ -450,8 +723,9 @@ function VisualizadorRines() {
                     onClick={() => {
                       setImagenVehiculo(null);
                       setImagenVehiculoURL(null);
-                      setRuedasDetectadas([]);
                       setAjustesRuedas([]);
+                      setHistorial([]);
+                      setIndiceHistorial(-1);
                     }}
                     className="bg-gray-400 text-white px-8 py-4 rounded-xl font-semibold hover:bg-gray-500 transition-all shadow-lg hover:shadow-xl"
                   >
@@ -726,131 +1000,281 @@ function VisualizadorRines() {
         {/* ═══════════════════════════════════════════════════════════════════ */}
         {paso === 3 && (
           <div className="bg-white rounded-2xl shadow-lg p-8">
-            <h2 className="text-3xl font-bold text-gray-800 mb-4 flex items-center gap-3">
-              <span className="bg-green-100 p-3 rounded-xl">✨</span>
-              Resultado Final
-            </h2>
-            <p className="text-gray-600 mb-6">
-              Tu vehículo con los rines {rinSeleccionado?.referencia}
-            </p>
+            <div className="flex justify-between items-start mb-6 flex-wrap gap-4">
+              <div>
+                <h2 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
+                  <span className="bg-green-100 p-3 rounded-xl">✨</span>
+                  Resultado Final
+                </h2>
+                <p className="text-gray-600 mt-2">
+                  Tu vehículo con los rines {rinSeleccionado?.referencia}
+                </p>
+              </div>
 
-            {/* Contenedor de visualización */}
-            <div ref={containerRef} className="mb-8">
-              <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl border-4 border-gray-300 p-4 overflow-hidden">
-                <canvas
-                  ref={canvasRef}
-                  className="w-full max-w-4xl mx-auto rounded-xl shadow-lg block"
-                  style={{ maxHeight: "500px" }}
-                />
+              {/* Botones de deshacer/rehacer */}
+              <div className="flex gap-2">
+                <button
+                  onClick={deshacer}
+                  disabled={indiceHistorial <= 0}
+                  className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  title="Deshacer"
+                >
+                  ↩️
+                </button>
+                <button
+                  onClick={rehacer}
+                  disabled={indiceHistorial >= historial.length - 1}
+                  className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  title="Rehacer"
+                >
+                  ↪️
+                </button>
               </div>
             </div>
 
-            {/* Controles de ajuste manual */}
-            <div className="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl p-6 border-2 border-orange-200 mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                  <span>🔧</span> Ajustes manuales
-                </h3>
-                <button
-                  onClick={() => setModoEdicionManual(!modoEdicionManual)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                    modoEdicionManual
-                      ? "bg-orange-500 text-white"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            {/* Opciones rápidas */}
+            <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-4 mb-6 border border-purple-200">
+              <div className="flex flex-wrap gap-4 items-center justify-between">
+                <div className="flex flex-wrap gap-3">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={ocultarRuedasOriginales}
+                      onChange={(e) => setOcultarRuedasOriginales(e.target.checked)}
+                      className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
+                    />
+                    <span className="text-sm font-medium text-gray-700">🎯 Ocultar ruedas originales</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={mostrarSombras}
+                      onChange={(e) => setMostrarSombras(e.target.checked)}
+                      className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
+                    />
+                    <span className="text-sm font-medium text-gray-700">🌑 Mostrar sombras</span>
+                  </label>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-600">Zoom:</span>
+                  <input
+                    type="range"
+                    min="0.5"
+                    max="2"
+                    step="0.1"
+                    value={zoom}
+                    onChange={(e) => setZoom(parseFloat(e.target.value))}
+                    className="w-24"
+                  />
+                  <span className="text-sm font-medium text-purple-600">{(zoom * 100).toFixed(0)}%</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Contenedor de visualización */}
+            <div ref={containerRef} className="mb-6">
+              <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl border-4 border-gray-300 p-4 overflow-auto">
+                <canvas
+                  ref={canvasRef}
+                  onClick={handleCanvasClick}
+                  onMouseDown={handleMouseDown}
+                  onMouseMove={handleMouseMove}
+                  onMouseUp={handleMouseUp}
+                  onMouseLeave={handleMouseUp}
+                  onTouchStart={handleMouseDown}
+                  onTouchMove={handleMouseMove}
+                  onTouchEnd={handleMouseUp}
+                  className={`mx-auto rounded-xl shadow-lg block ${
+                    modoEdicionManual ? "cursor-move" : "cursor-default"
                   }`}
-                >
-                  {modoEdicionManual ? "✓ Editando" : "Editar posiciones"}
-                </button>
+                  style={{ maxWidth: "100%", touchAction: "none" }}
+                />
+              </div>
+              {modoEdicionManual && (
+                <p className="text-center text-sm text-purple-600 mt-2">
+                  💡 Haz clic en una rueda para seleccionarla, luego arrástrala para moverla
+                </p>
+              )}
+            </div>
+
+            {/* Controles de edición */}
+            <div className="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl p-6 border-2 border-orange-200 mb-6">
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
+                <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                  <span>🔧</span> Ajustes de ruedas
+                </h3>
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    onClick={() => setModoEdicionManual(!modoEdicionManual)}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                      modoEdicionManual
+                        ? "bg-purple-600 text-white"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    }`}
+                  >
+                    {modoEdicionManual ? "✓ Modo edición activo" : "👆 Activar arrastre"}
+                  </button>
+                  <button
+                    onClick={agregarRueda}
+                    className="px-4 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-all"
+                  >
+                    + Agregar rueda
+                  </button>
+                </div>
               </div>
 
-              {modoEdicionManual && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {ajustesRuedas.map((rueda, index) => (
-                    <div key={rueda.id} className="bg-white rounded-lg p-4 shadow-md">
-                      <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                        <span className={index === 0 ? "text-red-500" : "text-blue-500"}>
-                          {index === 0 ? "🔴" : "🔵"}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {ajustesRuedas.map((rueda, index) => (
+                  <div 
+                    key={rueda.id} 
+                    className={`bg-white rounded-lg p-4 shadow-md border-2 transition-all ${
+                      ruedaSeleccionada === rueda.id ? "border-purple-500" : "border-transparent"
+                    }`}
+                  >
+                    <div className="flex justify-between items-center mb-3">
+                      <h4 className="font-semibold text-gray-800 flex items-center gap-2">
+                        <span className={index === 0 ? "text-red-500" : index === 1 ? "text-blue-500" : "text-green-500"}>
+                          {index === 0 ? "🔴" : index === 1 ? "🔵" : "🟢"}
                         </span>
                         {rueda.nombre}
                       </h4>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => copiarConfiguracion(rueda.id)}
+                          className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200 transition-all"
+                          title="Copiar tamaño a todas las ruedas"
+                        >
+                          📋 Copiar a todas
+                        </button>
+                        {ajustesRuedas.length > 1 && (
+                          <button
+                            onClick={() => eliminarRueda(rueda.id)}
+                            className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded hover:bg-red-200 transition-all"
+                          >
+                            🗑️
+                          </button>
+                        )}
+                      </div>
+                    </div>
 
-                      <div className="space-y-3">
-                        {/* Tamaño */}
+                    <div className="space-y-3">
+                      {/* Tamaño */}
+                      <div>
+                        <label className="block text-sm text-gray-600 mb-1">
+                          Tamaño: {(rueda.escala * 100).toFixed(0)}%
+                        </label>
+                        <input
+                          type="range"
+                          min="0.3"
+                          max="2.5"
+                          step="0.05"
+                          value={rueda.escala}
+                          onChange={(e) => ajustarRueda(rueda.id, "escala", parseFloat(e.target.value))}
+                          onMouseUp={finalizarAjuste}
+                          onTouchEnd={finalizarAjuste}
+                          className="w-full h-2 bg-purple-200 rounded-lg appearance-none cursor-pointer"
+                        />
+                      </div>
+
+                      {/* Posición X */}
+                      <div>
+                        <label className="block text-sm text-gray-600 mb-1">
+                          Posición X: {rueda.x.toFixed(0)}
+                        </label>
+                        <input
+                          type="range"
+                          min="0"
+                          max={dimensionesImagen.ancho || 2000}
+                          step="5"
+                          value={rueda.x}
+                          onChange={(e) => ajustarRueda(rueda.id, "x", parseInt(e.target.value))}
+                          onMouseUp={finalizarAjuste}
+                          onTouchEnd={finalizarAjuste}
+                          className="w-full h-2 bg-green-200 rounded-lg appearance-none cursor-pointer"
+                        />
+                      </div>
+
+                      {/* Posición Y */}
+                      <div>
+                        <label className="block text-sm text-gray-600 mb-1">
+                          Posición Y: {rueda.y.toFixed(0)}
+                        </label>
+                        <input
+                          type="range"
+                          min="0"
+                          max={dimensionesImagen.alto || 1500}
+                          step="5"
+                          value={rueda.y}
+                          onChange={(e) => ajustarRueda(rueda.id, "y", parseInt(e.target.value))}
+                          onMouseUp={finalizarAjuste}
+                          onTouchEnd={finalizarAjuste}
+                          className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer"
+                        />
+                      </div>
+
+                      {/* Color para ocultar */}
+                      {ocultarRuedasOriginales && (
                         <div>
                           <label className="block text-sm text-gray-600 mb-1">
-                            Tamaño: {(rueda.escala * 100).toFixed(0)}%
+                            Color de fondo (para ocultar rueda original)
                           </label>
-                          <input
-                            type="range"
-                            min="0.3"
-                            max="2"
-                            step="0.05"
-                            value={rueda.escala}
-                            onChange={(e) =>
-                              ajustarRueda(rueda.id, "escala", parseFloat(e.target.value))
-                            }
-                            className="w-full h-2 bg-purple-200 rounded-lg appearance-none cursor-pointer"
-                          />
+                          <div className="flex gap-2 items-center">
+                            <input
+                              type="color"
+                              value={rueda.colorOcultar || "#8a8a8a"}
+                              onChange={(e) => ajustarRueda(rueda.id, "colorOcultar", e.target.value)}
+                              onBlur={finalizarAjuste}
+                              className="w-10 h-10 rounded cursor-pointer border-2 border-gray-300"
+                            />
+                            <span className="text-xs text-gray-500">
+                              Selecciona el color del vehículo
+                            </span>
+                          </div>
                         </div>
+                      )}
 
-                        {/* Posición X */}
+                      {/* Radio de ocultación */}
+                      {ocultarRuedasOriginales && (
                         <div>
                           <label className="block text-sm text-gray-600 mb-1">
-                            Posición X: {rueda.x.toFixed(0)}
-                          </label>
-                          <input
-                            type="range"
-                            min="0"
-                            max="2000"
-                            step="5"
-                            value={rueda.x}
-                            onChange={(e) =>
-                              ajustarRueda(rueda.id, "x", parseInt(e.target.value))
-                            }
-                            className="w-full h-2 bg-green-200 rounded-lg appearance-none cursor-pointer"
-                          />
-                        </div>
-
-                        {/* Posición Y */}
-                        <div>
-                          <label className="block text-sm text-gray-600 mb-1">
-                            Posición Y: {rueda.y.toFixed(0)}
-                          </label>
-                          <input
-                            type="range"
-                            min="0"
-                            max="1500"
-                            step="5"
-                            value={rueda.y}
-                            onChange={(e) =>
-                              ajustarRueda(rueda.id, "y", parseInt(e.target.value))
-                            }
-                            className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer"
-                          />
-                        </div>
-
-                        {/* Radio */}
-                        <div>
-                          <label className="block text-sm text-gray-600 mb-1">
-                            Radio: {rueda.radio.toFixed(0)}
+                            Radio de ocultación: {(rueda.radioOcultar || rueda.radio * 1.1).toFixed(0)}
                           </label>
                           <input
                             type="range"
                             min="20"
-                            max="300"
-                            step="2"
-                            value={rueda.radio}
-                            onChange={(e) =>
-                              ajustarRueda(rueda.id, "radio", parseInt(e.target.value))
-                            }
+                            max="400"
+                            step="5"
+                            value={rueda.radioOcultar || rueda.radio * 1.1}
+                            onChange={(e) => ajustarRueda(rueda.id, "radioOcultar", parseInt(e.target.value))}
+                            onMouseUp={finalizarAjuste}
+                            onTouchEnd={finalizarAjuste}
                             className="w-full h-2 bg-orange-200 rounded-lg appearance-none cursor-pointer"
                           />
                         </div>
-                      </div>
+                      )}
                     </div>
-                  ))}
-                </div>
-              )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Opacidad del rin */}
+            <div className="bg-gray-50 rounded-xl p-4 mb-6 border border-gray-200">
+              <div className="flex items-center gap-4">
+                <span className="text-sm font-medium text-gray-700">Opacidad del rin:</span>
+                <input
+                  type="range"
+                  min="0.3"
+                  max="1"
+                  step="0.05"
+                  value={opacidadRin}
+                  onChange={(e) => setOpacidadRin(parseFloat(e.target.value))}
+                  className="flex-1 max-w-xs"
+                />
+                <span className="text-sm font-medium text-purple-600">{(opacidadRin * 100).toFixed(0)}%</span>
+              </div>
             </div>
 
             {/* Información del rin */}
@@ -910,8 +1334,9 @@ function VisualizadorRines() {
                     setImagenVehiculo(null);
                     setImagenVehiculoURL(null);
                     setRinSeleccionado(null);
-                    setRuedasDetectadas([]);
                     setAjustesRuedas([]);
+                    setHistorial([]);
+                    setIndiceHistorial(-1);
                     mostrarMensaje("🔄 Comenzando de nuevo...", "info");
                   }}
                   className="bg-orange-500 text-white px-8 py-3 rounded-xl font-semibold hover:bg-orange-600 transition-all shadow-lg"

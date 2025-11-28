@@ -92,27 +92,30 @@ function VisualizadorRines() {
       const ancho = img.width;
       const alto = img.height;
 
-      // Heurística: Las ruedas típicamente están:
-      // - En el tercio inferior de la imagen (60-85% desde arriba)
-      // - Rueda delantera: 15-35% desde la izquierda
-      // - Rueda trasera: 65-85% desde la izquierda
+      // Heurística mejorada para fotos laterales de vehículos:
+      // - Las ruedas suelen estar en el 75-85% desde arriba (parte inferior)
+      // - Rueda trasera (izquierda en foto): 15-25% desde la izquierda
+      // - Rueda delantera (derecha en foto): 75-85% desde la izquierda
+      // - El radio típico es aproximadamente 8-12% del ancho de la imagen
+      
+      const radioBase = ancho * 0.08; // Radio base proporcional al ancho
       
       const ruedas = [
         {
           id: 1,
-          nombre: "Rueda Delantera",
-          x: ancho * 0.22,
-          y: alto * 0.72,
-          radio: Math.min(ancho, alto) * 0.12,
+          nombre: "Rueda Trasera",
+          x: ancho * 0.18,
+          y: alto * 0.78,
+          radio: radioBase,
           escala: 1,
           rotacion: 0,
         },
         {
           id: 2,
-          nombre: "Rueda Trasera",
-          x: ancho * 0.78,
-          y: alto * 0.72,
-          radio: Math.min(ancho, alto) * 0.12,
+          nombre: "Rueda Delantera",
+          x: ancho * 0.82,
+          y: alto * 0.78,
+          radio: radioBase,
           escala: 1,
           rotacion: 0,
         },
@@ -798,7 +801,7 @@ function VisualizadorRines() {
                           <input
                             type="range"
                             min="0"
-                            max="1000"
+                            max="2000"
                             step="5"
                             value={rueda.x}
                             onChange={(e) =>
@@ -816,7 +819,7 @@ function VisualizadorRines() {
                           <input
                             type="range"
                             min="0"
-                            max="800"
+                            max="1500"
                             step="5"
                             value={rueda.y}
                             onChange={(e) =>
@@ -834,7 +837,7 @@ function VisualizadorRines() {
                           <input
                             type="range"
                             min="20"
-                            max="150"
+                            max="300"
                             step="2"
                             value={rueda.radio}
                             onChange={(e) =>

@@ -20,7 +20,6 @@ root.render(
       <Route path="/subir" element={<Protegido><SubirArchivo /></Protegido>} />
       <Route path="/tapetes" element={<Protegido><Tapetes /></Protegido>} />
       <Route path="/rines" element={<Protegido><Rines /></Protegido>} />
-      <Route path="/visualizador-rines" element={<Protegido><VisualizadorRines /></Protegido>} />
     </Routes>
   </BrowserRouter>
 );

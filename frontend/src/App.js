@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import ComparadorLlantas from "./ComparadorLlantas";
 
 function App() {
   const [mostrarCosto, setMostrarCosto] = useState(false);
@@ -28,6 +29,7 @@ function App() {
   const [cargando, setCargando] = useState(true);
   const [orden, setOrden] = useState({ campo: "", asc: true });
   const [seleccionadas, setSeleccionadas] = useState([]);
+  const [mostrarComparador, setMostrarComparador] = useState(false);
 
   const [mostrarLogModal, setMostrarLogModal] = useState(false);
   const [logs, setLogs] = useState([]);
@@ -442,6 +444,14 @@ function App() {
               >
                 <span>📄</span>
                 Lista Llantar
+              </button>
+
+              <button
+                onClick={() => setMostrarComparador(true)}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg"
+              >
+                <span>📊</span>
+                Comparar
               </button>
 
               <button
@@ -1248,6 +1258,13 @@ function App() {
               </div>
             </div>
           </div>
+        )}
+        {/* Modal Comparador de Llantas */}
+        {mostrarComparador && (
+          <ComparadorLlantas
+            llantas={llantas}
+            onClose={() => setMostrarComparador(false)}
+          />
         )}
       </div>
     </div>

@@ -117,84 +117,153 @@ const LlantaFrontalSVG = ({ specs, numero, tamaño = 180 }) => {
   );
 };
 
-// Componente de llanta lateral SVG  
+// Componente de llanta lateral SVG - VERSIÓN REALISTA
 const LlantaLateralSVG = ({ specs, numero, altura = 160 }) => {
   if (!specs) return null;
   
   const color = numero === 1 ? "#f59e0b" : "#3b82f6";
-  const anchoBase = 80;
-  const escala = specs.anchoTotal.mm / 225;
-  const ancho = anchoBase * escala;
-  const perfilAltura = 30 * (specs.perfil / 65);
-  const rinAltura = 50;
+  const colorClaro = numero === 1 ? "#fef3c7" : "#dbeafe";
+  
+  // Calcular proporciones basadas en las especificaciones reales
+  const anchoBase = 70;
+  const escalaAncho = specs.anchoTotal.mm / 225; // Normalizado a 225mm
+  const ancho = Math.max(anchoBase * escalaAncho, 50);
+  
+  // El perfil determina la altura del sidewall
+  const perfilAltura = Math.max(20, 35 * (specs.perfil / 65)); // Normalizado a perfil 65
+  const rinAltura = 45;
   const totalAltura = perfilAltura * 2 + rinAltura;
+  
+  const startY = (altura - totalAltura) / 2;
+  const centerX = ancho / 2 + 10;
   
   return (
     <svg width={ancho + 20} height={altura} viewBox={`0 0 ${ancho + 20} ${altura}`}>
-      {/* Sidewall superior */}
-      <rect 
-        x="10" 
-        y={(altura - totalAltura) / 2} 
-        width={ancho} 
-        height={perfilAltura} 
-        fill="#2d2d2d"
-        rx="5"
+      {/* Sombra */}
+      <ellipse cx={centerX} cy={altura - 8} rx={ancho/2 - 5} ry="4" fill="rgba(0,0,0,0.15)"/>
+      
+      {/* Sidewall superior - con forma redondeada */}
+      <path 
+        d={`
+          M ${10 + 5} ${startY + perfilAltura}
+          L ${10 + 5} ${startY + 8}
+          Q ${10 + 5} ${startY}, ${10 + 15} ${startY}
+          L ${10 + ancho - 15} ${startY}
+          Q ${10 + ancho - 5} ${startY}, ${10 + ancho - 5} ${startY + 8}
+          L ${10 + ancho - 5} ${startY + perfilAltura}
+          Z
+        `}
+        fill="#1f1f1f"
       />
       
-      {/* Texto en sidewall */}
+      {/* Textura del sidewall superior */}
+      <path 
+        d={`
+          M ${10 + 8} ${startY + perfilAltura - 2}
+          L ${10 + 8} ${startY + 10}
+          Q ${10 + 8} ${startY + 5}, ${10 + 15} ${startY + 5}
+          L ${10 + ancho - 15} ${startY + 5}
+          Q ${10 + ancho - 8} ${startY + 5}, ${10 + ancho - 8} ${startY + 10}
+          L ${10 + ancho - 8} ${startY + perfilAltura - 2}
+          Z
+        `}
+        fill="#2a2a2a"
+      />
+      
+      {/* Texto en sidewall superior */}
       <text 
-        x={10 + ancho/2} 
-        y={(altura - totalAltura) / 2 + perfilAltura/2 + 4} 
+        x={centerX} 
+        y={startY + perfilAltura/2 + 3} 
         textAnchor="middle" 
-        fill="#555" 
-        fontSize="8"
+        fill="#4a4a4a" 
+        fontSize="7"
         fontWeight="bold"
+        fontFamily="Arial"
       >
         {specs.ancho}/{specs.perfil}R{specs.rin}
       </text>
       
-      {/* Rin */}
+      {/* Rin - con efecto metálico */}
       <rect 
         x="10" 
-        y={(altura - totalAltura) / 2 + perfilAltura} 
+        y={startY + perfilAltura} 
         width={ancho} 
         height={rinAltura} 
-        fill="#b0b0b0"
+        fill="url(#rinMetalGradient)"
       />
+      
+      {/* Líneas del rin para dar profundidad */}
+      <line x1="10" y1={startY + perfilAltura + 8} x2={10 + ancho} y2={startY + perfilAltura + 8} stroke="#999" strokeWidth="1"/>
+      <line x1="10" y1={startY + perfilAltura + rinAltura - 8} x2={10 + ancho} y2={startY + perfilAltura + rinAltura - 8} stroke="#999" strokeWidth="1"/>
       
       {/* Número en rin */}
       <text 
-        x={10 + ancho/2} 
-        y={(altura - totalAltura) / 2 + perfilAltura + rinAltura/2 + 6} 
+        x={centerX} 
+        y={startY + perfilAltura + rinAltura/2 + 6} 
         textAnchor="middle" 
         fill="#555" 
-        fontSize="18"
+        fontSize="20"
         fontWeight="bold"
       >
         {numero}
       </text>
       
-      {/* Sidewall inferior */}
-      <rect 
-        x="10" 
-        y={(altura - totalAltura) / 2 + perfilAltura + rinAltura} 
-        width={ancho} 
-        height={perfilAltura} 
-        fill="#2d2d2d"
-        rx="5"
+      {/* Sidewall inferior - con forma redondeada */}
+      <path 
+        d={`
+          M ${10 + 5} ${startY + perfilAltura + rinAltura}
+          L ${10 + 5} ${startY + perfilAltura + rinAltura + perfilAltura - 8}
+          Q ${10 + 5} ${startY + totalAltura}, ${10 + 15} ${startY + totalAltura}
+          L ${10 + ancho - 15} ${startY + totalAltura}
+          Q ${10 + ancho - 5} ${startY + totalAltura}, ${10 + ancho - 5} ${startY + perfilAltura + rinAltura + perfilAltura - 8}
+          L ${10 + ancho - 5} ${startY + perfilAltura + rinAltura}
+          Z
+        `}
+        fill="#1f1f1f"
       />
       
-      {/* Borde de color */}
+      {/* Textura del sidewall inferior */}
+      <path 
+        d={`
+          M ${10 + 8} ${startY + perfilAltura + rinAltura + 2}
+          L ${10 + 8} ${startY + perfilAltura + rinAltura + perfilAltura - 10}
+          Q ${10 + 8} ${startY + totalAltura - 5}, ${10 + 15} ${startY + totalAltura - 5}
+          L ${10 + ancho - 15} ${startY + totalAltura - 5}
+          Q ${10 + ancho - 8} ${startY + totalAltura - 5}, ${10 + ancho - 8} ${startY + perfilAltura + rinAltura + perfilAltura - 10}
+          L ${10 + ancho - 8} ${startY + perfilAltura + rinAltura + 2}
+          Z
+        `}
+        fill="#2a2a2a"
+      />
+      
+      {/* Banda de rodamiento superior */}
+      <rect x={10 + 3} y={startY} width={ancho - 6} height="4" fill="#0f0f0f" rx="2"/>
+      
+      {/* Banda de rodamiento inferior */}
+      <rect x={10 + 3} y={startY + totalAltura - 4} width={ancho - 6} height="4" fill="#0f0f0f" rx="2"/>
+      
+      {/* Borde de color identificador */}
       <rect 
         x="10" 
-        y={(altura - totalAltura) / 2} 
+        y={startY} 
         width={ancho} 
         height={totalAltura} 
         fill="none"
         stroke={color}
         strokeWidth="3"
-        rx="5"
+        rx="8"
       />
+      
+      {/* Gradiente para el rin */}
+      <defs>
+        <linearGradient id="rinMetalGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#e0e0e0"/>
+          <stop offset="20%" stopColor="#c0c0c0"/>
+          <stop offset="50%" stopColor="#a8a8a8"/>
+          <stop offset="80%" stopColor="#c0c0c0"/>
+          <stop offset="100%" stopColor="#d0d0d0"/>
+        </linearGradient>
+      </defs>
     </svg>
   );
 };
@@ -369,33 +438,33 @@ function ComparadorLlantas({ llantas = [], onClose }) {
                   {/* Vista Frontal */}
                   <div className="bg-white rounded-xl p-4 shadow-md">
                     <h4 className="text-center font-semibold text-gray-600 mb-4 border-b pb-2">Vista Frontal</h4>
-                    <div className="flex justify-center items-end gap-4">
+                    <div className="flex justify-center items-end gap-4 sm:gap-6">
                       <div className="text-center">
-                        <div className="bg-amber-100 rounded-lg px-3 py-1 text-amber-700 font-bold text-sm mb-2 inline-block">
+                        <div className="bg-amber-100 rounded-lg px-3 py-1 text-amber-700 font-bold text-sm mb-3 inline-block">
                           {specs1.ancho}/{specs1.perfil}R{specs1.rin}
                         </div>
-                        <LlantaFrontalSVG specs={specs1} numero={1} tamaño={140} />
-                        <div className="mt-2 text-sm">
-                          <span className="font-bold text-gray-700">⌀ {formatNum(specs1.diametroTotal.pulgadas)}"</span>
-                          <div className="text-gray-500 text-xs">({formatNum(specs1.diametroTotal.mm, 0)}mm)</div>
+                        <LlantaFrontalSVG specs={specs1} numero={1} tamaño={130} />
+                        <div className="mt-3 space-y-1">
+                          <div className="text-lg font-bold text-gray-800">⌀ {formatNum(specs1.diametroTotal.pulgadas)}"</div>
+                          <div className="text-sm text-gray-500">({formatNum(specs1.diametroTotal.mm, 0)}mm)</div>
                         </div>
                       </div>
                       
-                      <div className="pb-16">
-                        <div className="bg-slate-700 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shadow">VS</div>
+                      <div className="pb-20">
+                        <div className="bg-slate-700 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shadow-lg">VS</div>
                       </div>
                       
                       <div className="text-center">
-                        <div className="bg-blue-100 rounded-lg px-3 py-1 text-blue-700 font-bold text-sm mb-2 inline-block">
+                        <div className="bg-blue-100 rounded-lg px-3 py-1 text-blue-700 font-bold text-sm mb-3 inline-block">
                           {specs2.ancho}/{specs2.perfil}R{specs2.rin}
                         </div>
-                        <LlantaFrontalSVG specs={specs2} numero={2} tamaño={140 * (specs2.diametroTotal.pulgadas / specs1.diametroTotal.pulgadas)} />
-                        <div className="mt-2 text-sm">
-                          <span className="font-bold text-gray-700">⌀ {formatNum(specs2.diametroTotal.pulgadas)}"</span>
-                          <div className="text-gray-500 text-xs">({formatNum(specs2.diametroTotal.mm, 0)}mm)</div>
-                        </div>
-                        <div className={`mt-1 px-2 py-0.5 rounded text-xs font-bold inline-block ${getColorDiferencia(diferencias.diametro).bg} ${getColorDiferencia(diferencias.diametro).text}`}>
-                          {formatDif(diferencias.diametro)}
+                        <LlantaFrontalSVG specs={specs2} numero={2} tamaño={130 * (specs2.diametroTotal.pulgadas / specs1.diametroTotal.pulgadas)} />
+                        <div className="mt-3 space-y-1">
+                          <div className="text-lg font-bold text-gray-800">⌀ {formatNum(specs2.diametroTotal.pulgadas)}"</div>
+                          <div className="text-sm text-gray-500">({formatNum(specs2.diametroTotal.mm, 0)}mm)</div>
+                          <div className={`px-2 py-1 rounded text-sm font-bold inline-block ${getColorDiferencia(diferencias.diametro).bg} ${getColorDiferencia(diferencias.diametro).text}`}>
+                            {formatDif(diferencias.diametro)}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -404,28 +473,42 @@ function ComparadorLlantas({ llantas = [], onClose }) {
                   {/* Vista Lateral */}
                   <div className="bg-white rounded-xl p-4 shadow-md">
                     <h4 className="text-center font-semibold text-gray-600 mb-4 border-b pb-2">Vista Lateral (Perfil)</h4>
-                    <div className="flex justify-center items-end gap-8">
+                    <div className="flex justify-center items-end gap-6 sm:gap-10">
+                      {/* Llanta 1 */}
                       <div className="text-center">
-                        <LlantaLateralSVG specs={specs1} numero={1} altura={140} />
-                        <div className="mt-2 text-sm">
-                          <span className="font-bold text-gray-700">{specs1.anchoTotal.mm}mm</span>
+                        <LlantaLateralSVG specs={specs1} numero={1} altura={150} />
+                        <div className="mt-3 space-y-1">
+                          <div className="font-bold text-gray-800">{specs1.anchoTotal.mm}mm</div>
+                          <div className="text-xs text-gray-500">({formatNum(specs1.anchoTotal.pulgadas, 1)}")</div>
+                          <div className="text-xs text-gray-600 mt-1">
+                            Perfil: {formatNum(specs1.alturaLateral.mm, 1)}mm
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            ({formatNum(specs1.alturaLateral.pulgadas, 2)}")
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-500">Perfil: {formatNum(specs1.alturaLateral.mm, 1)}mm</div>
                       </div>
                       
+                      {/* Llanta 2 */}
                       <div className="text-center">
-                        <LlantaLateralSVG specs={specs2} numero={2} altura={140} />
-                        <div className="mt-2 text-sm">
-                          <span className="font-bold text-gray-700">{specs2.anchoTotal.mm}mm</span>
-                          <span className={`ml-1 px-1 py-0.5 rounded text-xs font-bold ${getColorDiferencia(diferencias.ancho, 3, 6).bg} ${getColorDiferencia(diferencias.ancho, 3, 6).text}`}>
-                            {formatDif(diferencias.ancho)}
-                          </span>
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          Perfil: {formatNum(specs2.alturaLateral.mm, 1)}mm
-                          <span className={`ml-1 px-1 py-0.5 rounded font-bold ${getColorDiferencia(diferencias.perfil, 3, 6).bg} ${getColorDiferencia(diferencias.perfil, 3, 6).text}`}>
-                            {formatDif(diferencias.perfil)}
-                          </span>
+                        <LlantaLateralSVG specs={specs2} numero={2} altura={150} />
+                        <div className="mt-3 space-y-1">
+                          <div className="font-bold text-gray-800">
+                            {specs2.anchoTotal.mm}mm
+                            <span className={`ml-2 px-1.5 py-0.5 rounded text-xs font-bold ${getColorDiferencia(diferencias.ancho, 3, 6).bg} ${getColorDiferencia(diferencias.ancho, 3, 6).text}`}>
+                              {formatDif(diferencias.ancho)}
+                            </span>
+                          </div>
+                          <div className="text-xs text-gray-500">({formatNum(specs2.anchoTotal.pulgadas, 1)}")</div>
+                          <div className="text-xs text-gray-600 mt-1">
+                            Perfil: {formatNum(specs2.alturaLateral.mm, 1)}mm
+                            <span className={`ml-1 px-1.5 py-0.5 rounded font-bold ${getColorDiferencia(diferencias.perfil, 3, 6).bg} ${getColorDiferencia(diferencias.perfil, 3, 6).text}`}>
+                              {formatDif(diferencias.perfil)}
+                            </span>
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            ({formatNum(specs2.alturaLateral.pulgadas, 2)}")
+                          </div>
                         </div>
                       </div>
                     </div>

@@ -85,98 +85,275 @@ const calcularDiferencia = (valor1, valor2) => {
   return ((valor2 - valor1) / valor1) * 100;
 };
 
-// Componente visual de la llanta
-const LlantaVisual = ({ specs, numero, color, escala = 1 }) => {
+// Componente visual de la llanta - VERSIÓN REALISTA
+const LlantaVisual = ({ specs, numero, color, escala = 1, esComparacion = false, diferencias = null, specs1 = null }) => {
   if (!specs) return null;
   
-  const baseSize = 120;
+  const baseSize = 160;
   const size = baseSize * escala;
   const rinSize = (specs.rin / specs.diametroTotal.pulgadas) * size;
+  const sidewallSize = (size - rinSize) / 2;
+  
+  // Colores según el número
+  const colorPrimario = numero === 1 ? "#f59e0b" : "#3b82f6";
+  const colorSecundario = numero === 1 ? "#d97706" : "#2563eb";
   
   return (
     <div className="flex flex-col items-center">
-      <div 
-        className="relative rounded-full border-4 flex items-center justify-center"
-        style={{
-          width: `${size}px`,
-          height: `${size}px`,
-          borderColor: color,
-          backgroundColor: '#1a1a1a'
-        }}
-      >
-        {/* Rin interior */}
-        <div 
-          className="rounded-full bg-gradient-to-br from-gray-300 to-gray-500 flex items-center justify-center shadow-inner"
-          style={{
-            width: `${rinSize}px`,
-            height: `${rinSize}px`,
-          }}
-        >
-          <span className="text-2xl font-bold text-gray-700">{numero}</span>
-        </div>
-        
-        {/* Patrón de la llanta */}
-        <div className="absolute inset-2 rounded-full border-2 border-gray-700 opacity-30"></div>
+      {/* Etiqueta de medida arriba */}
+      <div className={`mb-2 px-3 py-1 rounded-full text-white text-sm font-bold ${numero === 1 ? 'bg-amber-500' : 'bg-blue-500'}`}>
+        {specs.ancho}/{specs.perfil}R{specs.rin}
       </div>
       
-      {/* Medidas */}
-      <div className="mt-2 text-center">
-        <span className="text-sm font-semibold text-gray-700">
-          {specs.diametroTotal.pulgadas.toFixed(1)}"
-        </span>
+      <div className="relative">
+        {/* Llanta exterior */}
+        <div 
+          className="relative rounded-full flex items-center justify-center shadow-2xl"
+          style={{
+            width: `${size}px`,
+            height: `${size}px`,
+            background: `
+              radial-gradient(circle at 30% 30%, #4a4a4a 0%, #1a1a1a 50%, #0a0a0a 100%)
+            `,
+            boxShadow: `
+              0 0 0 3px ${colorPrimario},
+              inset 0 0 20px rgba(0,0,0,0.8),
+              0 10px 30px rgba(0,0,0,0.5)
+            `
+          }}
+        >
+          {/* Patrón de la banda de rodamiento */}
+          <div 
+            className="absolute rounded-full"
+            style={{
+              width: `${size - 8}px`,
+              height: `${size - 8}px`,
+              background: `
+                repeating-conic-gradient(
+                  from 0deg,
+                  #2d2d2d 0deg 5deg,
+                  #1a1a1a 5deg 10deg
+                )
+              `,
+              opacity: 0.6
+            }}
+          />
+          
+          {/* Líneas del dibujo de la llanta */}
+          {[...Array(12)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute bg-gray-800"
+              style={{
+                width: '3px',
+                height: `${sidewallSize - 5}px`,
+                transformOrigin: 'center bottom',
+                transform: `rotate(${i * 30}deg) translateY(-${rinSize/2 + sidewallSize/2}px)`,
+                borderRadius: '2px'
+              }}
+            />
+          ))}
+          
+          {/* Rin interior */}
+          <div 
+            className="rounded-full flex items-center justify-center relative z-10"
+            style={{
+              width: `${rinSize}px`,
+              height: `${rinSize}px`,
+              background: `
+                radial-gradient(circle at 40% 40%, #e8e8e8 0%, #b0b0b0 40%, #888 70%, #666 100%)
+              `,
+              boxShadow: `
+                inset 0 2px 10px rgba(255,255,255,0.5),
+                inset 0 -2px 10px rgba(0,0,0,0.3),
+                0 0 0 4px #555
+              `
+            }}
+          >
+            {/* Rayos del rin */}
+            {[...Array(5)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute bg-gradient-to-b from-gray-400 to-gray-600"
+                style={{
+                  width: `${rinSize * 0.15}px`,
+                  height: `${rinSize * 0.35}px`,
+                  transform: `rotate(${i * 72}deg) translateY(-${rinSize * 0.2}px)`,
+                  borderRadius: '3px',
+                  boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.3)'
+                }}
+              />
+            ))}
+            
+            {/* Centro del rin */}
+            <div 
+              className="absolute rounded-full flex items-center justify-center"
+              style={{
+                width: `${rinSize * 0.35}px`,
+                height: `${rinSize * 0.35}px`,
+                background: `radial-gradient(circle at 40% 40%, #999 0%, #666 100%)`,
+                boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.4), 0 2px 4px rgba(0,0,0,0.3)'
+              }}
+            >
+              <span className="text-xl font-bold text-white drop-shadow-lg">{numero}</span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Indicador de diámetro */}
+        <div className="absolute -right-16 top-1/2 transform -translate-y-1/2 flex items-center">
+          <div className={`w-8 border-t-2 border-dashed ${numero === 1 ? 'border-amber-500' : 'border-blue-500'}`}></div>
+          <div className={`px-2 py-1 rounded text-xs font-bold text-white ${numero === 1 ? 'bg-amber-500' : 'bg-blue-500'}`}>
+            ⌀ {specs.diametroTotal.pulgadas.toFixed(1)}"
+          </div>
+        </div>
+      </div>
+      
+      {/* Info debajo de la llanta */}
+      <div className="mt-4 text-center">
+        <div className={`text-lg font-bold ${numero === 1 ? 'text-amber-600' : 'text-blue-600'}`}>
+          Llanta {numero}
+        </div>
+        <div className="text-xs text-gray-500 mt-1">
+          Ancho: {specs.anchoTotal.mm}mm | Perfil: {specs.alturaLateral.mm.toFixed(1)}mm
+        </div>
+        
+        {/* Mostrar diferencias si es la llanta 2 */}
+        {numero === 2 && diferencias && (
+          <div className="mt-3 p-2 bg-gray-100 rounded-lg">
+            <div className="text-xs font-semibold text-gray-700 mb-1">Diferencia vs Llanta 1:</div>
+            <div className="flex flex-wrap justify-center gap-2">
+              <span className={`px-2 py-0.5 rounded text-xs font-bold ${
+                Math.abs(diferencias.diametro) < 2 ? 'bg-green-100 text-green-700' : 
+                Math.abs(diferencias.diametro) < 4 ? 'bg-yellow-100 text-yellow-700' : 
+                'bg-red-100 text-red-700'
+              }`}>
+                ⌀ {diferencias.diametro > 0 ? '+' : ''}{diferencias.diametro.toFixed(1)}%
+              </span>
+              <span className={`px-2 py-0.5 rounded text-xs font-bold ${
+                Math.abs(diferencias.ancho) < 3 ? 'bg-green-100 text-green-700' : 
+                Math.abs(diferencias.ancho) < 6 ? 'bg-yellow-100 text-yellow-700' : 
+                'bg-red-100 text-red-700'
+              }`}>
+                ↔ {diferencias.ancho > 0 ? '+' : ''}{diferencias.ancho.toFixed(1)}%
+              </span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-// Componente visual lateral de la llanta
-const LlantaLateral = ({ specs, numero, color }) => {
+// Componente visual lateral de la llanta - VERSIÓN REALISTA
+const LlantaLateral = ({ specs, numero, color, diferencias = null }) => {
   if (!specs) return null;
   
-  const anchoBase = 40;
-  const alturaBase = 100;
-  const escalaAncho = specs.anchoTotal.pulgadas / 8; // Normalizar
+  const anchoBase = 60;
+  const alturaBase = 140;
+  const escalaAncho = specs.anchoTotal.pulgadas / 8.5;
+  const ancho = anchoBase * escalaAncho;
+  const alturaSidewall = specs.alturaLateral.pulgadas * 6;
+  const alturaRin = 40;
+  
+  const colorPrimario = numero === 1 ? "#f59e0b" : "#3b82f6";
   
   return (
     <div className="flex flex-col items-center">
-      <div className="relative">
+      {/* Etiqueta */}
+      <div className={`mb-2 px-2 py-0.5 rounded text-white text-xs font-bold ${numero === 1 ? 'bg-amber-500' : 'bg-blue-500'}`}>
+        Vista Lateral
+      </div>
+      
+      <div className="relative flex flex-col items-center">
+        {/* Indicador de altura total */}
+        <div className="absolute -left-12 top-0 bottom-0 flex flex-col items-center justify-center">
+          <div className={`h-full border-l-2 border-dashed ${numero === 1 ? 'border-amber-400' : 'border-blue-400'}`}></div>
+          <div className={`absolute top-1/2 -translate-y-1/2 -rotate-90 whitespace-nowrap px-1 py-0.5 rounded text-xs font-bold text-white ${numero === 1 ? 'bg-amber-500' : 'bg-blue-500'}`}>
+            {specs.diametroTotal.pulgadas.toFixed(1)}"
+          </div>
+        </div>
+        
         {/* Sidewall superior */}
         <div 
-          className="rounded-t-lg"
+          className="relative"
           style={{
-            width: `${anchoBase * escalaAncho}px`,
-            height: `${specs.alturaLateral.pulgadas * 8}px`,
-            backgroundColor: '#2a2a2a',
-            borderLeft: `3px solid ${color}`,
-            borderRight: `3px solid ${color}`,
-            borderTop: `3px solid ${color}`,
-          }}
-        />
-        {/* Rin */}
-        <div 
-          className="bg-gradient-to-b from-gray-400 to-gray-500 flex items-center justify-center"
-          style={{
-            width: `${anchoBase * escalaAncho}px`,
-            height: '30px',
+            width: `${ancho}px`,
+            height: `${alturaSidewall}px`,
+            background: `linear-gradient(to right, #1a1a1a 0%, #3d3d3d 20%, #3d3d3d 80%, #1a1a1a 100%)`,
+            borderRadius: '8px 8px 0 0',
+            boxShadow: `
+              inset 0 5px 15px rgba(255,255,255,0.1),
+              inset 0 -5px 10px rgba(0,0,0,0.5)
+            `,
+            borderTop: `3px solid ${colorPrimario}`,
+            borderLeft: `2px solid ${colorPrimario}`,
+            borderRight: `2px solid ${colorPrimario}`
           }}
         >
-          <span className="text-sm font-bold text-gray-700">{numero}</span>
+          {/* Texto en el sidewall */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-gray-500 text-xs font-bold opacity-50" style={{writingMode: 'vertical-rl'}}>
+              {specs.ancho}/{specs.perfil}R{specs.rin}
+            </span>
+          </div>
         </div>
+        
+        {/* Rin */}
+        <div 
+          className="flex items-center justify-center"
+          style={{
+            width: `${ancho}px`,
+            height: `${alturaRin}px`,
+            background: `linear-gradient(to bottom, #c0c0c0 0%, #a0a0a0 30%, #808080 70%, #909090 100%)`,
+            boxShadow: `
+              inset 0 2px 5px rgba(255,255,255,0.5),
+              inset 0 -2px 5px rgba(0,0,0,0.3)
+            `
+          }}
+        >
+          <span className="text-gray-700 font-bold text-lg">{numero}</span>
+        </div>
+        
         {/* Sidewall inferior */}
         <div 
-          className="rounded-b-lg"
           style={{
-            width: `${anchoBase * escalaAncho}px`,
-            height: `${specs.alturaLateral.pulgadas * 8}px`,
-            backgroundColor: '#2a2a2a',
-            borderLeft: `3px solid ${color}`,
-            borderRight: `3px solid ${color}`,
-            borderBottom: `3px solid ${color}`,
+            width: `${ancho}px`,
+            height: `${alturaSidewall}px`,
+            background: `linear-gradient(to right, #1a1a1a 0%, #3d3d3d 20%, #3d3d3d 80%, #1a1a1a 100%)`,
+            borderRadius: '0 0 8px 8px',
+            boxShadow: `
+              inset 0 5px 10px rgba(0,0,0,0.5),
+              inset 0 -5px 15px rgba(255,255,255,0.1),
+              0 5px 15px rgba(0,0,0,0.3)
+            `,
+            borderBottom: `3px solid ${colorPrimario}`,
+            borderLeft: `2px solid ${colorPrimario}`,
+            borderRight: `2px solid ${colorPrimario}`
           }}
         />
-      </div>
-      <div className="mt-2 text-center">
-        <span className="text-xs text-gray-600">{specs.anchoTotal.pulgadas.toFixed(1)}"</span>
+        
+        {/* Indicador de ancho */}
+        <div className="mt-3 flex items-center gap-1">
+          <div className={`flex-1 border-t-2 ${numero === 1 ? 'border-amber-400' : 'border-blue-400'}`} style={{width: `${ancho/2 - 15}px`}}></div>
+          <span className={`px-2 py-0.5 rounded text-xs font-bold text-white ${numero === 1 ? 'bg-amber-500' : 'bg-blue-500'}`}>
+            {specs.anchoTotal.mm}mm
+          </span>
+          <div className={`flex-1 border-t-2 ${numero === 1 ? 'border-amber-400' : 'border-blue-400'}`} style={{width: `${ancho/2 - 15}px`}}></div>
+        </div>
+        
+        {/* Diferencias para llanta 2 */}
+        {numero === 2 && diferencias && (
+          <div className="mt-2 flex flex-col items-center gap-1">
+            <span className={`px-2 py-0.5 rounded text-xs font-bold ${
+              Math.abs(diferencias.alturaLateral) < 3 ? 'bg-green-100 text-green-700' : 
+              Math.abs(diferencias.alturaLateral) < 6 ? 'bg-yellow-100 text-yellow-700' : 
+              'bg-red-100 text-red-700'
+            }`}>
+              Perfil: {diferencias.alturaLateral > 0 ? '+' : ''}{diferencias.alturaLateral.toFixed(1)}%
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -431,27 +608,139 @@ function ComparadorLlantas({ llantas = [], onClose }) {
           {/* Visualización de llantas */}
           {specs1 && specs2 && (
             <>
-              <div className="bg-gray-100 rounded-xl p-6 mb-6">
-                <h3 className="text-lg font-bold text-gray-700 mb-4 text-center">
-                  🔍 Comparación Visual
+              <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl p-6 mb-6">
+                <h3 className="text-xl font-bold text-gray-700 mb-6 text-center flex items-center justify-center gap-2">
+                  <span>🔍</span> Comparación Visual
                 </h3>
                 
-                <div className="flex flex-wrap justify-center items-end gap-8">
-                  {/* Vista frontal */}
-                  <div className="flex items-end gap-4">
-                    <LlantaVisual specs={specs1} numero="1" color="#f59e0b" escala={0.9} />
-                    <LlantaVisual specs={specs2} numero="2" color="#3b82f6" escala={0.9 * (specs2.diametroTotal.pulgadas / specs1.diametroTotal.pulgadas)} />
+                {/* Contenedor principal de comparación */}
+                <div className="flex flex-col lg:flex-row justify-center items-start gap-8">
+                  
+                  {/* Vista Frontal */}
+                  <div className="bg-white rounded-xl p-6 shadow-lg">
+                    <h4 className="text-center font-semibold text-gray-600 mb-4">Vista Frontal</h4>
+                    <div className="flex items-end justify-center gap-6">
+                      <LlantaVisual 
+                        specs={specs1} 
+                        numero={1} 
+                        color="#f59e0b" 
+                        escala={1} 
+                        diferencias={null}
+                      />
+                      
+                      {/* Indicador VS central */}
+                      <div className="flex flex-col items-center justify-center pb-16">
+                        <div className="bg-slate-700 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shadow-lg">
+                          VS
+                        </div>
+                      </div>
+                      
+                      <LlantaVisual 
+                        specs={specs2} 
+                        numero={2} 
+                        color="#3b82f6" 
+                        escala={specs2.diametroTotal.pulgadas / specs1.diametroTotal.pulgadas} 
+                        diferencias={diferencias}
+                        specs1={specs1}
+                      />
+                    </div>
                   </div>
                   
-                  {/* Vista lateral */}
-                  <div className="flex items-end gap-6">
-                    <LlantaLateral specs={specs1} numero="1" color="#f59e0b" />
-                    <LlantaLateral specs={specs2} numero="2" color="#3b82f6" />
+                  {/* Vista Lateral */}
+                  <div className="bg-white rounded-xl p-6 shadow-lg">
+                    <h4 className="text-center font-semibold text-gray-600 mb-4">Vista Lateral (Perfil)</h4>
+                    <div className="flex items-end justify-center gap-8">
+                      <LlantaLateral 
+                        specs={specs1} 
+                        numero={1} 
+                        color="#f59e0b"
+                        diferencias={null}
+                      />
+                      <LlantaLateral 
+                        specs={specs2} 
+                        numero={2} 
+                        color="#3b82f6"
+                        diferencias={diferencias}
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Resumen de diferencias */}
+                <div className="mt-6 bg-white rounded-xl p-4 shadow-md">
+                  <h4 className="text-center font-semibold text-gray-700 mb-3">📊 Resumen de Diferencias</h4>
+                  <div className="flex flex-wrap justify-center gap-4">
+                    <div className={`px-4 py-2 rounded-lg ${
+                      Math.abs(diferencias.diametro) < 2 ? 'bg-green-100 border-2 border-green-300' : 
+                      Math.abs(diferencias.diametro) < 4 ? 'bg-yellow-100 border-2 border-yellow-300' : 
+                      'bg-red-100 border-2 border-red-300'
+                    }`}>
+                      <div className="text-xs text-gray-500">Diámetro</div>
+                      <div className={`text-lg font-bold ${
+                        Math.abs(diferencias.diametro) < 2 ? 'text-green-700' : 
+                        Math.abs(diferencias.diametro) < 4 ? 'text-yellow-700' : 
+                        'text-red-700'
+                      }`}>
+                        {diferencias.diametro > 0 ? '+' : ''}{diferencias.diametro.toFixed(2)}%
+                      </div>
+                    </div>
+                    
+                    <div className={`px-4 py-2 rounded-lg ${
+                      Math.abs(diferencias.ancho) < 3 ? 'bg-green-100 border-2 border-green-300' : 
+                      Math.abs(diferencias.ancho) < 6 ? 'bg-yellow-100 border-2 border-yellow-300' : 
+                      'bg-red-100 border-2 border-red-300'
+                    }`}>
+                      <div className="text-xs text-gray-500">Ancho</div>
+                      <div className={`text-lg font-bold ${
+                        Math.abs(diferencias.ancho) < 3 ? 'text-green-700' : 
+                        Math.abs(diferencias.ancho) < 6 ? 'text-yellow-700' : 
+                        'text-red-700'
+                      }`}>
+                        {diferencias.ancho > 0 ? '+' : ''}{diferencias.ancho.toFixed(2)}%
+                      </div>
+                    </div>
+                    
+                    <div className={`px-4 py-2 rounded-lg ${
+                      Math.abs(diferencias.alturaLateral) < 3 ? 'bg-green-100 border-2 border-green-300' : 
+                      Math.abs(diferencias.alturaLateral) < 6 ? 'bg-yellow-100 border-2 border-yellow-300' : 
+                      'bg-red-100 border-2 border-red-300'
+                    }`}>
+                      <div className="text-xs text-gray-500">Perfil</div>
+                      <div className={`text-lg font-bold ${
+                        Math.abs(diferencias.alturaLateral) < 3 ? 'text-green-700' : 
+                        Math.abs(diferencias.alturaLateral) < 6 ? 'text-yellow-700' : 
+                        'text-red-700'
+                      }`}>
+                        {diferencias.alturaLateral > 0 ? '+' : ''}{diferencias.alturaLateral.toFixed(2)}%
+                      </div>
+                    </div>
+                    
+                    <div className={`px-4 py-2 rounded-lg ${
+                      Math.abs(errorVelocimetro) < 2 ? 'bg-green-100 border-2 border-green-300' : 
+                      Math.abs(errorVelocimetro) < 4 ? 'bg-yellow-100 border-2 border-yellow-300' : 
+                      'bg-red-100 border-2 border-red-300'
+                    }`}>
+                      <div className="text-xs text-gray-500">Velocímetro</div>
+                      <div className={`text-lg font-bold ${
+                        Math.abs(errorVelocimetro) < 2 ? 'text-green-700' : 
+                        Math.abs(errorVelocimetro) < 4 ? 'text-yellow-700' : 
+                        'text-red-700'
+                      }`}>
+                        {errorVelocimetro > 0 ? '+' : ''}{errorVelocimetro.toFixed(2)}%
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Leyenda de colores */}
+                  <div className="flex justify-center gap-4 mt-4 text-xs">
+                    <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-400"></span> Compatible</span>
+                    <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-yellow-400"></span> Precaución</span>
+                    <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-400"></span> No recomendado</span>
                   </div>
                 </div>
                 
                 <p className="text-center text-sm text-gray-500 mt-4">
-                  Las llantas se muestran a escala proporcional
+                  ℹ️ Las llantas se muestran a escala proporcional entre sí
                 </p>
               </div>
 

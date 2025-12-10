@@ -200,34 +200,111 @@ const LlantaConRin = ({ specs, numero, size = 200 }) => {
 // COMPONENTE PRINCIPAL
 // =============================================
 function ComparadorLlantas({ llantas = [], onClose }) {
-  const [medida1, setMedida1] = useState({ ancho: "265", perfil: "65", rin: "17" });
-  const [medida2, setMedida2] = useState({ ancho: "265", perfil: "70", rin: "17" });
+  const [referencia1, setReferencia1] = useState("265/65R17");
+  const [referencia2, setReferencia2] = useState("265/70R17");
   const [llantaSeleccionada1, setLlantaSeleccionada1] = useState("");
   const [llantaSeleccionada2, setLlantaSeleccionada2] = useState("");
   const [modoIngreso, setModoIngreso] = useState("manual");
-  const [unidad, setUnidad] = useState("pulgadas"); // pulgadas o mm
+  const [unidad, setUnidad] = useState("pulgadas");
+  const [mostrarEquivalencias, setMostrarEquivalencias] = useState(false);
+  const [precio1, setPrecio1] = useState("");
+  const [precio2, setPrecio2] = useState("");
+
+  // Función para formatear referencia automáticamente
+  const formatearReferencia = (valor) => {
+    // Eliminar todo excepto números
+    const numeros = valor.replace(/[^\d]/g, '');
+    
+    // Si tiene 7-8 dígitos, formatear como XXX/XXRXX
+    if (numeros.length >= 6) {
+      const ancho = numeros.slice(0, 3);
+      const perfil = numeros.slice(3, 5);
+      const rin = numeros.slice(5, 7);
+      return `${ancho}/${perfil}R${rin}`;
+    }
+    return valor;
+  };
+
+  // Manejar cambio de referencia con autoformato
+  const handleReferenciaChange = (valor, setReferencia) => {
+    // Si el usuario está borrando, no formatear
+    if (valor.length < 3) {
+      setReferencia(valor);
+      return;
+    }
+    
+    // Solo números sin formato
+    const soloNumeros = valor.replace(/[^\d]/g, '');
+    
+    // Si tiene suficientes números, formatear
+    if (soloNumeros.length >= 6) {
+      setReferencia(formatearReferencia(soloNumeros));
+    } else {
+      setReferencia(valor);
+    }
+  };
+
+  // Parsear referencia del campo de texto
+  const parsearReferenciaTexto = (ref) => {
+    const parsed = parsearMedida(ref);
+    return parsed;
+  };
 
   const specs1 = useMemo(() => {
     if (modoIngreso === "inventario" && llantaSeleccionada1) {
       const llanta = llantas.find(l => l.id?.toString() === llantaSeleccionada1);
       if (llanta) return calcularEspecificaciones(parsearMedida(llanta.referencia));
     }
-    return calcularEspecificaciones({ ancho: parseInt(medida1.ancho) || 0, perfil: parseInt(medida1.perfil) || 0, rin: parseInt(medida1.rin) || 0 });
-  }, [medida1, llantaSeleccionada1, modoIngreso, llantas]);
+    return calcularEspecificaciones(parsearMedida(referencia1));
+  }, [referencia1, llantaSeleccionada1, modoIngreso, llantas]);
 
   const specs2 = useMemo(() => {
     if (modoIngreso === "inventario" && llantaSeleccionada2) {
       const llanta = llantas.find(l => l.id?.toString() === llantaSeleccionada2);
       if (llanta) return calcularEspecificaciones(parsearMedida(llanta.referencia));
     }
-    return calcularEspecificaciones({ ancho: parseInt(medida2.ancho) || 0, perfil: parseInt(medida2.perfil) || 0, rin: parseInt(medida2.rin) || 0 });
-  }, [medida2, llantaSeleccionada2, modoIngreso, llantas]);
+    return calcularEspecificaciones(parsearMedida(referencia2));
+  }, [referencia2, llantaSeleccionada2, modoIngreso, llantas]);
+
+  // Calcular equivalencias (medidas alternativas con diferencia <3%)
+  const equivalencias = useMemo(() => {
+    if (!specs1) return [];
+    const anchos = [205, 215, 225, 235, 245, 255, 265, 275, 285, 295, 305, 315];
+    const perfiles = [45, 50, 55, 60, 65, 70, 75, 80, 85];
+    const rines = [15, 16, 17, 18, 19, 20, 21, 22];
+    const equiv = [];
+    
+    for (const ancho of anchos) {
+      for (const perfil of perfiles) {
+        for (const rin of rines) {
+          const specsAlt = calcularEspecificaciones({ ancho, perfil, rin });
+          if (specsAlt) {
+            const difDiametro = Math.abs((specsAlt.diametroTotal.mm - specs1.diametroTotal.mm) / specs1.diametroTotal.mm * 100);
+            if (difDiametro <= 3 && difDiametro > 0.1) {
+              equiv.push({
+                referencia: `${ancho}/${perfil}R${rin}`,
+                specs: specsAlt,
+                diferencia: difDiametro
+              });
+            }
+          }
+        }
+      }
+    }
+    return equiv.sort((a, b) => a.diferencia - b.diferencia).slice(0, 12);
+  }, [specs1]);
 
   const diferencias = useMemo(() => {
     if (!specs1 || !specs2) return null;
     const calcDif = (v1, v2) => ((v2 - v1) / v1) * 100;
     return { diametro: calcDif(specs1.diametroTotal.pulgadas, specs2.diametroTotal.pulgadas), ancho: calcDif(specs1.anchoTotal.mm, specs2.anchoTotal.mm), perfil: calcDif(specs1.alturaLateral.mm, specs2.alturaLateral.mm), circunferencia: calcDif(specs1.circunferencia.mm, specs2.circunferencia.mm), revsPorMilla: specs2.revsPorMilla - specs1.revsPorMilla };
   }, [specs1, specs2]);
+
+  // Formatear precio
+  const formatPrecio = (precio) => {
+    if (!precio) return "";
+    return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(precio);
+  };
 
   const velocidades = [20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120];
   const calcularVelocidadReal = (vel) => specs1 && specs2 ? vel * (specs2.diametroTotal.mm / specs1.diametroTotal.mm) : vel;
@@ -285,15 +362,27 @@ function ComparadorLlantas({ llantas = [], onClose }) {
             <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-4">
               <div className="flex items-center gap-2 mb-3">
                 <span className="w-8 h-8 bg-amber-500 text-white rounded-full flex items-center justify-center font-bold">1</span>
-                <span className="font-bold text-amber-800">Llanta Original</span>
+                <span className="font-bold text-amber-800">Llanta Original (OEM)</span>
               </div>
               {modoIngreso === "manual" ? (
-                <div className="flex items-center justify-center gap-1">
-                  <input type="number" value={medida1.ancho} onChange={(e) => setMedida1({...medida1, ancho: e.target.value})} className="w-16 px-2 py-2 border-2 border-amber-300 rounded-lg text-center font-bold outline-none"/>
-                  <span className="text-xl font-bold text-gray-400">/</span>
-                  <input type="number" value={medida1.perfil} onChange={(e) => setMedida1({...medida1, perfil: e.target.value})} className="w-14 px-2 py-2 border-2 border-amber-300 rounded-lg text-center font-bold outline-none"/>
-                  <span className="text-xl font-bold text-gray-400">R</span>
-                  <input type="number" value={medida1.rin} onChange={(e) => setMedida1({...medida1, rin: e.target.value})} className="w-14 px-2 py-2 border-2 border-amber-300 rounded-lg text-center font-bold outline-none"/>
+                <div className="space-y-2">
+                  <input 
+                    type="text" 
+                    value={referencia1} 
+                    onChange={(e) => handleReferenciaChange(e.target.value, setReferencia1)}
+                    placeholder="Ej: 2656517 o 265/65R17"
+                    className="w-full px-4 py-3 border-2 border-amber-300 rounded-lg text-center text-xl font-bold outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+                  />
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500">💰 Precio:</span>
+                    <input 
+                      type="number" 
+                      value={precio1} 
+                      onChange={(e) => setPrecio1(e.target.value)}
+                      placeholder="$ Opcional"
+                      className="flex-1 px-2 py-1 border border-amber-200 rounded text-sm outline-none"
+                    />
+                  </div>
                 </div>
               ) : (
                 <select value={llantaSeleccionada1} onChange={(e) => setLlantaSeleccionada1(e.target.value)} className="w-full px-3 py-2 border-2 border-amber-300 rounded-lg">
@@ -308,12 +397,24 @@ function ComparadorLlantas({ llantas = [], onClose }) {
                 <span className="font-bold text-blue-800">Llanta Nueva</span>
               </div>
               {modoIngreso === "manual" ? (
-                <div className="flex items-center justify-center gap-1">
-                  <input type="number" value={medida2.ancho} onChange={(e) => setMedida2({...medida2, ancho: e.target.value})} className="w-16 px-2 py-2 border-2 border-blue-300 rounded-lg text-center font-bold outline-none"/>
-                  <span className="text-xl font-bold text-gray-400">/</span>
-                  <input type="number" value={medida2.perfil} onChange={(e) => setMedida2({...medida2, perfil: e.target.value})} className="w-14 px-2 py-2 border-2 border-blue-300 rounded-lg text-center font-bold outline-none"/>
-                  <span className="text-xl font-bold text-gray-400">R</span>
-                  <input type="number" value={medida2.rin} onChange={(e) => setMedida2({...medida2, rin: e.target.value})} className="w-14 px-2 py-2 border-2 border-blue-300 rounded-lg text-center font-bold outline-none"/>
+                <div className="space-y-2">
+                  <input 
+                    type="text" 
+                    value={referencia2} 
+                    onChange={(e) => handleReferenciaChange(e.target.value, setReferencia2)}
+                    placeholder="Ej: 2657017 o 265/70R17"
+                    className="w-full px-4 py-3 border-2 border-blue-300 rounded-lg text-center text-xl font-bold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                  />
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500">💰 Precio:</span>
+                    <input 
+                      type="number" 
+                      value={precio2} 
+                      onChange={(e) => setPrecio2(e.target.value)}
+                      placeholder="$ Opcional"
+                      className="flex-1 px-2 py-1 border border-blue-200 rounded text-sm outline-none"
+                    />
+                  </div>
                 </div>
               ) : (
                 <select value={llantaSeleccionada2} onChange={(e) => setLlantaSeleccionada2(e.target.value)} className="w-full px-3 py-2 border-2 border-blue-300 rounded-lg">
@@ -323,6 +424,51 @@ function ComparadorLlantas({ llantas = [], onClose }) {
               )}
             </div>
           </div>
+
+          {/* Calculadora de precios (si hay precios ingresados) */}
+          {(precio1 || precio2) && (
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl p-4 mb-6">
+              <h3 className="font-bold text-green-800 mb-3">💰 Calculadora de Precios</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+                {precio1 && (
+                  <>
+                    <div className="bg-white rounded-lg p-2 border border-amber-200">
+                      <div className="text-xs text-gray-500">Llanta 1 (x1)</div>
+                      <div className="font-bold text-amber-600">{formatPrecio(precio1)}</div>
+                    </div>
+                    <div className="bg-white rounded-lg p-2 border border-amber-200">
+                      <div className="text-xs text-gray-500">Juego x4</div>
+                      <div className="font-bold text-amber-600">{formatPrecio(precio1 * 4)}</div>
+                    </div>
+                  </>
+                )}
+                {precio2 && (
+                  <>
+                    <div className="bg-white rounded-lg p-2 border border-blue-200">
+                      <div className="text-xs text-gray-500">Llanta 2 (x1)</div>
+                      <div className="font-bold text-blue-600">{formatPrecio(precio2)}</div>
+                    </div>
+                    <div className="bg-white rounded-lg p-2 border border-blue-200">
+                      <div className="text-xs text-gray-500">Juego x4</div>
+                      <div className="font-bold text-blue-600">{formatPrecio(precio2 * 4)}</div>
+                    </div>
+                  </>
+                )}
+              </div>
+              {precio1 && precio2 && (
+                <div className="mt-3 text-center">
+                  <span className={`text-sm font-bold ${Number(precio2) > Number(precio1) ? 'text-red-600' : 'text-green-600'}`}>
+                    {Number(precio2) > Number(precio1) 
+                      ? `⬆️ Llanta 2 es ${formatPrecio(Math.abs(precio2 - precio1))} más cara (${formatPrecio(Math.abs(precio2 - precio1) * 4)} x4)`
+                      : Number(precio2) < Number(precio1)
+                        ? `⬇️ Llanta 2 es ${formatPrecio(Math.abs(precio1 - precio2))} más barata (${formatPrecio(Math.abs(precio1 - precio2) * 4)} x4)`
+                        : '= Mismo precio'
+                    }
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
 
           {specs1 && specs2 && diferencias && (
             <>
@@ -566,6 +712,54 @@ function ComparadorLlantas({ llantas = [], onClose }) {
                 <p className="text-gray-700 text-sm">{Math.abs(diferencias.diametro) < 3 ? "Cambio seguro. Diferencia menor al 3%." : Math.abs(diferencias.diametro) < 5 ? "Diferencia 3-5%. Puede afectar velocímetro y consumo." : "Diferencia mayor al 5%. Consulta con un profesional."}</p>
               </div>
 
+              {/* Equivalencias */}
+              <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
+                <button 
+                  onClick={() => setMostrarEquivalencias(!mostrarEquivalencias)}
+                  className="w-full px-4 py-3 bg-purple-600 text-white font-bold flex items-center justify-between hover:bg-purple-700 transition-colors"
+                >
+                  <span>🔄 Medidas Equivalentes a {referencia1} (±3%)</span>
+                  <span className="text-xl">{mostrarEquivalencias ? '▲' : '▼'}</span>
+                </button>
+                
+                {mostrarEquivalencias && (
+                  <div className="p-4">
+                    <p className="text-sm text-gray-600 mb-3">
+                      Si no tienes {referencia1}, estas medidas tienen un diámetro similar y pueden servir como alternativa:
+                    </p>
+                    {equivalencias.length > 0 ? (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                        {equivalencias.map((eq, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => setReferencia2(eq.referencia)}
+                            className={`p-2 rounded-lg border-2 text-center hover:bg-purple-50 transition-colors ${
+                              eq.diferencia < 1 ? 'border-green-300 bg-green-50' : 
+                              eq.diferencia < 2 ? 'border-yellow-300 bg-yellow-50' : 
+                              'border-orange-300 bg-orange-50'
+                            }`}
+                          >
+                            <div className="font-bold text-sm">{eq.referencia}</div>
+                            <div className={`text-xs ${
+                              eq.diferencia < 1 ? 'text-green-600' : 
+                              eq.diferencia < 2 ? 'text-yellow-600' : 
+                              'text-orange-600'
+                            }`}>
+                              {eq.diferencia.toFixed(1)}% dif.
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 text-center py-4">No se encontraron equivalencias</p>
+                    )}
+                    <p className="text-xs text-gray-400 mt-3 text-center">
+                      💡 Haz clic en una medida para compararla
+                    </p>
+                  </div>
+                )}
+              </div>
+
               <div className="flex flex-wrap justify-center gap-4 text-xs text-gray-500">
                 <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-400"></span> &lt;3%</span>
                 <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-yellow-400"></span> 3-5%</span>
@@ -576,7 +770,18 @@ function ComparadorLlantas({ llantas = [], onClose }) {
         </div>
 
         <div className="bg-gray-100 p-4 border-t sticky bottom-0">
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-3">
+            <button 
+              onClick={() => {
+                setReferencia1("265/65R17");
+                setReferencia2("265/70R17");
+                setPrecio1("");
+                setPrecio2("");
+              }} 
+              className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 font-semibold"
+            >
+              🔄 Reiniciar
+            </button>
             <button onClick={onClose} className="bg-slate-600 text-white px-6 py-2 rounded-lg hover:bg-slate-700 font-semibold">Cerrar</button>
           </div>
         </div>

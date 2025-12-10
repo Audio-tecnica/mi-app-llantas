@@ -211,112 +211,129 @@ function ComparadorLlantas({ llantas = [], onClose }) {
   const [vehiculoSeleccionado, setVehiculoSeleccionado] = useState(null);
 
   // Base de datos de vehículos con sus medidas OEM
-  const vehiculos = [
-    // Toyota
-    { marca: "Toyota", modelo: "Fortuner", anios: "2016-2024", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17"] },
-    { marca: "Toyota", modelo: "Hilux", anios: "2016-2024", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "255/70R17"] },
-    { marca: "Toyota", modelo: "Land Cruiser Prado", anios: "2010-2024", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17"] },
-    { marca: "Toyota", modelo: "4Runner", anios: "2010-2024", medidaOEM: "265/70R17", medidasAlt: ["275/70R17", "265/65R17"] },
-    { marca: "Toyota", modelo: "RAV4", anios: "2019-2024", medidaOEM: "225/65R17", medidasAlt: ["235/65R17", "225/60R18"] },
-    { marca: "Toyota", modelo: "Corolla", anios: "2020-2024", medidaOEM: "205/55R16", medidasAlt: ["215/55R16", "215/50R17"] },
-    { marca: "Toyota", modelo: "Camry", anios: "2018-2024", medidaOEM: "235/45R18", medidasAlt: ["225/45R18", "245/45R18"] },
-    
-    // Chevrolet
-    { marca: "Chevrolet", modelo: "Colorado", anios: "2017-2024", medidaOEM: "255/65R17", medidasAlt: ["265/65R17", "255/70R17"] },
-    { marca: "Chevrolet", modelo: "Trailblazer", anios: "2017-2024", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17"] },
-    { marca: "Chevrolet", modelo: "Tracker", anios: "2021-2024", medidaOEM: "215/55R17", medidasAlt: ["225/55R17", "215/50R18"] },
-    { marca: "Chevrolet", modelo: "Onix", anios: "2020-2024", medidaOEM: "195/55R16", medidasAlt: ["205/55R16", "195/50R16"] },
-    { marca: "Chevrolet", modelo: "Captiva", anios: "2022-2024", medidaOEM: "215/60R17", medidasAlt: ["225/60R17", "215/55R18"] },
-    
-    // Ford
-    { marca: "Ford", modelo: "Ranger", anios: "2019-2024", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17"] },
-    { marca: "Ford", modelo: "Bronco Sport", anios: "2021-2024", medidaOEM: "225/65R17", medidasAlt: ["235/65R17", "225/60R18"] },
-    { marca: "Ford", modelo: "Explorer", anios: "2020-2024", medidaOEM: "255/55R20", medidasAlt: ["265/50R20", "255/50R20"] },
-    { marca: "Ford", modelo: "Escape", anios: "2020-2024", medidaOEM: "225/60R18", medidasAlt: ["235/55R18", "225/55R19"] },
-    { marca: "Ford", modelo: "F-150", anios: "2015-2024", medidaOEM: "275/65R18", medidasAlt: ["275/70R18", "285/65R18"] },
-    
-    // Nissan
-    { marca: "Nissan", modelo: "Frontier", anios: "2016-2024", medidaOEM: "255/70R16", medidasAlt: ["265/70R16", "255/65R17"] },
-    { marca: "Nissan", modelo: "Navara", anios: "2016-2024", medidaOEM: "255/65R17", medidasAlt: ["265/65R17", "255/70R17"] },
-    { marca: "Nissan", modelo: "X-Trail", anios: "2018-2024", medidaOEM: "225/65R17", medidasAlt: ["235/65R17", "225/60R18"] },
-    { marca: "Nissan", modelo: "Qashqai", anios: "2018-2024", medidaOEM: "215/60R17", medidasAlt: ["225/60R17", "215/55R18"] },
-    { marca: "Nissan", modelo: "Kicks", anios: "2017-2024", medidaOEM: "205/55R17", medidasAlt: ["215/55R17", "205/50R17"] },
-    { marca: "Nissan", modelo: "Patrol", anios: "2010-2024", medidaOEM: "275/65R18", medidasAlt: ["285/65R18", "275/70R18"] },
-    
-    // Jeep
-    { marca: "Jeep", modelo: "Wrangler", anios: "2018-2024", medidaOEM: "255/70R18", medidasAlt: ["265/70R17", "275/70R18", "285/70R17"] },
-    { marca: "Jeep", modelo: "Grand Cherokee", anios: "2016-2024", medidaOEM: "265/60R18", medidasAlt: ["275/55R20", "265/50R20"] },
-    { marca: "Jeep", modelo: "Cherokee", anios: "2019-2024", medidaOEM: "225/60R18", medidasAlt: ["235/55R19", "225/55R18"] },
-    { marca: "Jeep", modelo: "Renegade", anios: "2015-2024", medidaOEM: "215/60R17", medidasAlt: ["225/55R18", "215/55R18"] },
-    { marca: "Jeep", modelo: "Compass", anios: "2017-2024", medidaOEM: "225/55R18", medidasAlt: ["235/50R19", "225/60R17"] },
-    
-    // Mazda
-    { marca: "Mazda", modelo: "CX-5", anios: "2017-2024", medidaOEM: "225/65R17", medidasAlt: ["225/55R19", "235/65R17"] },
-    { marca: "Mazda", modelo: "CX-30", anios: "2020-2024", medidaOEM: "215/55R18", medidasAlt: ["215/60R17", "225/55R18"] },
-    { marca: "Mazda", modelo: "CX-50", anios: "2023-2024", medidaOEM: "225/60R18", medidasAlt: ["235/55R19", "225/55R19"] },
-    { marca: "Mazda", modelo: "BT-50", anios: "2021-2024", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "255/70R17"] },
-    { marca: "Mazda", modelo: "3", anios: "2019-2024", medidaOEM: "215/45R18", medidasAlt: ["205/55R16", "215/55R17"] },
-    
-    // Hyundai
-    { marca: "Hyundai", modelo: "Tucson", anios: "2021-2024", medidaOEM: "235/55R19", medidasAlt: ["225/60R18", "235/60R18"] },
-    { marca: "Hyundai", modelo: "Santa Fe", anios: "2019-2024", medidaOEM: "235/60R18", medidasAlt: ["235/55R19", "245/60R18"] },
-    { marca: "Hyundai", modelo: "Creta", anios: "2020-2024", medidaOEM: "205/65R16", medidasAlt: ["215/60R17", "205/60R16"] },
-    { marca: "Hyundai", modelo: "Venue", anios: "2020-2024", medidaOEM: "205/55R17", medidasAlt: ["195/60R16", "205/60R16"] },
-    { marca: "Hyundai", modelo: "Palisade", anios: "2020-2024", medidaOEM: "245/60R18", medidasAlt: ["245/50R20", "255/55R19"] },
-    
-    // Kia
-    { marca: "Kia", modelo: "Sportage", anios: "2022-2024", medidaOEM: "235/55R19", medidasAlt: ["235/60R18", "245/50R19"] },
-    { marca: "Kia", modelo: "Sorento", anios: "2021-2024", medidaOEM: "235/65R17", medidasAlt: ["245/60R18", "235/55R19"] },
-    { marca: "Kia", modelo: "Seltos", anios: "2020-2024", medidaOEM: "215/55R18", medidasAlt: ["205/60R16", "215/60R17"] },
-    { marca: "Kia", modelo: "Carnival", anios: "2022-2024", medidaOEM: "235/55R19", medidasAlt: ["235/60R18", "235/50R19"] },
-    { marca: "Kia", modelo: "Rio", anios: "2018-2024", medidaOEM: "185/65R15", medidasAlt: ["195/55R16", "185/55R16"] },
-    
-    // Mitsubishi
-    { marca: "Mitsubishi", modelo: "Montero Sport", anios: "2016-2024", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17"] },
-    { marca: "Mitsubishi", modelo: "L200", anios: "2015-2024", medidaOEM: "245/65R17", medidasAlt: ["255/65R17", "265/65R17"] },
-    { marca: "Mitsubishi", modelo: "Outlander", anios: "2022-2024", medidaOEM: "255/45R20", medidasAlt: ["235/55R19", "245/50R19"] },
-    { marca: "Mitsubishi", modelo: "ASX", anios: "2020-2024", medidaOEM: "215/60R17", medidasAlt: ["225/55R18", "215/55R18"] },
-    
-    // Suzuki
-    { marca: "Suzuki", modelo: "Jimny", anios: "2019-2024", medidaOEM: "195/80R15", medidasAlt: ["205/70R15", "215/75R15"] },
-    { marca: "Suzuki", modelo: "Vitara", anios: "2016-2024", medidaOEM: "215/55R17", medidasAlt: ["225/55R17", "215/50R18"] },
-    { marca: "Suzuki", modelo: "Grand Vitara", anios: "2022-2024", medidaOEM: "215/55R17", medidasAlt: ["225/55R17", "225/60R17"] },
-    { marca: "Suzuki", modelo: "Swift", anios: "2017-2024", medidaOEM: "185/55R16", medidasAlt: ["195/50R16", "185/50R16"] },
-    
-    // Renault
-    { marca: "Renault", modelo: "Duster", anios: "2018-2024", medidaOEM: "215/60R17", medidasAlt: ["215/65R16", "225/55R18"] },
-    { marca: "Renault", modelo: "Koleos", anios: "2017-2024", medidaOEM: "225/60R18", medidasAlt: ["235/55R19", "225/55R19"] },
-    { marca: "Renault", modelo: "Captur", anios: "2020-2024", medidaOEM: "215/55R18", medidasAlt: ["205/60R17", "215/60R17"] },
-    { marca: "Renault", modelo: "Kwid", anios: "2019-2024", medidaOEM: "165/70R14", medidasAlt: ["175/65R14", "165/65R14"] },
-    
-    // Volkswagen
-    { marca: "Volkswagen", modelo: "Amarok", anios: "2017-2024", medidaOEM: "255/60R18", medidasAlt: ["265/65R17", "255/65R17"] },
-    { marca: "Volkswagen", modelo: "Tiguan", anios: "2018-2024", medidaOEM: "215/65R17", medidasAlt: ["235/55R18", "225/60R17"] },
-    { marca: "Volkswagen", modelo: "Taos", anios: "2021-2024", medidaOEM: "215/55R18", medidasAlt: ["225/55R18", "215/60R17"] },
-    { marca: "Volkswagen", modelo: "T-Cross", anios: "2019-2024", medidaOEM: "205/55R17", medidasAlt: ["215/55R17", "205/60R16"] },
-    { marca: "Volkswagen", modelo: "Jetta", anios: "2019-2024", medidaOEM: "205/60R16", medidasAlt: ["215/55R17", "205/55R16"] },
-    
-    // Subaru
-    { marca: "Subaru", modelo: "Forester", anios: "2019-2024", medidaOEM: "225/55R18", medidasAlt: ["225/60R17", "235/55R18"] },
-    { marca: "Subaru", modelo: "Outback", anios: "2020-2024", medidaOEM: "225/60R18", medidasAlt: ["225/65R17", "235/55R19"] },
-    { marca: "Subaru", modelo: "XV/Crosstrek", anios: "2018-2024", medidaOEM: "225/55R18", medidasAlt: ["215/55R17", "225/60R17"] },
-    
-    // Honda
-    { marca: "Honda", modelo: "CR-V", anios: "2017-2024", medidaOEM: "235/60R18", medidasAlt: ["235/65R17", "245/55R19"] },
-    { marca: "Honda", modelo: "HR-V", anios: "2019-2024", medidaOEM: "215/55R17", medidasAlt: ["215/60R17", "225/55R17"] },
-    { marca: "Honda", modelo: "Pilot", anios: "2019-2024", medidaOEM: "245/60R18", medidasAlt: ["255/55R19", "245/50R20"] },
-    { marca: "Honda", modelo: "Civic", anios: "2022-2024", medidaOEM: "235/40R18", medidasAlt: ["215/55R16", "225/45R17"] },
-    
-    // Dodge/RAM
-    { marca: "RAM", modelo: "1500", anios: "2019-2024", medidaOEM: "275/65R18", medidasAlt: ["285/65R18", "275/60R20"] },
-    { marca: "RAM", modelo: "2500", anios: "2019-2024", medidaOEM: "275/70R18", medidasAlt: ["285/70R17", "275/65R20"] },
-    { marca: "Dodge", modelo: "Durango", anios: "2016-2024", medidaOEM: "265/60R18", medidasAlt: ["275/55R20", "265/50R20"] },
-    
-    // Land Rover
-    { marca: "Land Rover", modelo: "Defender", anios: "2020-2024", medidaOEM: "255/65R19", medidasAlt: ["275/55R20", "265/65R18"] },
-    { marca: "Land Rover", modelo: "Discovery Sport", anios: "2015-2024", medidaOEM: "235/60R18", medidasAlt: ["235/55R19", "245/55R19"] },
-    { marca: "Land Rover", modelo: "Range Rover Sport", anios: "2018-2024", medidaOEM: "275/45R21", medidasAlt: ["275/50R20", "285/45R21"] },
-  ];
+const vehiculos = [
+  // ===========================
+  //        TOYOTA (LATAM / USA)
+  // ===========================
+  { marca: "Toyota", modelo: "4Runner", anios: "2010-2025", medidaOEM: "265/70R17",
+    medidasAlt: ["265/65R17", "275/70R17", "285/70R17"] },
+
+  { marca: "Toyota", modelo: "Hilux", anios: "2010-2025", medidaOEM: "265/65R17",
+    medidasAlt: ["265/70R17", "255/70R17", "275/65R17"] },
+
+  { marca: "Toyota", modelo: "Tacoma", anios: "2010-2025", medidaOEM: "265/70R16",
+    medidasAlt: ["265/75R16", "245/75R16", "265/70R17"] },
+
+  { marca: "Toyota", modelo: "Tundra", anios: "2010-2025", medidaOEM: "275/65R18",
+    medidasAlt: ["285/65R18", "275/60R20", "285/55R20"] },
+
+  { marca: "Toyota", modelo: "Fortuner", anios: "2010-2025", medidaOEM: "265/65R17",
+    medidasAlt: ["265/70R17", "275/65R17"] },
+
+  { marca: "Toyota", modelo: "Land Cruiser Prado", anios: "2010-2025", medidaOEM: "265/65R17",
+    medidasAlt: ["265/70R17", "275/65R17", "285/60R18"] },
+
+  { marca: "Toyota", modelo: "RAV4", anios: "2013-2025", medidaOEM: "225/65R17",
+    medidasAlt: ["235/65R17", "225/60R18", "235/55R19"] },
+
+
+  // ===========================
+  //        NISSAN (LATAM / USA)
+  // ===========================
+  { marca: "Nissan", modelo: "Frontier / NP300", anios: "2010-2025", medidaOEM: "255/70R16",
+    medidasAlt: ["265/70R16", "245/75R16", "265/65R17"] },
+
+  { marca: "Nissan", modelo: "Navara", anios: "2015-2025", medidaOEM: "255/70R16",
+    medidasAlt: ["265/70R16", "265/65R17"] },
+
+  { marca: "Nissan", modelo: "Pathfinder", anios: "2010-2020", medidaOEM: "235/65R18",
+    medidasAlt: ["245/65R18", "255/60R18"] },
+
+  { marca: "Nissan", modelo: "X-Trail / Rogue", anios: "2010-2025", medidaOEM: "225/65R17",
+    medidasAlt: ["235/65R17", "225/60R18"] },
+
+
+  // ===========================
+  //        FORD (LATAM / USA)
+  // ===========================
+  { marca: "Ford", modelo: "Ranger", anios: "2010-2025", medidaOEM: "255/70R16",
+    medidasAlt: ["265/70R16", "255/65R17", "265/65R17"] },
+
+  { marca: "Ford", modelo: "F-150", anios: "2010-2025", medidaOEM: "275/65R18",
+    medidasAlt: ["285/65R18", "275/55R20", "285/55R20"] },
+
+  { marca: "Ford", modelo: "Explorer", anios: "2011-2025", medidaOEM: "245/60R18",
+    medidasAlt: ["255/55R20", "245/55R19"] },
+
+  { marca: "Ford", modelo: "Bronco", anios: "2021-2025", medidaOEM: "255/70R16",
+    medidasAlt: ["265/70R16", "285/70R17"] },
+
+
+  // ===========================
+  //     CHEVROLET (LATAM / USA)
+  // ===========================
+  { marca: "Chevrolet", modelo: "Colorado", anios: "2010-2025", medidaOEM: "255/65R17",
+    medidasAlt: ["265/65R17", "265/70R17"] },
+
+  { marca: "Chevrolet", modelo: "S10", anios: "2010-2025", medidaOEM: "245/70R16",
+    medidasAlt: ["255/70R16", "265/70R16"] },
+
+  { marca: "Chevrolet", modelo: "Silverado 1500", anios: "2010-2025", medidaOEM: "275/60R20",
+    medidasAlt: ["275/65R18", "285/55R20"] },
+
+  { marca: "Chevrolet", modelo: "Tahoe", anios: "2010-2025", medidaOEM: "265/65R18",
+    medidasAlt: ["275/60R20", "285/55R20"] },
+
+
+  // ===========================
+  //    MITSUBISHI (LATAM / USA)
+  // ===========================
+  { marca: "Mitsubishi", modelo: "L200 / Triton", anios: "2010-2025", medidaOEM: "245/70R16",
+    medidasAlt: ["265/70R16", "245/65R17"] },
+
+  { marca: "Mitsubishi", modelo: "Montero / Pajero", anios: "2010-2021", medidaOEM: "265/65R17",
+    medidasAlt: ["265/70R17", "275/65R17"] },
+
+  { marca: "Mitsubishi", modelo: "Outlander", anios: "2014-2025", medidaOEM: "225/55R18",
+    medidasAlt: ["235/55R18", "225/60R17"] },
+
+
+  // ===========================
+  //         HONDA (USA / LATAM)
+  // ===========================
+  { marca: "Honda", modelo: "Pilot", anios: "2010-2025", medidaOEM: "245/60R18",
+    medidasAlt: ["255/55R20", "245/55R19"] },
+
+  { marca: "Honda", modelo: "Passport", anios: "2019-2025", medidaOEM: "245/60R18",
+    medidasAlt: ["255/55R20"] },
+
+  { marca: "Honda", modelo: "CR-V", anios: "2010-2025", medidaOEM: "225/65R17",
+    medidasAlt: ["235/65R17", "225/60R18"] },
+
+
+  // ===========================
+  //         JEEP (LATAM / USA)
+  // ===========================
+  { marca: "Jeep", modelo: "Wrangler", anios: "2010-2025", medidaOEM: "255/75R17",
+    medidasAlt: ["285/70R17", "315/70R17"] },
+
+  { marca: "Jeep", modelo: "Grand Cherokee", anios: "2011-2025", medidaOEM: "265/60R18",
+    medidasAlt: ["275/55R20", "265/50R20"] },
+
+  { marca: "Jeep", modelo: "Cherokee", anios: "2014-2022", medidaOEM: "225/65R17",
+    medidasAlt: ["235/65R17", "225/60R18"] },
+
+
+  // ===========================
+  //           RAM (USA)
+  // ===========================
+  { marca: "RAM", modelo: "1500", anios: "2010-2025", medidaOEM: "275/65R18",
+    medidasAlt: ["285/65R18", "275/60R20"] },
+
+  { marca: "RAM", modelo: "2500", anios: "2010-2025", medidaOEM: "275/70R18",
+    medidasAlt: ["285/70R18", "295/70R18"] }
+];
+
 
   // Filtrar vehículos por búsqueda
   const vehiculosFiltrados = busquedaVehiculo.length >= 2 

@@ -28,112 +28,169 @@ const calcularEspecificaciones = (medida) => {
 };
 
 // =============================================
-// LLANTA BANDA DE RODAMIENTO (Vista de frente - para comparación lado a lado)
+// LLANTA MICKEY THOMPSON BAJA LEGEND - BANDA DE RODAMIENTO
 // =============================================
 const LlantaBandaRodamiento = ({ specs, numero, alturaBase = 180 }) => {
   if (!specs) return null;
   const escalaAltura = specs.diametroTotal.pulgadas / 28;
   const escalaAncho = specs.anchoTotal.mm / 220;
   const altura = alturaBase * escalaAltura;
-  const ancho = 55 * escalaAncho;
+  const ancho = 60 * escalaAncho;
   const radio = ancho / 2;
-  const filas = Math.floor((altura - radio * 1.2) / 8);
   
   return (
-    <svg width={ancho + 4} height={altura + 4} viewBox={`0 0 ${ancho + 4} ${altura + 4}`}>
+    <svg width={ancho + 8} height={altura + 6} viewBox={`0 0 ${ancho + 8} ${altura + 6}`}>
       <defs>
-        <linearGradient id={`bg${numero}`} x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#1a1a1a"/><stop offset="25%" stopColor="#2a2a2a"/><stop offset="50%" stopColor="#333"/><stop offset="75%" stopColor="#2a2a2a"/><stop offset="100%" stopColor="#1a1a1a"/>
+        <linearGradient id={`mg${numero}`} x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#1a1a1a"/><stop offset="20%" stopColor="#2d2d2d"/><stop offset="50%" stopColor="#3a3a3a"/><stop offset="80%" stopColor="#2d2d2d"/><stop offset="100%" stopColor="#1a1a1a"/>
         </linearGradient>
-        <linearGradient id={`bl${numero}`} x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#444"/><stop offset="100%" stopColor="#2a2a2a"/>
+        <linearGradient id={`bg${numero}`} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#4d4d4d"/><stop offset="100%" stopColor="#333"/>
+        </linearGradient>
+        <linearGradient id={`sg${numero}`} x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#4a4a4a"/><stop offset="100%" stopColor="#333"/>
         </linearGradient>
       </defs>
-      <rect x="3" y="3" width={ancho - 2} height={altura - 2} rx={radio} fill="rgba(0,0,0,0.15)"/>
-      <rect x="2" y="2" width={ancho - 2} height={altura - 2} rx={radio} fill={`url(#bg${numero})`}/>
-      {[...Array(filas)].map((_, f) => {
-        const y = 2 + radio * 0.5 + f * 8;
-        const impar = f % 2 === 1;
+      
+      {/* Sombra */}
+      <rect x="6" y="5" width={ancho} height={altura} rx={radio} fill="rgba(0,0,0,0.25)"/>
+      
+      {/* Cuerpo principal */}
+      <rect x="4" y="3" width={ancho} height={altura} rx={radio} fill={`url(#mg${numero})`}/>
+      
+      {/* Hombros izquierdos - shoulder lugs */}
+      {[...Array(Math.floor((altura - radio) / 16))].map((_, i) => (
+        <g key={`sl${i}`}>
+          <rect x="1" y={3 + radio * 0.35 + i * 16} width="7" height="11" rx="2" fill={`url(#sg${numero})`}/>
+          <rect x="2" y={5 + radio * 0.35 + i * 16} width="4" height="7" rx="1" fill="#555"/>
+        </g>
+      ))}
+      
+      {/* Hombros derechos */}
+      {[...Array(Math.floor((altura - radio) / 16))].map((_, i) => (
+        <g key={`sr${i}`}>
+          <rect x={ancho - 2} y={3 + radio * 0.35 + i * 16 + 8} width="7" height="11" rx="2" fill={`url(#sg${numero})`}/>
+          <rect x={ancho - 1} y={5 + radio * 0.35 + i * 16 + 8} width="4" height="7" rx="1" fill="#555"/>
+        </g>
+      ))}
+      
+      {/* Patrón Baja Legend - Bloques en chevron */}
+      {[...Array(Math.floor((altura - radio * 1.2) / 11))].map((_, f) => {
+        const y = 3 + radio * 0.3 + f * 11;
+        const off = (f % 2) * 5;
         return (
-          <g key={f}>
-            {!impar ? (
-              <>
-                <rect x={5} y={y} width={ancho * 0.26} height={5} rx={1} fill={`url(#bl${numero})`}/>
-                <rect x={5 + ancho * 0.30} y={y} width={ancho * 0.26} height={5} rx={1} fill={`url(#bl${numero})`}/>
-                <rect x={5 + ancho * 0.60} y={y} width={ancho * 0.24} height={5} rx={1} fill={`url(#bl${numero})`}/>
-              </>
-            ) : (
-              <>
-                <rect x={3} y={y} width={ancho * 0.36} height={5} rx={1} fill={`url(#bl${numero})`}/>
-                <rect x={3 + ancho * 0.42} y={y} width={ancho * 0.40} height={5} rx={1} fill={`url(#bl${numero})`}/>
-              </>
-            )}
+          <g key={`r${f}`}>
+            {/* Bloque izquierdo */}
+            <path d={`M ${7 + off} ${y} L ${7 + off + ancho * 0.22} ${y + 2} L ${7 + off + ancho * 0.20} ${y + 8} L ${6 + off} ${y + 7} Z`} fill={`url(#bg${numero})`}/>
+            
+            {/* Bloque central chevron */}
+            <path d={`M ${ancho * 0.32 + off} ${y + 1} L ${ancho * 0.50 + 4} ${y + 3} L ${ancho * 0.68 - off} ${y + 1} L ${ancho * 0.65 - off} ${y + 8} L ${ancho * 0.50 + 4} ${y + 6} L ${ancho * 0.35 + off} ${y + 8} Z`} fill={`url(#bg${numero})`}/>
+            
+            {/* Bloque derecho */}
+            <path d={`M ${ancho * 0.72 - off} ${y} L ${ancho - 2 - off} ${y + 1} L ${ancho - off} ${y + 7} L ${ancho * 0.70 - off} ${y + 8} Z`} fill={`url(#bg${numero})`}/>
+            
+            {/* Sipes */}
+            <path d={`M ${10 + off} ${y + 4} Q ${14 + off} ${y + 3} ${16 + off} ${y + 5}`} stroke="#222" strokeWidth="0.5" fill="none"/>
+            <path d={`M ${ancho * 0.45} ${y + 4} Q ${ancho * 0.50 + 4} ${y + 3} ${ancho * 0.55} ${y + 5}`} stroke="#222" strokeWidth="0.5" fill="none"/>
           </g>
         );
       })}
-      <line x1={ancho * 0.33} y1={radio * 0.6} x2={ancho * 0.33} y2={altura - radio * 0.4} stroke="#222" strokeWidth="1"/>
-      <line x1={ancho * 0.66} y1={radio * 0.6} x2={ancho * 0.66} y2={altura - radio * 0.4} stroke="#222" strokeWidth="1"/>
-      <text x={ancho / 2} y={altura / 2 + 6} textAnchor="middle" fill="white" fontSize="18" fontWeight="bold" fontFamily="Arial" style={{textShadow:'1px 1px 2px #000'}}>{numero}</text>
+      
+      {/* Canal central zigzag */}
+      <path d={`M ${ancho * 0.50 + 4} ${radio * 0.4} ${[...Array(Math.floor(altura / 14))].map((_, i) => `L ${ancho * (0.46 + (i % 2) * 0.08) + 4} ${radio * 0.4 + i * 14 + 7}`).join(' ')}`} stroke="#1a1a1a" strokeWidth="2.5" fill="none"/>
+      
+      {/* Ranuras laterales */}
+      <line x1={ancho * 0.28 + 4} y1={radio * 0.5} x2={ancho * 0.30 + 4} y2={altura - radio * 0.4} stroke="#1f1f1f" strokeWidth="1.5"/>
+      <line x1={ancho * 0.72 + 4} y1={radio * 0.5} x2={ancho * 0.70 + 4} y2={altura - radio * 0.4} stroke="#1f1f1f" strokeWidth="1.5"/>
+      
+      {/* Número */}
+      <text x={ancho / 2 + 4} y={altura / 2 + 7} textAnchor="middle" fill="white" fontSize="20" fontWeight="bold" fontFamily="Arial Black" style={{textShadow: '2px 2px 3px #000'}}>{numero}</text>
     </svg>
   );
 };
 
 // =============================================
-// LLANTA CON RIN (Vista frontal completa)
+// =============================================
+// LLANTA MICKEY THOMPSON - VISTA FRONTAL CON RIN 8 RAYOS
 // =============================================
 const LlantaConRin = ({ specs, numero, size = 200 }) => {
   if (!specs) return null;
   const rinRatio = (specs.rin * 25.4) / specs.diametroTotal.mm;
   const llantaR = size / 2 - 2;
   const rinR = llantaR * rinRatio;
-  const sidewallWidth = llantaR - rinR;
+  const cx = size / 2;
+  const cy = size / 2;
   
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
       <defs>
-        <radialGradient id={`llantaRad${numero}`} cx="50%" cy="50%" r="50%">
-          <stop offset="85%" stopColor="#1a1a1a"/><stop offset="100%" stopColor="#111"/>
+        <radialGradient id={`tr${numero}`} cx="50%" cy="50%" r="50%">
+          <stop offset="80%" stopColor="#252525"/><stop offset="95%" stopColor="#1a1a1a"/><stop offset="100%" stopColor="#111"/>
         </radialGradient>
-        <radialGradient id={`rinRad${numero}`} cx="30%" cy="30%" r="70%">
-          <stop offset="0%" stopColor="#555"/><stop offset="100%" stopColor="#222"/>
+        <radialGradient id={`rr${numero}`} cx="35%" cy="35%" r="65%">
+          <stop offset="0%" stopColor="#4a4a4a"/><stop offset="50%" stopColor="#333"/><stop offset="100%" stopColor="#1a1a1a"/>
         </radialGradient>
+        <linearGradient id={`sp${numero}`} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#555"/><stop offset="50%" stopColor="#3a3a3a"/><stop offset="100%" stopColor="#222"/>
+        </linearGradient>
       </defs>
       
       {/* Llanta exterior */}
-      <circle cx={size/2} cy={size/2} r={llantaR} fill={`url(#llantaRad${numero})`}/>
+      <circle cx={cx} cy={cy} r={llantaR} fill={`url(#tr${numero})`}/>
       
-      {/* Patrón banda de rodamiento */}
-      {[...Array(60)].map((_, i) => (
-        <line key={i} x1={size/2} y1="4" x2={size/2} y2="18" stroke="#222" strokeWidth="2" transform={`rotate(${i * 6} ${size/2} ${size/2})`}/>
-      ))}
+      {/* Shoulder lugs */}
+      {[...Array(36)].map((_, i) => {
+        const angle = (i * 10) * Math.PI / 180;
+        return <line key={i} x1={cx + Math.cos(angle) * (llantaR - 1)} y1={cy + Math.sin(angle) * (llantaR - 1)} x2={cx + Math.cos(angle) * (llantaR - 12)} y2={cy + Math.sin(angle) * (llantaR - 12)} stroke="#1a1a1a" strokeWidth="3"/>;
+      })}
+      
+      {/* Banda de rodamiento */}
+      <circle cx={cx} cy={cy} r={llantaR - 7} fill="none" stroke="#333" strokeWidth="10"/>
+      
+      {/* Bloques tread */}
+      {[...Array(24)].map((_, i) => {
+        const angle = (i * 15) * Math.PI / 180;
+        const r1 = llantaR - 4, r2 = llantaR - 16;
+        return <path key={i} d={`M ${cx + Math.cos(angle - 0.08) * r1} ${cy + Math.sin(angle - 0.08) * r1} L ${cx + Math.cos(angle + 0.08) * r1} ${cy + Math.sin(angle + 0.08) * r1} L ${cx + Math.cos(angle + 0.06) * r2} ${cy + Math.sin(angle + 0.06) * r2} L ${cx + Math.cos(angle - 0.06) * r2} ${cy + Math.sin(angle - 0.06) * r2} Z`} fill="#444"/>;
+      })}
       
       {/* Sidewall */}
-      <circle cx={size/2} cy={size/2} r={llantaR - 15} fill="#1f1f1f"/>
-      <circle cx={size/2} cy={size/2} r={rinR + sidewallWidth * 0.15} fill="#252525"/>
+      <circle cx={cx} cy={cy} r={llantaR - 18} fill="#1f1f1f"/>
+      <circle cx={cx} cy={cy} r={llantaR - 22} fill="#252525"/>
       
       {/* Rin */}
-      <circle cx={size/2} cy={size/2} r={rinR} fill={`url(#rinRad${numero})`}/>
+      <circle cx={cx} cy={cy} r={rinR + 4} fill="#2a2a2a"/>
+      <circle cx={cx} cy={cy} r={rinR} fill={`url(#rr${numero})`}/>
       
-      {/* Rayos del rin */}
-      {[...Array(10)].map((_, i) => {
-        const angle = (i * 36 - 90) * Math.PI / 180;
-        const x1 = size/2 + Math.cos(angle) * rinR * 0.25;
-        const y1 = size/2 + Math.sin(angle) * rinR * 0.25;
-        const x2 = size/2 + Math.cos(angle) * rinR * 0.85;
-        const y2 = size/2 + Math.sin(angle) * rinR * 0.85;
-        const x3 = size/2 + Math.cos(angle + 0.15) * rinR * 0.85;
-        const y3 = size/2 + Math.sin(angle + 0.15) * rinR * 0.85;
-        const x4 = size/2 + Math.cos(angle + 0.15) * rinR * 0.25;
-        const y4 = size/2 + Math.sin(angle + 0.15) * rinR * 0.25;
-        return <polygon key={i} points={`${x1},${y1} ${x2},${y2} ${x3},${y3} ${x4},${y4}`} fill="#1a1a1a"/>;
+      {/* 8 Rayos split-spoke */}
+      {[...Array(8)].map((_, i) => {
+        const angle = (i * 45 - 22.5) * Math.PI / 180;
+        const innerR = rinR * 0.28, outerR = rinR * 0.88, w = 0.18;
+        const x1 = cx + Math.cos(angle - w) * innerR, y1 = cy + Math.sin(angle - w) * innerR;
+        const x2 = cx + Math.cos(angle + w) * innerR, y2 = cy + Math.sin(angle + w) * innerR;
+        const x3 = cx + Math.cos(angle + w * 0.7) * outerR, y3 = cy + Math.sin(angle + w * 0.7) * outerR;
+        const x4 = cx + Math.cos(angle - w * 0.7) * outerR, y4 = cy + Math.sin(angle - w * 0.7) * outerR;
+        const mx = cx + Math.cos(angle) * (rinR * 0.55), my = cy + Math.sin(angle) * (rinR * 0.55);
+        return (
+          <g key={i}>
+            <path d={`M ${x1} ${y1} L ${x4} ${y4} L ${x3} ${y3} L ${x2} ${y2} Z`} fill={`url(#sp${numero})`} stroke="#222" strokeWidth="0.5"/>
+            <rect x={mx - 5} y={my - 3} width="10" height="6" rx="1" fill="#1a1a1a" transform={`rotate(${i * 45} ${mx} ${my})`}/>
+          </g>
+        );
       })}
       
       {/* Centro */}
-      <circle cx={size/2} cy={size/2} r={rinR * 0.22} fill="#333"/>
-      <circle cx={size/2} cy={size/2} r={rinR * 0.12} fill="#222"/>
+      <circle cx={cx} cy={cy} r={rinR * 0.25} fill="#333" stroke="#222" strokeWidth="1.5"/>
+      <circle cx={cx} cy={cy} r={rinR * 0.15} fill="#2a2a2a"/>
       
-      {/* Número */}
-      <text x={size/2} y={size/2 + 8} textAnchor="middle" fill="white" fontSize="24" fontWeight="bold" fontFamily="Arial">{numero}</text>
+      {/* Tornillos */}
+      {[...Array(6)].map((_, i) => {
+        const angle = (i * 60) * Math.PI / 180;
+        return <circle key={i} cx={cx + Math.cos(angle) * (rinR * 0.18)} cy={cy + Math.sin(angle) * (rinR * 0.18)} r="2.5" fill="#222" stroke="#444" strokeWidth="0.5"/>;
+      })}
+      
+      <circle cx={cx} cy={cy} r={rinR * 0.07} fill="#444"/>
+      <text x={cx} y={cy + 6} textAnchor="middle" fill="white" fontSize="20" fontWeight="bold" fontFamily="Arial Black" style={{textShadow: '1px 1px 3px #000'}}>{numero}</text>
     </svg>
   );
 };

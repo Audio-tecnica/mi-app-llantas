@@ -200,11 +200,12 @@ const LlantaConRin = ({ specs, numero, size = 200 }) => {
 // COMPONENTE PRINCIPAL
 // =============================================
 function ComparadorLlantas({ llantas = [], onClose }) {
-  const [medida1, setMedida1] = useState({ ancho: "215", perfil: "65", rin: "16" });
-  const [medida2, setMedida2] = useState({ ancho: "225", perfil: "60", rin: "17" });
+  const [medida1, setMedida1] = useState({ ancho: "265", perfil: "65", rin: "17" });
+  const [medida2, setMedida2] = useState({ ancho: "265", perfil: "70", rin: "17" });
   const [llantaSeleccionada1, setLlantaSeleccionada1] = useState("");
   const [llantaSeleccionada2, setLlantaSeleccionada2] = useState("");
   const [modoIngreso, setModoIngreso] = useState("manual");
+  const [unidad, setUnidad] = useState("pulgadas"); // pulgadas o mm
 
   const specs1 = useMemo(() => {
     if (modoIngreso === "inventario" && llantaSeleccionada1) {
@@ -255,10 +256,28 @@ function ComparadorLlantas({ llantas = [], onClose }) {
         </div>
 
         <div className="p-4 sm:p-6">
-          {/* Selector de modo */}
-          <div className="flex gap-2 mb-6 justify-center">
-            <button onClick={() => setModoIngreso("manual")} className={`px-4 py-2 rounded-lg font-semibold text-sm ${modoIngreso === "manual" ? "bg-slate-700 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>✏️ Manual</button>
-            {llantas.length > 0 && <button onClick={() => setModoIngreso("inventario")} className={`px-4 py-2 rounded-lg font-semibold text-sm ${modoIngreso === "inventario" ? "bg-slate-700 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>📦 Inventario</button>}
+          {/* Selector de modo y unidades */}
+          <div className="flex flex-wrap gap-2 mb-6 justify-center items-center">
+            <div className="flex gap-2">
+              <button onClick={() => setModoIngreso("manual")} className={`px-4 py-2 rounded-lg font-semibold text-sm ${modoIngreso === "manual" ? "bg-slate-700 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>✏️ Manual</button>
+              {llantas.length > 0 && <button onClick={() => setModoIngreso("inventario")} className={`px-4 py-2 rounded-lg font-semibold text-sm ${modoIngreso === "inventario" ? "bg-slate-700 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>📦 Inventario</button>}
+            </div>
+            <div className="h-6 w-px bg-gray-300 mx-2 hidden sm:block"></div>
+            {/* Toggle de unidades */}
+            <div className="flex items-center bg-gray-100 rounded-lg p-1">
+              <button 
+                onClick={() => setUnidad("pulgadas")} 
+                className={`px-3 py-1.5 rounded-md text-sm font-semibold transition-all ${unidad === "pulgadas" ? "bg-amber-500 text-white shadow" : "text-gray-600 hover:bg-gray-200"}`}
+              >
+                Pulgadas
+              </button>
+              <button 
+                onClick={() => setUnidad("mm")} 
+                className={`px-3 py-1.5 rounded-md text-sm font-semibold transition-all ${unidad === "mm" ? "bg-amber-500 text-white shadow" : "text-gray-600 hover:bg-gray-200"}`}
+              >
+                Milímetros
+              </button>
+            </div>
           </div>
 
           {/* Inputs */}
@@ -319,7 +338,9 @@ function ComparadorLlantas({ llantas = [], onClose }) {
                       {/* Medida altura izquierda */}
                       <div className="flex flex-col items-center mr-2" style={{height: `${180 * (specs1.diametroTotal.pulgadas / 28) + 6}px`}}>
                         <div className="h-full flex items-center">
-                          <span className="text-white text-xs font-bold mr-1">{formatNum(specs1.diametroTotal.pulgadas)}"</span>
+                          <span className="text-white text-xs font-bold mr-1">
+                            {unidad === "pulgadas" ? `${formatNum(specs1.diametroTotal.pulgadas)}"` : `${formatNum(specs1.diametroTotal.mm, 0)}mm`}
+                          </span>
                           <div className="flex flex-col h-full items-center">
                             <div className="w-1.5 h-1.5 border-t border-l border-white"></div>
                             <div className="w-px bg-white flex-1"></div>
@@ -343,13 +364,14 @@ function ComparadorLlantas({ llantas = [], onClose }) {
                             <div className="w-1.5 h-1.5 border-b border-r border-yellow-400"></div>
                           </div>
                           <div className="flex flex-col ml-1">
-                            <span className="text-yellow-300 text-xs font-bold">{formatNum(specs2.diametroTotal.pulgadas)}"</span>
+                            <span className="text-yellow-300 text-xs font-bold">
+                              {unidad === "pulgadas" ? `${formatNum(specs2.diametroTotal.pulgadas)}"` : `${formatNum(specs2.diametroTotal.mm, 0)}mm`}
+                            </span>
                             {/* Diferencia de altura */}
                             <span className={`text-xs font-bold ${diferencias.diametro >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                              {diferencias.diametro >= 0 ? '↑' : '↓'} {Math.abs(specs2.diametroTotal.pulgadas - specs1.diametroTotal.pulgadas).toFixed(2)}"
-                            </span>
-                            <span className={`text-xs ${diferencias.diametro >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-                              ({Math.abs(specs2.diametroTotal.mm - specs1.diametroTotal.mm).toFixed(1)}mm)
+                              {diferencias.diametro >= 0 ? '↑' : '↓'} {unidad === "pulgadas" 
+                                ? `${Math.abs(specs2.diametroTotal.pulgadas - specs1.diametroTotal.pulgadas).toFixed(2)}"` 
+                                : `${Math.abs(specs2.diametroTotal.mm - specs1.diametroTotal.mm).toFixed(1)}mm`}
                             </span>
                           </div>
                         </div>
@@ -364,7 +386,9 @@ function ComparadorLlantas({ llantas = [], onClose }) {
                           <div className="h-px bg-white flex-1"></div>
                           <div className="h-1.5 w-1.5 border-r border-b border-white"></div>
                         </div>
-                        <span className="text-white text-xs font-bold mt-1">{formatNum(specs1.anchoTotal.pulgadas, 1)}"</span>
+                        <span className="text-white text-xs font-bold mt-1">
+                          {unidad === "pulgadas" ? `${formatNum(specs1.anchoTotal.pulgadas, 1)}"` : `${specs1.anchoTotal.mm}mm`}
+                        </span>
                       </div>
                       <div className="flex flex-col items-center" style={{width: `${60 * (specs2.anchoTotal.mm / 220) + 8}px`}}>
                         <div className="flex items-center w-full">
@@ -372,11 +396,15 @@ function ComparadorLlantas({ llantas = [], onClose }) {
                           <div className="h-px bg-yellow-400 flex-1"></div>
                           <div className="h-1.5 w-1.5 border-r border-b border-yellow-400"></div>
                         </div>
-                        <span className="text-yellow-300 text-xs font-bold mt-1">{formatNum(specs2.anchoTotal.pulgadas, 1)}"</span>
+                        <span className="text-yellow-300 text-xs font-bold mt-1">
+                          {unidad === "pulgadas" ? `${formatNum(specs2.anchoTotal.pulgadas, 1)}"` : `${specs2.anchoTotal.mm}mm`}
+                        </span>
                         {/* Diferencia de ancho */}
                         {specs2.anchoTotal.mm !== specs1.anchoTotal.mm && (
                           <span className={`text-xs font-bold ${diferencias.ancho >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                            {diferencias.ancho >= 0 ? '↑' : '↓'} {Math.abs(specs2.anchoTotal.mm - specs1.anchoTotal.mm)}mm
+                            {diferencias.ancho >= 0 ? '↑' : '↓'} {unidad === "pulgadas" 
+                              ? `${Math.abs(specs2.anchoTotal.pulgadas - specs1.anchoTotal.pulgadas).toFixed(2)}"` 
+                              : `${Math.abs(specs2.anchoTotal.mm - specs1.anchoTotal.mm)}mm`}
                           </span>
                         )}
                       </div>
@@ -405,7 +433,9 @@ function ComparadorLlantas({ llantas = [], onClose }) {
                           <div className="w-px bg-gray-600 flex-1"></div>
                           <div className="w-1 h-1 border-b border-r border-gray-600"></div>
                         </div>
-                        <span className="text-gray-700 text-xs font-bold ml-1 writing-mode-vertical" style={{writingMode: 'vertical-rl'}}>{formatNum(specs1.circunferencia.pulgadas, 1)}"</span>
+                        <span className="text-gray-700 text-xs font-bold ml-1" style={{writingMode: 'vertical-rl'}}>
+                          {unidad === "pulgadas" ? `${formatNum(specs1.circunferencia.pulgadas, 1)}"` : `${formatNum(specs1.circunferencia.mm, 0)}mm`}
+                        </span>
                       </div>
                     </div>
                     
@@ -417,13 +447,15 @@ function ComparadorLlantas({ llantas = [], onClose }) {
                           <div className="h-px bg-gray-600 w-10"></div>
                           <div className="h-1 w-1 border-r border-b border-gray-600"></div>
                         </div>
-                        <span className="text-gray-700 text-xs font-bold">{formatNum(specs1.alturaLateral.pulgadas, 1)}"</span>
+                        <span className="text-gray-700 text-xs font-bold">
+                          {unidad === "pulgadas" ? `${formatNum(specs1.alturaLateral.pulgadas, 1)}"` : `${formatNum(specs1.alturaLateral.mm, 0)}mm`}
+                        </span>
                       </div>
                     </div>
                     
-                    {/* Revs/Mile */}
+                    {/* Revs/Mile o Revs/Km */}
                     <div className="mt-2 bg-gray-700 text-white px-3 py-1 rounded-full text-sm font-bold">
-                      {Math.round(specs1.revsPorMilla)} Revs/Mile
+                      {unidad === "pulgadas" ? `${Math.round(specs1.revsPorMilla)} Revs/Mile` : `${Math.round(specs1.revsPorKm)} Revs/Km`}
                     </div>
                   </div>
                   
@@ -449,7 +481,9 @@ function ComparadorLlantas({ llantas = [], onClose }) {
                           <div className="w-px bg-amber-500 flex-1"></div>
                           <div className="w-1 h-1 border-b border-r border-amber-500"></div>
                         </div>
-                        <span className="text-amber-600 text-xs font-bold ml-1" style={{writingMode: 'vertical-rl'}}>{formatNum(specs2.circunferencia.pulgadas, 1)}"</span>
+                        <span className="text-amber-600 text-xs font-bold ml-1" style={{writingMode: 'vertical-rl'}}>
+                          {unidad === "pulgadas" ? `${formatNum(specs2.circunferencia.pulgadas, 1)}"` : `${formatNum(specs2.circunferencia.mm, 0)}mm`}
+                        </span>
                       </div>
                     </div>
                     
@@ -461,13 +495,15 @@ function ComparadorLlantas({ llantas = [], onClose }) {
                           <div className="h-px bg-amber-500 w-10"></div>
                           <div className="h-1 w-1 border-r border-b border-amber-500"></div>
                         </div>
-                        <span className="text-amber-600 text-xs font-bold">{formatNum(specs2.alturaLateral.pulgadas, 1)}"</span>
+                        <span className="text-amber-600 text-xs font-bold">
+                          {unidad === "pulgadas" ? `${formatNum(specs2.alturaLateral.pulgadas, 1)}"` : `${formatNum(specs2.alturaLateral.mm, 0)}mm`}
+                        </span>
                       </div>
                     </div>
                     
-                    {/* Revs/Mile */}
+                    {/* Revs/Mile o Revs/Km */}
                     <div className="mt-2 bg-gray-700 text-white px-3 py-1 rounded-full text-sm font-bold">
-                      {Math.round(specs2.revsPorMilla)} Revs/Mile
+                      {unidad === "pulgadas" ? `${Math.round(specs2.revsPorMilla)} Revs/Mile` : `${Math.round(specs2.revsPorKm)} Revs/Km`}
                     </div>
                   </div>
                 </div>

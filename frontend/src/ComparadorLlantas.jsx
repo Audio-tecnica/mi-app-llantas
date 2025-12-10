@@ -36,7 +36,8 @@ const LlantaBandaRodamiento = ({ specs, numero, alturaBase = 180 }) => {
   const escalaAncho = specs.anchoTotal.mm / 220;
   const altura = alturaBase * escalaAltura;
   const ancho = 60 * escalaAncho;
-  const radio = ancho / 2;
+  // Radio más pequeño para extremos más cuadrados (como llanta real)
+  const radio = ancho * 0.35;
   
   return (
     <svg width={ancho + 8} height={altura + 6} viewBox={`0 0 ${ancho + 8} ${altura + 6}`}>
@@ -55,56 +56,56 @@ const LlantaBandaRodamiento = ({ specs, numero, alturaBase = 180 }) => {
       {/* Sombra */}
       <rect x="6" y="5" width={ancho} height={altura} rx={radio} fill="rgba(0,0,0,0.25)"/>
       
-      {/* Cuerpo principal */}
+      {/* Cuerpo principal - rx más pequeño = más cuadrado */}
       <rect x="4" y="3" width={ancho} height={altura} rx={radio} fill={`url(#mg${numero})`}/>
       
       {/* Hombros izquierdos - shoulder lugs */}
-      {[...Array(Math.floor((altura - radio) / 16))].map((_, i) => (
+      {[...Array(Math.floor((altura - radio) / 14))].map((_, i) => (
         <g key={`sl${i}`}>
-          <rect x="1" y={3 + radio * 0.35 + i * 16} width="7" height="11" rx="2" fill={`url(#sg${numero})`}/>
-          <rect x="2" y={5 + radio * 0.35 + i * 16} width="4" height="7" rx="1" fill="#555"/>
+          <rect x="1" y={3 + radio * 0.5 + i * 14} width="7" height="10" rx="2" fill={`url(#sg${numero})`}/>
+          <rect x="2" y={5 + radio * 0.5 + i * 14} width="4" height="6" rx="1" fill="#555"/>
         </g>
       ))}
       
       {/* Hombros derechos */}
-      {[...Array(Math.floor((altura - radio) / 16))].map((_, i) => (
+      {[...Array(Math.floor((altura - radio) / 14))].map((_, i) => (
         <g key={`sr${i}`}>
-          <rect x={ancho - 2} y={3 + radio * 0.35 + i * 16 + 8} width="7" height="11" rx="2" fill={`url(#sg${numero})`}/>
-          <rect x={ancho - 1} y={5 + radio * 0.35 + i * 16 + 8} width="4" height="7" rx="1" fill="#555"/>
+          <rect x={ancho - 2} y={3 + radio * 0.5 + i * 14 + 7} width="7" height="10" rx="2" fill={`url(#sg${numero})`}/>
+          <rect x={ancho - 1} y={5 + radio * 0.5 + i * 14 + 7} width="4" height="6" rx="1" fill="#555"/>
         </g>
       ))}
       
       {/* Patrón Baja Legend - Bloques en chevron */}
-      {[...Array(Math.floor((altura - radio * 1.2) / 11))].map((_, f) => {
-        const y = 3 + radio * 0.3 + f * 11;
-        const off = (f % 2) * 5;
+      {[...Array(Math.floor((altura - radio * 0.8) / 10))].map((_, f) => {
+        const y = 3 + radio * 0.4 + f * 10;
+        const off = (f % 2) * 4;
         return (
           <g key={`r${f}`}>
             {/* Bloque izquierdo */}
-            <path d={`M ${7 + off} ${y} L ${7 + off + ancho * 0.22} ${y + 2} L ${7 + off + ancho * 0.20} ${y + 8} L ${6 + off} ${y + 7} Z`} fill={`url(#bg${numero})`}/>
+            <path d={`M ${7 + off} ${y} L ${7 + off + ancho * 0.22} ${y + 1.5} L ${7 + off + ancho * 0.20} ${y + 7} L ${6 + off} ${y + 6} Z`} fill={`url(#bg${numero})`}/>
             
             {/* Bloque central chevron */}
-            <path d={`M ${ancho * 0.32 + off} ${y + 1} L ${ancho * 0.50 + 4} ${y + 3} L ${ancho * 0.68 - off} ${y + 1} L ${ancho * 0.65 - off} ${y + 8} L ${ancho * 0.50 + 4} ${y + 6} L ${ancho * 0.35 + off} ${y + 8} Z`} fill={`url(#bg${numero})`}/>
+            <path d={`M ${ancho * 0.32 + off} ${y + 1} L ${ancho * 0.50 + 4} ${y + 2.5} L ${ancho * 0.68 - off} ${y + 1} L ${ancho * 0.65 - off} ${y + 7} L ${ancho * 0.50 + 4} ${y + 5.5} L ${ancho * 0.35 + off} ${y + 7} Z`} fill={`url(#bg${numero})`}/>
             
             {/* Bloque derecho */}
-            <path d={`M ${ancho * 0.72 - off} ${y} L ${ancho - 2 - off} ${y + 1} L ${ancho - off} ${y + 7} L ${ancho * 0.70 - off} ${y + 8} Z`} fill={`url(#bg${numero})`}/>
+            <path d={`M ${ancho * 0.72 - off} ${y} L ${ancho - 2 - off} ${y + 1} L ${ancho - off} ${y + 6} L ${ancho * 0.70 - off} ${y + 7} Z`} fill={`url(#bg${numero})`}/>
             
             {/* Sipes */}
-            <path d={`M ${10 + off} ${y + 4} Q ${14 + off} ${y + 3} ${16 + off} ${y + 5}`} stroke="#222" strokeWidth="0.5" fill="none"/>
-            <path d={`M ${ancho * 0.45} ${y + 4} Q ${ancho * 0.50 + 4} ${y + 3} ${ancho * 0.55} ${y + 5}`} stroke="#222" strokeWidth="0.5" fill="none"/>
+            <path d={`M ${10 + off} ${y + 3} Q ${13 + off} ${y + 2.5} ${15 + off} ${y + 4}`} stroke="#222" strokeWidth="0.5" fill="none"/>
           </g>
         );
       })}
       
       {/* Canal central zigzag */}
-      <path d={`M ${ancho * 0.50 + 4} ${radio * 0.4} ${[...Array(Math.floor(altura / 14))].map((_, i) => `L ${ancho * (0.46 + (i % 2) * 0.08) + 4} ${radio * 0.4 + i * 14 + 7}`).join(' ')}`} stroke="#1a1a1a" strokeWidth="2.5" fill="none"/>
+      <path d={`M ${ancho * 0.50 + 4} ${radio * 0.5} ${[...Array(Math.floor(altura / 12))].map((_, i) => `L ${ancho * (0.46 + (i % 2) * 0.08) + 4} ${radio * 0.5 + i * 12 + 6}`).join(' ')}`} stroke="#1a1a1a" strokeWidth="2" fill="none"/>
       
       {/* Ranuras laterales */}
-      <line x1={ancho * 0.28 + 4} y1={radio * 0.5} x2={ancho * 0.30 + 4} y2={altura - radio * 0.4} stroke="#1f1f1f" strokeWidth="1.5"/>
-      <line x1={ancho * 0.72 + 4} y1={radio * 0.5} x2={ancho * 0.70 + 4} y2={altura - radio * 0.4} stroke="#1f1f1f" strokeWidth="1.5"/>
+      <line x1={ancho * 0.28 + 4} y1={radio * 0.6} x2={ancho * 0.30 + 4} y2={altura - radio * 0.5} stroke="#1f1f1f" strokeWidth="1.5"/>
+      <line x1={ancho * 0.72 + 4} y1={radio * 0.6} x2={ancho * 0.70 + 4} y2={altura - radio * 0.5} stroke="#1f1f1f" strokeWidth="1.5"/>
       
-      {/* Número */}
-      <text x={ancho / 2 + 4} y={altura / 2 + 7} textAnchor="middle" fill="white" fontSize="20" fontWeight="bold" fontFamily="Arial Black" style={{textShadow: '2px 2px 3px #000'}}>{numero}</text>
+      {/* Número - más grande y centrado DENTRO de la llanta */}
+      <ellipse cx={ancho / 2 + 4} cy={altura / 2 + 3} rx={ancho * 0.28} ry={altura * 0.08} fill="rgba(0,0,0,0.5)"/>
+      <text x={ancho / 2 + 4} y={altura / 2 + 9} textAnchor="middle" fill="white" fontSize="26" fontWeight="bold" fontFamily="Arial Black" style={{textShadow: '2px 2px 4px #000'}}>{numero}</text>
     </svg>
   );
 };
@@ -309,14 +310,14 @@ function ComparadorLlantas({ llantas = [], onClose }) {
               {/* ============================================= */}
               {/* VISUALIZACIÓN PRINCIPAL - ESTILO TIRESIZE.COM */}
               {/* ============================================= */}
-              <div className="bg-gradient-to-b from-gray-200 to-gray-300 rounded-xl p-4 mb-6">
+              <div className="bg-gradient-to-b from-gray-500 to-gray-600 rounded-xl p-4 mb-6">
                 <div className="flex flex-col lg:flex-row items-center justify-center gap-4 lg:gap-8">
                   
                   {/* SECCIÓN IZQUIERDA: Comparación banda de rodamiento */}
-                  <div className="bg-gray-400 rounded-xl p-4 flex flex-col items-center">
+                  <div className="bg-gray-500 rounded-xl p-4 flex flex-col items-center">
                     <div className="flex items-end">
                       {/* Medida altura izquierda */}
-                      <div className="flex flex-col items-center mr-2" style={{height: `${180 * (specs1.diametroTotal.pulgadas / 28) + 4}px`}}>
+                      <div className="flex flex-col items-center mr-2" style={{height: `${180 * (specs1.diametroTotal.pulgadas / 28) + 6}px`}}>
                         <div className="h-full flex items-center">
                           <span className="text-white text-xs font-bold mr-1">{formatNum(specs1.diametroTotal.pulgadas)}"</span>
                           <div className="flex flex-col h-full items-center">
@@ -333,22 +334,31 @@ function ComparadorLlantas({ llantas = [], onClose }) {
                       {/* Llanta 2 */}
                       <LlantaBandaRodamiento specs={specs2} numero={2} alturaBase={180} />
                       
-                      {/* Medida altura derecha */}
-                      <div className="flex flex-col items-center ml-2" style={{height: `${180 * (specs2.diametroTotal.pulgadas / 28) + 4}px`}}>
+                      {/* Medida altura derecha + DIFERENCIA */}
+                      <div className="flex flex-col items-center ml-2" style={{height: `${180 * (specs2.diametroTotal.pulgadas / 28) + 6}px`}}>
                         <div className="h-full flex items-center">
                           <div className="flex flex-col h-full items-center">
                             <div className="w-1.5 h-1.5 border-t border-r border-yellow-400"></div>
                             <div className="w-px bg-yellow-400 flex-1"></div>
                             <div className="w-1.5 h-1.5 border-b border-r border-yellow-400"></div>
                           </div>
-                          <span className="text-yellow-300 text-xs font-bold ml-1">{formatNum(specs2.diametroTotal.pulgadas)}"</span>
+                          <div className="flex flex-col ml-1">
+                            <span className="text-yellow-300 text-xs font-bold">{formatNum(specs2.diametroTotal.pulgadas)}"</span>
+                            {/* Diferencia de altura */}
+                            <span className={`text-xs font-bold ${diferencias.diametro >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                              {diferencias.diametro >= 0 ? '↑' : '↓'} {Math.abs(specs2.diametroTotal.pulgadas - specs1.diametroTotal.pulgadas).toFixed(2)}"
+                            </span>
+                            <span className={`text-xs ${diferencias.diametro >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+                              ({Math.abs(specs2.diametroTotal.mm - specs1.diametroTotal.mm).toFixed(1)}mm)
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
                     
                     {/* Medidas de ancho abajo */}
-                    <div className="flex mt-2 gap-0">
-                      <div className="flex flex-col items-center" style={{width: `${55 * (specs1.anchoTotal.mm / 220) + 4}px`}}>
+                    <div className="flex mt-3 gap-1 items-start">
+                      <div className="flex flex-col items-center" style={{width: `${60 * (specs1.anchoTotal.mm / 220) + 8}px`}}>
                         <div className="flex items-center w-full">
                           <div className="h-1.5 w-1.5 border-l border-b border-white"></div>
                           <div className="h-px bg-white flex-1"></div>
@@ -356,13 +366,19 @@ function ComparadorLlantas({ llantas = [], onClose }) {
                         </div>
                         <span className="text-white text-xs font-bold mt-1">{formatNum(specs1.anchoTotal.pulgadas, 1)}"</span>
                       </div>
-                      <div className="flex flex-col items-center" style={{width: `${55 * (specs2.anchoTotal.mm / 220) + 4}px`}}>
+                      <div className="flex flex-col items-center" style={{width: `${60 * (specs2.anchoTotal.mm / 220) + 8}px`}}>
                         <div className="flex items-center w-full">
                           <div className="h-1.5 w-1.5 border-l border-b border-yellow-400"></div>
                           <div className="h-px bg-yellow-400 flex-1"></div>
                           <div className="h-1.5 w-1.5 border-r border-b border-yellow-400"></div>
                         </div>
                         <span className="text-yellow-300 text-xs font-bold mt-1">{formatNum(specs2.anchoTotal.pulgadas, 1)}"</span>
+                        {/* Diferencia de ancho */}
+                        {specs2.anchoTotal.mm !== specs1.anchoTotal.mm && (
+                          <span className={`text-xs font-bold ${diferencias.ancho >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                            {diferencias.ancho >= 0 ? '↑' : '↓'} {Math.abs(specs2.anchoTotal.mm - specs1.anchoTotal.mm)}mm
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>

@@ -207,8 +207,123 @@ function ComparadorLlantas({ llantas = [], onClose }) {
   const [modoIngreso, setModoIngreso] = useState("manual");
   const [unidad, setUnidad] = useState("pulgadas");
   const [mostrarEquivalencias, setMostrarEquivalencias] = useState(false);
-  const [precio1, setPrecio1] = useState("");
-  const [precio2, setPrecio2] = useState("");
+  const [busquedaVehiculo, setBusquedaVehiculo] = useState("");
+  const [vehiculoSeleccionado, setVehiculoSeleccionado] = useState(null);
+
+  // Base de datos de vehículos con sus medidas OEM
+  const vehiculos = [
+    // Toyota
+    { marca: "Toyota", modelo: "Fortuner", anios: "2016-2024", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17"] },
+    { marca: "Toyota", modelo: "Hilux", anios: "2016-2024", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "255/70R17"] },
+    { marca: "Toyota", modelo: "Land Cruiser Prado", anios: "2010-2024", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17"] },
+    { marca: "Toyota", modelo: "4Runner", anios: "2010-2024", medidaOEM: "265/70R17", medidasAlt: ["275/70R17", "265/65R17"] },
+    { marca: "Toyota", modelo: "RAV4", anios: "2019-2024", medidaOEM: "225/65R17", medidasAlt: ["235/65R17", "225/60R18"] },
+    { marca: "Toyota", modelo: "Corolla", anios: "2020-2024", medidaOEM: "205/55R16", medidasAlt: ["215/55R16", "215/50R17"] },
+    { marca: "Toyota", modelo: "Camry", anios: "2018-2024", medidaOEM: "235/45R18", medidasAlt: ["225/45R18", "245/45R18"] },
+    
+    // Chevrolet
+    { marca: "Chevrolet", modelo: "Colorado", anios: "2017-2024", medidaOEM: "255/65R17", medidasAlt: ["265/65R17", "255/70R17"] },
+    { marca: "Chevrolet", modelo: "Trailblazer", anios: "2017-2024", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17"] },
+    { marca: "Chevrolet", modelo: "Tracker", anios: "2021-2024", medidaOEM: "215/55R17", medidasAlt: ["225/55R17", "215/50R18"] },
+    { marca: "Chevrolet", modelo: "Onix", anios: "2020-2024", medidaOEM: "195/55R16", medidasAlt: ["205/55R16", "195/50R16"] },
+    { marca: "Chevrolet", modelo: "Captiva", anios: "2022-2024", medidaOEM: "215/60R17", medidasAlt: ["225/60R17", "215/55R18"] },
+    
+    // Ford
+    { marca: "Ford", modelo: "Ranger", anios: "2019-2024", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17"] },
+    { marca: "Ford", modelo: "Bronco Sport", anios: "2021-2024", medidaOEM: "225/65R17", medidasAlt: ["235/65R17", "225/60R18"] },
+    { marca: "Ford", modelo: "Explorer", anios: "2020-2024", medidaOEM: "255/55R20", medidasAlt: ["265/50R20", "255/50R20"] },
+    { marca: "Ford", modelo: "Escape", anios: "2020-2024", medidaOEM: "225/60R18", medidasAlt: ["235/55R18", "225/55R19"] },
+    { marca: "Ford", modelo: "F-150", anios: "2015-2024", medidaOEM: "275/65R18", medidasAlt: ["275/70R18", "285/65R18"] },
+    
+    // Nissan
+    { marca: "Nissan", modelo: "Frontier", anios: "2016-2024", medidaOEM: "255/70R16", medidasAlt: ["265/70R16", "255/65R17"] },
+    { marca: "Nissan", modelo: "Navara", anios: "2016-2024", medidaOEM: "255/65R17", medidasAlt: ["265/65R17", "255/70R17"] },
+    { marca: "Nissan", modelo: "X-Trail", anios: "2018-2024", medidaOEM: "225/65R17", medidasAlt: ["235/65R17", "225/60R18"] },
+    { marca: "Nissan", modelo: "Qashqai", anios: "2018-2024", medidaOEM: "215/60R17", medidasAlt: ["225/60R17", "215/55R18"] },
+    { marca: "Nissan", modelo: "Kicks", anios: "2017-2024", medidaOEM: "205/55R17", medidasAlt: ["215/55R17", "205/50R17"] },
+    { marca: "Nissan", modelo: "Patrol", anios: "2010-2024", medidaOEM: "275/65R18", medidasAlt: ["285/65R18", "275/70R18"] },
+    
+    // Jeep
+    { marca: "Jeep", modelo: "Wrangler", anios: "2018-2024", medidaOEM: "255/70R18", medidasAlt: ["265/70R17", "275/70R18", "285/70R17"] },
+    { marca: "Jeep", modelo: "Grand Cherokee", anios: "2016-2024", medidaOEM: "265/60R18", medidasAlt: ["275/55R20", "265/50R20"] },
+    { marca: "Jeep", modelo: "Cherokee", anios: "2019-2024", medidaOEM: "225/60R18", medidasAlt: ["235/55R19", "225/55R18"] },
+    { marca: "Jeep", modelo: "Renegade", anios: "2015-2024", medidaOEM: "215/60R17", medidasAlt: ["225/55R18", "215/55R18"] },
+    { marca: "Jeep", modelo: "Compass", anios: "2017-2024", medidaOEM: "225/55R18", medidasAlt: ["235/50R19", "225/60R17"] },
+    
+    // Mazda
+    { marca: "Mazda", modelo: "CX-5", anios: "2017-2024", medidaOEM: "225/65R17", medidasAlt: ["225/55R19", "235/65R17"] },
+    { marca: "Mazda", modelo: "CX-30", anios: "2020-2024", medidaOEM: "215/55R18", medidasAlt: ["215/60R17", "225/55R18"] },
+    { marca: "Mazda", modelo: "CX-50", anios: "2023-2024", medidaOEM: "225/60R18", medidasAlt: ["235/55R19", "225/55R19"] },
+    { marca: "Mazda", modelo: "BT-50", anios: "2021-2024", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "255/70R17"] },
+    { marca: "Mazda", modelo: "3", anios: "2019-2024", medidaOEM: "215/45R18", medidasAlt: ["205/55R16", "215/55R17"] },
+    
+    // Hyundai
+    { marca: "Hyundai", modelo: "Tucson", anios: "2021-2024", medidaOEM: "235/55R19", medidasAlt: ["225/60R18", "235/60R18"] },
+    { marca: "Hyundai", modelo: "Santa Fe", anios: "2019-2024", medidaOEM: "235/60R18", medidasAlt: ["235/55R19", "245/60R18"] },
+    { marca: "Hyundai", modelo: "Creta", anios: "2020-2024", medidaOEM: "205/65R16", medidasAlt: ["215/60R17", "205/60R16"] },
+    { marca: "Hyundai", modelo: "Venue", anios: "2020-2024", medidaOEM: "205/55R17", medidasAlt: ["195/60R16", "205/60R16"] },
+    { marca: "Hyundai", modelo: "Palisade", anios: "2020-2024", medidaOEM: "245/60R18", medidasAlt: ["245/50R20", "255/55R19"] },
+    
+    // Kia
+    { marca: "Kia", modelo: "Sportage", anios: "2022-2024", medidaOEM: "235/55R19", medidasAlt: ["235/60R18", "245/50R19"] },
+    { marca: "Kia", modelo: "Sorento", anios: "2021-2024", medidaOEM: "235/65R17", medidasAlt: ["245/60R18", "235/55R19"] },
+    { marca: "Kia", modelo: "Seltos", anios: "2020-2024", medidaOEM: "215/55R18", medidasAlt: ["205/60R16", "215/60R17"] },
+    { marca: "Kia", modelo: "Carnival", anios: "2022-2024", medidaOEM: "235/55R19", medidasAlt: ["235/60R18", "235/50R19"] },
+    { marca: "Kia", modelo: "Rio", anios: "2018-2024", medidaOEM: "185/65R15", medidasAlt: ["195/55R16", "185/55R16"] },
+    
+    // Mitsubishi
+    { marca: "Mitsubishi", modelo: "Montero Sport", anios: "2016-2024", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17"] },
+    { marca: "Mitsubishi", modelo: "L200", anios: "2015-2024", medidaOEM: "245/65R17", medidasAlt: ["255/65R17", "265/65R17"] },
+    { marca: "Mitsubishi", modelo: "Outlander", anios: "2022-2024", medidaOEM: "255/45R20", medidasAlt: ["235/55R19", "245/50R19"] },
+    { marca: "Mitsubishi", modelo: "ASX", anios: "2020-2024", medidaOEM: "215/60R17", medidasAlt: ["225/55R18", "215/55R18"] },
+    
+    // Suzuki
+    { marca: "Suzuki", modelo: "Jimny", anios: "2019-2024", medidaOEM: "195/80R15", medidasAlt: ["205/70R15", "215/75R15"] },
+    { marca: "Suzuki", modelo: "Vitara", anios: "2016-2024", medidaOEM: "215/55R17", medidasAlt: ["225/55R17", "215/50R18"] },
+    { marca: "Suzuki", modelo: "Grand Vitara", anios: "2022-2024", medidaOEM: "215/55R17", medidasAlt: ["225/55R17", "225/60R17"] },
+    { marca: "Suzuki", modelo: "Swift", anios: "2017-2024", medidaOEM: "185/55R16", medidasAlt: ["195/50R16", "185/50R16"] },
+    
+    // Renault
+    { marca: "Renault", modelo: "Duster", anios: "2018-2024", medidaOEM: "215/60R17", medidasAlt: ["215/65R16", "225/55R18"] },
+    { marca: "Renault", modelo: "Koleos", anios: "2017-2024", medidaOEM: "225/60R18", medidasAlt: ["235/55R19", "225/55R19"] },
+    { marca: "Renault", modelo: "Captur", anios: "2020-2024", medidaOEM: "215/55R18", medidasAlt: ["205/60R17", "215/60R17"] },
+    { marca: "Renault", modelo: "Kwid", anios: "2019-2024", medidaOEM: "165/70R14", medidasAlt: ["175/65R14", "165/65R14"] },
+    
+    // Volkswagen
+    { marca: "Volkswagen", modelo: "Amarok", anios: "2017-2024", medidaOEM: "255/60R18", medidasAlt: ["265/65R17", "255/65R17"] },
+    { marca: "Volkswagen", modelo: "Tiguan", anios: "2018-2024", medidaOEM: "215/65R17", medidasAlt: ["235/55R18", "225/60R17"] },
+    { marca: "Volkswagen", modelo: "Taos", anios: "2021-2024", medidaOEM: "215/55R18", medidasAlt: ["225/55R18", "215/60R17"] },
+    { marca: "Volkswagen", modelo: "T-Cross", anios: "2019-2024", medidaOEM: "205/55R17", medidasAlt: ["215/55R17", "205/60R16"] },
+    { marca: "Volkswagen", modelo: "Jetta", anios: "2019-2024", medidaOEM: "205/60R16", medidasAlt: ["215/55R17", "205/55R16"] },
+    
+    // Subaru
+    { marca: "Subaru", modelo: "Forester", anios: "2019-2024", medidaOEM: "225/55R18", medidasAlt: ["225/60R17", "235/55R18"] },
+    { marca: "Subaru", modelo: "Outback", anios: "2020-2024", medidaOEM: "225/60R18", medidasAlt: ["225/65R17", "235/55R19"] },
+    { marca: "Subaru", modelo: "XV/Crosstrek", anios: "2018-2024", medidaOEM: "225/55R18", medidasAlt: ["215/55R17", "225/60R17"] },
+    
+    // Honda
+    { marca: "Honda", modelo: "CR-V", anios: "2017-2024", medidaOEM: "235/60R18", medidasAlt: ["235/65R17", "245/55R19"] },
+    { marca: "Honda", modelo: "HR-V", anios: "2019-2024", medidaOEM: "215/55R17", medidasAlt: ["215/60R17", "225/55R17"] },
+    { marca: "Honda", modelo: "Pilot", anios: "2019-2024", medidaOEM: "245/60R18", medidasAlt: ["255/55R19", "245/50R20"] },
+    { marca: "Honda", modelo: "Civic", anios: "2022-2024", medidaOEM: "235/40R18", medidasAlt: ["215/55R16", "225/45R17"] },
+    
+    // Dodge/RAM
+    { marca: "RAM", modelo: "1500", anios: "2019-2024", medidaOEM: "275/65R18", medidasAlt: ["285/65R18", "275/60R20"] },
+    { marca: "RAM", modelo: "2500", anios: "2019-2024", medidaOEM: "275/70R18", medidasAlt: ["285/70R17", "275/65R20"] },
+    { marca: "Dodge", modelo: "Durango", anios: "2016-2024", medidaOEM: "265/60R18", medidasAlt: ["275/55R20", "265/50R20"] },
+    
+    // Land Rover
+    { marca: "Land Rover", modelo: "Defender", anios: "2020-2024", medidaOEM: "255/65R19", medidasAlt: ["275/55R20", "265/65R18"] },
+    { marca: "Land Rover", modelo: "Discovery Sport", anios: "2015-2024", medidaOEM: "235/60R18", medidasAlt: ["235/55R19", "245/55R19"] },
+    { marca: "Land Rover", modelo: "Range Rover Sport", anios: "2018-2024", medidaOEM: "275/45R21", medidasAlt: ["275/50R20", "285/45R21"] },
+  ];
+
+  // Filtrar vehículos por búsqueda
+  const vehiculosFiltrados = busquedaVehiculo.length >= 2 
+    ? vehiculos.filter(v => 
+        `${v.marca} ${v.modelo} ${v.anios}`.toLowerCase().includes(busquedaVehiculo.toLowerCase())
+      ).slice(0, 8)
+    : [];
 
   // Función para formatear referencia automáticamente
   const formatearReferencia = (valor) => {
@@ -300,12 +415,6 @@ function ComparadorLlantas({ llantas = [], onClose }) {
     return { diametro: calcDif(specs1.diametroTotal.pulgadas, specs2.diametroTotal.pulgadas), ancho: calcDif(specs1.anchoTotal.mm, specs2.anchoTotal.mm), perfil: calcDif(specs1.alturaLateral.mm, specs2.alturaLateral.mm), circunferencia: calcDif(specs1.circunferencia.mm, specs2.circunferencia.mm), revsPorMilla: specs2.revsPorMilla - specs1.revsPorMilla };
   }, [specs1, specs2]);
 
-  // Formatear precio
-  const formatPrecio = (precio) => {
-    if (!precio) return "";
-    return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(precio);
-  };
-
   const velocidades = [20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120];
   const calcularVelocidadReal = (vel) => specs1 && specs2 ? vel * (specs2.diametroTotal.mm / specs1.diametroTotal.mm) : vel;
   const getColorDiferencia = (valor, limiteVerde = 2, limiteAmarillo = 4) => {
@@ -357,6 +466,78 @@ function ComparadorLlantas({ llantas = [], onClose }) {
             </div>
           </div>
 
+          {/* Buscador de vehículos */}
+          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border-2 border-indigo-200 rounded-xl p-4 mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-2xl">🚗</span>
+              <span className="font-bold text-indigo-800">Buscar por Vehículo</span>
+            </div>
+            <div className="relative">
+              <input 
+                type="text" 
+                value={busquedaVehiculo} 
+                onChange={(e) => {
+                  setBusquedaVehiculo(e.target.value);
+                  setVehiculoSeleccionado(null);
+                }}
+                placeholder="Ej: Fortuner 2022, Hilux, RAV4..."
+                className="w-full px-4 py-3 border-2 border-indigo-200 rounded-lg outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+              />
+              {vehiculosFiltrados.length > 0 && !vehiculoSeleccionado && (
+                <div className="absolute z-20 w-full mt-1 bg-white border-2 border-indigo-200 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+                  {vehiculosFiltrados.map((v, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        setVehiculoSeleccionado(v);
+                        setBusquedaVehiculo(`${v.marca} ${v.modelo}`);
+                        setReferencia1(v.medidaOEM);
+                      }}
+                      className="w-full px-4 py-3 text-left hover:bg-indigo-50 border-b border-gray-100 last:border-0"
+                    >
+                      <div className="font-bold text-gray-800">{v.marca} {v.modelo}</div>
+                      <div className="text-sm text-gray-500">{v.anios} • OEM: {v.medidaOEM}</div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            {/* Vehículo seleccionado */}
+            {vehiculoSeleccionado && (
+              <div className="mt-3 p-3 bg-white rounded-lg border border-indigo-200">
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <span className="font-bold text-indigo-800">{vehiculoSeleccionado.marca} {vehiculoSeleccionado.modelo}</span>
+                    <span className="text-gray-500 text-sm ml-2">({vehiculoSeleccionado.anios})</span>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      setVehiculoSeleccionado(null);
+                      setBusquedaVehiculo("");
+                    }}
+                    className="text-gray-400 hover:text-gray-600"
+                  >✕</button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <span className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm font-semibold">
+                    OEM: {vehiculoSeleccionado.medidaOEM}
+                  </span>
+                  {vehiculoSeleccionado.medidasAlt.map((m, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setReferencia2(m)}
+                      className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold hover:bg-blue-200 transition-colors"
+                    >
+                      Alt: {m}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 mt-2">💡 Clic en una medida alternativa para compararla</p>
+              </div>
+            )}
+          </div>
+
           {/* Inputs */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
             <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-4">
@@ -365,25 +546,13 @@ function ComparadorLlantas({ llantas = [], onClose }) {
                 <span className="font-bold text-amber-800">Llanta Original (OEM)</span>
               </div>
               {modoIngreso === "manual" ? (
-                <div className="space-y-2">
-                  <input 
-                    type="text" 
-                    value={referencia1} 
-                    onChange={(e) => handleReferenciaChange(e.target.value, setReferencia1)}
-                    placeholder="Ej: 2656517 o 265/65R17"
-                    className="w-full px-4 py-3 border-2 border-amber-300 rounded-lg text-center text-xl font-bold outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
-                  />
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500">💰 Precio:</span>
-                    <input 
-                      type="number" 
-                      value={precio1} 
-                      onChange={(e) => setPrecio1(e.target.value)}
-                      placeholder="$ Opcional"
-                      className="flex-1 px-2 py-1 border border-amber-200 rounded text-sm outline-none"
-                    />
-                  </div>
-                </div>
+                <input 
+                  type="text" 
+                  value={referencia1} 
+                  onChange={(e) => handleReferenciaChange(e.target.value, setReferencia1)}
+                  placeholder="Ej: 2656517 o 265/65R17"
+                  className="w-full px-4 py-3 border-2 border-amber-300 rounded-lg text-center text-xl font-bold outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+                />
               ) : (
                 <select value={llantaSeleccionada1} onChange={(e) => setLlantaSeleccionada1(e.target.value)} className="w-full px-3 py-2 border-2 border-amber-300 rounded-lg">
                   <option value="">Seleccionar...</option>
@@ -397,25 +566,13 @@ function ComparadorLlantas({ llantas = [], onClose }) {
                 <span className="font-bold text-blue-800">Llanta Nueva</span>
               </div>
               {modoIngreso === "manual" ? (
-                <div className="space-y-2">
-                  <input 
-                    type="text" 
-                    value={referencia2} 
-                    onChange={(e) => handleReferenciaChange(e.target.value, setReferencia2)}
-                    placeholder="Ej: 2657017 o 265/70R17"
-                    className="w-full px-4 py-3 border-2 border-blue-300 rounded-lg text-center text-xl font-bold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                  />
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500">💰 Precio:</span>
-                    <input 
-                      type="number" 
-                      value={precio2} 
-                      onChange={(e) => setPrecio2(e.target.value)}
-                      placeholder="$ Opcional"
-                      className="flex-1 px-2 py-1 border border-blue-200 rounded text-sm outline-none"
-                    />
-                  </div>
-                </div>
+                <input 
+                  type="text" 
+                  value={referencia2} 
+                  onChange={(e) => handleReferenciaChange(e.target.value, setReferencia2)}
+                  placeholder="Ej: 2657017 o 265/70R17"
+                  className="w-full px-4 py-3 border-2 border-blue-300 rounded-lg text-center text-xl font-bold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                />
               ) : (
                 <select value={llantaSeleccionada2} onChange={(e) => setLlantaSeleccionada2(e.target.value)} className="w-full px-3 py-2 border-2 border-blue-300 rounded-lg">
                   <option value="">Seleccionar...</option>
@@ -424,51 +581,6 @@ function ComparadorLlantas({ llantas = [], onClose }) {
               )}
             </div>
           </div>
-
-          {/* Calculadora de precios (si hay precios ingresados) */}
-          {(precio1 || precio2) && (
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl p-4 mb-6">
-              <h3 className="font-bold text-green-800 mb-3">💰 Calculadora de Precios</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-                {precio1 && (
-                  <>
-                    <div className="bg-white rounded-lg p-2 border border-amber-200">
-                      <div className="text-xs text-gray-500">Llanta 1 (x1)</div>
-                      <div className="font-bold text-amber-600">{formatPrecio(precio1)}</div>
-                    </div>
-                    <div className="bg-white rounded-lg p-2 border border-amber-200">
-                      <div className="text-xs text-gray-500">Juego x4</div>
-                      <div className="font-bold text-amber-600">{formatPrecio(precio1 * 4)}</div>
-                    </div>
-                  </>
-                )}
-                {precio2 && (
-                  <>
-                    <div className="bg-white rounded-lg p-2 border border-blue-200">
-                      <div className="text-xs text-gray-500">Llanta 2 (x1)</div>
-                      <div className="font-bold text-blue-600">{formatPrecio(precio2)}</div>
-                    </div>
-                    <div className="bg-white rounded-lg p-2 border border-blue-200">
-                      <div className="text-xs text-gray-500">Juego x4</div>
-                      <div className="font-bold text-blue-600">{formatPrecio(precio2 * 4)}</div>
-                    </div>
-                  </>
-                )}
-              </div>
-              {precio1 && precio2 && (
-                <div className="mt-3 text-center">
-                  <span className={`text-sm font-bold ${Number(precio2) > Number(precio1) ? 'text-red-600' : 'text-green-600'}`}>
-                    {Number(precio2) > Number(precio1) 
-                      ? `⬆️ Llanta 2 es ${formatPrecio(Math.abs(precio2 - precio1))} más cara (${formatPrecio(Math.abs(precio2 - precio1) * 4)} x4)`
-                      : Number(precio2) < Number(precio1)
-                        ? `⬇️ Llanta 2 es ${formatPrecio(Math.abs(precio1 - precio2))} más barata (${formatPrecio(Math.abs(precio1 - precio2) * 4)} x4)`
-                        : '= Mismo precio'
-                    }
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
 
           {specs1 && specs2 && diferencias && (
             <>
@@ -775,8 +887,8 @@ function ComparadorLlantas({ llantas = [], onClose }) {
               onClick={() => {
                 setReferencia1("265/65R17");
                 setReferencia2("265/70R17");
-                setPrecio1("");
-                setPrecio2("");
+                setVehiculoSeleccionado(null);
+                setBusquedaVehiculo("");
               }} 
               className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 font-semibold"
             >

@@ -358,39 +358,368 @@ function ComparadorLlantas({ llantas = [], onClose }) {
 
     const cargarMedidas = async () => {
       if (API_KEY === "YOUR_API_KEY_HERE") {
-        // Datos de ejemplo basados en vehículos comunes
-        const medidasEjemplo = {
-          "toyota-fortuner": { oem: "265/65R17", alt: ["265/70R17", "275/65R17", "255/70R17"] },
-          "toyota-hilux": { oem: "265/65R17", alt: ["265/70R17", "255/70R17", "275/65R17"] },
-          "toyota-4runner": { oem: "265/70R17", alt: ["275/70R17", "265/65R17", "285/70R17"] },
-          "toyota-land-cruiser": { oem: "285/60R18", alt: ["275/65R18", "285/65R18"] },
-          "toyota-land-cruiser-prado": { oem: "265/65R17", alt: ["265/70R17", "275/65R17"] },
-          "toyota-rav4": { oem: "225/65R17", alt: ["235/65R17", "225/60R18"] },
-          "toyota-corolla": { oem: "205/55R16", alt: ["215/55R16", "215/50R17"] },
-          "toyota-camry": { oem: "235/45R18", alt: ["225/45R18", "245/45R18"] },
-          "toyota-tacoma": { oem: "265/70R16", alt: ["265/65R17", "275/70R16"] },
-          "toyota-tundra": { oem: "275/65R18", alt: ["285/65R18", "275/60R20"] },
-          "chevrolet-colorado": { oem: "255/65R17", alt: ["265/65R17", "255/70R17"] },
-          "chevrolet-trailblazer": { oem: "265/65R17", alt: ["265/70R17", "275/65R17"] },
-          "ford-ranger": { oem: "265/65R17", alt: ["265/70R17", "275/65R17"] },
-          "ford-f-150": { oem: "275/65R18", alt: ["275/70R18", "285/65R18"] },
-          "nissan-frontier": { oem: "255/70R16", alt: ["265/70R16", "255/65R17"] },
-          "nissan-patrol": { oem: "275/65R18", alt: ["285/65R18", "275/70R18"] },
-          "jeep-wrangler": { oem: "255/70R18", alt: ["265/70R17", "275/70R18", "285/70R17"] },
-          "jeep-grand-cherokee": { oem: "265/60R18", alt: ["275/55R20", "265/50R20"] },
+        // Datos de ejemplo con información técnica completa estilo wheel-size.com
+        const vehiculosData = {
+          "toyota-fortuner": { 
+            generacion: "AN150/AN160 Facelift",
+            produccion: "2020-2025",
+            regiones: "Central & South America, Southeast Asia, Middle East",
+            potencia: "164 hp | 122 kW | 166 PS",
+            motor: "2.7 L, 2TR-FE, I4, Petrol",
+            trimLevels: "SR5, SRX",
+            centerBore: "106.1 mm",
+            boltPattern: "6x139.7 (6x5.5)",
+            wheelFasteners: "Lug nuts",
+            threadSize: "M12 x 1.5",
+            torque: "105 Nm",
+            llantas: [
+              { medida: "265/65R17", indice: "112S", rin: "7.5Jx17 ET30", offset: "28-32", presion: "2.0", oem: true },
+              { medida: "265/60R18", indice: "110H", rin: "7.5Jx18 ET30", offset: "28-32", presion: "2.0", oem: true },
+              { medida: "265/55R19", indice: "109H", rin: "8Jx19 ET30", offset: "28-32", presion: "2.2", oem: false },
+            ]
+          },
+          "toyota-hilux": { 
+            generacion: "AN120/AN130",
+            produccion: "2015-2024",
+            regiones: "Global",
+            potencia: "150 hp | 112 kW",
+            motor: "2.4 L, 2GD-FTV, I4, Diesel",
+            trimLevels: "SR, SR5, TRD",
+            centerBore: "106.1 mm",
+            boltPattern: "6x139.7 (6x5.5)",
+            wheelFasteners: "Lug nuts",
+            threadSize: "M12 x 1.5",
+            torque: "105 Nm",
+            llantas: [
+              { medida: "265/65R17", indice: "112S", rin: "7.5Jx17 ET30", offset: "25-30", presion: "2.0", oem: true },
+              { medida: "265/70R17", indice: "115T", rin: "7.5Jx17 ET30", offset: "25-30", presion: "2.0", oem: false },
+              { medida: "255/70R17", indice: "112T", rin: "7Jx17 ET30", offset: "25-30", presion: "2.0", oem: false },
+            ]
+          },
+          "toyota-4runner": { 
+            generacion: "N280",
+            produccion: "2010-2024",
+            regiones: "North America, Middle East",
+            potencia: "270 hp | 201 kW",
+            motor: "4.0 L, 1GR-FE, V6, Petrol",
+            trimLevels: "SR5, TRD Off-Road, Limited, TRD Pro",
+            centerBore: "106.1 mm",
+            boltPattern: "6x139.7 (6x5.5)",
+            wheelFasteners: "Lug nuts",
+            threadSize: "M12 x 1.5",
+            torque: "105 Nm",
+            llantas: [
+              { medida: "265/70R17", indice: "115T", rin: "7.5Jx17 ET15", offset: "10-25", presion: "2.1", oem: true },
+              { medida: "275/70R17", indice: "114T", rin: "8Jx17 ET15", offset: "10-25", presion: "2.1", oem: false },
+              { medida: "265/65R17", indice: "112S", rin: "7.5Jx17 ET15", offset: "10-25", presion: "2.0", oem: false },
+            ]
+          },
+          "toyota-land-cruiser": { 
+            generacion: "J300",
+            produccion: "2021-2024",
+            regiones: "Global (except North America)",
+            potencia: "409 hp | 305 kW",
+            motor: "3.5 L, V35A-FTS, V6, Twin-Turbo",
+            trimLevels: "GX, VX, ZX, GR Sport",
+            centerBore: "110.1 mm",
+            boltPattern: "6x139.7 (6x5.5)",
+            wheelFasteners: "Lug nuts",
+            threadSize: "M14 x 1.5",
+            torque: "140 Nm",
+            llantas: [
+              { medida: "285/60R18", indice: "116V", rin: "8Jx18 ET50", offset: "45-55", presion: "2.3", oem: true },
+              { medida: "275/65R18", indice: "116H", rin: "8Jx18 ET50", offset: "45-55", presion: "2.2", oem: false },
+              { medida: "285/55R20", indice: "116V", rin: "8.5Jx20 ET50", offset: "45-55", presion: "2.3", oem: false },
+            ]
+          },
+          "toyota-land-cruiser-prado": { 
+            generacion: "J150 Facelift",
+            produccion: "2017-2024",
+            regiones: "Global",
+            potencia: "163 hp | 122 kW",
+            motor: "2.7 L, 2TR-FE, I4, Petrol",
+            trimLevels: "TX, TX-L, VX",
+            centerBore: "106.1 mm",
+            boltPattern: "6x139.7 (6x5.5)",
+            wheelFasteners: "Lug nuts",
+            threadSize: "M12 x 1.5",
+            torque: "105 Nm",
+            llantas: [
+              { medida: "265/65R17", indice: "112S", rin: "7.5Jx17 ET25", offset: "20-30", presion: "2.0", oem: true },
+              { medida: "265/60R18", indice: "110H", rin: "7.5Jx18 ET25", offset: "20-30", presion: "2.1", oem: true },
+              { medida: "265/55R19", indice: "109V", rin: "8Jx19 ET25", offset: "20-30", presion: "2.2", oem: false },
+            ]
+          },
+          "toyota-rav4": { 
+            generacion: "XA50",
+            produccion: "2019-2024",
+            regiones: "Global",
+            potencia: "203 hp | 151 kW",
+            motor: "2.5 L, A25A-FKS, I4, Petrol",
+            trimLevels: "LE, XLE, Adventure, TRD Off-Road, Limited",
+            centerBore: "60.1 mm",
+            boltPattern: "5x114.3 (5x4.5)",
+            wheelFasteners: "Lug nuts",
+            threadSize: "M12 x 1.5",
+            torque: "103 Nm",
+            llantas: [
+              { medida: "225/65R17", indice: "102H", rin: "7Jx17 ET35", offset: "32-40", presion: "2.3", oem: true },
+              { medida: "235/55R19", indice: "101V", rin: "7.5Jx19 ET35", offset: "32-40", presion: "2.4", oem: true },
+              { medida: "225/60R18", indice: "100H", rin: "7Jx18 ET35", offset: "32-40", presion: "2.3", oem: false },
+            ]
+          },
+          "toyota-corolla": { 
+            generacion: "E210",
+            produccion: "2019-2024",
+            regiones: "Global",
+            potencia: "169 hp | 126 kW",
+            motor: "2.0 L, M20A-FKS, I4, Petrol",
+            trimLevels: "L, LE, SE, XSE",
+            centerBore: "54.1 mm",
+            boltPattern: "5x100",
+            wheelFasteners: "Lug nuts",
+            threadSize: "M12 x 1.5",
+            torque: "103 Nm",
+            llantas: [
+              { medida: "205/55R16", indice: "91V", rin: "6.5Jx16 ET40", offset: "35-45", presion: "2.2", oem: true },
+              { medida: "225/40R18", indice: "88W", rin: "8Jx18 ET45", offset: "40-50", presion: "2.4", oem: true },
+              { medida: "215/45R17", indice: "87V", rin: "7Jx17 ET40", offset: "35-45", presion: "2.3", oem: false },
+            ]
+          },
+          "toyota-camry": { 
+            generacion: "XV70",
+            produccion: "2018-2024",
+            regiones: "Global",
+            potencia: "203 hp | 151 kW",
+            motor: "2.5 L, A25A-FKS, I4, Petrol",
+            trimLevels: "LE, SE, XLE, XSE, TRD",
+            centerBore: "60.1 mm",
+            boltPattern: "5x114.3 (5x4.5)",
+            wheelFasteners: "Lug nuts",
+            threadSize: "M12 x 1.5",
+            torque: "103 Nm",
+            llantas: [
+              { medida: "235/45R18", indice: "94V", rin: "8Jx18 ET45", offset: "40-50", presion: "2.4", oem: true },
+              { medida: "225/45R18", indice: "91V", rin: "7.5Jx18 ET45", offset: "40-50", presion: "2.3", oem: false },
+              { medida: "215/55R17", indice: "94V", rin: "7Jx17 ET40", offset: "35-45", presion: "2.2", oem: false },
+            ]
+          },
+          "toyota-tacoma": { 
+            generacion: "N300",
+            produccion: "2016-2023",
+            regiones: "North America",
+            potencia: "278 hp | 207 kW",
+            motor: "3.5 L, 2GR-FKS, V6, Petrol",
+            trimLevels: "SR, SR5, TRD Sport, TRD Off-Road, Limited, TRD Pro",
+            centerBore: "106.1 mm",
+            boltPattern: "6x139.7 (6x5.5)",
+            wheelFasteners: "Lug nuts",
+            threadSize: "M12 x 1.5",
+            torque: "105 Nm",
+            llantas: [
+              { medida: "265/70R16", indice: "112T", rin: "7Jx16 ET13", offset: "5-20", presion: "2.1", oem: true },
+              { medida: "265/65R17", indice: "112S", rin: "7.5Jx17 ET13", offset: "5-20", presion: "2.1", oem: true },
+              { medida: "275/70R17", indice: "114T", rin: "8Jx17 ET13", offset: "5-20", presion: "2.2", oem: false },
+            ]
+          },
+          "toyota-tundra": { 
+            generacion: "XK70",
+            produccion: "2022-2024",
+            regiones: "North America",
+            potencia: "389 hp | 290 kW",
+            motor: "3.5 L, V35A-FTS, V6, Twin-Turbo",
+            trimLevels: "SR, SR5, Limited, Platinum, TRD Pro, Capstone",
+            centerBore: "110.1 mm",
+            boltPattern: "6x139.7 (6x5.5)",
+            wheelFasteners: "Lug nuts",
+            threadSize: "M14 x 1.5",
+            torque: "140 Nm",
+            llantas: [
+              { medida: "275/65R18", indice: "116T", rin: "8Jx18 ET50", offset: "45-55", presion: "2.3", oem: true },
+              { medida: "285/65R18", indice: "116T", rin: "8Jx18 ET50", offset: "45-55", presion: "2.3", oem: false },
+              { medida: "275/60R20", indice: "115T", rin: "8.5Jx20 ET50", offset: "45-55", presion: "2.4", oem: true },
+            ]
+          },
+          "chevrolet-colorado": { 
+            generacion: "GMT31XX",
+            produccion: "2017-2024",
+            regiones: "North America, Asia Pacific",
+            potencia: "308 hp | 230 kW",
+            motor: "3.6 L, LGZ, V6, Petrol",
+            trimLevels: "WT, LT, Z71, ZR2",
+            centerBore: "77.8 mm",
+            boltPattern: "6x120",
+            wheelFasteners: "Lug nuts",
+            threadSize: "M14 x 1.5",
+            torque: "190 Nm",
+            llantas: [
+              { medida: "255/65R17", indice: "110T", rin: "7.5Jx17 ET30", offset: "25-35", presion: "2.1", oem: true },
+              { medida: "265/65R17", indice: "112T", rin: "8Jx17 ET30", offset: "25-35", presion: "2.1", oem: false },
+              { medida: "265/60R18", indice: "110T", rin: "8Jx18 ET30", offset: "25-35", presion: "2.2", oem: true },
+            ]
+          },
+          "chevrolet-trailblazer": { 
+            generacion: "RG",
+            produccion: "2017-2024",
+            regiones: "South America, Asia, Middle East",
+            potencia: "200 hp | 149 kW",
+            motor: "2.8 L, LWN, I4, Diesel",
+            trimLevels: "LT, LTZ, Premier",
+            centerBore: "106.1 mm",
+            boltPattern: "6x139.7 (6x5.5)",
+            wheelFasteners: "Lug nuts",
+            threadSize: "M12 x 1.5",
+            torque: "105 Nm",
+            llantas: [
+              { medida: "265/65R17", indice: "112S", rin: "7.5Jx17 ET30", offset: "25-35", presion: "2.0", oem: true },
+              { medida: "265/60R18", indice: "110H", rin: "7.5Jx18 ET30", offset: "25-35", presion: "2.1", oem: true },
+              { medida: "265/70R17", indice: "115T", rin: "7.5Jx17 ET30", offset: "25-35", presion: "2.0", oem: false },
+            ]
+          },
+          "ford-ranger": { 
+            generacion: "T6 Facelift",
+            produccion: "2019-2024",
+            regiones: "Global",
+            potencia: "210 hp | 157 kW",
+            motor: "2.0 L, EcoBlue, I4, Diesel Bi-Turbo",
+            trimLevels: "XL, XLS, XLT, Wildtrak, Raptor",
+            centerBore: "93.1 mm",
+            boltPattern: "6x139.7 (6x5.5)",
+            wheelFasteners: "Lug nuts",
+            threadSize: "M12 x 1.5",
+            torque: "135 Nm",
+            llantas: [
+              { medida: "265/65R17", indice: "112S", rin: "7.5Jx17 ET55", offset: "50-60", presion: "2.0", oem: true },
+              { medida: "265/60R18", indice: "110H", rin: "8Jx18 ET55", offset: "50-60", presion: "2.1", oem: true },
+              { medida: "265/70R17", indice: "115T", rin: "7.5Jx17 ET55", offset: "50-60", presion: "2.0", oem: false },
+            ]
+          },
+          "ford-f-150": { 
+            generacion: "P702",
+            produccion: "2021-2024",
+            regiones: "North America",
+            potencia: "400 hp | 298 kW",
+            motor: "3.5 L, EcoBoost, V6, Twin-Turbo",
+            trimLevels: "XL, XLT, Lariat, King Ranch, Platinum, Limited, Raptor",
+            centerBore: "87.1 mm",
+            boltPattern: "6x135",
+            wheelFasteners: "Lug nuts",
+            threadSize: "M14 x 1.5",
+            torque: "204 Nm",
+            llantas: [
+              { medida: "275/65R18", indice: "116T", rin: "8Jx18 ET44", offset: "40-50", presion: "2.4", oem: true },
+              { medida: "275/60R20", indice: "115S", rin: "8.5Jx20 ET44", offset: "40-50", presion: "2.4", oem: true },
+              { medida: "285/65R18", indice: "116T", rin: "8Jx18 ET44", offset: "40-50", presion: "2.5", oem: false },
+            ]
+          },
+          "nissan-frontier": { 
+            generacion: "D23",
+            produccion: "2022-2024",
+            regiones: "North America",
+            potencia: "310 hp | 231 kW",
+            motor: "3.8 L, VQ38DD, V6, Petrol",
+            trimLevels: "S, SV, PRO-4X, PRO-X",
+            centerBore: "93.1 mm",
+            boltPattern: "6x114.3 (6x4.5)",
+            wheelFasteners: "Lug nuts",
+            threadSize: "M12 x 1.25",
+            torque: "117 Nm",
+            llantas: [
+              { medida: "255/70R16", indice: "111T", rin: "7Jx16 ET15", offset: "10-20", presion: "2.1", oem: true },
+              { medida: "265/70R17", indice: "115T", rin: "7.5Jx17 ET15", offset: "10-20", presion: "2.2", oem: true },
+              { medida: "255/65R17", indice: "110T", rin: "7Jx17 ET15", offset: "10-20", presion: "2.1", oem: false },
+            ]
+          },
+          "nissan-patrol": { 
+            generacion: "Y62",
+            produccion: "2010-2024",
+            regiones: "Middle East, Asia, Australia",
+            potencia: "400 hp | 298 kW",
+            motor: "5.6 L, VK56VD, V8, Petrol",
+            trimLevels: "XE, SE, LE, Platinum, Nismo",
+            centerBore: "77.8 mm",
+            boltPattern: "6x139.7 (6x5.5)",
+            wheelFasteners: "Lug nuts",
+            threadSize: "M14 x 1.5",
+            torque: "140 Nm",
+            llantas: [
+              { medida: "275/65R18", indice: "116H", rin: "8Jx18 ET25", offset: "20-30", presion: "2.2", oem: true },
+              { medida: "285/65R18", indice: "116H", rin: "8Jx18 ET25", offset: "20-30", presion: "2.3", oem: false },
+              { medida: "275/60R20", indice: "115H", rin: "8.5Jx20 ET25", offset: "20-30", presion: "2.3", oem: true },
+            ]
+          },
+          "jeep-wrangler": { 
+            generacion: "JL",
+            produccion: "2018-2024",
+            regiones: "Global",
+            potencia: "285 hp | 213 kW",
+            motor: "3.6 L, Pentastar, V6, Petrol",
+            trimLevels: "Sport, Sahara, Rubicon, 4xe, 392",
+            centerBore: "71.5 mm",
+            boltPattern: "5x127 (5x5)",
+            wheelFasteners: "Lug nuts",
+            threadSize: "M14 x 1.5",
+            torque: "129 Nm",
+            llantas: [
+              { medida: "255/70R18", indice: "113T", rin: "7.5Jx18 ET44", offset: "40-50", presion: "2.3", oem: true },
+              { medida: "285/70R17", indice: "116T", rin: "8Jx17 ET0", offset: "-10-10", presion: "2.4", oem: true },
+              { medida: "275/70R18", indice: "116T", rin: "8Jx18 ET44", offset: "40-50", presion: "2.4", oem: false },
+            ]
+          },
+          "jeep-grand-cherokee": { 
+            generacion: "WL",
+            produccion: "2022-2024",
+            regiones: "Global",
+            potencia: "293 hp | 218 kW",
+            motor: "3.6 L, Pentastar, V6, Petrol",
+            trimLevels: "Laredo, Limited, Overland, Summit, Trailhawk",
+            centerBore: "71.6 mm",
+            boltPattern: "5x127 (5x5)",
+            wheelFasteners: "Lug nuts",
+            threadSize: "M14 x 1.5",
+            torque: "129 Nm",
+            llantas: [
+              { medida: "265/60R18", indice: "110H", rin: "8Jx18 ET34", offset: "30-40", presion: "2.3", oem: true },
+              { medida: "265/50R20", indice: "107V", rin: "8.5Jx20 ET34", offset: "30-40", presion: "2.4", oem: true },
+              { medida: "275/55R20", indice: "113H", rin: "9Jx20 ET34", offset: "30-40", presion: "2.4", oem: false },
+            ]
+          },
         };
         
         const key = `${marcaSeleccionada}-${modeloSeleccionado}`;
-        const medidas = medidasEjemplo[key] || { oem: "225/65R17", alt: ["235/65R17", "225/60R18"] };
+        const vehiculoData = vehiculosData[key];
         
-        setMedidasVehiculo({
-          marca: marcaSeleccionada,
-          modelo: modeloSeleccionado,
-          anio: anioSeleccionado,
-          medidaOEM: medidas.oem,
-          medidasAlt: medidas.alt
-        });
-        setReferencia1(medidas.oem);
+        if (vehiculoData) {
+          setMedidasVehiculo({
+            marca: marcaSeleccionada,
+            modelo: modeloSeleccionado,
+            anio: anioSeleccionado,
+            generacion: vehiculoData.generacion,
+            produccion: vehiculoData.produccion,
+            regiones: vehiculoData.regiones,
+            potencia: vehiculoData.potencia,
+            motor: vehiculoData.motor,
+            trimLevels: vehiculoData.trimLevels,
+            centerBore: vehiculoData.centerBore,
+            boltPattern: vehiculoData.boltPattern,
+            wheelFasteners: vehiculoData.wheelFasteners,
+            threadSize: vehiculoData.threadSize,
+            torque: vehiculoData.torque,
+            llantas: vehiculoData.llantas,
+            medidaOEM: vehiculoData.llantas[0].medida,
+            medidasAlt: vehiculoData.llantas.filter(l => !l.oem).map(l => l.medida)
+          });
+          setReferencia1(vehiculoData.llantas[0].medida);
+        } else {
+          setMedidasVehiculo({
+            marca: marcaSeleccionada,
+            modelo: modeloSeleccionado,
+            anio: anioSeleccionado,
+            medidaOEM: "225/65R17",
+            medidasAlt: ["235/65R17", "225/60R18"]
+          });
+          setReferencia1("225/65R17");
+        }
         return;
       }
 
@@ -997,6 +1326,125 @@ function ComparadorLlantas({ llantas = [], onClose }) {
                 <h3 className="font-bold text-lg mb-2">{Math.abs(diferencias.diametro) < 3 ? "✅ Compatible" : Math.abs(diferencias.diametro) < 5 ? "⚠️ Precaución" : "❌ No Recomendado"}</h3>
                 <p className="text-gray-700 text-sm">{Math.abs(diferencias.diametro) < 3 ? "Cambio seguro. Diferencia menor al 3%." : Math.abs(diferencias.diametro) < 5 ? "Diferencia 3-5%. Puede afectar velocímetro y consumo." : "Diferencia mayor al 5%. Consulta con un profesional."}</p>
               </div>
+
+              {/* Ficha Técnica del Vehículo - Estilo Wheel-Size.com */}
+              {medidasVehiculo && medidasVehiculo.generacion && (
+                <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-6 border border-gray-200">
+                  {/* Header */}
+                  <div className="bg-gradient-to-r from-gray-700 to-gray-800 px-4 py-3 flex items-center justify-between">
+                    <div>
+                      <h3 className="text-white font-bold text-lg uppercase">
+                        {medidasVehiculo.marca} {medidasVehiculo.modelo} {medidasVehiculo.generacion} [{medidasVehiculo.produccion}]
+                      </h3>
+                      <span className="text-gray-300 text-sm">{medidasVehiculo.potencia?.split('|')[0]}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className="px-2 py-1 bg-gray-600 text-white text-xs rounded">LADM</span>
+                      <span className="px-2 py-1 bg-gray-600 text-white text-xs rounded">COL</span>
+                    </div>
+                  </div>
+                  
+                  {/* Info del vehículo en 2 columnas */}
+                  <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Columna izquierda */}
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-start gap-2">
+                        <span className="text-gray-400">›</span>
+                        <span><strong>Generation:</strong> {medidasVehiculo.generacion}</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-gray-400">›</span>
+                        <span><strong>Production:</strong> [{medidasVehiculo.produccion}]</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-gray-400">›</span>
+                        <span><strong>Sales regions:</strong> {medidasVehiculo.regiones}</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-gray-400">›</span>
+                        <span><strong>Power:</strong> {medidasVehiculo.potencia}</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-gray-400">›</span>
+                        <span><strong>Engine:</strong> {medidasVehiculo.motor}</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-gray-400">›</span>
+                        <span><strong>Trim Levels:</strong> {medidasVehiculo.trimLevels}</span>
+                      </div>
+                    </div>
+                    
+                    {/* Columna derecha */}
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-start gap-2">
+                        <span className="text-purple-500">›</span>
+                        <span><strong>Center Bore / Hub Bore:</strong> {medidasVehiculo.centerBore}</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-purple-500">›</span>
+                        <span><strong>Bolt Pattern (PCD):</strong> {medidasVehiculo.boltPattern}</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-purple-500">›</span>
+                        <span><strong>Wheel Fasteners:</strong> {medidasVehiculo.wheelFasteners}</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-purple-500">›</span>
+                        <span><strong>Thread Size:</strong> {medidasVehiculo.threadSize}</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-purple-500">›</span>
+                        <span><strong>Wheel Tightening Torque:</strong> {medidasVehiculo.torque}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Tabla de llantas */}
+                  {medidasVehiculo.llantas && (
+                    <div className="border-t border-gray-200">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead className="bg-gray-50 text-gray-600">
+                            <tr>
+                              <th className="px-4 py-2 text-left"></th>
+                              <th className="px-4 py-2 text-left">TIRE</th>
+                              <th className="px-4 py-2 text-left">RIM</th>
+                              <th className="px-4 py-2 text-center">OFFSET RANGE<br/><span className="text-xs text-gray-400">mm</span></th>
+                              <th className="px-4 py-2 text-center">🔑<br/><span className="text-xs text-gray-400">bar</span></th>
+                              <th className="px-4 py-2 text-center"></th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {medidasVehiculo.llantas.map((llanta, idx) => (
+                              <tr key={idx} className={`border-t border-gray-100 ${llanta.oem ? 'bg-white' : 'bg-gray-50'}`}>
+                                <td className="px-4 py-3">
+                                  {llanta.oem && <span className="px-2 py-0.5 bg-purple-600 text-white text-xs rounded font-bold">OE</span>}
+                                </td>
+                                <td className="px-4 py-3">
+                                  <span className="font-bold">{llanta.medida}</span>
+                                  <span className="ml-2 px-1.5 py-0.5 bg-gray-200 text-gray-700 text-xs rounded">{llanta.indice}</span>
+                                </td>
+                                <td className="px-4 py-3 text-gray-700">{llanta.rin}</td>
+                                <td className="px-4 py-3 text-center text-gray-700">{llanta.offset}</td>
+                                <td className="px-4 py-3 text-center text-gray-700">{llanta.presion}</td>
+                                <td className="px-4 py-3 text-center">
+                                  <button 
+                                    onClick={() => setReferencia2(llanta.medida)}
+                                    className="text-purple-600 hover:text-purple-800 text-lg"
+                                    title="Comparar esta medida"
+                                  >
+                                    📊
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Equivalencias */}
               <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-6">

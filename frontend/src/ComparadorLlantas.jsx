@@ -363,6 +363,7 @@ function ComparadorLlantas({ llantas = [], onClose }) {
     const cargarMedidas = async () => {
       if (usarDatosDemo) {
         // Datos de ejemplo con información técnica completa estilo wheel-size.com
+        // Incluye equivalencias REALES específicas para cada vehículo
         const vehiculosData = {
           "toyota-fortuner": { 
             generacion: "AN150/AN160 Facelift",
@@ -380,7 +381,27 @@ function ComparadorLlantas({ llantas = [], onClose }) {
               { medida: "265/65R17", indice: "112S", rin: "7.5Jx17 ET30", offset: "28-32", presion: "2.0", oem: true },
               { medida: "265/60R18", indice: "110H", rin: "7.5Jx18 ET30", offset: "28-32", presion: "2.0", oem: true },
               { medida: "265/55R19", indice: "109H", rin: "8Jx19 ET30", offset: "28-32", presion: "2.2", oem: false },
-            ]
+            ],
+            // Equivalencias REALES que le sirven a este vehículo
+            equivalenciasReales: {
+              verdes: [ // <3% - Compatibles sin modificación
+                { medida: "265/70R17", nota: "Muy popular, +20mm altura" },
+                { medida: "275/65R17", nota: "+10mm ancho, misma altura" },
+                { medida: "255/70R17", nota: "-10mm ancho, similar altura" },
+                { medida: "265/65R18", nota: "Con rin 18, mismo diámetro" },
+              ],
+              amarillas: [ // 3-5% - Con precaución
+                { medida: "275/70R17", nota: "Puede rozar en giro completo" },
+                { medida: "285/65R17", nota: "Requiere verificar espacio" },
+                { medida: "255/75R17", nota: "Más alta, verificar guardafango" },
+                { medida: "265/70R18", nota: "Con rin 18, más grande" },
+              ],
+              rojas: [ // >5% - No recomendado sin modificación
+                { medida: "285/70R17", nota: "Muy grande, requiere lift" },
+                { medida: "275/75R17", nota: "Requiere modificación" },
+                { medida: "305/65R17", nota: "Demasiado ancha" },
+              ]
+            }
           },
           "toyota-hilux": { 
             generacion: "AN120/AN130",
@@ -396,9 +417,28 @@ function ComparadorLlantas({ llantas = [], onClose }) {
             torque: "105 Nm",
             llantas: [
               { medida: "265/65R17", indice: "112S", rin: "7.5Jx17 ET30", offset: "25-30", presion: "2.0", oem: true },
+              { medida: "265/60R18", indice: "110H", rin: "7.5Jx18 ET30", offset: "25-30", presion: "2.1", oem: true },
               { medida: "265/70R17", indice: "115T", rin: "7.5Jx17 ET30", offset: "25-30", presion: "2.0", oem: false },
-              { medida: "255/70R17", indice: "112T", rin: "7Jx17 ET30", offset: "25-30", presion: "2.0", oem: false },
-            ]
+            ],
+            equivalenciasReales: {
+              verdes: [
+                { medida: "265/70R17", nota: "Popular para off-road" },
+                { medida: "255/70R17", nota: "Alternativa más económica" },
+                { medida: "275/65R17", nota: "Más ancha, buen agarre" },
+                { medida: "265/65R18", nota: "Para rin 18" },
+              ],
+              amarillas: [
+                { medida: "275/70R17", nota: "Verificar espacio" },
+                { medida: "285/65R17", nota: "Puede rozar" },
+                { medida: "255/75R17", nota: "Más alta" },
+                { medida: "265/70R18", nota: "Grande para rin 18" },
+              ],
+              rojas: [
+                { medida: "285/70R17", nota: "Requiere lift kit" },
+                { medida: "305/65R17", nota: "Demasiado ancha" },
+                { medida: "275/75R17", nota: "Muy alta" },
+              ]
+            }
           },
           "toyota-4runner": { 
             generacion: "N280",
@@ -414,9 +454,28 @@ function ComparadorLlantas({ llantas = [], onClose }) {
             torque: "105 Nm",
             llantas: [
               { medida: "265/70R17", indice: "115T", rin: "7.5Jx17 ET15", offset: "10-25", presion: "2.1", oem: true },
+              { medida: "265/60R18", indice: "110H", rin: "7.5Jx18 ET25", offset: "20-30", presion: "2.1", oem: true },
               { medida: "275/70R17", indice: "114T", rin: "8Jx17 ET15", offset: "10-25", presion: "2.1", oem: false },
-              { medida: "265/65R17", indice: "112S", rin: "7.5Jx17 ET15", offset: "10-25", presion: "2.0", oem: false },
-            ]
+            ],
+            equivalenciasReales: {
+              verdes: [
+                { medida: "275/70R17", nota: "TRD Pro spec" },
+                { medida: "265/65R17", nota: "Más bajo, mejor en calle" },
+                { medida: "255/75R17", nota: "Alternativa popular" },
+                { medida: "275/65R18", nota: "Para rin 18" },
+              ],
+              amarillas: [
+                { medida: "285/70R17", nota: "Popular con lift 2\"" },
+                { medida: "275/75R17", nota: "Requiere ajustes" },
+                { medida: "285/65R18", nota: "Grande para rin 18" },
+                { medida: "265/75R17", nota: "Más alta" },
+              ],
+              rojas: [
+                { medida: "285/75R17", nota: "Requiere lift 3\"+" },
+                { medida: "305/70R17", nota: "Muy grande" },
+                { medida: "295/70R17", nota: "Requiere modificación" },
+              ]
+            }
           },
           "toyota-land-cruiser": { 
             generacion: "J300",
@@ -432,9 +491,27 @@ function ComparadorLlantas({ llantas = [], onClose }) {
             torque: "140 Nm",
             llantas: [
               { medida: "285/60R18", indice: "116V", rin: "8Jx18 ET50", offset: "45-55", presion: "2.3", oem: true },
+              { medida: "285/50R20", indice: "112V", rin: "8.5Jx20 ET50", offset: "45-55", presion: "2.4", oem: true },
               { medida: "275/65R18", indice: "116H", rin: "8Jx18 ET50", offset: "45-55", presion: "2.2", oem: false },
-              { medida: "285/55R20", indice: "116V", rin: "8.5Jx20 ET50", offset: "45-55", presion: "2.3", oem: false },
-            ]
+            ],
+            equivalenciasReales: {
+              verdes: [
+                { medida: "275/65R18", nota: "Alternativa económica" },
+                { medida: "285/65R18", nota: "Más alta, popular" },
+                { medida: "275/60R20", nota: "Para rin 20" },
+                { medida: "285/55R20", nota: "Sport look" },
+              ],
+              amarillas: [
+                { medida: "295/60R18", nota: "Más ancha" },
+                { medida: "285/70R18", nota: "Off-road" },
+                { medida: "305/55R20", nota: "Ancha para rin 20" },
+              ],
+              rojas: [
+                { medida: "295/70R18", nota: "Requiere modificación" },
+                { medida: "305/60R18", nota: "Muy ancha" },
+                { medida: "285/75R18", nota: "Muy alta" },
+              ]
+            }
           },
           "toyota-land-cruiser-prado": { 
             generacion: "J150 Facelift",
@@ -452,7 +529,25 @@ function ComparadorLlantas({ llantas = [], onClose }) {
               { medida: "265/65R17", indice: "112S", rin: "7.5Jx17 ET25", offset: "20-30", presion: "2.0", oem: true },
               { medida: "265/60R18", indice: "110H", rin: "7.5Jx18 ET25", offset: "20-30", presion: "2.1", oem: true },
               { medida: "265/55R19", indice: "109V", rin: "8Jx19 ET25", offset: "20-30", presion: "2.2", oem: false },
-            ]
+            ],
+            equivalenciasReales: {
+              verdes: [
+                { medida: "265/70R17", nota: "Popular upgrade" },
+                { medida: "275/65R17", nota: "Más ancha" },
+                { medida: "255/70R17", nota: "Económica" },
+                { medida: "265/65R18", nota: "Para rin 18" },
+              ],
+              amarillas: [
+                { medida: "275/70R17", nota: "Verificar espacio" },
+                { medida: "285/65R17", nota: "Puede rozar" },
+                { medida: "265/70R18", nota: "Grande" },
+              ],
+              rojas: [
+                { medida: "285/70R17", nota: "Requiere lift" },
+                { medida: "275/75R17", nota: "Muy alta" },
+                { medida: "305/65R17", nota: "Muy ancha" },
+              ]
+            }
           },
           "toyota-rav4": { 
             generacion: "XA50",
@@ -470,7 +565,25 @@ function ComparadorLlantas({ llantas = [], onClose }) {
               { medida: "225/65R17", indice: "102H", rin: "7Jx17 ET35", offset: "32-40", presion: "2.3", oem: true },
               { medida: "235/55R19", indice: "101V", rin: "7.5Jx19 ET35", offset: "32-40", presion: "2.4", oem: true },
               { medida: "225/60R18", indice: "100H", rin: "7Jx18 ET35", offset: "32-40", presion: "2.3", oem: false },
-            ]
+            ],
+            equivalenciasReales: {
+              verdes: [
+                { medida: "235/65R17", nota: "Más ancha" },
+                { medida: "225/60R18", nota: "Para rin 18" },
+                { medida: "235/60R18", nota: "Adventure spec" },
+                { medida: "225/55R19", nota: "Para rin 19" },
+              ],
+              amarillas: [
+                { medida: "245/65R17", nota: "Verificar espacio" },
+                { medida: "235/65R18", nota: "Más grande" },
+                { medida: "245/55R19", nota: "TRD spec" },
+              ],
+              rojas: [
+                { medida: "255/65R17", nota: "Puede rozar" },
+                { medida: "245/60R18", nota: "Muy grande" },
+                { medida: "255/55R19", nota: "Requiere modificación" },
+              ]
+            }
           },
           "toyota-corolla": { 
             generacion: "E210",
@@ -488,7 +601,25 @@ function ComparadorLlantas({ llantas = [], onClose }) {
               { medida: "205/55R16", indice: "91V", rin: "6.5Jx16 ET40", offset: "35-45", presion: "2.2", oem: true },
               { medida: "225/40R18", indice: "88W", rin: "8Jx18 ET45", offset: "40-50", presion: "2.4", oem: true },
               { medida: "215/45R17", indice: "87V", rin: "7Jx17 ET40", offset: "35-45", presion: "2.3", oem: false },
-            ]
+            ],
+            equivalenciasReales: {
+              verdes: [
+                { medida: "215/55R16", nota: "Más confort" },
+                { medida: "215/50R17", nota: "Para rin 17" },
+                { medida: "205/50R17", nota: "Sport look" },
+                { medida: "225/45R17", nota: "SE spec" },
+              ],
+              amarillas: [
+                { medida: "225/50R17", nota: "Verificar espacio" },
+                { medida: "215/40R18", nota: "Muy baja" },
+                { medida: "235/40R18", nota: "XSE spec" },
+              ],
+              rojas: [
+                { medida: "225/55R16", nota: "Puede rozar" },
+                { medida: "235/45R17", nota: "Muy ancha" },
+                { medida: "245/40R18", nota: "Requiere modificación" },
+              ]
+            }
           },
           "toyota-camry": { 
             generacion: "XV70",
@@ -504,9 +635,27 @@ function ComparadorLlantas({ llantas = [], onClose }) {
             torque: "103 Nm",
             llantas: [
               { medida: "235/45R18", indice: "94V", rin: "8Jx18 ET45", offset: "40-50", presion: "2.4", oem: true },
+              { medida: "215/55R17", indice: "94V", rin: "7Jx17 ET40", offset: "35-45", presion: "2.2", oem: true },
               { medida: "225/45R18", indice: "91V", rin: "7.5Jx18 ET45", offset: "40-50", presion: "2.3", oem: false },
-              { medida: "215/55R17", indice: "94V", rin: "7Jx17 ET40", offset: "35-45", presion: "2.2", oem: false },
-            ]
+            ],
+            equivalenciasReales: {
+              verdes: [
+                { medida: "225/45R18", nota: "Alternativa común" },
+                { medida: "215/55R17", nota: "Más confort" },
+                { medida: "225/55R17", nota: "LE spec" },
+                { medida: "245/45R18", nota: "TRD spec" },
+              ],
+              amarillas: [
+                { medida: "245/40R19", nota: "XSE spec" },
+                { medida: "235/40R19", nota: "Sport" },
+                { medida: "225/40R19", nota: "Verificar" },
+              ],
+              rojas: [
+                { medida: "255/40R19", nota: "Muy ancha" },
+                { medida: "245/35R19", nota: "Muy baja" },
+                { medida: "235/55R17", nota: "Puede rozar" },
+              ]
+            }
           },
           "toyota-tacoma": { 
             generacion: "N300",
@@ -523,8 +672,26 @@ function ComparadorLlantas({ llantas = [], onClose }) {
             llantas: [
               { medida: "265/70R16", indice: "112T", rin: "7Jx16 ET13", offset: "5-20", presion: "2.1", oem: true },
               { medida: "265/65R17", indice: "112S", rin: "7.5Jx17 ET13", offset: "5-20", presion: "2.1", oem: true },
-              { medida: "275/70R17", indice: "114T", rin: "8Jx17 ET13", offset: "5-20", presion: "2.2", oem: false },
-            ]
+              { medida: "265/60R18", indice: "110H", rin: "7.5Jx18 ET25", offset: "20-30", presion: "2.2", oem: false },
+            ],
+            equivalenciasReales: {
+              verdes: [
+                { medida: "265/75R16", nota: "Popular off-road" },
+                { medida: "265/70R17", nota: "TRD spec" },
+                { medida: "275/65R17", nota: "Más ancha" },
+                { medida: "255/75R17", nota: "Alternativa" },
+              ],
+              amarillas: [
+                { medida: "275/70R17", nota: "Verificar espacio" },
+                { medida: "285/65R18", nota: "Grande" },
+                { medida: "285/70R17", nota: "TRD Pro popular" },
+              ],
+              rojas: [
+                { medida: "285/75R16", nota: "Requiere lift" },
+                { medida: "295/70R17", nota: "Muy grande" },
+                { medida: "305/65R17", nota: "Requiere modificación" },
+              ]
+            }
           },
           "toyota-tundra": { 
             generacion: "XK70",
@@ -540,9 +707,27 @@ function ComparadorLlantas({ llantas = [], onClose }) {
             torque: "140 Nm",
             llantas: [
               { medida: "275/65R18", indice: "116T", rin: "8Jx18 ET50", offset: "45-55", presion: "2.3", oem: true },
+              { medida: "275/55R20", indice: "113H", rin: "8.5Jx20 ET50", offset: "45-55", presion: "2.4", oem: true },
               { medida: "285/65R18", indice: "116T", rin: "8Jx18 ET50", offset: "45-55", presion: "2.3", oem: false },
-              { medida: "275/60R20", indice: "115T", rin: "8.5Jx20 ET50", offset: "45-55", presion: "2.4", oem: true },
-            ]
+            ],
+            equivalenciasReales: {
+              verdes: [
+                { medida: "285/65R18", nota: "Popular upgrade" },
+                { medida: "275/70R18", nota: "Más alta" },
+                { medida: "285/55R20", nota: "Para rin 20" },
+                { medida: "275/60R20", nota: "Sport" },
+              ],
+              amarillas: [
+                { medida: "295/65R18", nota: "Verificar espacio" },
+                { medida: "285/70R18", nota: "Off-road" },
+                { medida: "295/55R20", nota: "Ancha" },
+              ],
+              rojas: [
+                { medida: "295/70R18", nota: "Requiere lift" },
+                { medida: "305/65R18", nota: "Muy grande" },
+                { medida: "315/70R17", nota: "Requiere modificación" },
+              ]
+            }
           },
           "chevrolet-colorado": { 
             generacion: "GMT31XX",
@@ -558,9 +743,27 @@ function ComparadorLlantas({ llantas = [], onClose }) {
             torque: "190 Nm",
             llantas: [
               { medida: "255/65R17", indice: "110T", rin: "7.5Jx17 ET30", offset: "25-35", presion: "2.1", oem: true },
-              { medida: "265/65R17", indice: "112T", rin: "8Jx17 ET30", offset: "25-35", presion: "2.1", oem: false },
               { medida: "265/60R18", indice: "110T", rin: "8Jx18 ET30", offset: "25-35", presion: "2.2", oem: true },
-            ]
+              { medida: "265/65R17", indice: "112T", rin: "8Jx17 ET30", offset: "25-35", presion: "2.1", oem: false },
+            ],
+            equivalenciasReales: {
+              verdes: [
+                { medida: "265/65R17", nota: "Popular upgrade" },
+                { medida: "265/70R17", nota: "Z71 spec" },
+                { medida: "255/70R17", nota: "Alternativa" },
+                { medida: "265/65R18", nota: "Para rin 18" },
+              ],
+              amarillas: [
+                { medida: "275/65R17", nota: "Verificar" },
+                { medida: "275/70R17", nota: "ZR2 popular" },
+                { medida: "285/65R18", nota: "Grande" },
+              ],
+              rojas: [
+                { medida: "285/70R17", nota: "Requiere lift" },
+                { medida: "285/75R17", nota: "Muy grande" },
+                { medida: "305/65R17", nota: "Requiere modificación" },
+              ]
+            }
           },
           "chevrolet-trailblazer": { 
             generacion: "RG",
@@ -578,7 +781,25 @@ function ComparadorLlantas({ llantas = [], onClose }) {
               { medida: "265/65R17", indice: "112S", rin: "7.5Jx17 ET30", offset: "25-35", presion: "2.0", oem: true },
               { medida: "265/60R18", indice: "110H", rin: "7.5Jx18 ET30", offset: "25-35", presion: "2.1", oem: true },
               { medida: "265/70R17", indice: "115T", rin: "7.5Jx17 ET30", offset: "25-35", presion: "2.0", oem: false },
-            ]
+            ],
+            equivalenciasReales: {
+              verdes: [
+                { medida: "265/70R17", nota: "Popular" },
+                { medida: "275/65R17", nota: "Más ancha" },
+                { medida: "255/70R17", nota: "Económica" },
+                { medida: "265/65R18", nota: "Para rin 18" },
+              ],
+              amarillas: [
+                { medida: "275/70R17", nota: "Verificar espacio" },
+                { medida: "285/65R17", nota: "Puede rozar" },
+                { medida: "265/70R18", nota: "Grande" },
+              ],
+              rojas: [
+                { medida: "285/70R17", nota: "Requiere lift" },
+                { medida: "305/65R17", nota: "Muy ancha" },
+                { medida: "275/75R17", nota: "Muy alta" },
+              ]
+            }
           },
           "ford-ranger": { 
             generacion: "T6 Facelift",
@@ -596,7 +817,25 @@ function ComparadorLlantas({ llantas = [], onClose }) {
               { medida: "265/65R17", indice: "112S", rin: "7.5Jx17 ET55", offset: "50-60", presion: "2.0", oem: true },
               { medida: "265/60R18", indice: "110H", rin: "8Jx18 ET55", offset: "50-60", presion: "2.1", oem: true },
               { medida: "265/70R17", indice: "115T", rin: "7.5Jx17 ET55", offset: "50-60", presion: "2.0", oem: false },
-            ]
+            ],
+            equivalenciasReales: {
+              verdes: [
+                { medida: "265/70R17", nota: "Wildtrak spec" },
+                { medida: "275/65R17", nota: "Más ancha" },
+                { medida: "255/70R17", nota: "Alternativa" },
+                { medida: "265/65R18", nota: "Para rin 18" },
+              ],
+              amarillas: [
+                { medida: "275/70R17", nota: "Verificar" },
+                { medida: "285/70R17", nota: "Raptor spec" },
+                { medida: "285/60R18", nota: "Grande" },
+              ],
+              rojas: [
+                { medida: "285/75R17", nota: "Muy grande" },
+                { medida: "305/70R17", nota: "Requiere lift" },
+                { medida: "295/70R17", nota: "Requiere modificación" },
+              ]
+            }
           },
           "ford-f-150": { 
             generacion: "P702",
@@ -614,7 +853,25 @@ function ComparadorLlantas({ llantas = [], onClose }) {
               { medida: "275/65R18", indice: "116T", rin: "8Jx18 ET44", offset: "40-50", presion: "2.4", oem: true },
               { medida: "275/60R20", indice: "115S", rin: "8.5Jx20 ET44", offset: "40-50", presion: "2.4", oem: true },
               { medida: "285/65R18", indice: "116T", rin: "8Jx18 ET44", offset: "40-50", presion: "2.5", oem: false },
-            ]
+            ],
+            equivalenciasReales: {
+              verdes: [
+                { medida: "285/65R18", nota: "Popular upgrade" },
+                { medida: "275/70R18", nota: "Más alta" },
+                { medida: "285/55R20", nota: "Para rin 20" },
+                { medida: "275/55R20", nota: "Sport" },
+              ],
+              amarillas: [
+                { medida: "295/65R18", nota: "Verificar" },
+                { medida: "285/70R18", nota: "Off-road" },
+                { medida: "295/60R20", nota: "Grande" },
+              ],
+              rojas: [
+                { medida: "315/70R17", nota: "Raptor spec, requiere lift" },
+                { medida: "325/60R18", nota: "Muy grande" },
+                { medida: "305/70R18", nota: "Requiere modificación" },
+              ]
+            }
           },
           "nissan-frontier": { 
             generacion: "D23",
@@ -632,7 +889,25 @@ function ComparadorLlantas({ llantas = [], onClose }) {
               { medida: "255/70R16", indice: "111T", rin: "7Jx16 ET15", offset: "10-20", presion: "2.1", oem: true },
               { medida: "265/70R17", indice: "115T", rin: "7.5Jx17 ET15", offset: "10-20", presion: "2.2", oem: true },
               { medida: "255/65R17", indice: "110T", rin: "7Jx17 ET15", offset: "10-20", presion: "2.1", oem: false },
-            ]
+            ],
+            equivalenciasReales: {
+              verdes: [
+                { medida: "265/70R17", nota: "PRO-4X spec" },
+                { medida: "265/65R17", nota: "Alternativa" },
+                { medida: "255/75R17", nota: "Más alta" },
+                { medida: "275/65R17", nota: "Más ancha" },
+              ],
+              amarillas: [
+                { medida: "275/70R17", nota: "Verificar" },
+                { medida: "285/65R17", nota: "Popular" },
+                { medida: "265/75R17", nota: "Off-road" },
+              ],
+              rojas: [
+                { medida: "285/70R17", nota: "Requiere lift" },
+                { medida: "285/75R17", nota: "Muy grande" },
+                { medida: "305/65R17", nota: "Requiere modificación" },
+              ]
+            }
           },
           "nissan-patrol": { 
             generacion: "Y62",
@@ -648,9 +923,27 @@ function ComparadorLlantas({ llantas = [], onClose }) {
             torque: "140 Nm",
             llantas: [
               { medida: "275/65R18", indice: "116H", rin: "8Jx18 ET25", offset: "20-30", presion: "2.2", oem: true },
+              { medida: "275/50R22", indice: "111H", rin: "9Jx22 ET30", offset: "25-35", presion: "2.4", oem: true },
               { medida: "285/65R18", indice: "116H", rin: "8Jx18 ET25", offset: "20-30", presion: "2.3", oem: false },
-              { medida: "275/60R20", indice: "115H", rin: "8.5Jx20 ET25", offset: "20-30", presion: "2.3", oem: true },
-            ]
+            ],
+            equivalenciasReales: {
+              verdes: [
+                { medida: "285/65R18", nota: "Popular" },
+                { medida: "275/70R18", nota: "Más alta" },
+                { medida: "285/60R18", nota: "Sport" },
+                { medida: "275/60R20", nota: "Para rin 20" },
+              ],
+              amarillas: [
+                { medida: "295/65R18", nota: "Más ancha" },
+                { medida: "285/70R18", nota: "Off-road" },
+                { medida: "305/60R18", nota: "Nismo spec" },
+              ],
+              rojas: [
+                { medida: "305/70R18", nota: "Muy grande" },
+                { medida: "315/70R17", nota: "Requiere lift" },
+                { medida: "295/75R18", nota: "Requiere modificación" },
+              ]
+            }
           },
           "jeep-wrangler": { 
             generacion: "JL",
@@ -668,7 +961,25 @@ function ComparadorLlantas({ llantas = [], onClose }) {
               { medida: "255/70R18", indice: "113T", rin: "7.5Jx18 ET44", offset: "40-50", presion: "2.3", oem: true },
               { medida: "285/70R17", indice: "116T", rin: "8Jx17 ET0", offset: "-10-10", presion: "2.4", oem: true },
               { medida: "275/70R18", indice: "116T", rin: "8Jx18 ET44", offset: "40-50", presion: "2.4", oem: false },
-            ]
+            ],
+            equivalenciasReales: {
+              verdes: [
+                { medida: "285/70R17", nota: "Rubicon spec" },
+                { medida: "275/70R18", nota: "Popular upgrade" },
+                { medida: "265/70R17", nota: "Sport spec" },
+                { medida: "275/65R18", nota: "Sahara spec" },
+              ],
+              amarillas: [
+                { medida: "285/75R17", nota: "33\" equivalente" },
+                { medida: "295/70R17", nota: "Verificar" },
+                { medida: "285/70R18", nota: "Grande" },
+              ],
+              rojas: [
+                { medida: "315/70R17", nota: "35\", requiere lift 2.5\"+" },
+                { medida: "325/65R18", nota: "Muy grande" },
+                { medida: "35x12.50R17", nota: "Requiere modificación" },
+              ]
+            }
           },
           "jeep-grand-cherokee": { 
             generacion: "WL",
@@ -686,7 +997,25 @@ function ComparadorLlantas({ llantas = [], onClose }) {
               { medida: "265/60R18", indice: "110H", rin: "8Jx18 ET34", offset: "30-40", presion: "2.3", oem: true },
               { medida: "265/50R20", indice: "107V", rin: "8.5Jx20 ET34", offset: "30-40", presion: "2.4", oem: true },
               { medida: "275/55R20", indice: "113H", rin: "9Jx20 ET34", offset: "30-40", presion: "2.4", oem: false },
-            ]
+            ],
+            equivalenciasReales: {
+              verdes: [
+                { medida: "275/60R18", nota: "Trailhawk spec" },
+                { medida: "265/55R19", nota: "Para rin 19" },
+                { medida: "275/55R20", nota: "Popular" },
+                { medida: "265/45R21", nota: "Summit spec" },
+              ],
+              amarillas: [
+                { medida: "285/60R18", nota: "Verificar" },
+                { medida: "275/50R21", nota: "Grande" },
+                { medida: "285/50R20", nota: "Off-road" },
+              ],
+              rojas: [
+                { medida: "285/65R18", nota: "Muy grande" },
+                { medida: "295/55R20", nota: "Requiere modificación" },
+                { medida: "305/50R20", nota: "Muy ancha" },
+              ]
+            }
           },
         };
         
@@ -711,7 +1040,8 @@ function ComparadorLlantas({ llantas = [], onClose }) {
             torque: vehiculoData.torque,
             llantas: vehiculoData.llantas,
             medidaOEM: vehiculoData.llantas[0].medida,
-            medidasAlt: vehiculoData.llantas.filter(l => !l.oem).map(l => l.medida)
+            medidasAlt: vehiculoData.llantas.filter(l => !l.oem).map(l => l.medida),
+            equivalenciasReales: vehiculoData.equivalenciasReales // Agregamos las equivalencias reales
           });
           setReferencia1(vehiculoData.llantas[0].medida);
         } else {
@@ -1456,95 +1786,193 @@ function ComparadorLlantas({ llantas = [], onClose }) {
                   onClick={() => setMostrarEquivalencias(!mostrarEquivalencias)}
                   className="w-full px-4 py-3 bg-purple-600 text-white font-bold flex items-center justify-between hover:bg-purple-700 transition-colors"
                 >
-                  <span>🔄 Medidas Equivalentes en Rin {specs1?.rin}"</span>
+                  <span>🔄 Medidas Equivalentes {medidasVehiculo?.equivalenciasReales ? `para ${medidasVehiculo.marca} ${medidasVehiculo.modelo}` : `en Rin ${specs1?.rin}"`}</span>
                   <span className="text-xl">{mostrarEquivalencias ? '▲' : '▼'}</span>
                 </button>
                 
                 {mostrarEquivalencias && (
                   <div className="p-4">
-                    <p className="text-sm text-gray-600 mb-4">
-                      Alternativas para <strong>{referencia1}</strong> en el mismo rin ({specs1?.rin}"):
-                    </p>
-                    
-                    {/* Sección Verde - Compatible <3% */}
-                    {equivalencias.verdes?.length > 0 && (
-                      <div className="mb-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="w-4 h-4 rounded-full bg-green-500"></span>
-                          <span className="font-bold text-green-700">✅ Compatible (&lt;3% diferencia)</span>
+                    {/* Si hay vehículo seleccionado con equivalencias reales */}
+                    {medidasVehiculo?.equivalenciasReales ? (
+                      <>
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                          <p className="text-sm text-blue-800">
+                            🚗 <strong>Medidas verificadas</strong> para <strong className="capitalize">{medidasVehiculo.marca} {medidasVehiculo.modelo}</strong> - 
+                            Compatibles con guardafangos, suspensión y offset del vehículo.
+                          </p>
                         </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                          {equivalencias.verdes.map((eq, idx) => (
-                            <button
-                              key={idx}
-                              onClick={() => setReferencia2(eq.referencia)}
-                              className="p-2 rounded-lg border-2 border-green-400 bg-green-50 hover:bg-green-100 transition-colors text-left"
-                            >
-                              <div className="font-bold text-green-800">{eq.referencia}</div>
-                              <div className="text-xs text-green-600">
-                                {eq.esMayor ? '↑' : '↓'} {eq.diferencia.toFixed(1)}% ({eq.difMM.toFixed(0)}mm)
-                              </div>
-                            </button>
-                          ))}
+                        
+                        {/* Sección Verde - Compatible sin modificación */}
+                        {medidasVehiculo.equivalenciasReales.verdes?.length > 0 && (
+                          <div className="mb-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="w-4 h-4 rounded-full bg-green-500"></span>
+                              <span className="font-bold text-green-700">✅ Compatible (sin modificación)</span>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
+                              {medidasVehiculo.equivalenciasReales.verdes.map((eq, idx) => (
+                                <button
+                                  key={idx}
+                                  onClick={() => setReferencia2(eq.medida)}
+                                  className="p-3 rounded-lg border-2 border-green-400 bg-green-50 hover:bg-green-100 transition-colors text-left"
+                                >
+                                  <div className="font-bold text-green-800 text-lg">{eq.medida}</div>
+                                  <div className="text-xs text-green-600 mt-1">
+                                    💡 {eq.nota}
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Sección Amarilla - Con precaución */}
+                        {medidasVehiculo.equivalenciasReales.amarillas?.length > 0 && (
+                          <div className="mb-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="w-4 h-4 rounded-full bg-yellow-500"></span>
+                              <span className="font-bold text-yellow-700">⚠️ Con precaución (verificar espacio)</span>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                              {medidasVehiculo.equivalenciasReales.amarillas.map((eq, idx) => (
+                                <button
+                                  key={idx}
+                                  onClick={() => setReferencia2(eq.medida)}
+                                  className="p-3 rounded-lg border-2 border-yellow-400 bg-yellow-50 hover:bg-yellow-100 transition-colors text-left"
+                                >
+                                  <div className="font-bold text-yellow-800 text-lg">{eq.medida}</div>
+                                  <div className="text-xs text-yellow-700 mt-1">
+                                    ⚠️ {eq.nota}
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Sección Roja - No recomendado */}
+                        {medidasVehiculo.equivalenciasReales.rojas?.length > 0 && (
+                          <div className="mb-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="w-4 h-4 rounded-full bg-red-500"></span>
+                              <span className="font-bold text-red-700">❌ Requiere modificación</span>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                              {medidasVehiculo.equivalenciasReales.rojas.map((eq, idx) => (
+                                <button
+                                  key={idx}
+                                  onClick={() => setReferencia2(eq.medida)}
+                                  className="p-3 rounded-lg border-2 border-red-400 bg-red-50 hover:bg-red-100 transition-colors text-left"
+                                >
+                                  <div className="font-bold text-red-800 text-lg">{eq.medida}</div>
+                                  <div className="text-xs text-red-700 mt-1">
+                                    🔧 {eq.nota}
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        <p className="text-xs text-gray-500 mt-3 text-center border-t pt-3">
+                          💡 Estas medidas han sido verificadas para tu vehículo • Clic en una medida para compararla
+                        </p>
+                      </>
+                    ) : (
+                      /* Si NO hay vehículo seleccionado, mostrar cálculo matemático */
+                      <>
+                        <p className="text-sm text-gray-600 mb-4">
+                          Alternativas para <strong>{referencia1}</strong> en el mismo rin ({specs1?.rin}"):
+                        </p>
+                        
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                          <p className="text-sm text-yellow-800">
+                            ⚠️ <strong>Cálculo matemático.</strong> Para ver medidas verificadas para tu vehículo específico, 
+                            selecciona marca, modelo y año arriba.
+                          </p>
                         </div>
-                      </div>
+                        
+                        {/* Sección Verde - Compatible <3% */}
+                        {equivalencias.verdes?.length > 0 && (
+                          <div className="mb-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="w-4 h-4 rounded-full bg-green-500"></span>
+                              <span className="font-bold text-green-700">✅ Compatible (&lt;3% diferencia)</span>
+                            </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                              {equivalencias.verdes.map((eq, idx) => (
+                                <button
+                                  key={idx}
+                                  onClick={() => setReferencia2(eq.referencia)}
+                                  className="p-2 rounded-lg border-2 border-green-400 bg-green-50 hover:bg-green-100 transition-colors text-left"
+                                >
+                                  <div className="font-bold text-green-800">{eq.referencia}</div>
+                                  <div className="text-xs text-green-600">
+                                    {eq.esMayor ? '↑' : '↓'} {eq.diferencia.toFixed(1)}% ({eq.difMM.toFixed(0)}mm)
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Sección Amarilla - Precaución 3-5% */}
+                        {equivalencias.amarillas?.length > 0 && (
+                          <div className="mb-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="w-4 h-4 rounded-full bg-yellow-500"></span>
+                              <span className="font-bold text-yellow-700">⚠️ Precaución (3-5% diferencia)</span>
+                            </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                              {equivalencias.amarillas.map((eq, idx) => (
+                                <button
+                                  key={idx}
+                                  onClick={() => setReferencia2(eq.referencia)}
+                                  className="p-2 rounded-lg border-2 border-yellow-400 bg-yellow-50 hover:bg-yellow-100 transition-colors text-left"
+                                >
+                                  <div className="font-bold text-yellow-800">{eq.referencia}</div>
+                                  <div className="text-xs text-yellow-600">
+                                    {eq.esMayor ? '↑' : '↓'} {eq.diferencia.toFixed(1)}% ({eq.difMM.toFixed(0)}mm)
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Sección Roja - No recomendado >5% */}
+                        {equivalencias.rojas?.length > 0 && (
+                          <div className="mb-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="w-4 h-4 rounded-full bg-red-500"></span>
+                              <span className="font-bold text-red-700">❌ No Recomendado (&gt;5% diferencia)</span>
+                            </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                              {equivalencias.rojas.map((eq, idx) => (
+                                <button
+                                  key={idx}
+                                  onClick={() => setReferencia2(eq.referencia)}
+                                  className="p-2 rounded-lg border-2 border-red-400 bg-red-50 hover:bg-red-100 transition-colors text-left"
+                                >
+                                  <div className="font-bold text-red-800">{eq.referencia}</div>
+                                  <div className="text-xs text-red-600">
+                                    {eq.esMayor ? '↑' : '↓'} {eq.diferencia.toFixed(1)}% ({eq.difMM.toFixed(0)}mm)
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {(!equivalencias.verdes?.length && !equivalencias.amarillas?.length && !equivalencias.rojas?.length) && (
+                          <p className="text-gray-500 text-center py-4">No se encontraron equivalencias para rin {specs1?.rin}"</p>
+                        )}
+                        
+                        <p className="text-xs text-gray-400 mt-3 text-center">
+                          💡 Clic en una medida para compararla • ↑ más grande ↓ más pequeña
+                        </p>
+                      </>
                     )}
-                    
-                    {/* Sección Amarilla - Precaución 3-5% */}
-                    {equivalencias.amarillas?.length > 0 && (
-                      <div className="mb-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="w-4 h-4 rounded-full bg-yellow-500"></span>
-                          <span className="font-bold text-yellow-700">⚠️ Precaución (3-5% diferencia)</span>
-                        </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                          {equivalencias.amarillas.map((eq, idx) => (
-                            <button
-                              key={idx}
-                              onClick={() => setReferencia2(eq.referencia)}
-                              className="p-2 rounded-lg border-2 border-yellow-400 bg-yellow-50 hover:bg-yellow-100 transition-colors text-left"
-                            >
-                              <div className="font-bold text-yellow-800">{eq.referencia}</div>
-                              <div className="text-xs text-yellow-600">
-                                {eq.esMayor ? '↑' : '↓'} {eq.diferencia.toFixed(1)}% ({eq.difMM.toFixed(0)}mm)
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Sección Roja - No recomendado >5% */}
-                    {equivalencias.rojas?.length > 0 && (
-                      <div className="mb-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="w-4 h-4 rounded-full bg-red-500"></span>
-                          <span className="font-bold text-red-700">❌ No Recomendado (&gt;5% diferencia)</span>
-                        </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                          {equivalencias.rojas.map((eq, idx) => (
-                            <button
-                              key={idx}
-                              onClick={() => setReferencia2(eq.referencia)}
-                              className="p-2 rounded-lg border-2 border-red-400 bg-red-50 hover:bg-red-100 transition-colors text-left"
-                            >
-                              <div className="font-bold text-red-800">{eq.referencia}</div>
-                              <div className="text-xs text-red-600">
-                                {eq.esMayor ? '↑' : '↓'} {eq.diferencia.toFixed(1)}% ({eq.difMM.toFixed(0)}mm)
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {(!equivalencias.verdes?.length && !equivalencias.amarillas?.length && !equivalencias.rojas?.length) && (
-                      <p className="text-gray-500 text-center py-4">No se encontraron equivalencias para rin {specs1?.rin}"</p>
-                    )}
-                    
-                    <p className="text-xs text-gray-400 mt-3 text-center">
-                      💡 Clic en una medida para compararla • ↑ más grande ↓ más pequeña
-                    </p>
                   </div>
                 )}
               </div>

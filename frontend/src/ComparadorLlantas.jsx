@@ -945,12 +945,6 @@ function ComparadorLlantas({ llantas = [], onClose }) {
               {cargando && <span className="text-sm text-indigo-500">⏳ Cargando...</span>}
             </div>
             
-            {API_KEY === "bea173769797e9430888b5d47ceb0e9a" && (
-              <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-2 mb-3 text-sm text-yellow-800">
-                ⚠️ Modo demo. Para acceso completo, obtén tu API Key en <a href="https://www.wheel-size.com/api/" target="_blank" rel="noopener noreferrer" className="underline font-bold">wheel-size.com/api</a>
-              </div>
-            )}
-            
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {/* Selector de Marca */}
               <div>

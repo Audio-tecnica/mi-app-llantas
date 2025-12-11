@@ -212,14 +212,122 @@ function ComparadorLlantas({ llantas = [], onClose }) {
 
   // Base de datos de vehículos con sus medidas OEM
   const vehiculos = [
-    // Toyota
-    { marca: "Toyota", modelo: "Fortuner", anios: "2016-2024", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17"] },
-    { marca: "Toyota", modelo: "Hilux", anios: "2016-2024", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "255/70R17"] },
-    { marca: "Toyota", modelo: "Land Cruiser Prado", anios: "2010-2024", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17"] },
-    { marca: "Toyota", modelo: "4Runner", anios: "2010-2024", medidaOEM: "265/70R17", medidasAlt: ["275/70R17", "265/65R17"] },
-    { marca: "Toyota", modelo: "RAV4", anios: "2019-2024", medidaOEM: "225/65R17", medidasAlt: ["235/65R17", "225/60R18"] },
-    { marca: "Toyota", modelo: "Corolla", anios: "2020-2024", medidaOEM: "205/55R16", medidasAlt: ["215/55R16", "215/50R17"] },
-    { marca: "Toyota", modelo: "Camry", anios: "2018-2024", medidaOEM: "235/45R18", medidasAlt: ["225/45R18", "245/45R18"] },
+    // ==================== TOYOTA (AMPLIADO) ====================
+    // Fortuner
+    { marca: "Toyota", modelo: "Fortuner", anios: "2024", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17", "255/70R17"] },
+    { marca: "Toyota", modelo: "Fortuner", anios: "2021-2023", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17", "255/70R17"] },
+    { marca: "Toyota", modelo: "Fortuner", anios: "2016-2020", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17"] },
+    { marca: "Toyota", modelo: "Fortuner", anios: "2012-2015", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "255/70R17"] },
+    { marca: "Toyota", modelo: "Fortuner", anios: "2006-2011", medidaOEM: "255/70R16", medidasAlt: ["265/70R16", "245/70R16"] },
+    
+    // Hilux
+    { marca: "Toyota", modelo: "Hilux", anios: "2024", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17", "255/70R17"] },
+    { marca: "Toyota", modelo: "Hilux", anios: "2021-2023", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17"] },
+    { marca: "Toyota", modelo: "Hilux", anios: "2016-2020", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "255/70R17"] },
+    { marca: "Toyota", modelo: "Hilux", anios: "2012-2015", medidaOEM: "255/70R16", medidasAlt: ["265/70R16", "245/70R16"] },
+    { marca: "Toyota", modelo: "Hilux", anios: "2005-2011", medidaOEM: "255/70R15", medidasAlt: ["265/70R15", "235/75R15"] },
+    { marca: "Toyota", modelo: "Hilux SW4", anios: "2016-2024", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17"] },
+    
+    // Land Cruiser
+    { marca: "Toyota", modelo: "Land Cruiser 300", anios: "2022-2024", medidaOEM: "265/65R18", medidasAlt: ["275/65R18", "265/60R18", "285/60R18"] },
+    { marca: "Toyota", modelo: "Land Cruiser 200", anios: "2016-2021", medidaOEM: "285/60R18", medidasAlt: ["275/65R18", "285/65R18"] },
+    { marca: "Toyota", modelo: "Land Cruiser 200", anios: "2008-2015", medidaOEM: "285/60R18", medidasAlt: ["275/60R18", "285/65R17"] },
+    { marca: "Toyota", modelo: "Land Cruiser Prado", anios: "2024", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17"] },
+    { marca: "Toyota", modelo: "Land Cruiser Prado", anios: "2018-2023", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17"] },
+    { marca: "Toyota", modelo: "Land Cruiser Prado", anios: "2010-2017", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "255/70R17"] },
+    { marca: "Toyota", modelo: "Land Cruiser Prado", anios: "2003-2009", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "255/65R17"] },
+    { marca: "Toyota", modelo: "Land Cruiser 70", anios: "2014-2024", medidaOEM: "265/70R16", medidasAlt: ["255/70R16", "275/70R16", "285/75R16"] },
+    
+    // 4Runner
+    { marca: "Toyota", modelo: "4Runner", anios: "2024", medidaOEM: "265/70R17", medidasAlt: ["275/70R17", "265/65R17", "285/70R17"] },
+    { marca: "Toyota", modelo: "4Runner", anios: "2014-2023", medidaOEM: "265/70R17", medidasAlt: ["275/70R17", "265/65R17"] },
+    { marca: "Toyota", modelo: "4Runner", anios: "2010-2013", medidaOEM: "265/70R17", medidasAlt: ["275/65R17", "265/65R17"] },
+    { marca: "Toyota", modelo: "4Runner", anios: "2003-2009", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17"] },
+    
+    // RAV4
+    { marca: "Toyota", modelo: "RAV4", anios: "2024", medidaOEM: "225/65R17", medidasAlt: ["235/65R17", "225/60R18", "235/55R19"] },
+    { marca: "Toyota", modelo: "RAV4", anios: "2019-2023", medidaOEM: "225/65R17", medidasAlt: ["235/65R17", "225/60R18"] },
+    { marca: "Toyota", modelo: "RAV4", anios: "2013-2018", medidaOEM: "225/65R17", medidasAlt: ["235/60R18", "225/60R18"] },
+    { marca: "Toyota", modelo: "RAV4", anios: "2006-2012", medidaOEM: "225/65R17", medidasAlt: ["235/65R17", "225/70R16"] },
+    { marca: "Toyota", modelo: "RAV4 Hybrid", anios: "2019-2024", medidaOEM: "225/60R18", medidasAlt: ["235/55R19", "225/65R17"] },
+    
+    // Corolla
+    { marca: "Toyota", modelo: "Corolla", anios: "2024", medidaOEM: "205/55R16", medidasAlt: ["215/55R16", "215/50R17", "225/45R17"] },
+    { marca: "Toyota", modelo: "Corolla", anios: "2020-2023", medidaOEM: "205/55R16", medidasAlt: ["215/55R16", "215/50R17"] },
+    { marca: "Toyota", modelo: "Corolla", anios: "2014-2019", medidaOEM: "205/55R16", medidasAlt: ["215/55R16", "195/65R15"] },
+    { marca: "Toyota", modelo: "Corolla", anios: "2009-2013", medidaOEM: "195/65R15", medidasAlt: ["205/55R16", "195/60R15"] },
+    { marca: "Toyota", modelo: "Corolla Cross", anios: "2022-2024", medidaOEM: "215/60R17", medidasAlt: ["225/55R18", "215/55R17"] },
+    { marca: "Toyota", modelo: "Corolla Cross Hybrid", anios: "2022-2024", medidaOEM: "215/55R18", medidasAlt: ["225/50R18", "215/60R17"] },
+    
+    // Camry
+    { marca: "Toyota", modelo: "Camry", anios: "2024", medidaOEM: "235/45R18", medidasAlt: ["225/45R18", "245/45R18", "225/55R17"] },
+    { marca: "Toyota", modelo: "Camry", anios: "2018-2023", medidaOEM: "235/45R18", medidasAlt: ["225/45R18", "245/45R18"] },
+    { marca: "Toyota", modelo: "Camry", anios: "2012-2017", medidaOEM: "215/55R17", medidasAlt: ["225/55R17", "215/60R16"] },
+    { marca: "Toyota", modelo: "Camry", anios: "2007-2011", medidaOEM: "215/60R16", medidasAlt: ["215/55R17", "225/55R17"] },
+    
+    // Tacoma
+    { marca: "Toyota", modelo: "Tacoma", anios: "2024", medidaOEM: "265/70R16", medidasAlt: ["265/65R17", "275/70R16", "265/75R16"] },
+    { marca: "Toyota", modelo: "Tacoma", anios: "2016-2023", medidaOEM: "265/70R16", medidasAlt: ["265/65R17", "275/70R16"] },
+    { marca: "Toyota", modelo: "Tacoma", anios: "2005-2015", medidaOEM: "265/70R16", medidasAlt: ["255/70R16", "265/75R16"] },
+    { marca: "Toyota", modelo: "Tacoma TRD", anios: "2016-2024", medidaOEM: "265/70R17", medidasAlt: ["275/70R17", "285/70R17"] },
+    
+    // Tundra
+    { marca: "Toyota", modelo: "Tundra", anios: "2022-2024", medidaOEM: "275/65R18", medidasAlt: ["285/65R18", "275/60R20", "285/60R20"] },
+    { marca: "Toyota", modelo: "Tundra", anios: "2014-2021", medidaOEM: "275/65R18", medidasAlt: ["285/65R18", "275/70R18"] },
+    { marca: "Toyota", modelo: "Tundra", anios: "2007-2013", medidaOEM: "275/65R18", medidasAlt: ["285/65R18", "275/70R18"] },
+    { marca: "Toyota", modelo: "Tundra TRD Pro", anios: "2019-2024", medidaOEM: "275/65R18", medidasAlt: ["285/70R17", "295/70R17"] },
+    
+    // Sequoia
+    { marca: "Toyota", modelo: "Sequoia", anios: "2023-2024", medidaOEM: "275/65R18", medidasAlt: ["285/60R20", "275/60R20"] },
+    { marca: "Toyota", modelo: "Sequoia", anios: "2008-2022", medidaOEM: "275/65R18", medidasAlt: ["285/65R18", "275/70R18"] },
+    
+    // FJ Cruiser
+    { marca: "Toyota", modelo: "FJ Cruiser", anios: "2007-2014", medidaOEM: "265/70R17", medidasAlt: ["275/70R17", "285/70R17", "265/75R16"] },
+    
+    // Yaris
+    { marca: "Toyota", modelo: "Yaris", anios: "2020-2024", medidaOEM: "185/60R15", medidasAlt: ["195/55R16", "185/55R16"] },
+    { marca: "Toyota", modelo: "Yaris", anios: "2014-2019", medidaOEM: "175/65R15", medidasAlt: ["185/60R15", "185/65R14"] },
+    { marca: "Toyota", modelo: "Yaris Cross", anios: "2021-2024", medidaOEM: "215/55R18", medidasAlt: ["205/60R17", "215/60R17"] },
+    
+    // C-HR
+    { marca: "Toyota", modelo: "C-HR", anios: "2017-2024", medidaOEM: "225/50R18", medidasAlt: ["215/60R17", "225/55R17"] },
+    
+    // Highlander
+    { marca: "Toyota", modelo: "Highlander", anios: "2020-2024", medidaOEM: "235/65R18", medidasAlt: ["245/60R18", "235/55R20"] },
+    { marca: "Toyota", modelo: "Highlander", anios: "2014-2019", medidaOEM: "245/60R18", medidasAlt: ["235/65R18", "245/55R19"] },
+    { marca: "Toyota", modelo: "Highlander", anios: "2008-2013", medidaOEM: "245/65R17", medidasAlt: ["235/65R17", "255/60R18"] },
+    
+    // Supra
+    { marca: "Toyota", modelo: "GR Supra", anios: "2020-2024", medidaOEM: "255/35R19", medidasAlt: ["275/35R19", "255/40R18"] },
+    
+    // 86 / GR86
+    { marca: "Toyota", modelo: "GR86", anios: "2022-2024", medidaOEM: "215/40R18", medidasAlt: ["225/40R18", "215/45R17"] },
+    { marca: "Toyota", modelo: "86", anios: "2017-2021", medidaOEM: "215/45R17", medidasAlt: ["225/45R17", "215/40R18"] },
+    
+    // Sienna
+    { marca: "Toyota", modelo: "Sienna", anios: "2021-2024", medidaOEM: "235/60R18", medidasAlt: ["235/55R19", "245/55R19"] },
+    { marca: "Toyota", modelo: "Sienna", anios: "2015-2020", medidaOEM: "235/60R17", medidasAlt: ["235/55R18", "225/60R17"] },
+    
+    // Avanza
+    { marca: "Toyota", modelo: "Avanza", anios: "2019-2024", medidaOEM: "185/65R15", medidasAlt: ["195/60R15", "185/60R15"] },
+    { marca: "Toyota", modelo: "Avanza", anios: "2012-2018", medidaOEM: "185/70R14", medidasAlt: ["185/65R15", "175/70R14"] },
+    
+    // Rush
+    { marca: "Toyota", modelo: "Rush", anios: "2018-2024", medidaOEM: "215/65R16", medidasAlt: ["225/60R17", "215/60R17"] },
+    
+    // Vios
+    { marca: "Toyota", modelo: "Vios", anios: "2018-2024", medidaOEM: "185/60R15", medidasAlt: ["195/55R15", "185/55R16"] },
+    
+    // Innova
+    { marca: "Toyota", modelo: "Innova", anios: "2016-2024", medidaOEM: "205/65R16", medidasAlt: ["215/65R16", "215/60R17"] },
+    { marca: "Toyota", modelo: "Innova", anios: "2005-2015", medidaOEM: "205/65R15", medidasAlt: ["215/65R15", "205/70R15"] },
+    
+    // Prius
+    { marca: "Toyota", modelo: "Prius", anios: "2023-2024", medidaOEM: "195/50R19", medidasAlt: ["195/55R17", "205/55R17"] },
+    { marca: "Toyota", modelo: "Prius", anios: "2016-2022", medidaOEM: "195/65R15", medidasAlt: ["215/45R17", "205/55R16"] },
+    
+    // bZ4X (Eléctrico)
+    { marca: "Toyota", modelo: "bZ4X", anios: "2023-2024", medidaOEM: "235/60R18", medidasAlt: ["235/55R19", "245/55R19"] },
     
     // Chevrolet
     { marca: "Chevrolet", modelo: "Colorado", anios: "2017-2024", medidaOEM: "255/65R17", medidasAlt: ["265/65R17", "255/70R17"] },
@@ -381,32 +489,54 @@ function ComparadorLlantas({ llantas = [], onClose }) {
     return calcularEspecificaciones(parsearMedida(referencia2));
   }, [referencia2, llantaSeleccionada2, modoIngreso, llantas]);
 
-  // Calcular equivalencias (medidas alternativas con diferencia <3%)
+  // Calcular equivalencias (medidas alternativas del MISMO RIN)
   const equivalencias = useMemo(() => {
-    if (!specs1) return [];
-    const anchos = [205, 215, 225, 235, 245, 255, 265, 275, 285, 295, 305, 315];
-    const perfiles = [45, 50, 55, 60, 65, 70, 75, 80, 85];
-    const rines = [15, 16, 17, 18, 19, 20, 21, 22];
-    const equiv = [];
+    if (!specs1) return { verdes: [], amarillas: [], rojas: [] };
+    const anchos = [195, 205, 215, 225, 235, 245, 255, 265, 275, 285, 295, 305, 315, 325, 335];
+    const perfiles = [40, 45, 50, 55, 60, 65, 70, 75, 80, 85];
+    const rinActual = specs1.rin; // Mismo rin que la llanta original
+    
+    const verdes = [];   // <3%
+    const amarillas = []; // 3-5%
+    const rojas = [];     // >5%
     
     for (const ancho of anchos) {
       for (const perfil of perfiles) {
-        for (const rin of rines) {
-          const specsAlt = calcularEspecificaciones({ ancho, perfil, rin });
-          if (specsAlt) {
-            const difDiametro = Math.abs((specsAlt.diametroTotal.mm - specs1.diametroTotal.mm) / specs1.diametroTotal.mm * 100);
-            if (difDiametro <= 3 && difDiametro > 0.1) {
-              equiv.push({
-                referencia: `${ancho}/${perfil}R${rin}`,
-                specs: specsAlt,
-                diferencia: difDiametro
-              });
-            }
+        // Solo el mismo rin
+        const specsAlt = calcularEspecificaciones({ ancho, perfil, rin: rinActual });
+        if (specsAlt) {
+          const difDiametro = Math.abs((specsAlt.diametroTotal.mm - specs1.diametroTotal.mm) / specs1.diametroTotal.mm * 100);
+          const refActual = `${specs1.ancho}/${specs1.perfil}R${specs1.rin}`;
+          const refAlt = `${ancho}/${perfil}R${rinActual}`;
+          
+          // No incluir la misma medida
+          if (refAlt === refActual) continue;
+          
+          const item = {
+            referencia: refAlt,
+            specs: specsAlt,
+            diferencia: difDiametro,
+            difMM: Math.abs(specsAlt.diametroTotal.mm - specs1.diametroTotal.mm),
+            difPulgadas: Math.abs(specsAlt.diametroTotal.pulgadas - specs1.diametroTotal.pulgadas),
+            esMayor: specsAlt.diametroTotal.mm > specs1.diametroTotal.mm
+          };
+          
+          if (difDiametro < 3) {
+            verdes.push(item);
+          } else if (difDiametro < 5) {
+            amarillas.push(item);
+          } else if (difDiametro <= 8) {
+            rojas.push(item);
           }
         }
       }
     }
-    return equiv.sort((a, b) => a.diferencia - b.diferencia).slice(0, 12);
+    
+    return {
+      verdes: verdes.sort((a, b) => a.diferencia - b.diferencia).slice(0, 8),
+      amarillas: amarillas.sort((a, b) => a.diferencia - b.diferencia).slice(0, 6),
+      rojas: rojas.sort((a, b) => a.diferencia - b.diferencia).slice(0, 4)
+    };
   }, [specs1]);
 
   const diferencias = useMemo(() => {
@@ -830,52 +960,103 @@ function ComparadorLlantas({ llantas = [], onClose }) {
                   onClick={() => setMostrarEquivalencias(!mostrarEquivalencias)}
                   className="w-full px-4 py-3 bg-purple-600 text-white font-bold flex items-center justify-between hover:bg-purple-700 transition-colors"
                 >
-                  <span>🔄 Medidas Equivalentes a {referencia1} (±3%)</span>
+                  <span>🔄 Medidas Equivalentes en Rin {specs1?.rin}"</span>
                   <span className="text-xl">{mostrarEquivalencias ? '▲' : '▼'}</span>
                 </button>
                 
                 {mostrarEquivalencias && (
                   <div className="p-4">
-                    <p className="text-sm text-gray-600 mb-3">
-                      Si no tienes {referencia1}, estas medidas tienen un diámetro similar y pueden servir como alternativa:
+                    <p className="text-sm text-gray-600 mb-4">
+                      Alternativas para <strong>{referencia1}</strong> en el mismo rin ({specs1?.rin}"):
                     </p>
-                    {equivalencias.length > 0 ? (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                        {equivalencias.map((eq, idx) => (
-                          <button
-                            key={idx}
-                            onClick={() => setReferencia2(eq.referencia)}
-                            className={`p-2 rounded-lg border-2 text-center hover:bg-purple-50 transition-colors ${
-                              eq.diferencia < 1 ? 'border-green-300 bg-green-50' : 
-                              eq.diferencia < 2 ? 'border-yellow-300 bg-yellow-50' : 
-                              'border-orange-300 bg-orange-50'
-                            }`}
-                          >
-                            <div className="font-bold text-sm">{eq.referencia}</div>
-                            <div className={`text-xs ${
-                              eq.diferencia < 1 ? 'text-green-600' : 
-                              eq.diferencia < 2 ? 'text-yellow-600' : 
-                              'text-orange-600'
-                            }`}>
-                              {eq.diferencia.toFixed(1)}% dif.
-                            </div>
-                          </button>
-                        ))}
+                    
+                    {/* Sección Verde - Compatible <3% */}
+                    {equivalencias.verdes?.length > 0 && (
+                      <div className="mb-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="w-4 h-4 rounded-full bg-green-500"></span>
+                          <span className="font-bold text-green-700">✅ Compatible (&lt;3% diferencia)</span>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                          {equivalencias.verdes.map((eq, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => setReferencia2(eq.referencia)}
+                              className="p-2 rounded-lg border-2 border-green-400 bg-green-50 hover:bg-green-100 transition-colors text-left"
+                            >
+                              <div className="font-bold text-green-800">{eq.referencia}</div>
+                              <div className="text-xs text-green-600">
+                                {eq.esMayor ? '↑' : '↓'} {eq.diferencia.toFixed(1)}% ({eq.difMM.toFixed(0)}mm)
+                              </div>
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    ) : (
-                      <p className="text-gray-500 text-center py-4">No se encontraron equivalencias</p>
                     )}
+                    
+                    {/* Sección Amarilla - Precaución 3-5% */}
+                    {equivalencias.amarillas?.length > 0 && (
+                      <div className="mb-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="w-4 h-4 rounded-full bg-yellow-500"></span>
+                          <span className="font-bold text-yellow-700">⚠️ Precaución (3-5% diferencia)</span>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                          {equivalencias.amarillas.map((eq, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => setReferencia2(eq.referencia)}
+                              className="p-2 rounded-lg border-2 border-yellow-400 bg-yellow-50 hover:bg-yellow-100 transition-colors text-left"
+                            >
+                              <div className="font-bold text-yellow-800">{eq.referencia}</div>
+                              <div className="text-xs text-yellow-600">
+                                {eq.esMayor ? '↑' : '↓'} {eq.diferencia.toFixed(1)}% ({eq.difMM.toFixed(0)}mm)
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Sección Roja - No recomendado >5% */}
+                    {equivalencias.rojas?.length > 0 && (
+                      <div className="mb-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="w-4 h-4 rounded-full bg-red-500"></span>
+                          <span className="font-bold text-red-700">❌ No Recomendado (&gt;5% diferencia)</span>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                          {equivalencias.rojas.map((eq, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => setReferencia2(eq.referencia)}
+                              className="p-2 rounded-lg border-2 border-red-400 bg-red-50 hover:bg-red-100 transition-colors text-left"
+                            >
+                              <div className="font-bold text-red-800">{eq.referencia}</div>
+                              <div className="text-xs text-red-600">
+                                {eq.esMayor ? '↑' : '↓'} {eq.diferencia.toFixed(1)}% ({eq.difMM.toFixed(0)}mm)
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {(!equivalencias.verdes?.length && !equivalencias.amarillas?.length && !equivalencias.rojas?.length) && (
+                      <p className="text-gray-500 text-center py-4">No se encontraron equivalencias para rin {specs1?.rin}"</p>
+                    )}
+                    
                     <p className="text-xs text-gray-400 mt-3 text-center">
-                      💡 Haz clic en una medida para compararla
+                      💡 Clic en una medida para compararla • ↑ más grande ↓ más pequeña
                     </p>
                   </div>
                 )}
               </div>
 
               <div className="flex flex-wrap justify-center gap-4 text-xs text-gray-500">
-                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-400"></span> &lt;3%</span>
-                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-yellow-400"></span> 3-5%</span>
-                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-400"></span> &gt;5%</span>
+                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-400"></span> &lt;3% Compatible</span>
+                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-yellow-400"></span> 3-5% Precaución</span>
+                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-400"></span> &gt;5% No Recomendado</span>
               </div>
             </>
           )}

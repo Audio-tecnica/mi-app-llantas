@@ -220,13 +220,13 @@ function ComparadorLlantas({ llantas = [], onClose }) {
   const [errorAPI, setErrorAPI] = useState("");
 
   // ⚠️ IMPORTANTE: Reemplaza con tu API Key de wheel-size.com
-  const API_KEY = "YOUR_API_KEY_HERE"; // Obtener en: https://www.wheel-size.com/api/
+  const API_KEY = "bea173769797e9430888b5d47ceb0e9a"; // Obtener en: https://www.wheel-size.com/api/
   const API_BASE = "https://api.wheel-size.com/v2";
 
   // Cargar marcas al iniciar
   useEffect(() => {
     const cargarMarcas = async () => {
-      if (API_KEY === "YOUR_API_KEY_HERE") {
+      if (API_KEY === "bea173769797e9430888b5d47ceb0e9a") {
         // Si no hay API key, usar datos de ejemplo
         setMarcas([
           { slug: "toyota", name: "Toyota" },
@@ -278,7 +278,7 @@ function ComparadorLlantas({ llantas = [], onClose }) {
     }
 
     const cargarModelos = async () => {
-      if (API_KEY === "YOUR_API_KEY_HERE") {
+      if (API_KEY === "bea173769797e9430888b5d47ceb0e9a") {
         // Datos de ejemplo si no hay API key
         const modelosEjemplo = {
           toyota: ["4Runner", "Avalon", "Camry", "C-HR", "Corolla", "Corolla Cross", "FJ Cruiser", "Fortuner", "Highlander", "Hilux", "Land Cruiser", "Land Cruiser Prado", "Prius", "RAV4", "Sequoia", "Sienna", "Supra", "Tacoma", "Tundra", "Yaris"],
@@ -321,7 +321,7 @@ function ComparadorLlantas({ llantas = [], onClose }) {
     }
 
     const cargarAnios = async () => {
-      if (API_KEY === "YOUR_API_KEY_HERE") {
+      if (API_KEY === "bea173769797e9430888b5d47ceb0e9a") {
         // Datos de ejemplo
         const aniosEjemplo = [];
         for (let a = 2024; a >= 2000; a--) {
@@ -357,7 +357,7 @@ function ComparadorLlantas({ llantas = [], onClose }) {
     }
 
     const cargarMedidas = async () => {
-      if (API_KEY === "YOUR_API_KEY_HERE") {
+      if (API_KEY === "bea173769797e9430888b5d47ceb0e9a") {
         // Datos de ejemplo con información técnica completa estilo wheel-size.com
         const vehiculosData = {
           "toyota-fortuner": { 
@@ -945,7 +945,7 @@ function ComparadorLlantas({ llantas = [], onClose }) {
               {cargando && <span className="text-sm text-indigo-500">⏳ Cargando...</span>}
             </div>
             
-            {API_KEY === "YOUR_API_KEY_HERE" && (
+            {API_KEY === "bea173769797e9430888b5d47ceb0e9a" && (
               <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-2 mb-3 text-sm text-yellow-800">
                 ⚠️ Modo demo. Para acceso completo, obtén tu API Key en <a href="https://www.wheel-size.com/api/" target="_blank" rel="noopener noreferrer" className="underline font-bold">wheel-size.com/api</a>
               </div>

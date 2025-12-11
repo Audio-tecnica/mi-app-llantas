@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 
 const parsearMedida = (referencia) => {
   if (!referencia) return null;
@@ -207,231 +207,241 @@ function ComparadorLlantas({ llantas = [], onClose }) {
   const [modoIngreso, setModoIngreso] = useState("manual");
   const [unidad, setUnidad] = useState("pulgadas");
   const [mostrarEquivalencias, setMostrarEquivalencias] = useState(false);
-  const [busquedaVehiculo, setBusquedaVehiculo] = useState("");
-  const [vehiculoSeleccionado, setVehiculoSeleccionado] = useState(null);
+  
+  // Estados para búsqueda de vehículos con API
+  const [marcas, setMarcas] = useState([]);
+  const [modelos, setModelos] = useState([]);
+  const [anios, setAnios] = useState([]);
+  const [marcaSeleccionada, setMarcaSeleccionada] = useState("");
+  const [modeloSeleccionado, setModeloSeleccionado] = useState("");
+  const [anioSeleccionado, setAnioSeleccionado] = useState("");
+  const [medidasVehiculo, setMedidasVehiculo] = useState(null);
+  const [cargando, setCargando] = useState(false);
+  const [errorAPI, setErrorAPI] = useState("");
 
-  // Base de datos de vehículos con sus medidas OEM
-  const vehiculos = [
-    // ==================== TOYOTA (AMPLIADO) ====================
-    // Fortuner
-    { marca: "Toyota", modelo: "Fortuner", anios: "2024", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17", "255/70R17"] },
-    { marca: "Toyota", modelo: "Fortuner", anios: "2021-2023", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17", "255/70R17"] },
-    { marca: "Toyota", modelo: "Fortuner", anios: "2016-2020", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17"] },
-    { marca: "Toyota", modelo: "Fortuner", anios: "2012-2015", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "255/70R17"] },
-    { marca: "Toyota", modelo: "Fortuner", anios: "2006-2011", medidaOEM: "255/70R16", medidasAlt: ["265/70R16", "245/70R16"] },
-    
-    // Hilux
-    { marca: "Toyota", modelo: "Hilux", anios: "2024", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17", "255/70R17"] },
-    { marca: "Toyota", modelo: "Hilux", anios: "2021-2023", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17"] },
-    { marca: "Toyota", modelo: "Hilux", anios: "2016-2020", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "255/70R17"] },
-    { marca: "Toyota", modelo: "Hilux", anios: "2012-2015", medidaOEM: "255/70R16", medidasAlt: ["265/70R16", "245/70R16"] },
-    { marca: "Toyota", modelo: "Hilux", anios: "2005-2011", medidaOEM: "255/70R15", medidasAlt: ["265/70R15", "235/75R15"] },
-    { marca: "Toyota", modelo: "Hilux SW4", anios: "2016-2024", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17"] },
-    
-    // Land Cruiser
-    { marca: "Toyota", modelo: "Land Cruiser 300", anios: "2022-2024", medidaOEM: "265/65R18", medidasAlt: ["275/65R18", "265/60R18", "285/60R18"] },
-    { marca: "Toyota", modelo: "Land Cruiser 200", anios: "2016-2021", medidaOEM: "285/60R18", medidasAlt: ["275/65R18", "285/65R18"] },
-    { marca: "Toyota", modelo: "Land Cruiser 200", anios: "2008-2015", medidaOEM: "285/60R18", medidasAlt: ["275/60R18", "285/65R17"] },
-    { marca: "Toyota", modelo: "Land Cruiser Prado", anios: "2024", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17"] },
-    { marca: "Toyota", modelo: "Land Cruiser Prado", anios: "2018-2023", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17"] },
-    { marca: "Toyota", modelo: "Land Cruiser Prado", anios: "2010-2017", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "255/70R17"] },
-    { marca: "Toyota", modelo: "Land Cruiser Prado", anios: "2003-2009", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "255/65R17"] },
-    { marca: "Toyota", modelo: "Land Cruiser 70", anios: "2014-2024", medidaOEM: "265/70R16", medidasAlt: ["255/70R16", "275/70R16", "285/75R16"] },
-    
-    // 4Runner
-    { marca: "Toyota", modelo: "4Runner", anios: "2024", medidaOEM: "265/70R17", medidasAlt: ["275/70R17", "265/65R17", "285/70R17"] },
-    { marca: "Toyota", modelo: "4Runner", anios: "2014-2023", medidaOEM: "265/70R17", medidasAlt: ["275/70R17", "265/65R17"] },
-    { marca: "Toyota", modelo: "4Runner", anios: "2010-2013", medidaOEM: "265/70R17", medidasAlt: ["275/65R17", "265/65R17"] },
-    { marca: "Toyota", modelo: "4Runner", anios: "2003-2009", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17"] },
-    
-    // RAV4
-    { marca: "Toyota", modelo: "RAV4", anios: "2024", medidaOEM: "225/65R17", medidasAlt: ["235/65R17", "225/60R18", "235/55R19"] },
-    { marca: "Toyota", modelo: "RAV4", anios: "2019-2023", medidaOEM: "225/65R17", medidasAlt: ["235/65R17", "225/60R18"] },
-    { marca: "Toyota", modelo: "RAV4", anios: "2013-2018", medidaOEM: "225/65R17", medidasAlt: ["235/60R18", "225/60R18"] },
-    { marca: "Toyota", modelo: "RAV4", anios: "2006-2012", medidaOEM: "225/65R17", medidasAlt: ["235/65R17", "225/70R16"] },
-    { marca: "Toyota", modelo: "RAV4 Hybrid", anios: "2019-2024", medidaOEM: "225/60R18", medidasAlt: ["235/55R19", "225/65R17"] },
-    
-    // Corolla
-    { marca: "Toyota", modelo: "Corolla", anios: "2024", medidaOEM: "205/55R16", medidasAlt: ["215/55R16", "215/50R17", "225/45R17"] },
-    { marca: "Toyota", modelo: "Corolla", anios: "2020-2023", medidaOEM: "205/55R16", medidasAlt: ["215/55R16", "215/50R17"] },
-    { marca: "Toyota", modelo: "Corolla", anios: "2014-2019", medidaOEM: "205/55R16", medidasAlt: ["215/55R16", "195/65R15"] },
-    { marca: "Toyota", modelo: "Corolla", anios: "2009-2013", medidaOEM: "195/65R15", medidasAlt: ["205/55R16", "195/60R15"] },
-    { marca: "Toyota", modelo: "Corolla Cross", anios: "2022-2024", medidaOEM: "215/60R17", medidasAlt: ["225/55R18", "215/55R17"] },
-    { marca: "Toyota", modelo: "Corolla Cross Hybrid", anios: "2022-2024", medidaOEM: "215/55R18", medidasAlt: ["225/50R18", "215/60R17"] },
-    
-    // Camry
-    { marca: "Toyota", modelo: "Camry", anios: "2024", medidaOEM: "235/45R18", medidasAlt: ["225/45R18", "245/45R18", "225/55R17"] },
-    { marca: "Toyota", modelo: "Camry", anios: "2018-2023", medidaOEM: "235/45R18", medidasAlt: ["225/45R18", "245/45R18"] },
-    { marca: "Toyota", modelo: "Camry", anios: "2012-2017", medidaOEM: "215/55R17", medidasAlt: ["225/55R17", "215/60R16"] },
-    { marca: "Toyota", modelo: "Camry", anios: "2007-2011", medidaOEM: "215/60R16", medidasAlt: ["215/55R17", "225/55R17"] },
-    
-    // Tacoma
-    { marca: "Toyota", modelo: "Tacoma", anios: "2024", medidaOEM: "265/70R16", medidasAlt: ["265/65R17", "275/70R16", "265/75R16"] },
-    { marca: "Toyota", modelo: "Tacoma", anios: "2016-2023", medidaOEM: "265/70R16", medidasAlt: ["265/65R17", "275/70R16"] },
-    { marca: "Toyota", modelo: "Tacoma", anios: "2005-2015", medidaOEM: "265/70R16", medidasAlt: ["255/70R16", "265/75R16"] },
-    { marca: "Toyota", modelo: "Tacoma TRD", anios: "2016-2024", medidaOEM: "265/70R17", medidasAlt: ["275/70R17", "285/70R17"] },
-    
-    // Tundra
-    { marca: "Toyota", modelo: "Tundra", anios: "2022-2024", medidaOEM: "275/65R18", medidasAlt: ["285/65R18", "275/60R20", "285/60R20"] },
-    { marca: "Toyota", modelo: "Tundra", anios: "2014-2021", medidaOEM: "275/65R18", medidasAlt: ["285/65R18", "275/70R18"] },
-    { marca: "Toyota", modelo: "Tundra", anios: "2007-2013", medidaOEM: "275/65R18", medidasAlt: ["285/65R18", "275/70R18"] },
-    { marca: "Toyota", modelo: "Tundra TRD Pro", anios: "2019-2024", medidaOEM: "275/65R18", medidasAlt: ["285/70R17", "295/70R17"] },
-    
-    // Sequoia
-    { marca: "Toyota", modelo: "Sequoia", anios: "2023-2024", medidaOEM: "275/65R18", medidasAlt: ["285/60R20", "275/60R20"] },
-    { marca: "Toyota", modelo: "Sequoia", anios: "2008-2022", medidaOEM: "275/65R18", medidasAlt: ["285/65R18", "275/70R18"] },
-    
-    // FJ Cruiser
-    { marca: "Toyota", modelo: "FJ Cruiser", anios: "2007-2014", medidaOEM: "265/70R17", medidasAlt: ["275/70R17", "285/70R17", "265/75R16"] },
-    
-    // Yaris
-    { marca: "Toyota", modelo: "Yaris", anios: "2020-2024", medidaOEM: "185/60R15", medidasAlt: ["195/55R16", "185/55R16"] },
-    { marca: "Toyota", modelo: "Yaris", anios: "2014-2019", medidaOEM: "175/65R15", medidasAlt: ["185/60R15", "185/65R14"] },
-    { marca: "Toyota", modelo: "Yaris Cross", anios: "2021-2024", medidaOEM: "215/55R18", medidasAlt: ["205/60R17", "215/60R17"] },
-    
-    // C-HR
-    { marca: "Toyota", modelo: "C-HR", anios: "2017-2024", medidaOEM: "225/50R18", medidasAlt: ["215/60R17", "225/55R17"] },
-    
-    // Highlander
-    { marca: "Toyota", modelo: "Highlander", anios: "2020-2024", medidaOEM: "235/65R18", medidasAlt: ["245/60R18", "235/55R20"] },
-    { marca: "Toyota", modelo: "Highlander", anios: "2014-2019", medidaOEM: "245/60R18", medidasAlt: ["235/65R18", "245/55R19"] },
-    { marca: "Toyota", modelo: "Highlander", anios: "2008-2013", medidaOEM: "245/65R17", medidasAlt: ["235/65R17", "255/60R18"] },
-    
-    // Supra
-    { marca: "Toyota", modelo: "GR Supra", anios: "2020-2024", medidaOEM: "255/35R19", medidasAlt: ["275/35R19", "255/40R18"] },
-    
-    // 86 / GR86
-    { marca: "Toyota", modelo: "GR86", anios: "2022-2024", medidaOEM: "215/40R18", medidasAlt: ["225/40R18", "215/45R17"] },
-    { marca: "Toyota", modelo: "86", anios: "2017-2021", medidaOEM: "215/45R17", medidasAlt: ["225/45R17", "215/40R18"] },
-    
-    // Sienna
-    { marca: "Toyota", modelo: "Sienna", anios: "2021-2024", medidaOEM: "235/60R18", medidasAlt: ["235/55R19", "245/55R19"] },
-    { marca: "Toyota", modelo: "Sienna", anios: "2015-2020", medidaOEM: "235/60R17", medidasAlt: ["235/55R18", "225/60R17"] },
-    
-    // Avanza
-    { marca: "Toyota", modelo: "Avanza", anios: "2019-2024", medidaOEM: "185/65R15", medidasAlt: ["195/60R15", "185/60R15"] },
-    { marca: "Toyota", modelo: "Avanza", anios: "2012-2018", medidaOEM: "185/70R14", medidasAlt: ["185/65R15", "175/70R14"] },
-    
-    // Rush
-    { marca: "Toyota", modelo: "Rush", anios: "2018-2024", medidaOEM: "215/65R16", medidasAlt: ["225/60R17", "215/60R17"] },
-    
-    // Vios
-    { marca: "Toyota", modelo: "Vios", anios: "2018-2024", medidaOEM: "185/60R15", medidasAlt: ["195/55R15", "185/55R16"] },
-    
-    // Innova
-    { marca: "Toyota", modelo: "Innova", anios: "2016-2024", medidaOEM: "205/65R16", medidasAlt: ["215/65R16", "215/60R17"] },
-    { marca: "Toyota", modelo: "Innova", anios: "2005-2015", medidaOEM: "205/65R15", medidasAlt: ["215/65R15", "205/70R15"] },
-    
-    // Prius
-    { marca: "Toyota", modelo: "Prius", anios: "2023-2024", medidaOEM: "195/50R19", medidasAlt: ["195/55R17", "205/55R17"] },
-    { marca: "Toyota", modelo: "Prius", anios: "2016-2022", medidaOEM: "195/65R15", medidasAlt: ["215/45R17", "205/55R16"] },
-    
-    // bZ4X (Eléctrico)
-    { marca: "Toyota", modelo: "bZ4X", anios: "2023-2024", medidaOEM: "235/60R18", medidasAlt: ["235/55R19", "245/55R19"] },
-    
-    // Chevrolet
-    { marca: "Chevrolet", modelo: "Colorado", anios: "2017-2024", medidaOEM: "255/65R17", medidasAlt: ["265/65R17", "255/70R17"] },
-    { marca: "Chevrolet", modelo: "Trailblazer", anios: "2017-2024", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17"] },
-    { marca: "Chevrolet", modelo: "Tracker", anios: "2021-2024", medidaOEM: "215/55R17", medidasAlt: ["225/55R17", "215/50R18"] },
-    { marca: "Chevrolet", modelo: "Onix", anios: "2020-2024", medidaOEM: "195/55R16", medidasAlt: ["205/55R16", "195/50R16"] },
-    { marca: "Chevrolet", modelo: "Captiva", anios: "2022-2024", medidaOEM: "215/60R17", medidasAlt: ["225/60R17", "215/55R18"] },
-    
-    // Ford
-    { marca: "Ford", modelo: "Ranger", anios: "2019-2024", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17"] },
-    { marca: "Ford", modelo: "Bronco Sport", anios: "2021-2024", medidaOEM: "225/65R17", medidasAlt: ["235/65R17", "225/60R18"] },
-    { marca: "Ford", modelo: "Explorer", anios: "2020-2024", medidaOEM: "255/55R20", medidasAlt: ["265/50R20", "255/50R20"] },
-    { marca: "Ford", modelo: "Escape", anios: "2020-2024", medidaOEM: "225/60R18", medidasAlt: ["235/55R18", "225/55R19"] },
-    { marca: "Ford", modelo: "F-150", anios: "2015-2024", medidaOEM: "275/65R18", medidasAlt: ["275/70R18", "285/65R18"] },
-    
-    // Nissan
-    { marca: "Nissan", modelo: "Frontier", anios: "2016-2024", medidaOEM: "255/70R16", medidasAlt: ["265/70R16", "255/65R17"] },
-    { marca: "Nissan", modelo: "Navara", anios: "2016-2024", medidaOEM: "255/65R17", medidasAlt: ["265/65R17", "255/70R17"] },
-    { marca: "Nissan", modelo: "X-Trail", anios: "2018-2024", medidaOEM: "225/65R17", medidasAlt: ["235/65R17", "225/60R18"] },
-    { marca: "Nissan", modelo: "Qashqai", anios: "2018-2024", medidaOEM: "215/60R17", medidasAlt: ["225/60R17", "215/55R18"] },
-    { marca: "Nissan", modelo: "Kicks", anios: "2017-2024", medidaOEM: "205/55R17", medidasAlt: ["215/55R17", "205/50R17"] },
-    { marca: "Nissan", modelo: "Patrol", anios: "2010-2024", medidaOEM: "275/65R18", medidasAlt: ["285/65R18", "275/70R18"] },
-    
-    // Jeep
-    { marca: "Jeep", modelo: "Wrangler", anios: "2018-2024", medidaOEM: "255/70R18", medidasAlt: ["265/70R17", "275/70R18", "285/70R17"] },
-    { marca: "Jeep", modelo: "Grand Cherokee", anios: "2016-2024", medidaOEM: "265/60R18", medidasAlt: ["275/55R20", "265/50R20"] },
-    { marca: "Jeep", modelo: "Cherokee", anios: "2019-2024", medidaOEM: "225/60R18", medidasAlt: ["235/55R19", "225/55R18"] },
-    { marca: "Jeep", modelo: "Renegade", anios: "2015-2024", medidaOEM: "215/60R17", medidasAlt: ["225/55R18", "215/55R18"] },
-    { marca: "Jeep", modelo: "Compass", anios: "2017-2024", medidaOEM: "225/55R18", medidasAlt: ["235/50R19", "225/60R17"] },
-    
-    // Mazda
-    { marca: "Mazda", modelo: "CX-5", anios: "2017-2024", medidaOEM: "225/65R17", medidasAlt: ["225/55R19", "235/65R17"] },
-    { marca: "Mazda", modelo: "CX-30", anios: "2020-2024", medidaOEM: "215/55R18", medidasAlt: ["215/60R17", "225/55R18"] },
-    { marca: "Mazda", modelo: "CX-50", anios: "2023-2024", medidaOEM: "225/60R18", medidasAlt: ["235/55R19", "225/55R19"] },
-    { marca: "Mazda", modelo: "BT-50", anios: "2021-2024", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "255/70R17"] },
-    { marca: "Mazda", modelo: "3", anios: "2019-2024", medidaOEM: "215/45R18", medidasAlt: ["205/55R16", "215/55R17"] },
-    
-    // Hyundai
-    { marca: "Hyundai", modelo: "Tucson", anios: "2021-2024", medidaOEM: "235/55R19", medidasAlt: ["225/60R18", "235/60R18"] },
-    { marca: "Hyundai", modelo: "Santa Fe", anios: "2019-2024", medidaOEM: "235/60R18", medidasAlt: ["235/55R19", "245/60R18"] },
-    { marca: "Hyundai", modelo: "Creta", anios: "2020-2024", medidaOEM: "205/65R16", medidasAlt: ["215/60R17", "205/60R16"] },
-    { marca: "Hyundai", modelo: "Venue", anios: "2020-2024", medidaOEM: "205/55R17", medidasAlt: ["195/60R16", "205/60R16"] },
-    { marca: "Hyundai", modelo: "Palisade", anios: "2020-2024", medidaOEM: "245/60R18", medidasAlt: ["245/50R20", "255/55R19"] },
-    
-    // Kia
-    { marca: "Kia", modelo: "Sportage", anios: "2022-2024", medidaOEM: "235/55R19", medidasAlt: ["235/60R18", "245/50R19"] },
-    { marca: "Kia", modelo: "Sorento", anios: "2021-2024", medidaOEM: "235/65R17", medidasAlt: ["245/60R18", "235/55R19"] },
-    { marca: "Kia", modelo: "Seltos", anios: "2020-2024", medidaOEM: "215/55R18", medidasAlt: ["205/60R16", "215/60R17"] },
-    { marca: "Kia", modelo: "Carnival", anios: "2022-2024", medidaOEM: "235/55R19", medidasAlt: ["235/60R18", "235/50R19"] },
-    { marca: "Kia", modelo: "Rio", anios: "2018-2024", medidaOEM: "185/65R15", medidasAlt: ["195/55R16", "185/55R16"] },
-    
-    // Mitsubishi
-    { marca: "Mitsubishi", modelo: "Montero Sport", anios: "2016-2024", medidaOEM: "265/65R17", medidasAlt: ["265/70R17", "275/65R17"] },
-    { marca: "Mitsubishi", modelo: "L200", anios: "2015-2024", medidaOEM: "245/65R17", medidasAlt: ["255/65R17", "265/65R17"] },
-    { marca: "Mitsubishi", modelo: "Outlander", anios: "2022-2024", medidaOEM: "255/45R20", medidasAlt: ["235/55R19", "245/50R19"] },
-    { marca: "Mitsubishi", modelo: "ASX", anios: "2020-2024", medidaOEM: "215/60R17", medidasAlt: ["225/55R18", "215/55R18"] },
-    
-    // Suzuki
-    { marca: "Suzuki", modelo: "Jimny", anios: "2019-2024", medidaOEM: "195/80R15", medidasAlt: ["205/70R15", "215/75R15"] },
-    { marca: "Suzuki", modelo: "Vitara", anios: "2016-2024", medidaOEM: "215/55R17", medidasAlt: ["225/55R17", "215/50R18"] },
-    { marca: "Suzuki", modelo: "Grand Vitara", anios: "2022-2024", medidaOEM: "215/55R17", medidasAlt: ["225/55R17", "225/60R17"] },
-    { marca: "Suzuki", modelo: "Swift", anios: "2017-2024", medidaOEM: "185/55R16", medidasAlt: ["195/50R16", "185/50R16"] },
-    
-    // Renault
-    { marca: "Renault", modelo: "Duster", anios: "2018-2024", medidaOEM: "215/60R17", medidasAlt: ["215/65R16", "225/55R18"] },
-    { marca: "Renault", modelo: "Koleos", anios: "2017-2024", medidaOEM: "225/60R18", medidasAlt: ["235/55R19", "225/55R19"] },
-    { marca: "Renault", modelo: "Captur", anios: "2020-2024", medidaOEM: "215/55R18", medidasAlt: ["205/60R17", "215/60R17"] },
-    { marca: "Renault", modelo: "Kwid", anios: "2019-2024", medidaOEM: "165/70R14", medidasAlt: ["175/65R14", "165/65R14"] },
-    
-    // Volkswagen
-    { marca: "Volkswagen", modelo: "Amarok", anios: "2017-2024", medidaOEM: "255/60R18", medidasAlt: ["265/65R17", "255/65R17"] },
-    { marca: "Volkswagen", modelo: "Tiguan", anios: "2018-2024", medidaOEM: "215/65R17", medidasAlt: ["235/55R18", "225/60R17"] },
-    { marca: "Volkswagen", modelo: "Taos", anios: "2021-2024", medidaOEM: "215/55R18", medidasAlt: ["225/55R18", "215/60R17"] },
-    { marca: "Volkswagen", modelo: "T-Cross", anios: "2019-2024", medidaOEM: "205/55R17", medidasAlt: ["215/55R17", "205/60R16"] },
-    { marca: "Volkswagen", modelo: "Jetta", anios: "2019-2024", medidaOEM: "205/60R16", medidasAlt: ["215/55R17", "205/55R16"] },
-    
-    // Subaru
-    { marca: "Subaru", modelo: "Forester", anios: "2019-2024", medidaOEM: "225/55R18", medidasAlt: ["225/60R17", "235/55R18"] },
-    { marca: "Subaru", modelo: "Outback", anios: "2020-2024", medidaOEM: "225/60R18", medidasAlt: ["225/65R17", "235/55R19"] },
-    { marca: "Subaru", modelo: "XV/Crosstrek", anios: "2018-2024", medidaOEM: "225/55R18", medidasAlt: ["215/55R17", "225/60R17"] },
-    
-    // Honda
-    { marca: "Honda", modelo: "CR-V", anios: "2017-2024", medidaOEM: "235/60R18", medidasAlt: ["235/65R17", "245/55R19"] },
-    { marca: "Honda", modelo: "HR-V", anios: "2019-2024", medidaOEM: "215/55R17", medidasAlt: ["215/60R17", "225/55R17"] },
-    { marca: "Honda", modelo: "Pilot", anios: "2019-2024", medidaOEM: "245/60R18", medidasAlt: ["255/55R19", "245/50R20"] },
-    { marca: "Honda", modelo: "Civic", anios: "2022-2024", medidaOEM: "235/40R18", medidasAlt: ["215/55R16", "225/45R17"] },
-    
-    // Dodge/RAM
-    { marca: "RAM", modelo: "1500", anios: "2019-2024", medidaOEM: "275/65R18", medidasAlt: ["285/65R18", "275/60R20"] },
-    { marca: "RAM", modelo: "2500", anios: "2019-2024", medidaOEM: "275/70R18", medidasAlt: ["285/70R17", "275/65R20"] },
-    { marca: "Dodge", modelo: "Durango", anios: "2016-2024", medidaOEM: "265/60R18", medidasAlt: ["275/55R20", "265/50R20"] },
-    
-    // Land Rover
-    { marca: "Land Rover", modelo: "Defender", anios: "2020-2024", medidaOEM: "255/65R19", medidasAlt: ["275/55R20", "265/65R18"] },
-    { marca: "Land Rover", modelo: "Discovery Sport", anios: "2015-2024", medidaOEM: "235/60R18", medidasAlt: ["235/55R19", "245/55R19"] },
-    { marca: "Land Rover", modelo: "Range Rover Sport", anios: "2018-2024", medidaOEM: "275/45R21", medidasAlt: ["275/50R20", "285/45R21"] },
-  ];
+  // ⚠️ IMPORTANTE: Reemplaza con tu API Key de wheel-size.com
+  const API_KEY = "YOUR_API_KEY_HERE"; // Obtener en: https://www.wheel-size.com/api/
+  const API_BASE = "https://api.wheel-size.com/v2";
 
-  // Filtrar vehículos por búsqueda
-  const vehiculosFiltrados = busquedaVehiculo.length >= 2 
-    ? vehiculos.filter(v => 
-        `${v.marca} ${v.modelo} ${v.anios}`.toLowerCase().includes(busquedaVehiculo.toLowerCase())
-      ).slice(0, 8)
-    : [];
+  // Cargar marcas al iniciar
+  useEffect(() => {
+    const cargarMarcas = async () => {
+      if (API_KEY === "YOUR_API_KEY_HERE") {
+        // Si no hay API key, usar datos de ejemplo
+        setMarcas([
+          { slug: "toyota", name: "Toyota" },
+          { slug: "chevrolet", name: "Chevrolet" },
+          { slug: "ford", name: "Ford" },
+          { slug: "nissan", name: "Nissan" },
+          { slug: "mazda", name: "Mazda" },
+          { slug: "hyundai", name: "Hyundai" },
+          { slug: "kia", name: "Kia" },
+          { slug: "jeep", name: "Jeep" },
+          { slug: "mitsubishi", name: "Mitsubishi" },
+          { slug: "suzuki", name: "Suzuki" },
+          { slug: "honda", name: "Honda" },
+          { slug: "volkswagen", name: "Volkswagen" },
+          { slug: "renault", name: "Renault" },
+          { slug: "subaru", name: "Subaru" },
+          { slug: "ram", name: "RAM" },
+          { slug: "dodge", name: "Dodge" },
+          { slug: "land-rover", name: "Land Rover" },
+          { slug: "bmw", name: "BMW" },
+          { slug: "mercedes-benz", name: "Mercedes-Benz" },
+          { slug: "audi", name: "Audi" },
+        ]);
+        return;
+      }
+      
+      try {
+        setCargando(true);
+        const response = await fetch(`${API_BASE}/makes/?user_key=${API_KEY}`);
+        const data = await response.json();
+        if (data.data) {
+          setMarcas(data.data);
+        }
+      } catch (error) {
+        console.error("Error cargando marcas:", error);
+        setErrorAPI("Error al conectar con la API");
+      } finally {
+        setCargando(false);
+      }
+    };
+    cargarMarcas();
+  }, []);
+
+  // Cargar modelos cuando se selecciona marca
+  useEffect(() => {
+    if (!marcaSeleccionada) {
+      setModelos([]);
+      return;
+    }
+
+    const cargarModelos = async () => {
+      if (API_KEY === "YOUR_API_KEY_HERE") {
+        // Datos de ejemplo si no hay API key
+        const modelosEjemplo = {
+          toyota: ["4Runner", "Avalon", "Camry", "C-HR", "Corolla", "Corolla Cross", "FJ Cruiser", "Fortuner", "Highlander", "Hilux", "Land Cruiser", "Land Cruiser Prado", "Prius", "RAV4", "Sequoia", "Sienna", "Supra", "Tacoma", "Tundra", "Yaris"],
+          chevrolet: ["Blazer", "Camaro", "Captiva", "Colorado", "Equinox", "Malibu", "Onix", "Silverado", "Spark", "Suburban", "Tahoe", "Tracker", "Trailblazer", "Traverse", "Trax"],
+          ford: ["Bronco", "Bronco Sport", "EcoSport", "Edge", "Escape", "Expedition", "Explorer", "F-150", "F-250", "Mustang", "Ranger", "Territory", "Transit"],
+          nissan: ["Altima", "Armada", "Frontier", "Kicks", "Leaf", "Maxima", "Murano", "Navara", "Pathfinder", "Patrol", "Qashqai", "Rogue", "Sentra", "Titan", "Versa", "X-Trail"],
+          mazda: ["2", "3", "6", "BT-50", "CX-3", "CX-30", "CX-5", "CX-50", "CX-9", "MX-5"],
+          hyundai: ["Accent", "Creta", "Elantra", "Ioniq", "Kona", "Palisade", "Santa Fe", "Sonata", "Tucson", "Venue", "Veloster"],
+          kia: ["Carnival", "Cerato", "EV6", "Forte", "K5", "Niro", "Picanto", "Rio", "Seltos", "Sorento", "Soul", "Sportage", "Stinger", "Telluride"],
+          jeep: ["Cherokee", "Compass", "Gladiator", "Grand Cherokee", "Renegade", "Wrangler"],
+        };
+        setModelos((modelosEjemplo[marcaSeleccionada] || []).map(m => ({ slug: m.toLowerCase().replace(/ /g, "-"), name: m })));
+        return;
+      }
+
+      try {
+        setCargando(true);
+        const response = await fetch(`${API_BASE}/models/?make=${marcaSeleccionada}&user_key=${API_KEY}`);
+        const data = await response.json();
+        if (data.data) {
+          setModelos(data.data);
+        }
+      } catch (error) {
+        console.error("Error cargando modelos:", error);
+      } finally {
+        setCargando(false);
+      }
+    };
+    cargarModelos();
+    setModeloSeleccionado("");
+    setAnioSeleccionado("");
+    setMedidasVehiculo(null);
+  }, [marcaSeleccionada]);
+
+  // Cargar años cuando se selecciona modelo
+  useEffect(() => {
+    if (!marcaSeleccionada || !modeloSeleccionado) {
+      setAnios([]);
+      return;
+    }
+
+    const cargarAnios = async () => {
+      if (API_KEY === "YOUR_API_KEY_HERE") {
+        // Datos de ejemplo
+        const aniosEjemplo = [];
+        for (let a = 2024; a >= 2000; a--) {
+          aniosEjemplo.push({ slug: a.toString(), name: a.toString() });
+        }
+        setAnios(aniosEjemplo);
+        return;
+      }
+
+      try {
+        setCargando(true);
+        const response = await fetch(`${API_BASE}/years/?make=${marcaSeleccionada}&model=${modeloSeleccionado}&user_key=${API_KEY}`);
+        const data = await response.json();
+        if (data.data) {
+          setAnios(data.data);
+        }
+      } catch (error) {
+        console.error("Error cargando años:", error);
+      } finally {
+        setCargando(false);
+      }
+    };
+    cargarAnios();
+    setAnioSeleccionado("");
+    setMedidasVehiculo(null);
+  }, [modeloSeleccionado]);
+
+  // Cargar medidas cuando se selecciona año
+  useEffect(() => {
+    if (!marcaSeleccionada || !modeloSeleccionado || !anioSeleccionado) {
+      setMedidasVehiculo(null);
+      return;
+    }
+
+    const cargarMedidas = async () => {
+      if (API_KEY === "YOUR_API_KEY_HERE") {
+        // Datos de ejemplo basados en vehículos comunes
+        const medidasEjemplo = {
+          "toyota-fortuner": { oem: "265/65R17", alt: ["265/70R17", "275/65R17", "255/70R17"] },
+          "toyota-hilux": { oem: "265/65R17", alt: ["265/70R17", "255/70R17", "275/65R17"] },
+          "toyota-4runner": { oem: "265/70R17", alt: ["275/70R17", "265/65R17", "285/70R17"] },
+          "toyota-land-cruiser": { oem: "285/60R18", alt: ["275/65R18", "285/65R18"] },
+          "toyota-land-cruiser-prado": { oem: "265/65R17", alt: ["265/70R17", "275/65R17"] },
+          "toyota-rav4": { oem: "225/65R17", alt: ["235/65R17", "225/60R18"] },
+          "toyota-corolla": { oem: "205/55R16", alt: ["215/55R16", "215/50R17"] },
+          "toyota-camry": { oem: "235/45R18", alt: ["225/45R18", "245/45R18"] },
+          "toyota-tacoma": { oem: "265/70R16", alt: ["265/65R17", "275/70R16"] },
+          "toyota-tundra": { oem: "275/65R18", alt: ["285/65R18", "275/60R20"] },
+          "chevrolet-colorado": { oem: "255/65R17", alt: ["265/65R17", "255/70R17"] },
+          "chevrolet-trailblazer": { oem: "265/65R17", alt: ["265/70R17", "275/65R17"] },
+          "ford-ranger": { oem: "265/65R17", alt: ["265/70R17", "275/65R17"] },
+          "ford-f-150": { oem: "275/65R18", alt: ["275/70R18", "285/65R18"] },
+          "nissan-frontier": { oem: "255/70R16", alt: ["265/70R16", "255/65R17"] },
+          "nissan-patrol": { oem: "275/65R18", alt: ["285/65R18", "275/70R18"] },
+          "jeep-wrangler": { oem: "255/70R18", alt: ["265/70R17", "275/70R18", "285/70R17"] },
+          "jeep-grand-cherokee": { oem: "265/60R18", alt: ["275/55R20", "265/50R20"] },
+        };
+        
+        const key = `${marcaSeleccionada}-${modeloSeleccionado}`;
+        const medidas = medidasEjemplo[key] || { oem: "225/65R17", alt: ["235/65R17", "225/60R18"] };
+        
+        setMedidasVehiculo({
+          marca: marcaSeleccionada,
+          modelo: modeloSeleccionado,
+          anio: anioSeleccionado,
+          medidaOEM: medidas.oem,
+          medidasAlt: medidas.alt
+        });
+        setReferencia1(medidas.oem);
+        return;
+      }
+
+      try {
+        setCargando(true);
+        const response = await fetch(
+          `${API_BASE}/search/by_model/?make=${marcaSeleccionada}&model=${modeloSeleccionado}&year=${anioSeleccionado}&user_key=${API_KEY}`
+        );
+        const data = await response.json();
+        
+        if (data.data && data.data.length > 0) {
+          const vehiculo = data.data[0];
+          // Extraer medidas del primer trim/configuración
+          const wheels = vehiculo.wheels;
+          if (wheels && wheels.length > 0) {
+            const frontTire = wheels[0].front?.tire || wheels[0].rear?.tire;
+            if (frontTire) {
+              const medidaOEM = `${frontTire.width}/${frontTire.aspect_ratio}R${frontTire.rim_diameter}`;
+              
+              // Obtener medidas alternativas de otras configuraciones
+              const medidasAlt = [];
+              wheels.forEach(w => {
+                const tire = w.front?.tire || w.rear?.tire;
+                if (tire) {
+                  const medida = `${tire.width}/${tire.aspect_ratio}R${tire.rim_diameter}`;
+                  if (medida !== medidaOEM && !medidasAlt.includes(medida)) {
+                    medidasAlt.push(medida);
+                  }
+                }
+              });
+
+              setMedidasVehiculo({
+                marca: marcaSeleccionada,
+                modelo: modeloSeleccionado,
+                anio: anioSeleccionado,
+                medidaOEM,
+                medidasAlt: medidasAlt.slice(0, 4)
+              });
+              setReferencia1(medidaOEM);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error cargando medidas:", error);
+        setErrorAPI("Error al obtener medidas del vehículo");
+      } finally {
+        setCargando(false);
+      }
+    };
+    cargarMedidas();
+  }, [anioSeleccionado]);
 
   // Función para formatear referencia automáticamente
   const formatearReferencia = (valor) => {
@@ -596,64 +606,94 @@ function ComparadorLlantas({ llantas = [], onClose }) {
             </div>
           </div>
 
-          {/* Buscador de vehículos */}
+          {/* Buscador de vehículos con API */}
           <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border-2 border-indigo-200 rounded-xl p-4 mb-6">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-2xl">🚗</span>
-              <span className="font-bold text-indigo-800">Buscar por Vehículo</span>
-            </div>
-            <div className="relative">
-              <input 
-                type="text" 
-                value={busquedaVehiculo} 
-                onChange={(e) => {
-                  setBusquedaVehiculo(e.target.value);
-                  setVehiculoSeleccionado(null);
-                }}
-                placeholder="Ej: Fortuner 2022, Hilux, RAV4..."
-                className="w-full px-4 py-3 border-2 border-indigo-200 rounded-lg outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
-              />
-              {vehiculosFiltrados.length > 0 && !vehiculoSeleccionado && (
-                <div className="absolute z-20 w-full mt-1 bg-white border-2 border-indigo-200 rounded-lg shadow-lg max-h-64 overflow-y-auto">
-                  {vehiculosFiltrados.map((v, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => {
-                        setVehiculoSeleccionado(v);
-                        setBusquedaVehiculo(`${v.marca} ${v.modelo}`);
-                        setReferencia1(v.medidaOEM);
-                      }}
-                      className="w-full px-4 py-3 text-left hover:bg-indigo-50 border-b border-gray-100 last:border-0"
-                    >
-                      <div className="font-bold text-gray-800">{v.marca} {v.modelo}</div>
-                      <div className="text-sm text-gray-500">{v.anios} • OEM: {v.medidaOEM}</div>
-                    </button>
-                  ))}
-                </div>
-              )}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🚗</span>
+                <span className="font-bold text-indigo-800">Buscar por Vehículo</span>
+              </div>
+              {cargando && <span className="text-sm text-indigo-500">⏳ Cargando...</span>}
             </div>
             
-            {/* Vehículo seleccionado */}
-            {vehiculoSeleccionado && (
-              <div className="mt-3 p-3 bg-white rounded-lg border border-indigo-200">
+            {API_KEY === "YOUR_API_KEY_HERE" && (
+              <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-2 mb-3 text-sm text-yellow-800">
+                ⚠️ Modo demo. Para acceso completo, obtén tu API Key en <a href="https://www.wheel-size.com/api/" target="_blank" rel="noopener noreferrer" className="underline font-bold">wheel-size.com/api</a>
+              </div>
+            )}
+            
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* Selector de Marca */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">Marca</label>
+                <select 
+                  value={marcaSeleccionada}
+                  onChange={(e) => setMarcaSeleccionada(e.target.value)}
+                  className="w-full px-3 py-2 border-2 border-indigo-200 rounded-lg outline-none focus:border-indigo-400"
+                >
+                  <option value="">Seleccionar marca...</option>
+                  {marcas.map((m) => (
+                    <option key={m.slug} value={m.slug}>{m.name}</option>
+                  ))}
+                </select>
+              </div>
+              
+              {/* Selector de Modelo */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">Modelo</label>
+                <select 
+                  value={modeloSeleccionado}
+                  onChange={(e) => setModeloSeleccionado(e.target.value)}
+                  disabled={!marcaSeleccionada}
+                  className="w-full px-3 py-2 border-2 border-indigo-200 rounded-lg outline-none focus:border-indigo-400 disabled:bg-gray-100 disabled:text-gray-400"
+                >
+                  <option value="">Seleccionar modelo...</option>
+                  {modelos.map((m) => (
+                    <option key={m.slug} value={m.slug}>{m.name}</option>
+                  ))}
+                </select>
+              </div>
+              
+              {/* Selector de Año */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">Año</label>
+                <select 
+                  value={anioSeleccionado}
+                  onChange={(e) => setAnioSeleccionado(e.target.value)}
+                  disabled={!modeloSeleccionado}
+                  className="w-full px-3 py-2 border-2 border-indigo-200 rounded-lg outline-none focus:border-indigo-400 disabled:bg-gray-100 disabled:text-gray-400"
+                >
+                  <option value="">Seleccionar año...</option>
+                  {anios.map((a) => (
+                    <option key={a.slug} value={a.slug}>{a.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            
+            {/* Resultado - Medidas del vehículo */}
+            {medidasVehiculo && (
+              <div className="mt-4 p-3 bg-white rounded-lg border border-indigo-200">
                 <div className="flex items-center justify-between mb-2">
                   <div>
-                    <span className="font-bold text-indigo-800">{vehiculoSeleccionado.marca} {vehiculoSeleccionado.modelo}</span>
-                    <span className="text-gray-500 text-sm ml-2">({vehiculoSeleccionado.anios})</span>
+                    <span className="font-bold text-indigo-800 capitalize">{medidasVehiculo.marca} {medidasVehiculo.modelo}</span>
+                    <span className="text-gray-500 text-sm ml-2">({medidasVehiculo.anio})</span>
                   </div>
                   <button 
                     onClick={() => {
-                      setVehiculoSeleccionado(null);
-                      setBusquedaVehiculo("");
+                      setMarcaSeleccionada("");
+                      setModeloSeleccionado("");
+                      setAnioSeleccionado("");
+                      setMedidasVehiculo(null);
                     }}
-                    className="text-gray-400 hover:text-gray-600"
-                  >✕</button>
+                    className="text-gray-400 hover:text-gray-600 text-xl"
+                  >×</button>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <span className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm font-semibold">
-                    OEM: {vehiculoSeleccionado.medidaOEM}
+                    ✅ OEM: {medidasVehiculo.medidaOEM}
                   </span>
-                  {vehiculoSeleccionado.medidasAlt.map((m, idx) => (
+                  {medidasVehiculo.medidasAlt?.map((m, idx) => (
                     <button
                       key={idx}
                       onClick={() => setReferencia2(m)}
@@ -663,8 +703,12 @@ function ComparadorLlantas({ llantas = [], onClose }) {
                     </button>
                   ))}
                 </div>
-                <p className="text-xs text-gray-500 mt-2">💡 Clic en una medida alternativa para compararla</p>
+                <p className="text-xs text-gray-500 mt-2">💡 La medida OEM se cargó en Llanta 1. Clic en alternativa para compararla.</p>
               </div>
+            )}
+            
+            {errorAPI && (
+              <div className="mt-3 text-red-600 text-sm">{errorAPI}</div>
             )}
           </div>
 
@@ -1068,8 +1112,10 @@ function ComparadorLlantas({ llantas = [], onClose }) {
               onClick={() => {
                 setReferencia1("265/65R17");
                 setReferencia2("265/70R17");
-                setVehiculoSeleccionado(null);
-                setBusquedaVehiculo("");
+                setMarcaSeleccionada("");
+                setModeloSeleccionado("");
+                setAnioSeleccionado("");
+                setMedidasVehiculo(null);
               }} 
               className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 font-semibold"
             >

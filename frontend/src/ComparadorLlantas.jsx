@@ -208,6 +208,11 @@ function ComparadorLlantas({ llantas = [], onClose }) {
   const [unidad, setUnidad] = useState("pulgadas");
   const [mostrarEquivalencias, setMostrarEquivalencias] = useState(false);
   
+  // Estados para simulador de cambio de rin
+  const [mostrarSimuladorRin, setMostrarSimuladorRin] = useState(false);
+  const [rinOriginal, setRinOriginal] = useState({ diametro: 17, ancho: 7.5, et: 30 });
+  const [rinNuevo, setRinNuevo] = useState({ diametro: 17, ancho: 8, et: 0 });
+  
   // Estados para búsqueda de vehículos con API
   const [marcas, setMarcas] = useState([]);
   const [modelos, setModelos] = useState([]);
@@ -1212,6 +1217,132 @@ function ComparadorLlantas({ llantas = [], onClose }) {
     };
   }, [specs1]);
 
+  // Calcular efecto del cambio de rin (offset y ancho)
+  const calculoCambioRin = useMemo(() => {
+    const anchoOriginalMM = rinOriginal.ancho * 25.4;
+    const anchoNuevoMM = rinNuevo.ancho * 25.4;
+    const diferenciaAncho = anchoNuevoMM - anchoOriginalMM;
+    const diferenciaET = rinNuevo.et - rinOriginal.et;
+    
+    // Cálculo de desplazamiento
+    // El rin se mide desde el centro. ET es la distancia del centro al plano de montaje.
+    // Cambio hacia AFUERA (positivo) = rin sale del guardafango
+    // Cambio hacia ADENTRO (negativo) = rin entra hacia suspensión
+    
+    // Lado EXTERIOR del rin (hacia el guardafango):
+    // Si ET baja (ej: de 30 a 0), el rin sale 30mm hacia afuera
+    // Si el rin es más ancho, la mitad del aumento va hacia afuera
+    const cambioExterior = -diferenciaET + (diferenciaAncho / 2);
+    
+    // Lado INTERIOR del rin (hacia la suspensión):
+    // Si ET baja, el interior sale también (se aleja de suspensión = bueno)
+    // Si el rin es más ancho, la mitad va hacia adentro (puede rozar)
+    const cambioInterior = -diferenciaET - (diferenciaAncho / 2);
+    
+    // Ancho de llanta recomendado para el rin
+    // Regla general: ancho de llanta = ancho de rin + 0.5" a 1.5" (en mm: +12 a +38mm)
+    const anchoLlantaMinMM = anchoNuevoMM + 10;
+    const anchoLlantaMaxMM = anchoNuevoMM + 40;
+    const anchoLlantaIdealMM = anchoNuevoMM + 25;
+    
+    // Convertir a medidas comerciales (múltiplos de 5 o 10)
+    const anchoLlantaMin = Math.ceil(anchoLlantaMinMM / 5) * 5;
+    const anchoLlantaMax = Math.floor(anchoLlantaMaxMM / 5) * 5;
+    const anchoLlantaIdeal = Math.round(anchoLlantaIdealMM / 5) * 5;
+    
+    // Generar medidas de llanta recomendadas
+    const medidasRecomendadas = [];
+    const perfilesComunes = [30, 35, 40, 45, 50, 55, 60, 65, 70, 75];
+    
+    for (let ancho = anchoLlantaMin; ancho <= anchoLlantaMax; ancho += 10) {
+      for (const perfil of perfilesComunes) {
+        const specs = calcularEspecificaciones({ ancho, perfil, rin: rinNuevo.diametro });
+        if (specs) {
+          // Verificar si el diámetro es similar al original (si hay specs1)
+          let compatibilidad = "compatible";
+          let difDiametro = 0;
+          
+          if (specs1) {
+            difDiametro = ((specs.diametroTotal.mm - specs1.diametroTotal.mm) / specs1.diametroTotal.mm) * 100;
+            if (Math.abs(difDiametro) < 3) {
+              compatibilidad = "optimo";
+            } else if (Math.abs(difDiametro) < 5) {
+              compatibilidad = "aceptable";
+            } else {
+              compatibilidad = "diferente";
+            }
+          }
+          
+          medidasRecomendadas.push({
+            medida: `${ancho}/${perfil}R${rinNuevo.diametro}`,
+            ancho,
+            perfil,
+            diametroTotal: specs.diametroTotal.mm,
+            diametroTotalPulg: specs.diametroTotal.pulgadas,
+            difDiametro,
+            compatibilidad,
+            esIdeal: ancho === anchoLlantaIdeal
+          });
+        }
+      }
+    }
+    
+    // Ordenar por compatibilidad y diferencia
+    medidasRecomendadas.sort((a, b) => {
+      const orden = { optimo: 0, aceptable: 1, compatible: 2, diferente: 3 };
+      if (orden[a.compatibilidad] !== orden[b.compatibilidad]) {
+        return orden[a.compatibilidad] - orden[b.compatibilidad];
+      }
+      return Math.abs(a.difDiametro) - Math.abs(b.difDiametro);
+    });
+    
+    // Análisis de seguridad
+    let estadoExterior = "ok";
+    let estadoInterior = "ok";
+    let mensajeExterior = "";
+    let mensajeInterior = "";
+    
+    if (cambioExterior > 25) {
+      estadoExterior = "peligro";
+      mensajeExterior = "Puede rozar guardafangos. Considerar fender flares.";
+    } else if (cambioExterior > 15) {
+      estadoExterior = "precaucion";
+      mensajeExterior = "Verificar espacio con guardafangos.";
+    } else if (cambioExterior > 0) {
+      estadoExterior = "ok";
+      mensajeExterior = "Probablemente OK, pero verificar.";
+    } else {
+      estadoExterior = "ok";
+      mensajeExterior = "Entra más. Sin problemas de guardafangos.";
+    }
+    
+    if (cambioInterior < -20) {
+      estadoInterior = "peligro";
+      mensajeInterior = "Puede rozar suspensión o frenos.";
+    } else if (cambioInterior < -10) {
+      estadoInterior = "precaucion";
+      mensajeInterior = "Verificar espacio con suspensión.";
+    } else {
+      estadoInterior = "ok";
+      mensajeInterior = "Sin problemas con suspensión.";
+    }
+    
+    return {
+      diferenciaAncho,
+      diferenciaET,
+      cambioExterior,
+      cambioInterior,
+      anchoLlantaMin,
+      anchoLlantaMax,
+      anchoLlantaIdeal,
+      medidasRecomendadas: medidasRecomendadas.slice(0, 12),
+      estadoExterior,
+      estadoInterior,
+      mensajeExterior,
+      mensajeInterior
+    };
+  }, [rinOriginal, rinNuevo, specs1]);
+
   const diferencias = useMemo(() => {
     if (!specs1 || !specs2) return null;
     const calcDif = (v1, v2) => ((v2 - v1) / v1) * 100;
@@ -1982,6 +2113,239 @@ function ComparadorLlantas({ llantas = [], onClose }) {
                 <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-yellow-400"></span> 3-5% Precaución</span>
                 <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-400"></span> &gt;5% No Recomendado</span>
               </div>
+
+              {/* ============================================= */}
+              {/* SIMULADOR DE CAMBIO DE RIN */}
+              {/* ============================================= */}
+              <div className="bg-white rounded-xl shadow-lg overflow-hidden mt-6">
+                <button 
+                  onClick={() => setMostrarSimuladorRin(!mostrarSimuladorRin)}
+                  className="w-full px-4 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold flex items-center justify-between hover:from-orange-600 hover:to-amber-600 transition-colors"
+                >
+                  <span>🛞 Simulador de Cambio de Rin (ET y Ancho)</span>
+                  <span className="text-xl">{mostrarSimuladorRin ? '▲' : '▼'}</span>
+                </button>
+                
+                {mostrarSimuladorRin && (
+                  <div className="p-4">
+                    <p className="text-sm text-gray-600 mb-4">
+                      Simula qué pasa cuando cambias tus rines por otros con diferente <strong>ancho</strong> y/o <strong>ET (offset)</strong>.
+                    </p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                      {/* Rin Original */}
+                      <div className="bg-gray-50 border-2 border-gray-300 rounded-xl p-4">
+                        <h4 className="font-bold text-gray-700 mb-3 flex items-center gap-2">
+                          <span className="w-6 h-6 bg-gray-500 text-white rounded-full flex items-center justify-center text-sm">1</span>
+                          Rin Original (OEM)
+                        </h4>
+                        <div className="grid grid-cols-3 gap-2">
+                          <div>
+                            <label className="block text-xs text-gray-500 mb-1">Diámetro</label>
+                            <select 
+                              value={rinOriginal.diametro}
+                              onChange={(e) => setRinOriginal({...rinOriginal, diametro: parseInt(e.target.value)})}
+                              className="w-full px-2 py-2 border rounded-lg text-center font-bold"
+                            >
+                              {[15, 16, 17, 18, 19, 20, 21, 22].map(d => (
+                                <option key={d} value={d}>{d}"</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-xs text-gray-500 mb-1">Ancho</label>
+                            <select 
+                              value={rinOriginal.ancho}
+                              onChange={(e) => setRinOriginal({...rinOriginal, ancho: parseFloat(e.target.value)})}
+                              className="w-full px-2 py-2 border rounded-lg text-center font-bold"
+                            >
+                              {[6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11, 12].map(a => (
+                                <option key={a} value={a}>{a}"</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-xs text-gray-500 mb-1">ET (Offset)</label>
+                            <input 
+                              type="number"
+                              value={rinOriginal.et}
+                              onChange={(e) => setRinOriginal({...rinOriginal, et: parseInt(e.target.value) || 0})}
+                              className="w-full px-2 py-2 border rounded-lg text-center font-bold"
+                              min="-50"
+                              max="60"
+                            />
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-2 text-center">
+                          {rinOriginal.diametro}x{rinOriginal.ancho}" ET{rinOriginal.et}
+                        </p>
+                      </div>
+                      
+                      {/* Rin Nuevo */}
+                      <div className="bg-orange-50 border-2 border-orange-300 rounded-xl p-4">
+                        <h4 className="font-bold text-orange-700 mb-3 flex items-center gap-2">
+                          <span className="w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm">2</span>
+                          Rin Nuevo
+                        </h4>
+                        <div className="grid grid-cols-3 gap-2">
+                          <div>
+                            <label className="block text-xs text-gray-500 mb-1">Diámetro</label>
+                            <select 
+                              value={rinNuevo.diametro}
+                              onChange={(e) => setRinNuevo({...rinNuevo, diametro: parseInt(e.target.value)})}
+                              className="w-full px-2 py-2 border border-orange-300 rounded-lg text-center font-bold"
+                            >
+                              {[15, 16, 17, 18, 19, 20, 21, 22].map(d => (
+                                <option key={d} value={d}>{d}"</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-xs text-gray-500 mb-1">Ancho</label>
+                            <select 
+                              value={rinNuevo.ancho}
+                              onChange={(e) => setRinNuevo({...rinNuevo, ancho: parseFloat(e.target.value)})}
+                              className="w-full px-2 py-2 border border-orange-300 rounded-lg text-center font-bold"
+                            >
+                              {[6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11, 12].map(a => (
+                                <option key={a} value={a}>{a}"</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-xs text-gray-500 mb-1">ET (Offset)</label>
+                            <input 
+                              type="number"
+                              value={rinNuevo.et}
+                              onChange={(e) => setRinNuevo({...rinNuevo, et: parseInt(e.target.value) || 0})}
+                              className="w-full px-2 py-2 border border-orange-300 rounded-lg text-center font-bold"
+                              min="-50"
+                              max="60"
+                            />
+                          </div>
+                        </div>
+                        <p className="text-xs text-orange-600 mt-2 text-center font-semibold">
+                          {rinNuevo.diametro}x{rinNuevo.ancho}" ET{rinNuevo.et}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Resultados del cálculo */}
+                    <div className="bg-gradient-to-r from-slate-100 to-gray-100 rounded-xl p-4 mb-4">
+                      <h4 className="font-bold text-gray-800 mb-3">📊 Análisis del Cambio</h4>
+                      
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                        <div className="bg-white rounded-lg p-3 text-center shadow-sm">
+                          <div className="text-xs text-gray-500">Δ Ancho</div>
+                          <div className={`text-xl font-bold ${calculoCambioRin.diferenciaAncho === 0 ? 'text-gray-600' : calculoCambioRin.diferenciaAncho > 0 ? 'text-blue-600' : 'text-orange-600'}`}>
+                            {calculoCambioRin.diferenciaAncho > 0 ? '+' : ''}{calculoCambioRin.diferenciaAncho.toFixed(1)}mm
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            ({(calculoCambioRin.diferenciaAncho / 25.4).toFixed(2)}")
+                          </div>
+                        </div>
+                        <div className="bg-white rounded-lg p-3 text-center shadow-sm">
+                          <div className="text-xs text-gray-500">Δ ET</div>
+                          <div className={`text-xl font-bold ${calculoCambioRin.diferenciaET === 0 ? 'text-gray-600' : calculoCambioRin.diferenciaET > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {calculoCambioRin.diferenciaET > 0 ? '+' : ''}{calculoCambioRin.diferenciaET}mm
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            {calculoCambioRin.diferenciaET < 0 ? 'Sale más' : calculoCambioRin.diferenciaET > 0 ? 'Entra más' : 'Igual'}
+                          </div>
+                        </div>
+                        <div className={`rounded-lg p-3 text-center shadow-sm ${calculoCambioRin.estadoExterior === 'ok' ? 'bg-green-50' : calculoCambioRin.estadoExterior === 'precaucion' ? 'bg-yellow-50' : 'bg-red-50'}`}>
+                          <div className="text-xs text-gray-500">Lado Exterior</div>
+                          <div className={`text-xl font-bold ${calculoCambioRin.estadoExterior === 'ok' ? 'text-green-600' : calculoCambioRin.estadoExterior === 'precaucion' ? 'text-yellow-600' : 'text-red-600'}`}>
+                            {calculoCambioRin.cambioExterior > 0 ? '+' : ''}{calculoCambioRin.cambioExterior.toFixed(1)}mm
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {calculoCambioRin.cambioExterior > 0 ? '→ Sale' : '← Entra'}
+                          </div>
+                        </div>
+                        <div className={`rounded-lg p-3 text-center shadow-sm ${calculoCambioRin.estadoInterior === 'ok' ? 'bg-green-50' : calculoCambioRin.estadoInterior === 'precaucion' ? 'bg-yellow-50' : 'bg-red-50'}`}>
+                          <div className="text-xs text-gray-500">Lado Interior</div>
+                          <div className={`text-xl font-bold ${calculoCambioRin.estadoInterior === 'ok' ? 'text-green-600' : calculoCambioRin.estadoInterior === 'precaucion' ? 'text-yellow-600' : 'text-red-600'}`}>
+                            {calculoCambioRin.cambioInterior > 0 ? '+' : ''}{calculoCambioRin.cambioInterior.toFixed(1)}mm
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {calculoCambioRin.cambioInterior < 0 ? '← Entra' : '→ Sale'}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Alertas */}
+                      <div className="space-y-2">
+                        <div className={`flex items-center gap-2 p-2 rounded-lg ${calculoCambioRin.estadoExterior === 'ok' ? 'bg-green-100 text-green-800' : calculoCambioRin.estadoExterior === 'precaucion' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                          <span>{calculoCambioRin.estadoExterior === 'ok' ? '✅' : calculoCambioRin.estadoExterior === 'precaucion' ? '⚠️' : '❌'}</span>
+                          <span className="text-sm"><strong>Guardafangos:</strong> {calculoCambioRin.mensajeExterior}</span>
+                        </div>
+                        <div className={`flex items-center gap-2 p-2 rounded-lg ${calculoCambioRin.estadoInterior === 'ok' ? 'bg-green-100 text-green-800' : calculoCambioRin.estadoInterior === 'precaucion' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                          <span>{calculoCambioRin.estadoInterior === 'ok' ? '✅' : calculoCambioRin.estadoInterior === 'precaucion' ? '⚠️' : '❌'}</span>
+                          <span className="text-sm"><strong>Suspensión:</strong> {calculoCambioRin.mensajeInterior}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Llantas recomendadas */}
+                    <div className="bg-white border border-gray-200 rounded-xl p-4">
+                      <h4 className="font-bold text-gray-800 mb-2">🛞 Llantas Recomendadas para Rin {rinNuevo.diametro}x{rinNuevo.ancho}"</h4>
+                      <p className="text-xs text-gray-500 mb-3">
+                        Ancho de llanta ideal: <strong>{calculoCambioRin.anchoLlantaMin}mm - {calculoCambioRin.anchoLlantaMax}mm</strong> 
+                        (óptimo: {calculoCambioRin.anchoLlantaIdeal}mm)
+                      </p>
+                      
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                        {calculoCambioRin.medidasRecomendadas.map((m, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => setReferencia2(m.medida)}
+                            className={`p-2 rounded-lg border-2 transition-colors text-left ${
+                              m.compatibilidad === 'optimo' 
+                                ? 'border-green-400 bg-green-50 hover:bg-green-100' 
+                                : m.compatibilidad === 'aceptable'
+                                ? 'border-yellow-400 bg-yellow-50 hover:bg-yellow-100'
+                                : m.compatibilidad === 'compatible'
+                                ? 'border-blue-400 bg-blue-50 hover:bg-blue-100'
+                                : 'border-gray-300 bg-gray-50 hover:bg-gray-100'
+                            } ${m.esIdeal ? 'ring-2 ring-orange-400' : ''}`}
+                          >
+                            <div className="font-bold text-gray-800">{m.medida}</div>
+                            <div className="text-xs text-gray-600">
+                              ⌀ {m.diametroTotalPulg.toFixed(1)}" ({m.diametroTotal.toFixed(0)}mm)
+                            </div>
+                            {specs1 && (
+                              <div className={`text-xs ${Math.abs(m.difDiametro) < 3 ? 'text-green-600' : Math.abs(m.difDiametro) < 5 ? 'text-yellow-600' : 'text-red-600'}`}>
+                                {m.difDiametro > 0 ? '↑' : '↓'} {Math.abs(m.difDiametro).toFixed(1)}% vs OEM
+                              </div>
+                            )}
+                            {m.esIdeal && <span className="text-xs text-orange-600 font-semibold">⭐ Ideal</span>}
+                          </button>
+                        ))}
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-3 mt-3 text-xs text-gray-500 justify-center">
+                        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-400"></span> Óptimo (&lt;3%)</span>
+                        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-yellow-400"></span> Aceptable (3-5%)</span>
+                        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-blue-400"></span> Compatible</span>
+                        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded ring-2 ring-orange-400"></span> Ancho ideal</span>
+                      </div>
+                    </div>
+                    
+                    {/* Explicación de ET */}
+                    <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <h5 className="font-bold text-blue-800 text-sm mb-2">💡 ¿Qué es el ET (Offset)?</h5>
+                      <p className="text-xs text-blue-700">
+                        El <strong>ET</strong> (Einpresstiefe) es la distancia en mm desde el centro del rin hasta la superficie de montaje.
+                      </p>
+                      <ul className="text-xs text-blue-700 mt-2 space-y-1">
+                        <li>• <strong>ET positivo alto</strong> (ej: ET45): El rin entra más hacia la suspensión</li>
+                        <li>• <strong>ET bajo o negativo</strong> (ej: ET0, ET-10): El rin sale más hacia el guardafangos</li>
+                        <li>• <strong>Regla:</strong> Por cada 1mm que baja el ET, el rin sale 1mm hacia afuera</li>
+                      </ul>
+                    </div>
+                  </div>
+                )}
+              </div>
             </>
           )}
         </div>
@@ -1996,6 +2360,8 @@ function ComparadorLlantas({ llantas = [], onClose }) {
                 setModeloSeleccionado("");
                 setAnioSeleccionado("");
                 setMedidasVehiculo(null);
+                setRinOriginal({ diametro: 17, ancho: 7.5, et: 30 });
+                setRinNuevo({ diametro: 17, ancho: 8, et: 0 });
               }} 
               className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 font-semibold"
             >

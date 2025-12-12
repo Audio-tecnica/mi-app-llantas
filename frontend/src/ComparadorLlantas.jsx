@@ -224,13 +224,12 @@ function ComparadorLlantas({ llantas = [], onClose }) {
   const [cargando, setCargando] = useState(false);
   const [errorAPI, setErrorAPI] = useState("");
 
-  // ✅ Tu API Key de wheel-size.com (pendiente de aprobación)
+  // ✅ Tu API Key de wheel-size.com (APROBADA)
   const API_KEY = "bea173769797e9430888b5d47ceb0e9a";
   const API_BASE = "https://api.wheel-size.com/v2";
   
-  // ⚠️ TEMPORAL: Forzar datos demo mientras la API no esté aprobada
-  // Cuando te llegue el email de aprobación, cambia esto a: const usarDatosDemo = false;
-  const usarDatosDemo = true;
+  // ✅ API ACTIVADA - Usando datos reales de Wheel-Size.com
+  const usarDatosDemo = false;
 
   // Cargar marcas al iniciar
   useEffect(() => {

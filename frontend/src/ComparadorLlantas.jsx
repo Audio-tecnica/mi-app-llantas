@@ -228,7 +228,9 @@ function ComparadorLlantas({ llantas = [], onClose }) {
   const API_KEY = "bea173769797e9430888b5d47ceb0e9a";
   const API_BASE = "https://api.wheel-size.com/v2";
   
-  // ✅ API ACTIVADA - Usando datos reales de Wheel-Size.com
+  // ✅ API ACTIVADA - Datos reales de Wheel-Size.com
+  // Si un vehículo tiene datos demo completos, se usan esos (tienen equivalencias)
+  // Si no, se consulta la API
   const usarDatosDemo = false;
 
   // Cargar marcas al iniciar
@@ -1086,8 +1088,9 @@ function ComparadorLlantas({ llantas = [], onClose }) {
 
       try {
         setCargando(true);
+        // Agregar región para Latinoamérica/Global
         const response = await fetch(
-          `${API_BASE}/search/by_model/?make=${marcaSeleccionada}&model=${modeloSeleccionado}&year=${anioSeleccionado}&user_key=${API_KEY}`
+          `${API_BASE}/search/by_model/?make=${marcaSeleccionada}&model=${modeloSeleccionado}&year=${anioSeleccionado}&region=usdm&user_key=${API_KEY}`
         );
         const data = await response.json();
         

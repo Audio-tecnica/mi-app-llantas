@@ -382,6 +382,7 @@ function ComparadorLlantas({ llantas = [], onClose }) {
             wheelFasteners: "Lug nuts",
             threadSize: "M12 x 1.5",
             torque: "105 Nm",
+            rinOEM: { diametro: 17, ancho: 7.5, et: 30 },
             llantas: [
               { medida: "265/65R17", indice: "112S", rin: "7.5Jx17 ET30", offset: "28-32", presion: "2.0", oem: true },
               { medida: "265/60R18", indice: "110H", rin: "7.5Jx18 ET30", offset: "28-32", presion: "2.0", oem: true },
@@ -420,6 +421,7 @@ function ComparadorLlantas({ llantas = [], onClose }) {
             wheelFasteners: "Lug nuts",
             threadSize: "M12 x 1.5",
             torque: "105 Nm",
+            rinOEM: { diametro: 17, ancho: 7.5, et: 30 },
             llantas: [
               { medida: "265/65R17", indice: "112S", rin: "7.5Jx17 ET30", offset: "25-30", presion: "2.0", oem: true },
               { medida: "265/60R18", indice: "110H", rin: "7.5Jx18 ET30", offset: "25-30", presion: "2.1", oem: true },
@@ -457,6 +459,7 @@ function ComparadorLlantas({ llantas = [], onClose }) {
             wheelFasteners: "Lug nuts",
             threadSize: "M12 x 1.5",
             torque: "105 Nm",
+            rinOEM: { diametro: 17, ancho: 7.5, et: 15 },
             llantas: [
               { medida: "265/70R17", indice: "115T", rin: "7.5Jx17 ET15", offset: "10-25", presion: "2.1", oem: true },
               { medida: "265/60R18", indice: "110H", rin: "7.5Jx18 ET25", offset: "20-30", presion: "2.1", oem: true },
@@ -494,6 +497,7 @@ function ComparadorLlantas({ llantas = [], onClose }) {
             wheelFasteners: "Lug nuts",
             threadSize: "M14 x 1.5",
             torque: "140 Nm",
+            rinOEM: { diametro: 18, ancho: 8, et: 50 },
             llantas: [
               { medida: "285/60R18", indice: "116V", rin: "8Jx18 ET50", offset: "45-55", presion: "2.3", oem: true },
               { medida: "285/50R20", indice: "112V", rin: "8.5Jx20 ET50", offset: "45-55", presion: "2.4", oem: true },
@@ -530,6 +534,7 @@ function ComparadorLlantas({ llantas = [], onClose }) {
             wheelFasteners: "Lug nuts",
             threadSize: "M12 x 1.5",
             torque: "105 Nm",
+            rinOEM: { diametro: 17, ancho: 7.5, et: 25 },
             llantas: [
               { medida: "265/65R17", indice: "112S", rin: "7.5Jx17 ET25", offset: "20-30", presion: "2.0", oem: true },
               { medida: "265/60R18", indice: "110H", rin: "7.5Jx18 ET25", offset: "20-30", presion: "2.1", oem: true },
@@ -566,6 +571,7 @@ function ComparadorLlantas({ llantas = [], onClose }) {
             wheelFasteners: "Lug nuts",
             threadSize: "M12 x 1.5",
             torque: "103 Nm",
+            rinOEM: { diametro: 17, ancho: 7, et: 35 },
             llantas: [
               { medida: "225/65R17", indice: "102H", rin: "7Jx17 ET35", offset: "32-40", presion: "2.3", oem: true },
               { medida: "235/55R19", indice: "101V", rin: "7.5Jx19 ET35", offset: "32-40", presion: "2.4", oem: true },
@@ -602,6 +608,7 @@ function ComparadorLlantas({ llantas = [], onClose }) {
             wheelFasteners: "Lug nuts",
             threadSize: "M12 x 1.5",
             torque: "103 Nm",
+            rinOEM: { diametro: 16, ancho: 6.5, et: 40 },
             llantas: [
               { medida: "205/55R16", indice: "91V", rin: "6.5Jx16 ET40", offset: "35-45", presion: "2.2", oem: true },
               { medida: "225/40R18", indice: "88W", rin: "8Jx18 ET45", offset: "40-50", presion: "2.4", oem: true },
@@ -638,6 +645,7 @@ function ComparadorLlantas({ llantas = [], onClose }) {
             wheelFasteners: "Lug nuts",
             threadSize: "M12 x 1.5",
             torque: "103 Nm",
+            rinOEM: { diametro: 18, ancho: 8, et: 45 },
             llantas: [
               { medida: "235/45R18", indice: "94V", rin: "8Jx18 ET45", offset: "40-50", presion: "2.4", oem: true },
               { medida: "215/55R17", indice: "94V", rin: "7Jx17 ET40", offset: "35-45", presion: "2.2", oem: true },
@@ -674,6 +682,7 @@ function ComparadorLlantas({ llantas = [], onClose }) {
             wheelFasteners: "Lug nuts",
             threadSize: "M12 x 1.5",
             torque: "105 Nm",
+            rinOEM: { diametro: 16, ancho: 7, et: 13 },
             llantas: [
               { medida: "265/70R16", indice: "112T", rin: "7Jx16 ET13", offset: "5-20", presion: "2.1", oem: true },
               { medida: "265/65R17", indice: "112S", rin: "7.5Jx17 ET13", offset: "5-20", presion: "2.1", oem: true },
@@ -710,6 +719,7 @@ function ComparadorLlantas({ llantas = [], onClose }) {
             wheelFasteners: "Lug nuts",
             threadSize: "M14 x 1.5",
             torque: "140 Nm",
+            rinOEM: { diametro: 18, ancho: 8, et: 50 },
             llantas: [
               { medida: "275/65R18", indice: "116T", rin: "8Jx18 ET50", offset: "45-55", presion: "2.3", oem: true },
               { medida: "275/55R20", indice: "113H", rin: "8.5Jx20 ET50", offset: "45-55", presion: "2.4", oem: true },
@@ -746,6 +756,7 @@ function ComparadorLlantas({ llantas = [], onClose }) {
             wheelFasteners: "Lug nuts",
             threadSize: "M14 x 1.5",
             torque: "190 Nm",
+            rinOEM: { diametro: 17, ancho: 7.5, et: 30 },
             llantas: [
               { medida: "255/65R17", indice: "110T", rin: "7.5Jx17 ET30", offset: "25-35", presion: "2.1", oem: true },
               { medida: "265/60R18", indice: "110T", rin: "8Jx18 ET30", offset: "25-35", presion: "2.2", oem: true },
@@ -782,6 +793,7 @@ function ComparadorLlantas({ llantas = [], onClose }) {
             wheelFasteners: "Lug nuts",
             threadSize: "M12 x 1.5",
             torque: "105 Nm",
+            rinOEM: { diametro: 17, ancho: 7.5, et: 30 },
             llantas: [
               { medida: "265/65R17", indice: "112S", rin: "7.5Jx17 ET30", offset: "25-35", presion: "2.0", oem: true },
               { medida: "265/60R18", indice: "110H", rin: "7.5Jx18 ET30", offset: "25-35", presion: "2.1", oem: true },
@@ -818,6 +830,7 @@ function ComparadorLlantas({ llantas = [], onClose }) {
             wheelFasteners: "Lug nuts",
             threadSize: "M12 x 1.5",
             torque: "135 Nm",
+            rinOEM: { diametro: 17, ancho: 7.5, et: 55 },
             llantas: [
               { medida: "265/65R17", indice: "112S", rin: "7.5Jx17 ET55", offset: "50-60", presion: "2.0", oem: true },
               { medida: "265/60R18", indice: "110H", rin: "8Jx18 ET55", offset: "50-60", presion: "2.1", oem: true },
@@ -854,6 +867,7 @@ function ComparadorLlantas({ llantas = [], onClose }) {
             wheelFasteners: "Lug nuts",
             threadSize: "M14 x 1.5",
             torque: "204 Nm",
+            rinOEM: { diametro: 18, ancho: 8, et: 44 },
             llantas: [
               { medida: "275/65R18", indice: "116T", rin: "8Jx18 ET44", offset: "40-50", presion: "2.4", oem: true },
               { medida: "275/60R20", indice: "115S", rin: "8.5Jx20 ET44", offset: "40-50", presion: "2.4", oem: true },
@@ -890,6 +904,7 @@ function ComparadorLlantas({ llantas = [], onClose }) {
             wheelFasteners: "Lug nuts",
             threadSize: "M12 x 1.25",
             torque: "117 Nm",
+            rinOEM: { diametro: 17, ancho: 7.5, et: 15 },
             llantas: [
               { medida: "255/70R16", indice: "111T", rin: "7Jx16 ET15", offset: "10-20", presion: "2.1", oem: true },
               { medida: "265/70R17", indice: "115T", rin: "7.5Jx17 ET15", offset: "10-20", presion: "2.2", oem: true },
@@ -926,6 +941,7 @@ function ComparadorLlantas({ llantas = [], onClose }) {
             wheelFasteners: "Lug nuts",
             threadSize: "M14 x 1.5",
             torque: "140 Nm",
+            rinOEM: { diametro: 18, ancho: 8, et: 25 },
             llantas: [
               { medida: "275/65R18", indice: "116H", rin: "8Jx18 ET25", offset: "20-30", presion: "2.2", oem: true },
               { medida: "275/50R22", indice: "111H", rin: "9Jx22 ET30", offset: "25-35", presion: "2.4", oem: true },
@@ -962,6 +978,7 @@ function ComparadorLlantas({ llantas = [], onClose }) {
             wheelFasteners: "Lug nuts",
             threadSize: "M14 x 1.5",
             torque: "129 Nm",
+            rinOEM: { diametro: 17, ancho: 8, et: 0 },
             llantas: [
               { medida: "255/70R18", indice: "113T", rin: "7.5Jx18 ET44", offset: "40-50", presion: "2.3", oem: true },
               { medida: "285/70R17", indice: "116T", rin: "8Jx17 ET0", offset: "-10-10", presion: "2.4", oem: true },
@@ -998,6 +1015,7 @@ function ComparadorLlantas({ llantas = [], onClose }) {
             wheelFasteners: "Lug nuts",
             threadSize: "M14 x 1.5",
             torque: "129 Nm",
+            rinOEM: { diametro: 18, ancho: 8, et: 34 },
             llantas: [
               { medida: "265/60R18", indice: "110H", rin: "8Jx18 ET34", offset: "30-40", presion: "2.3", oem: true },
               { medida: "265/50R20", indice: "107V", rin: "8.5Jx20 ET34", offset: "30-40", presion: "2.4", oem: true },
@@ -1046,9 +1064,14 @@ function ComparadorLlantas({ llantas = [], onClose }) {
             llantas: vehiculoData.llantas,
             medidaOEM: vehiculoData.llantas[0].medida,
             medidasAlt: vehiculoData.llantas.filter(l => !l.oem).map(l => l.medida),
-            equivalenciasReales: vehiculoData.equivalenciasReales // Agregamos las equivalencias reales
+            equivalenciasReales: vehiculoData.equivalenciasReales,
+            rinOEM: vehiculoData.rinOEM // Agregamos el rin OEM
           });
           setReferencia1(vehiculoData.llantas[0].medida);
+          // Autocompletar el rin original en el simulador
+          if (vehiculoData.rinOEM) {
+            setRinOriginal(vehiculoData.rinOEM);
+          }
         } else {
           setMedidasVehiculo({
             marca: marcaSeleccionada,
@@ -2108,8 +2131,13 @@ function ComparadorLlantas({ llantas = [], onClose }) {
                           </div>
                         </div>
                         <p className="text-xs text-gray-400 mt-2 text-center">
-                          {rinOriginal.diametro}x{rinOriginal.ancho}" ET{rinOriginal.et}
+                          {rinOriginal.diametro}x{rinOriginal.ancho}" ET{rinOriginal.et >= 0 ? `+${rinOriginal.et}` : rinOriginal.et}
                         </p>
+                        {medidasVehiculo?.rinOEM && (
+                          <p className="text-xs text-green-600 mt-1 text-center font-semibold">
+                            ✅ Cargado de {medidasVehiculo.marca} {medidasVehiculo.modelo}
+                          </p>
+                        )}
                       </div>
                       
                       {/* Rin Nuevo */}

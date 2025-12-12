@@ -1091,37 +1091,88 @@ function ComparadorLlantas({ llantas = [], onClose }) {
         );
         const data = await response.json();
         
+        console.log("Respuesta API:", data); // Para debug
+        
         if (data.data && data.data.length > 0) {
           const vehiculo = data.data[0];
+          
+          // Extraer información del vehículo
+          const generacion = vehiculo.generation?.name || "";
+          const produccion = vehiculo.generation?.years || "";
+          const potencia = vehiculo.engine?.power?.hp ? `${vehiculo.engine.power.hp} hp` : "";
+          const motor = vehiculo.engine?.type || "";
+          
           // Extraer medidas del primer trim/configuración
           const wheels = vehiculo.wheels;
+          let medidaOEM = "";
+          let rinOEM = null;
+          const medidasAlt = [];
+          const llantasInfo = [];
+          
           if (wheels && wheels.length > 0) {
-            const frontTire = wheels[0].front?.tire || wheels[0].rear?.tire;
-            if (frontTire) {
-              const medidaOEM = `${frontTire.width}/${frontTire.aspect_ratio}R${frontTire.rim_diameter}`;
+            wheels.forEach((w, index) => {
+              const tire = w.front?.tire || w.rear?.tire;
+              const rim = w.front?.rim || w.rear?.rim;
               
-              // Obtener medidas alternativas de otras configuraciones
-              const medidasAlt = [];
-              wheels.forEach(w => {
-                const tire = w.front?.tire || w.rear?.tire;
-                if (tire) {
-                  const medida = `${tire.width}/${tire.aspect_ratio}R${tire.rim_diameter}`;
-                  if (medida !== medidaOEM && !medidasAlt.includes(medida)) {
-                    medidasAlt.push(medida);
+              if (tire) {
+                const medida = `${tire.width}/${tire.aspect_ratio}R${tire.rim_diameter}`;
+                
+                // Crear info de llanta
+                const llantaInfo = {
+                  medida: medida,
+                  indice: tire.load_index ? `${tire.load_index}${tire.speed_index || ''}` : "",
+                  rin: rim ? `${rim.width}Jx${rim.diameter} ET${rim.offset || 0}` : "",
+                  offset: rim?.offset?.toString() || "",
+                  presion: tire.pressure?.recommended || "",
+                  oem: index === 0
+                };
+                llantasInfo.push(llantaInfo);
+                
+                if (index === 0) {
+                  medidaOEM = medida;
+                  // Extraer datos del rin OEM
+                  if (rim) {
+                    rinOEM = {
+                      diametro: parseInt(rim.diameter) || 17,
+                      ancho: parseFloat(rim.width) || 7.5,
+                      et: parseInt(rim.offset) || 30
+                    };
                   }
+                } else if (!medidasAlt.includes(medida) && medida !== medidaOEM) {
+                  medidasAlt.push(medida);
                 }
-              });
-
-              setMedidasVehiculo({
-                marca: marcaSeleccionada,
-                modelo: modeloSeleccionado,
-                anio: anioSeleccionado,
-                medidaOEM,
-                medidasAlt: medidasAlt.slice(0, 4)
-              });
-              setReferencia1(medidaOEM);
-            }
+              }
+            });
           }
+          
+          if (medidaOEM) {
+            setMedidasVehiculo({
+              marca: marcaSeleccionada,
+              modelo: modeloSeleccionado,
+              anio: anioSeleccionado,
+              generacion: generacion,
+              produccion: produccion,
+              potencia: potencia,
+              motor: motor,
+              centerBore: vehiculo.technical?.centre_bore ? `${vehiculo.technical.centre_bore} mm` : "",
+              boltPattern: vehiculo.technical?.bolt_pattern || "",
+              threadSize: vehiculo.technical?.thread_size || "",
+              llantas: llantasInfo,
+              medidaOEM,
+              medidasAlt: medidasAlt.slice(0, 4),
+              rinOEM: rinOEM
+            });
+            setReferencia1(medidaOEM);
+            
+            // Autocompletar rin original en el simulador
+            if (rinOEM) {
+              setRinOriginal(rinOEM);
+            }
+          } else {
+            setErrorAPI("No se encontraron medidas para este vehículo");
+          }
+        } else {
+          setErrorAPI("No se encontró información para este vehículo");
         }
       } catch (error) {
         console.error("Error cargando medidas:", error);
@@ -1494,6 +1545,9 @@ function ComparadorLlantas({ llantas = [], onClose }) {
                   <div>
                     <span className="font-bold text-indigo-800 capitalize">{medidasVehiculo.marca} {medidasVehiculo.modelo}</span>
                     <span className="text-gray-500 text-sm ml-2">({medidasVehiculo.anio})</span>
+                    {medidasVehiculo.generacion && (
+                      <span className="text-gray-400 text-xs ml-2">• {medidasVehiculo.generacion}</span>
+                    )}
                   </div>
                   <button 
                     onClick={() => {
@@ -1505,6 +1559,28 @@ function ComparadorLlantas({ llantas = [], onClose }) {
                     className="text-gray-400 hover:text-gray-600 text-xl"
                   >×</button>
                 </div>
+                
+                {/* Info técnica rápida */}
+                {(medidasVehiculo.boltPattern || medidasVehiculo.rinOEM) && (
+                  <div className="flex flex-wrap gap-2 mb-2 text-xs">
+                    {medidasVehiculo.boltPattern && (
+                      <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded">
+                        🔩 {medidasVehiculo.boltPattern}
+                      </span>
+                    )}
+                    {medidasVehiculo.rinOEM && (
+                      <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded">
+                        🛞 Rin: {medidasVehiculo.rinOEM.diametro}x{medidasVehiculo.rinOEM.ancho}" ET{medidasVehiculo.rinOEM.et >= 0 ? '+' : ''}{medidasVehiculo.rinOEM.et}
+                      </span>
+                    )}
+                    {medidasVehiculo.centerBore && (
+                      <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded">
+                        ⭕ CB: {medidasVehiculo.centerBore}
+                      </span>
+                    )}
+                  </div>
+                )}
+                
                 <div className="flex flex-wrap gap-2">
                   <span className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm font-semibold">
                     ✅ OEM: {medidasVehiculo.medidaOEM}
@@ -1523,8 +1599,18 @@ function ComparadorLlantas({ llantas = [], onClose }) {
               </div>
             )}
             
+            {cargando && (
+              <div className="mt-3 text-indigo-600 text-sm flex items-center gap-2">
+                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                </svg>
+                Cargando datos del vehículo...
+              </div>
+            )}
+            
             {errorAPI && (
-              <div className="mt-3 text-red-600 text-sm">{errorAPI}</div>
+              <div className="mt-3 text-red-600 text-sm bg-red-50 p-2 rounded-lg">{errorAPI}</div>
             )}
           </div>
 

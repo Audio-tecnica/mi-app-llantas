@@ -1636,165 +1636,95 @@ function ComparadorLlantas({ llantas = [], onClose }) {
                       </div>
                     </div>
                   </div>
-                  
-                  {/* SECCIÓN CENTRO: Llanta 1 con rin y medidas */}
-                  <div className="bg-gray-300 rounded-xl p-3 flex flex-col items-center relative">
-                    {/* Medida del rin arriba */}
-                    <div className="absolute top-1 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
-                      <div className="flex items-center">
-                        <div className="w-1 h-1 border-l border-t border-gray-600"></div>
-                        <div className="h-px bg-gray-600 w-16"></div>
-                        <div className="w-1 h-1 border-r border-t border-gray-600"></div>
-                      </div>
-                      <span className="text-gray-700 text-xs font-bold">{specs1.rin}"</span>
-                    </div>
-                    
-                    <div className="mt-6 flex items-center">
-                      <LlantaConRin specs={specs1} numero={1} size={160} />
-                      
-                      {/* Medida circunferencia derecha */}
-                      <div className="flex items-center ml-1 h-32">
-                        <div className="flex flex-col h-full items-center">
-                          <div className="w-1 h-1 border-t border-r border-gray-600"></div>
-                          <div className="w-px bg-gray-600 flex-1"></div>
-                          <div className="w-1 h-1 border-b border-r border-gray-600"></div>
-                        </div>
-                        <span className="text-gray-700 text-xs font-bold ml-1" style={{writingMode: 'vertical-rl'}}>
-                          {unidad === "pulgadas" ? `${formatNum(specs1.circunferencia.pulgadas, 1)}"` : `${formatNum(specs1.circunferencia.mm, 0)}mm`}
-                        </span>
+
+                  {/* Resumen rápido de diferencias - COMPACTO */}
+                  <div className="bg-gray-700 rounded-xl p-3 flex flex-col justify-center min-w-[200px]">
+                    <div className="text-white text-center mb-2">
+                      <div className="text-xs text-gray-400">Diferencia Diámetro</div>
+                      <div className={`text-2xl font-bold ${Math.abs(diferencias.diametro) < 3 ? 'text-green-400' : Math.abs(diferencias.diametro) < 5 ? 'text-yellow-400' : 'text-red-400'}`}>
+                        {formatDif(diferencias.diametro)}
                       </div>
                     </div>
-                    
-                    {/* Medida sidewall abajo */}
-                    <div className="flex items-center mt-1">
-                      <div className="flex flex-col items-center">
-                        <div className="flex items-center">
-                          <div className="h-1 w-1 border-l border-b border-gray-600"></div>
-                          <div className="h-px bg-gray-600 w-10"></div>
-                          <div className="h-1 w-1 border-r border-b border-gray-600"></div>
-                        </div>
-                        <span className="text-gray-700 text-xs font-bold">
-                          {unidad === "pulgadas" ? `${formatNum(specs1.alturaLateral.pulgadas, 1)}"` : `${formatNum(specs1.alturaLateral.mm, 0)}mm`}
-                        </span>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="bg-gray-600 rounded p-2 text-center">
+                        <div className="text-gray-400">Rin 1</div>
+                        <div className="text-white font-bold">{specs1.rin}"</div>
+                      </div>
+                      <div className="bg-gray-600 rounded p-2 text-center">
+                        <div className="text-gray-400">Rin 2</div>
+                        <div className="text-yellow-400 font-bold">{specs2.rin}"</div>
+                      </div>
+                      <div className="bg-gray-600 rounded p-2 text-center">
+                        <div className="text-gray-400">Revs/Km</div>
+                        <div className="text-white font-bold">{Math.round(specs1.revsPorKm)}</div>
+                      </div>
+                      <div className="bg-gray-600 rounded p-2 text-center">
+                        <div className="text-gray-400">Revs/Km</div>
+                        <div className="text-yellow-400 font-bold">{Math.round(specs2.revsPorKm)}</div>
                       </div>
                     </div>
-                    
-                    {/* Revs/Mile o Revs/Km */}
-                    <div className="mt-2 bg-gray-700 text-white px-3 py-1 rounded-full text-sm font-bold">
-                      {unidad === "pulgadas" ? `${Math.round(specs1.revsPorMilla)} Revs/Mile` : `${Math.round(specs1.revsPorKm)} Revs/Km`}
-                    </div>
-                  </div>
-                  
-                  {/* SECCIÓN DERECHA: Llanta 2 con rin y medidas */}
-                  <div className="bg-gray-300 rounded-xl p-3 flex flex-col items-center relative">
-                    {/* Medida del rin arriba */}
-                    <div className="absolute top-1 right-2 flex flex-col items-end">
-                      <div className="flex items-center">
-                        <div className="w-1 h-1 border-l border-t border-amber-500"></div>
-                        <div className="h-px bg-amber-500 w-12"></div>
-                        <div className="w-1 h-1 border-r border-t border-amber-500"></div>
-                      </div>
-                      <span className="text-amber-600 text-xs font-bold">{specs2.rin}"</span>
-                    </div>
-                    
-                    <div className="mt-6 flex items-center">
-                      <LlantaConRin specs={specs2} numero={2} size={160 * (specs2.diametroTotal.pulgadas / specs1.diametroTotal.pulgadas)} />
-                      
-                      {/* Medida circunferencia derecha */}
-                      <div className="flex items-center ml-1" style={{height: `${130 * (specs2.diametroTotal.pulgadas / specs1.diametroTotal.pulgadas)}px`}}>
-                        <div className="flex flex-col h-full items-center">
-                          <div className="w-1 h-1 border-t border-r border-amber-500"></div>
-                          <div className="w-px bg-amber-500 flex-1"></div>
-                          <div className="w-1 h-1 border-b border-r border-amber-500"></div>
-                        </div>
-                        <span className="text-amber-600 text-xs font-bold ml-1" style={{writingMode: 'vertical-rl'}}>
-                          {unidad === "pulgadas" ? `${formatNum(specs2.circunferencia.pulgadas, 1)}"` : `${formatNum(specs2.circunferencia.mm, 0)}mm`}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    {/* Medida sidewall abajo */}
-                    <div className="flex items-center mt-1">
-                      <div className="flex flex-col items-center">
-                        <div className="flex items-center">
-                          <div className="h-1 w-1 border-l border-b border-amber-500"></div>
-                          <div className="h-px bg-amber-500 w-10"></div>
-                          <div className="h-1 w-1 border-r border-b border-amber-500"></div>
-                        </div>
-                        <span className="text-amber-600 text-xs font-bold">
-                          {unidad === "pulgadas" ? `${formatNum(specs2.alturaLateral.pulgadas, 1)}"` : `${formatNum(specs2.alturaLateral.mm, 0)}mm`}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    {/* Revs/Mile o Revs/Km */}
-                    <div className="mt-2 bg-gray-700 text-white px-3 py-1 rounded-full text-sm font-bold">
-                      {unidad === "pulgadas" ? `${Math.round(specs2.revsPorMilla)} Revs/Mile` : `${Math.round(specs2.revsPorKm)} Revs/Km`}
+                    {/* Indicador de compatibilidad */}
+                    <div className={`mt-2 text-center py-1 rounded-lg text-sm font-bold ${Math.abs(diferencias.diametro) < 3 ? 'bg-green-500 text-white' : Math.abs(diferencias.diametro) < 5 ? 'bg-yellow-500 text-black' : 'bg-red-500 text-white'}`}>
+                      {Math.abs(diferencias.diametro) < 3 ? '✅ Compatible' : Math.abs(diferencias.diametro) < 5 ? '⚠️ Precaución' : '❌ No Recomendado'}
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Tabla de especificaciones */}
-              <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
-                <div className="bg-slate-700 text-white px-4 py-3"><h3 className="font-bold">📋 Especificaciones Técnicas</h3></div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead className="bg-gray-100">
-                      <tr>
-                        <th className="p-3 text-left">Especificación</th>
-                        <th className="p-3 text-center bg-amber-50 text-amber-700">{specs1.ancho}/{specs1.perfil}R{specs1.rin}</th>
-                        <th className="p-3 text-center bg-blue-50 text-blue-700">{specs2.ancho}/{specs2.perfil}R{specs2.rin}</th>
-                        <th className="p-3 text-center">Diferencia</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y">
-                      <tr><td className="p-3">📏 Diámetro</td><td className="p-3 text-center bg-amber-50/50">{formatNum(specs1.diametroTotal.pulgadas)}" | {formatNum(specs1.diametroTotal.mm,0)}mm</td><td className="p-3 text-center bg-blue-50/50">{formatNum(specs2.diametroTotal.pulgadas)}" | {formatNum(specs2.diametroTotal.mm,0)}mm</td><td className={`p-3 text-center font-bold ${getColorDiferencia(diferencias.diametro).text}`}>{formatDif(diferencias.diametro)}</td></tr>
-                      <tr><td className="p-3">↔️ Ancho</td><td className="p-3 text-center bg-amber-50/50">{formatNum(specs1.anchoTotal.pulgadas,1)}" | {specs1.anchoTotal.mm}mm</td><td className="p-3 text-center bg-blue-50/50">{formatNum(specs2.anchoTotal.pulgadas,1)}" | {specs2.anchoTotal.mm}mm</td><td className={`p-3 text-center font-bold ${getColorDiferencia(diferencias.ancho,3,6).text}`}>{formatDif(diferencias.ancho)}</td></tr>
-                      <tr><td className="p-3">📐 Sidewall</td><td className="p-3 text-center bg-amber-50/50">{formatNum(specs1.alturaLateral.pulgadas,2)}" | {formatNum(specs1.alturaLateral.mm,1)}mm</td><td className="p-3 text-center bg-blue-50/50">{formatNum(specs2.alturaLateral.pulgadas,2)}" | {formatNum(specs2.alturaLateral.mm,1)}mm</td><td className={`p-3 text-center font-bold ${getColorDiferencia(diferencias.perfil,3,6).text}`}>{formatDif(diferencias.perfil)}</td></tr>
-                      <tr><td className="p-3">⭕ Circunferencia</td><td className="p-3 text-center bg-amber-50/50">{formatNum(specs1.circunferencia.pulgadas,1)}" | {formatNum(specs1.circunferencia.mm,0)}mm</td><td className="p-3 text-center bg-blue-50/50">{formatNum(specs2.circunferencia.pulgadas,1)}" | {formatNum(specs2.circunferencia.mm,0)}mm</td><td className={`p-3 text-center font-bold ${getColorDiferencia(diferencias.circunferencia).text}`}>{formatDif(diferencias.circunferencia)}</td></tr>
-                      <tr><td className="p-3">🔄 Revs/Mile</td><td className="p-3 text-center bg-amber-50/50 font-bold">{formatNum(specs1.revsPorMilla,0)}</td><td className="p-3 text-center bg-blue-50/50 font-bold">{formatNum(specs2.revsPorMilla,0)}</td><td className="p-3 text-center">{diferencias.revsPorMilla > 0 ? "+" : ""}{formatNum(diferencias.revsPorMilla,0)}</td></tr>
-                      <tr><td className="p-3">🔄 Revs/Km</td><td className="p-3 text-center bg-amber-50/50">{formatNum(specs1.revsPorKm,0)}</td><td className="p-3 text-center bg-blue-50/50">{formatNum(specs2.revsPorKm,0)}</td><td className="p-3 text-center">—</td></tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Error del Velocímetro */}
-              <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
-                <div className={`px-4 py-3 text-white ${Math.abs(diferencias.diametro) < 2 ? "bg-green-600" : Math.abs(diferencias.diametro) < 4 ? "bg-yellow-500" : "bg-red-600"}`}>
-                  <h3 className="font-bold">🚗 Error del Velocímetro</h3>
-                </div>
-                <div className="p-4">
-                  <div className="flex flex-wrap items-center justify-center gap-4 mb-4">
-                    <div className={`text-center p-4 rounded-xl border-2 ${getColorDiferencia(diferencias.diametro).bg} ${getColorDiferencia(diferencias.diametro).border}`}>
-                      <div className="text-sm text-gray-600">Error</div>
-                      <div className={`text-3xl font-bold ${getColorDiferencia(diferencias.diametro).text}`}>{formatDif(diferencias.diametro)}</div>
-                    </div>
-                    <div className="text-sm text-gray-600 max-w-xs">
-                      {diferencias.diametro > 0 ? <p>Velocímetro marca <strong>menos</strong> de lo real. A 100 km/h vas a {formatNum(calcularVelocidadReal(100),1)} km/h.</p> : diferencias.diametro < 0 ? <p>Velocímetro marca <strong>más</strong> de lo real. A 100 km/h vas a {formatNum(calcularVelocidadReal(100),1)} km/h.</p> : <p>Sin diferencia significativa.</p>}
-                    </div>
-                  </div>
+              {/* GRID COMPACTO: Especificaciones + Velocímetro lado a lado */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+                {/* Tabla de especificaciones - COMPACTA */}
+                <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                  <div className="bg-slate-700 text-white px-3 py-2"><h3 className="font-bold text-sm">📋 Especificaciones</h3></div>
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs">
-                      <thead className="bg-gray-100"><tr><th className="p-2 text-left">Velocímetro</th>{velocidades.map(v => <th key={v} className="p-2 text-center">{v}</th>)}</tr></thead>
-                      <tbody>
-                        <tr className="bg-blue-50"><td className="p-2 font-bold text-blue-700">Real (km/h)</td>{velocidades.map(v => { const real = calcularVelocidadReal(v); const diff = Math.abs(real - v); return <td key={v} className={`p-2 text-center font-bold ${diff < v * 0.02 ? "text-green-600" : diff < v * 0.04 ? "text-yellow-600" : "text-red-600"}`}>{formatNum(real, 1)}</td>; })}</tr>
+                      <thead className="bg-gray-100">
+                        <tr>
+                          <th className="p-2 text-left">Spec</th>
+                          <th className="p-2 text-center bg-amber-50 text-amber-700">{specs1.ancho}/{specs1.perfil}R{specs1.rin}</th>
+                          <th className="p-2 text-center bg-blue-50 text-blue-700">{specs2.ancho}/{specs2.perfil}R{specs2.rin}</th>
+                          <th className="p-2 text-center">Dif</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y">
+                        <tr><td className="p-2">📏 Diámetro</td><td className="p-2 text-center bg-amber-50/50">{formatNum(specs1.diametroTotal.pulgadas)}"</td><td className="p-2 text-center bg-blue-50/50">{formatNum(specs2.diametroTotal.pulgadas)}"</td><td className={`p-2 text-center font-bold ${getColorDiferencia(diferencias.diametro).text}`}>{formatDif(diferencias.diametro)}</td></tr>
+                        <tr><td className="p-2">↔️ Ancho</td><td className="p-2 text-center bg-amber-50/50">{specs1.anchoTotal.mm}mm</td><td className="p-2 text-center bg-blue-50/50">{specs2.anchoTotal.mm}mm</td><td className={`p-2 text-center font-bold ${getColorDiferencia(diferencias.ancho,3,6).text}`}>{formatDif(diferencias.ancho)}</td></tr>
+                        <tr><td className="p-2">📐 Sidewall</td><td className="p-2 text-center bg-amber-50/50">{formatNum(specs1.alturaLateral.mm,0)}mm</td><td className="p-2 text-center bg-blue-50/50">{formatNum(specs2.alturaLateral.mm,0)}mm</td><td className={`p-2 text-center font-bold ${getColorDiferencia(diferencias.perfil,3,6).text}`}>{formatDif(diferencias.perfil)}</td></tr>
+                        <tr><td className="p-2">⭕ Circunf.</td><td className="p-2 text-center bg-amber-50/50">{formatNum(specs1.circunferencia.mm,0)}mm</td><td className="p-2 text-center bg-blue-50/50">{formatNum(specs2.circunferencia.mm,0)}mm</td><td className={`p-2 text-center font-bold ${getColorDiferencia(diferencias.circunferencia).text}`}>{formatDif(diferencias.circunferencia)}</td></tr>
                       </tbody>
                     </table>
                   </div>
                 </div>
-              </div>
 
-              {/* Recomendación */}
-              <div className={`rounded-xl p-4 mb-4 border-2 ${Math.abs(diferencias.diametro) < 3 ? "bg-green-50 border-green-300" : Math.abs(diferencias.diametro) < 5 ? "bg-yellow-50 border-yellow-300" : "bg-red-50 border-red-300"}`}>
-                <h3 className="font-bold text-lg mb-2">{Math.abs(diferencias.diametro) < 3 ? "✅ Compatible" : Math.abs(diferencias.diametro) < 5 ? "⚠️ Precaución" : "❌ No Recomendado"}</h3>
-                <p className="text-gray-700 text-sm">{Math.abs(diferencias.diametro) < 3 ? "Cambio seguro. Diferencia menor al 3%." : Math.abs(diferencias.diametro) < 5 ? "Diferencia 3-5%. Puede afectar velocímetro y consumo." : "Diferencia mayor al 5%. Consulta con un profesional."}</p>
+                {/* Error del Velocímetro - COMPACTO */}
+                <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                  <div className={`px-3 py-2 text-white ${Math.abs(diferencias.diametro) < 2 ? "bg-green-600" : Math.abs(diferencias.diametro) < 4 ? "bg-yellow-500" : "bg-red-600"}`}>
+                    <h3 className="font-bold text-sm">🚗 Error Velocímetro</h3>
+                  </div>
+                  <div className="p-3">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className={`text-center px-4 py-2 rounded-lg ${getColorDiferencia(diferencias.diametro).bg}`}>
+                        <div className={`text-2xl font-bold ${getColorDiferencia(diferencias.diametro).text}`}>{formatDif(diferencias.diametro)}</div>
+                      </div>
+                      <div className="text-xs text-gray-600">
+                        {diferencias.diametro > 0 ? <span>A 100 km/h reales vas a <strong>{formatNum(calcularVelocidadReal(100),1)}</strong> km/h</span> : diferencias.diametro < 0 ? <span>A 100 km/h reales vas a <strong>{formatNum(calcularVelocidadReal(100),1)}</strong> km/h</span> : <span>Sin diferencia</span>}
+                      </div>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead className="bg-gray-100"><tr><th className="p-1 text-left">Veloc.</th>{[40, 60, 80, 100, 120].map(v => <th key={v} className="p-1 text-center">{v}</th>)}</tr></thead>
+                        <tbody>
+                          <tr className="bg-blue-50"><td className="p-1 font-bold text-blue-700">Real</td>{[40, 60, 80, 100, 120].map(v => { const real = calcularVelocidadReal(v); const diff = Math.abs(real - v); return <td key={v} className={`p-1 text-center font-bold ${diff < v * 0.02 ? "text-green-600" : diff < v * 0.04 ? "text-yellow-600" : "text-red-600"}`}>{formatNum(real, 0)}</td>; })}</tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Ficha Técnica del Vehículo - Estilo Wheel-Size.com */}
               {medidasVehiculo && medidasVehiculo.generacion && (
-                <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-6 border border-gray-200">
+                <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-4 border border-gray-200">
                   {/* Header */}
                   <div className="bg-gradient-to-r from-gray-700 to-gray-800 px-4 py-3 flex items-center justify-between">
                     <div>
@@ -2166,14 +2096,15 @@ function ComparadorLlantas({ llantas = [], onClose }) {
                           </div>
                           <div>
                             <label className="block text-xs text-gray-500 mb-1">ET (Offset)</label>
-                            <input 
-                              type="number"
+                            <select 
                               value={rinOriginal.et}
-                              onChange={(e) => setRinOriginal({...rinOriginal, et: parseInt(e.target.value) || 0})}
+                              onChange={(e) => setRinOriginal({...rinOriginal, et: parseInt(e.target.value)})}
                               className="w-full px-2 py-2 border rounded-lg text-center font-bold"
-                              min="-50"
-                              max="60"
-                            />
+                            >
+                              {[-44, -40, -38, -35, -32, -30, -25, -22, -20, -18, -15, -12, -10, -6, -5, 0, 5, 6, 10, 12, 15, 18, 20, 22, 25, 28, 30, 32, 35, 38, 40, 42, 45, 48, 50, 52, 55, 60].map(et => (
+                                <option key={et} value={et}>{et >= 0 ? `+${et}` : et}</option>
+                              ))}
+                            </select>
                           </div>
                         </div>
                         <p className="text-xs text-gray-400 mt-2 text-center">
@@ -2214,14 +2145,15 @@ function ComparadorLlantas({ llantas = [], onClose }) {
                           </div>
                           <div>
                             <label className="block text-xs text-gray-500 mb-1">ET (Offset)</label>
-                            <input 
-                              type="number"
+                            <select 
                               value={rinNuevo.et}
-                              onChange={(e) => setRinNuevo({...rinNuevo, et: parseInt(e.target.value) || 0})}
+                              onChange={(e) => setRinNuevo({...rinNuevo, et: parseInt(e.target.value)})}
                               className="w-full px-2 py-2 border border-orange-300 rounded-lg text-center font-bold"
-                              min="-50"
-                              max="60"
-                            />
+                            >
+                              {[-44, -40, -38, -35, -32, -30, -25, -22, -20, -18, -15, -12, -10, -6, -5, 0, 5, 6, 10, 12, 15, 18, 20, 22, 25, 28, 30, 32, 35, 38, 40, 42, 45, 48, 50, 52, 55, 60].map(et => (
+                                <option key={et} value={et}>{et >= 0 ? `+${et}` : et}</option>
+                              ))}
+                            </select>
                           </div>
                         </div>
                         <p className="text-xs text-orange-600 mt-2 text-center font-semibold">

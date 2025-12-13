@@ -2332,7 +2332,7 @@ function ComparadorLlantas({ llantas = [], onClose }) {
                           <span className="text-sm"><strong>Suspensión:</strong> {calculoCambioRin.mensajeInterior}</span>
                         </div>
                       </div>
-                    </div>
+                    </div> 
                     
                     {/* Llantas recomendadas */}
                     <div className="bg-white border border-gray-200 rounded-xl p-4">

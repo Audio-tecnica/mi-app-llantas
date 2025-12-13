@@ -223,6 +223,52 @@ function ComparadorLlantas({ llantas = [], onClose }) {
   const [medidasVehiculo, setMedidasVehiculo] = useState(null);
   const [cargando, setCargando] = useState(false);
   const [errorAPI, setErrorAPI] = useState("");
+  
+  // Historial de búsquedas (guardado en localStorage)
+  const [historialBusquedas, setHistorialBusquedas] = useState(() => {
+    try {
+      const saved = localStorage.getItem('historialBusquedasLlantas');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  
+  // Guardar historial en localStorage cuando cambie
+  useEffect(() => {
+    try {
+      localStorage.setItem('historialBusquedasLlantas', JSON.stringify(historialBusquedas.slice(0, 10))); // Máximo 10
+    } catch (e) {
+      console.log("No se pudo guardar historial");
+    }
+  }, [historialBusquedas]);
+  
+  // Función para agregar al historial
+  const agregarAlHistorial = (vehiculoData) => {
+    const nuevaBusqueda = {
+      id: Date.now(),
+      marca: vehiculoData.marca,
+      modelo: vehiculoData.modelo,
+      anio: vehiculoData.anio,
+      medidaOEM: vehiculoData.medidaOEM,
+      fecha: new Date().toLocaleDateString()
+    };
+    setHistorialBusquedas(prev => {
+      // Evitar duplicados
+      const sinDuplicados = prev.filter(h => 
+        !(h.marca === nuevaBusqueda.marca && h.modelo === nuevaBusqueda.modelo && h.anio === nuevaBusqueda.anio)
+      );
+      return [nuevaBusqueda, ...sinDuplicados].slice(0, 10);
+    });
+  };
+  
+  // Función para cargar desde historial
+  const cargarDesdeHistorial = (item) => {
+    setMarcaSeleccionada(item.marca);
+    // Los modelos y años se cargarán automáticamente por los useEffect
+    setTimeout(() => setModeloSeleccionado(item.modelo), 300);
+    setTimeout(() => setAnioSeleccionado(item.anio), 600);
+  };
 
   // ✅ Tu API Key de wheel-size.com (APROBADA)
   const API_KEY = "bea173769797e9430888b5d47ceb0e9a";
@@ -1088,26 +1134,40 @@ function ComparadorLlantas({ llantas = [], onClose }) {
 
       try {
         setCargando(true);
-        // Construir URL de búsqueda - usar ladm (Latinoamérica) como región principal
         const yearNum = parseInt(anioSeleccionado);
-        const searchUrl = `${API_BASE}/search/by_model/?make=${marcaSeleccionada}&model=${modeloSeleccionado}&year=${yearNum}&region=ladm&user_key=${API_KEY}`;
-        console.log("🔍 Buscando:", { marca: marcaSeleccionada, modelo: modeloSeleccionado, anio: yearNum });
-        console.log("🌐 URL:", searchUrl.replace(API_KEY, "***"));
         
-        const response = await fetch(searchUrl);
-        const data = await response.json();
+        // Lista de regiones a buscar en orden de prioridad para Latinoamérica
+        const regiones = ['ladm', 'sam', 'usdm', 'eudm', 'medm', 'audm'];
+        let dataEncontrada = null;
+        let regionUsada = '';
         
-        console.log("📦 Respuesta API:", data);
-        console.log("📦 Status:", response.status);
-        
-        // Si no hay datos en ladm, mostrar regiones disponibles
-        if (data.data && data.data.length === 0 && data.meta?.regions) {
-          console.log("ℹ️ Vehículo no encontrado en LADM. Regiones disponibles:", data.meta.regions);
+        for (const region of regiones) {
+          const searchUrl = `${API_BASE}/search/by_model/?make=${marcaSeleccionada}&model=${modeloSeleccionado}&year=${yearNum}&region=${region}&user_key=${API_KEY}`;
+          console.log(`🔍 Buscando en ${region.toUpperCase()}:`, { marca: marcaSeleccionada, modelo: modeloSeleccionado, anio: yearNum });
+          
+          const response = await fetch(searchUrl);
+          const data = await response.json();
+          
+          if (data.data && data.data.length > 0) {
+            dataEncontrada = data;
+            regionUsada = region;
+            console.log(`✅ Encontrado en ${region.toUpperCase()}:`, data.data.length, "resultados");
+            break;
+          } else {
+            console.log(`⚠️ No encontrado en ${region.toUpperCase()}, probando siguiente región...`);
+          }
         }
         
-        if (data.error) console.log("❌ Error:", data.error);
-        if (data.message && data.code) console.log("❌ Mensaje:", data.message);
-        if (data.details) console.log("❌ Detalles:", JSON.stringify(data.details, null, 2)); // Para debug
+        if (!dataEncontrada) {
+          console.log("❌ Vehículo no encontrado en ninguna región");
+          setErrorAPI("Vehículo no encontrado en la base de datos");
+          setCargando(false);
+          return;
+        }
+        
+        const data = dataEncontrada;
+        console.log("📦 Respuesta API:", data);
+        console.log("🌍 Región:", regionUsada.toUpperCase()); // Para debug
         
         if (data.data && data.data.length > 0) {
           const vehiculo = data.data[0];
@@ -1220,6 +1280,14 @@ function ComparadorLlantas({ llantas = [], onClose }) {
               rinOEM: rinOEM
             });
             setReferencia1(medidaOEM);
+            
+            // Guardar en historial de búsquedas
+            agregarAlHistorial({
+              marca: marcaSeleccionada,
+              modelo: modeloSeleccionado,
+              anio: anioSeleccionado,
+              medidaOEM: medidaOEM
+            });
             
             // Autocompletar rin original en el simulador
             if (rinOEM) {
@@ -1594,6 +1662,31 @@ function ComparadorLlantas({ llantas = [], onClose }) {
                 </select>
               </div>
             </div>
+            
+            {/* Historial de búsquedas recientes */}
+            {historialBusquedas.length > 0 && !medidasVehiculo && (
+              <div className="mt-3 p-2 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-semibold text-gray-500">🕒 Búsquedas recientes</span>
+                  <button 
+                    onClick={() => setHistorialBusquedas([])}
+                    className="text-xs text-red-400 hover:text-red-600"
+                  >Limpiar</button>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {historialBusquedas.slice(0, 5).map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => cargarDesdeHistorial(item)}
+                      className="px-2 py-1 bg-white border border-gray-300 rounded text-xs hover:bg-indigo-50 hover:border-indigo-300 transition-colors"
+                      title={`${item.medidaOEM} - ${item.fecha}`}
+                    >
+                      <span className="capitalize">{item.marca}</span> {item.modelo} '{String(item.anio).slice(-2)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             
             {/* Resultado - Medidas del vehículo */}
             {medidasVehiculo && (

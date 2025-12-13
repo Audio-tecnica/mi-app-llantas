@@ -201,7 +201,7 @@ const LlantaConRin = ({ specs, numero, size = 200 }) => {
 // =============================================
 function ComparadorLlantas({ llantas = [], onClose }) {
   const [referencia1, setReferencia1] = useState("265/65R17");
-  const [referencia2, setReferencia2] = useState("265/70R17");
+  const [referencia2, setReferencia2] = useState("");
   const [llantaSeleccionada1, setLlantaSeleccionada1] = useState("");
   const [llantaSeleccionada2, setLlantaSeleccionada2] = useState("");
   const [modoIngreso, setModoIngreso] = useState("manual");
@@ -1807,6 +1807,15 @@ function ComparadorLlantas({ llantas = [], onClose }) {
               )}
             </div>
           </div>
+
+          {/* Mensaje cuando falta llanta nueva */}
+          {specs1 && !specs2 && (
+            <div className="bg-blue-50 border-2 border-dashed border-blue-300 rounded-xl p-6 mb-6 text-center">
+              <div className="text-4xl mb-2">👆</div>
+              <p className="text-blue-700 font-semibold">Ingresa la medida de la llanta nueva para comparar</p>
+              <p className="text-blue-500 text-sm mt-1">Ejemplo: 265/70R17 o simplemente 2657017</p>
+            </div>
+          )}
 
           {specs1 && specs2 && diferencias && (
             <>

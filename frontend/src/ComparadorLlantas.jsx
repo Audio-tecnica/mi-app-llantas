@@ -1088,9 +1088,10 @@ function ComparadorLlantas({ llantas = [], onClose }) {
 
       try {
         setCargando(true);
-        // Construir URL de búsqueda
-        const searchUrl = `${API_BASE}/search/by_model/?make=${marcaSeleccionada}&model=${modeloSeleccionado}&year=${anioSeleccionado}&user_key=${API_KEY}`;
-        console.log("🔍 Buscando:", { marca: marcaSeleccionada, modelo: modeloSeleccionado, anio: anioSeleccionado });
+        // Construir URL de búsqueda - el año debe ser número entero
+        const yearNum = parseInt(anioSeleccionado);
+        const searchUrl = `${API_BASE}/search/by_model/?make=${marcaSeleccionada}&model=${modeloSeleccionado}&year=${yearNum}&user_key=${API_KEY}`;
+        console.log("🔍 Buscando:", { marca: marcaSeleccionada, modelo: modeloSeleccionado, anio: yearNum });
         console.log("🌐 URL:", searchUrl.replace(API_KEY, "***"));
         
         const response = await fetch(searchUrl);
@@ -1099,7 +1100,8 @@ function ComparadorLlantas({ llantas = [], onClose }) {
         console.log("📦 Respuesta API:", data);
         console.log("📦 Status:", response.status);
         if (data.error) console.log("❌ Error:", data.error);
-        if (data.message) console.log("❌ Mensaje:", data.message); // Para debug
+        if (data.message) console.log("❌ Mensaje:", data.message);
+        if (data.details) console.log("❌ Detalles:", data.details); // Para debug
         
         if (data.data && data.data.length > 0) {
           const vehiculo = data.data[0];

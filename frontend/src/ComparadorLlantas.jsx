@@ -1281,6 +1281,12 @@ function ComparadorLlantas({ llantas = [], onClose }) {
             });
             setReferencia1(medidaOEM);
             
+            // 🎯 Sugerir automáticamente una llanta más grande compatible
+            const sugerida = sugerirLlantaMasGrande(medidaOEM);
+            if (sugerida) {
+              setReferencia2(sugerida);
+            }
+            
             // Guardar en historial de búsquedas
             agregarAlHistorial({
               marca: marcaSeleccionada,
@@ -1341,6 +1347,57 @@ function ComparadorLlantas({ llantas = [], onClose }) {
     } else {
       setReferencia(valor);
     }
+  };
+
+  // 🎯 Función para sugerir una llanta más grande compatible (< 3% diferencia)
+  const sugerirLlantaMasGrande = (medidaOEM) => {
+    const parsed = parsearMedida(medidaOEM);
+    if (!parsed) return null;
+    
+    const { ancho, perfil, rin } = parsed;
+    const specsOriginal = calcularEspecificaciones(parsed);
+    if (!specsOriginal) return null;
+    
+    // Opciones comunes de upgrade (mismo rin, más altura o ancho)
+    const opciones = [
+      // Subir perfil (más altura de sidewall)
+      { ancho: ancho, perfil: perfil + 5, rin: rin },
+      // Subir ancho y mantener perfil
+      { ancho: ancho + 10, perfil: perfil, rin: rin },
+      // Subir ancho y bajar perfil ligeramente (popular)
+      { ancho: ancho + 10, perfil: perfil - 5, rin: rin },
+      // Subir ambos
+      { ancho: ancho + 10, perfil: perfil + 5, rin: rin },
+    ];
+    
+    // Buscar la primera opción que sea más grande pero < 3% diferencia
+    for (const opcion of opciones) {
+      // Validar que el perfil sea razonable
+      if (opcion.perfil < 30 || opcion.perfil > 85) continue;
+      if (opcion.ancho < 155 || opcion.ancho > 335) continue;
+      
+      const specsNueva = calcularEspecificaciones(opcion);
+      if (!specsNueva) continue;
+      
+      const difDiametro = ((specsNueva.diametroTotal.mm - specsOriginal.diametroTotal.mm) / specsOriginal.diametroTotal.mm) * 100;
+      
+      // Queremos una llanta MÁS GRANDE (diferencia positiva) pero < 3%
+      if (difDiametro > 0.5 && difDiametro < 3) {
+        return `${opcion.ancho}/${opcion.perfil}R${opcion.rin}`;
+      }
+    }
+    
+    // Si no encuentra, intentar solo subir el perfil
+    const perfilMayor = { ancho, perfil: perfil + 5, rin };
+    const specsMayor = calcularEspecificaciones(perfilMayor);
+    if (specsMayor) {
+      const dif = ((specsMayor.diametroTotal.mm - specsOriginal.diametroTotal.mm) / specsOriginal.diametroTotal.mm) * 100;
+      if (dif > 0 && dif < 5) {
+        return `${perfilMayor.ancho}/${perfilMayor.perfil}R${perfilMayor.rin}`;
+      }
+    }
+    
+    return null;
   };
 
   // Parsear referencia del campo de texto
@@ -1787,9 +1844,16 @@ function ComparadorLlantas({ llantas = [], onClose }) {
               )}
             </div>
             <div className="bg-blue-50 border-2 border-blue-300 rounded-xl p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold">2</span>
-                <span className="font-bold text-blue-800">Llanta Nueva</span>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold">2</span>
+                  <span className="font-bold text-blue-800">Llanta Nueva</span>
+                </div>
+                {referencia2 && specs2 && diferencias && diferencias.diametro > 0 && diferencias.diametro < 3 && (
+                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                    ⬆️ +{diferencias.diametro.toFixed(1)}% compatible
+                  </span>
+                )}
               </div>
               {modoIngreso === "manual" ? (
                 <input 
@@ -1804,6 +1868,11 @@ function ComparadorLlantas({ llantas = [], onClose }) {
                   <option value="">Seleccionar...</option>
                   {llantas.map((ll) => <option key={ll.id} value={ll.id}>{ll.referencia} - {ll.marca}</option>)}
                 </select>
+              )}
+              {medidasVehiculo && referencia2 && specs2 && (
+                <p className="text-xs text-green-600 mt-2 text-center">
+                  💡 Sugerencia automática más grande para tu {medidasVehiculo.marca} {medidasVehiculo.modelo}
+                </p>
               )}
             </div>
           </div>

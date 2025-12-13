@@ -1088,13 +1088,15 @@ function ComparadorLlantas({ llantas = [], onClose }) {
 
       try {
         setCargando(true);
-        // Agregar región para Latinoamérica/Global
-        const response = await fetch(
-          `${API_BASE}/search/by_model/?make=${marcaSeleccionada}&model=${modeloSeleccionado}&year=${anioSeleccionado}&region=usdm&user_key=${API_KEY}`
-        );
+        // Construir URL de búsqueda
+        const searchUrl = `${API_BASE}/search/by_model/?make=${marcaSeleccionada}&model=${modeloSeleccionado}&year=${anioSeleccionado}&user_key=${API_KEY}`;
+        console.log("🔍 Buscando:", { marca: marcaSeleccionada, modelo: modeloSeleccionado, anio: anioSeleccionado });
+        console.log("🌐 URL:", searchUrl.replace(API_KEY, "***"));
+        
+        const response = await fetch(searchUrl);
         const data = await response.json();
         
-        console.log("Respuesta API:", data); // Para debug
+        console.log("📦 Respuesta API:", data); // Para debug
         
         if (data.data && data.data.length > 0) {
           const vehiculo = data.data[0];
@@ -2332,7 +2334,7 @@ function ComparadorLlantas({ llantas = [], onClose }) {
                           <span className="text-sm"><strong>Suspensión:</strong> {calculoCambioRin.mensajeInterior}</span>
                         </div>
                       </div>
-                    </div> 
+                    </div>
                     
                     {/* Llantas recomendadas */}
                     <div className="bg-white border border-gray-200 rounded-xl p-4">

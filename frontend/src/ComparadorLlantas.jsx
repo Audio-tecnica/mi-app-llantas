@@ -1088,9 +1088,9 @@ function ComparadorLlantas({ llantas = [], onClose }) {
 
       try {
         setCargando(true);
-        // Construir URL de búsqueda - region es obligatorio en API v2
+        // Construir URL de búsqueda - usar ladm (Latinoamérica) como región principal
         const yearNum = parseInt(anioSeleccionado);
-        const searchUrl = `${API_BASE}/search/by_model/?make=${marcaSeleccionada}&model=${modeloSeleccionado}&year=${yearNum}&region=usdm&user_key=${API_KEY}`;
+        const searchUrl = `${API_BASE}/search/by_model/?make=${marcaSeleccionada}&model=${modeloSeleccionado}&year=${yearNum}&region=ladm&user_key=${API_KEY}`;
         console.log("🔍 Buscando:", { marca: marcaSeleccionada, modelo: modeloSeleccionado, anio: yearNum });
         console.log("🌐 URL:", searchUrl.replace(API_KEY, "***"));
         
@@ -1099,8 +1099,14 @@ function ComparadorLlantas({ llantas = [], onClose }) {
         
         console.log("📦 Respuesta API:", data);
         console.log("📦 Status:", response.status);
+        
+        // Si no hay datos en ladm, mostrar regiones disponibles
+        if (data.data && data.data.length === 0 && data.meta?.regions) {
+          console.log("ℹ️ Vehículo no encontrado en LADM. Regiones disponibles:", data.meta.regions);
+        }
+        
         if (data.error) console.log("❌ Error:", data.error);
-        if (data.message) console.log("❌ Mensaje:", data.message);
+        if (data.message && data.code) console.log("❌ Mensaje:", data.message);
         if (data.details) console.log("❌ Detalles:", JSON.stringify(data.details, null, 2)); // Para debug
         
         if (data.data && data.data.length > 0) {

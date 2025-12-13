@@ -1096,7 +1096,10 @@ function ComparadorLlantas({ llantas = [], onClose }) {
         const response = await fetch(searchUrl);
         const data = await response.json();
         
-        console.log("📦 Respuesta API:", data); // Para debug
+        console.log("📦 Respuesta API:", data);
+        console.log("📦 Status:", response.status);
+        if (data.error) console.log("❌ Error:", data.error);
+        if (data.message) console.log("❌ Mensaje:", data.message); // Para debug
         
         if (data.data && data.data.length > 0) {
           const vehiculo = data.data[0];

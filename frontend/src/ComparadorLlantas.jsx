@@ -1125,34 +1125,75 @@ function ComparadorLlantas({ llantas = [], onClose }) {
           const medidasAlt = [];
           const llantasInfo = [];
           
+          console.log("🛞 Wheels data:", wheels);
+          if (wheels && wheels.length > 0) {
+            console.log("🛞 Primer wheel:", wheels[0]);
+            console.log("🛞 Front:", wheels[0].front);
+          }
+          
           if (wheels && wheels.length > 0) {
             wheels.forEach((w, index) => {
-              const tire = w.front?.tire || w.rear?.tire;
-              const rim = w.front?.rim || w.rear?.rim;
+              // La API v2 puede tener la info directamente o en front/rear
+              const front = w.front || {};
+              const rear = w.rear || {};
               
-              if (tire) {
-                const medida = `${tire.width}/${tire.aspect_ratio}R${tire.rim_diameter}`;
+              // Intentar obtener datos de tire - puede estar en diferentes lugares
+              let tireWidth = front.tire_width || rear.tire_width || w.tire_width;
+              let tireAspect = front.tire_aspect_ratio || rear.tire_aspect_ratio || w.tire_aspect_ratio;
+              let tireDiameter = front.rim_diameter || rear.rim_diameter || w.rim_diameter;
+              
+              // También puede venir como tire_full: "265/65R17 112S"
+              const tireFull = front.tire_full || rear.tire_full || w.tire_full;
+              if (tireFull && (!tireWidth || !tireAspect || !tireDiameter)) {
+                const match = tireFull.match(/(\d+)\/(\d+)R(\d+)/);
+                if (match) {
+                  tireWidth = parseInt(match[1]);
+                  tireAspect = parseInt(match[2]);
+                  tireDiameter = parseInt(match[3]);
+                }
+              }
+              
+              // Datos del rin
+              let rimWidth = front.rim_width || rear.rim_width || w.rim_width;
+              let rimDiameter = front.rim_diameter || rear.rim_diameter || w.rim_diameter;
+              let rimOffset = front.rim_offset || rear.rim_offset || w.rim_offset;
+              
+              // También puede venir como rim: "7.5Jx17 ET30"
+              const rimFull = front.rim || rear.rim || w.rim;
+              if (rimFull && typeof rimFull === 'string') {
+                const rimMatch = rimFull.match(/([\d.]+)Jx(\d+)\s*ET(-?\d+)/);
+                if (rimMatch) {
+                  rimWidth = parseFloat(rimMatch[1]);
+                  rimDiameter = parseInt(rimMatch[2]);
+                  rimOffset = parseInt(rimMatch[3]);
+                }
+              }
+              
+              if (tireWidth && tireAspect && tireDiameter) {
+                const medida = `${tireWidth}/${tireAspect}R${tireDiameter}`;
                 
                 // Crear info de llanta
                 const llantaInfo = {
                   medida: medida,
-                  indice: tire.load_index ? `${tire.load_index}${tire.speed_index || ''}` : "",
-                  rin: rim ? `${rim.width}Jx${rim.diameter} ET${rim.offset || 0}` : "",
-                  offset: rim?.offset?.toString() || "",
-                  presion: tire.pressure?.recommended || "",
-                  oem: index === 0
+                  indice: front.tire_load_index ? `${front.tire_load_index}${front.tire_speed_index || ''}` : "",
+                  rin: rimWidth ? `${rimWidth}Jx${rimDiameter} ET${rimOffset || 0}` : "",
+                  offset: rimOffset?.toString() || "",
+                  presion: "",
+                  oem: w.is_stock || index === 0
                 };
                 llantasInfo.push(llantaInfo);
                 
-                if (index === 0) {
-                  medidaOEM = medida;
-                  // Extraer datos del rin OEM
-                  if (rim) {
-                    rinOEM = {
-                      diametro: parseInt(rim.diameter) || 17,
-                      ancho: parseFloat(rim.width) || 7.5,
-                      et: parseInt(rim.offset) || 30
-                    };
+                if (index === 0 || w.is_stock) {
+                  if (!medidaOEM) {
+                    medidaOEM = medida;
+                    // Extraer datos del rin OEM
+                    if (rimWidth && rimDiameter) {
+                      rinOEM = {
+                        diametro: parseInt(rimDiameter) || 17,
+                        ancho: parseFloat(rimWidth) || 7.5,
+                        et: parseInt(rimOffset) || 30
+                      };
+                    }
                   }
                 } else if (!medidasAlt.includes(medida) && medida !== medidaOEM) {
                   medidasAlt.push(medida);

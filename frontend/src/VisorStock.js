@@ -24,6 +24,8 @@ function VisorStock() {
 
   // Reemplaza la función cargarDatos con esta versión con debug:
 
+// Reemplaza la función cargarDatos con esta versión con debug:
+
 const cargarDatos = async () => {
   setCargando(true);
   try {
@@ -48,6 +50,18 @@ const cargarDatos = async () => {
     console.log("🔍 Ejemplo llanta YOKOHAMA:", yokohamaLlantas[0]);
     console.log("🔍 Ejemplo promo YOKOHAMA:", yokohamaPromos[0]);
     
+    // Ver las primeras 10 referencias de llantas YOKOHAMA
+    console.log("🔍 REFERENCIAS DE LLANTAS YOKOHAMA:");
+    yokohamaLlantas.slice(0, 10).forEach(l => {
+      console.log(`   ${l.referencia} - Diseño: ${l.diseno || 'NULL'}`);
+    });
+    
+    // Ver las primeras 10 referencias de promociones YOKOHAMA
+    console.log("🔍 REFERENCIAS DE PROMOS YOKOHAMA:");
+    yokohamaPromos.slice(0, 10).forEach(p => {
+      console.log(`   ${p.referencia} - Diseño: ${p.diseno}`);
+    });
+    
     // Intentar hacer match manual
     if (yokohamaLlantas[0] && yokohamaPromos[0]) {
       const llanta = yokohamaLlantas.find(l => l.referencia === '215/55R17');
@@ -60,6 +74,8 @@ const cargarDatos = async () => {
         console.log("   Llanta.diseno:", llanta.diseno, "| Tipo:", typeof llanta.diseno);
         console.log("   Promo.diseno:", promo.diseno, "| Tipo:", typeof promo.diseno);
         console.log("   ¿Son iguales?:", llanta.diseno === promo.diseno);
+      } else {
+        console.log("⚠️ NO HAY COINCIDENCIA - La llanta no existe en el inventario");
       }
     }
     

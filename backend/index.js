@@ -969,7 +969,7 @@ app.post("/api/eliminar-luz", async (req, res) => {
 app.get("/api/promociones", async (req, res) => {
   try {
     const { rows } = await pool.query(
-      "SELECT * FROM promociones ORDER BY marca, referencia"
+      "SELECT * FROM promociones ORDER BY marca, referencia, diseno"
     );
     res.json(rows);
   } catch (e) {
@@ -1104,73 +1104,6 @@ app.post("/api/procesar-promociones", uploadPDF.single("pdf"), async (req, res) 
   }
 });
 
-// ============================================
-// BACKEND - Actualizar estos endpoints
-// ============================================
-
-// 1. GET /api/llantas - Incluir el campo 'diseno'
-app.get('/api/llantas', async (req, res) => {
-  try {
-    const result = await pool.query(
-      'SELECT id, marca, referencia, diseno, stock, proveedor FROM llantas ORDER BY marca, referencia'
-    );
-    res.json(result.rows);
-  } catch (err) {
-    console.error('Error obteniendo llantas:', err);
-    res.status(500).json({ error: 'Error al obtener llantas' });
-  }
-});
-
-// 2. POST /api/llantas - Incluir 'diseno' al crear
-app.post('/api/llantas', async (req, res) => {
-  const { marca, referencia, diseno, stock, proveedor } = req.body;
-  
-  try {
-    const result = await pool.query(
-      'INSERT INTO llantas (marca, referencia, diseno, stock, proveedor) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [marca, referencia, diseno, stock, proveedor]
-    );
-    res.json(result.rows[0]);
-  } catch (err) {
-    console.error('Error creando llanta:', err);
-    res.status(500).json({ error: 'Error al crear llanta' });
-  }
-});
-
-// 3. PUT /api/llantas/:id - Incluir 'diseno' al actualizar
-app.put('/api/llantas/:id', async (req, res) => {
-  const { id } = req.params;
-  const { marca, referencia, diseno, stock, proveedor } = req.body;
-  
-  try {
-    const result = await pool.query(
-      'UPDATE llantas SET marca=$1, referencia=$2, diseno=$3, stock=$4, proveedor=$5 WHERE id=$6 RETURNING *',
-      [marca, referencia, diseno, stock, proveedor, id]
-    );
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Llanta no encontrada' });
-    }
-    
-    res.json(result.rows[0]);
-  } catch (err) {
-    console.error('Error actualizando llanta:', err);
-    res.status(500).json({ error: 'Error al actualizar llanta' });
-  }
-});
-
-// 4. GET /api/promociones - Ya está correcto, solo verifica que devuelva 'diseno'
-app.get('/api/promociones', async (req, res) => {
-  try {
-    const result = await pool.query(
-      'SELECT * FROM promociones ORDER BY marca, referencia, diseno'
-    );
-    res.json(result.rows);
-  } catch (err) {
-    console.error('Error obteniendo promociones:', err);
-    res.status(500).json({ error: 'Error al obtener promociones' });
-  }
-});
 // Run server
 app.listen(PORT, () => {
   console.log(`✅ Servidor escuchando en puerto ${PORT}`);

@@ -12,6 +12,7 @@ import TirosArrastre from './TirosArrastre';
 import Sonido from './Sonido';
 import Luces from './Luces';
 import VisorStock from './VisorStock'; 
+import GestionPromociones from './GestionPromociones';
 import './index.css';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 
@@ -29,6 +30,7 @@ root.render(
       <Route path="/sonido" element={<Protegido><Sonido /></Protegido>} />
       <Route path="/luces" element={<Protegido><Luces /></Protegido>} />
       <Route path="/visor-stock" element={<Protegido><VisorStock /></Protegido>} />
+      <Route path="/promociones" element={<Protegido><GestionPromociones /></Protegido>} />
     </Routes>
   </BrowserRouter>
 );

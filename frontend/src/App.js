@@ -463,6 +463,14 @@ function App() {
               </button>
 
               <button
+                onClick={() => navigate("/promociones")}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-600 to-amber-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-amber-700 hover:to-amber-800 transition-all duration-200 shadow-md hover:shadow-lg"
+              >
+                <span>🎉</span>
+                Promociones
+              </button>
+
+              <button
                 onClick={() => {
                   localStorage.removeItem("acceso");
                   window.location.href = "/login";

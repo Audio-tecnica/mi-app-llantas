@@ -22,27 +22,59 @@ function VisorStock() {
     cargarDatos();
   }, []);
 
-  const cargarDatos = async () => {
-    setCargando(true);
-    try {
-      // Cargar llantas
-      const { data: llantasData } = await axios.get(`${API_URL}/api/llantas`);
-      setLlantas(llantasData);
+  // Reemplaza la función cargarDatos con esta versión con debug:
 
-      // Cargar promociones
-      const { data: promoData } = await axios.get(`${API_URL}/api/promociones`);
-      setPromociones(promoData.filter(p => p.activa));
+const cargarDatos = async () => {
+  setCargando(true);
+  try {
+    // Cargar llantas
+    const { data: llantasData } = await axios.get(`${API_URL}/api/llantas`);
+    console.log("🔍 LLANTAS CARGADAS:", llantasData.length);
+    console.log("🔍 Primera llanta:", llantasData[0]);
+    console.log("🔍 Campos de la primera llanta:", Object.keys(llantasData[0] || {}));
+    setLlantas(llantasData);
 
-      const marcas = [...new Set(llantasData.map((l) => l.marca))].sort();
-      if (marcas.length > 0) {
-        setMarcaSeleccionada(marcas[0]);
+    // Cargar promociones
+    const { data: promoData } = await axios.get(`${API_URL}/api/promociones`);
+    console.log("🔍 PROMOCIONES CARGADAS:", promoData.length);
+    console.log("🔍 Promociones ACTIVAS:", promoData.filter(p => p.activa).length);
+    console.log("🔍 Primera promoción:", promoData[0]);
+    console.log("🔍 Promociones de YOKOHAMA:", promoData.filter(p => p.marca === 'YOKOHAMA' && p.activa).length);
+    
+    // Mostrar ejemplo de coincidencia
+    const yokohamaLlantas = llantasData.filter(l => l.marca === 'YOKOHAMA');
+    const yokohamaPromos = promoData.filter(p => p.marca === 'YOKOHAMA' && p.activa);
+    console.log("🔍 Llantas YOKOHAMA:", yokohamaLlantas.length);
+    console.log("🔍 Ejemplo llanta YOKOHAMA:", yokohamaLlantas[0]);
+    console.log("🔍 Ejemplo promo YOKOHAMA:", yokohamaPromos[0]);
+    
+    // Intentar hacer match manual
+    if (yokohamaLlantas[0] && yokohamaPromos[0]) {
+      const llanta = yokohamaLlantas.find(l => l.referencia === '215/55R17');
+      const promo = yokohamaPromos.find(p => p.referencia === '215/55R17');
+      console.log("🔍 Llanta 215/55R17:", llanta);
+      console.log("🔍 Promo 215/55R17:", promo);
+      
+      if (llanta && promo) {
+        console.log("🔍 COMPARACIÓN:");
+        console.log("   Llanta.diseno:", llanta.diseno, "| Tipo:", typeof llanta.diseno);
+        console.log("   Promo.diseno:", promo.diseno, "| Tipo:", typeof promo.diseno);
+        console.log("   ¿Son iguales?:", llanta.diseno === promo.diseno);
       }
-    } catch (err) {
-      console.error("Error cargando datos:", err);
-    } finally {
-      setCargando(false);
     }
-  };
+    
+    setPromociones(promoData.filter(p => p.activa));
+
+    const marcas = [...new Set(llantasData.map((l) => l.marca))].sort();
+    if (marcas.length > 0) {
+      setMarcaSeleccionada(marcas[0]);
+    }
+  } catch (err) {
+    console.error("❌ Error cargando datos:", err);
+  } finally {
+    setCargando(false);
+  }
+};
 
   // Función ACTUALIZADA para verificar si una llanta tiene promoción
  const obtenerPromocion = (marca, referencia, diseno) => {

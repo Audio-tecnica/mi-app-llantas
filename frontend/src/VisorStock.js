@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { ChevronUp, ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronUp, ChevronDown, ChevronRight, X, ShoppingCart } from "lucide-react";
 import "./index.css";
 
 function VisorStock() {
@@ -11,8 +11,9 @@ function VisorStock() {
   const [cargando, setCargando] = useState(true);
   const [ordenPor, setOrdenPor] = useState("referencia");
   const [ordenAsc, setOrdenAsc] = useState(true);
-  const [seleccionadas, setSeleccionadas] = useState([]);
+  const [carritoPedido, setCarritoPedido] = useState([]);
   const [dimensionesExpandidas, setDimensionesExpandidas] = useState({});
+  const [mostrarCarrito, setMostrarCarrito] = useState(false);
 
   const API_URL = "https://mi-app-llantas.onrender.com";
 
@@ -35,7 +36,7 @@ function VisorStock() {
   // Filtrar por marca
   let llantasFiltradas = llantas.filter((l) => l.marca === marcaSeleccionada);
 
-  // Función para extraer el rin de la referencia (última parte después de R)
+  // Función para extraer el rin de la referencia
   const extraerRin = (referencia) => {
     const match = referencia?.match(/R(\d+)/i);
     return match ? match[1] : "Otros";
@@ -52,7 +53,6 @@ function VisorStock() {
       grupos[rin].push(llanta);
     });
 
-    // Ordenar cada grupo
     Object.keys(grupos).forEach((rin) => {
       grupos[rin].sort((a, b) => {
         if (ordenPor === "referencia") {
@@ -87,23 +87,6 @@ function VisorStock() {
     }));
   };
 
-  const toggleSeleccion = (id) => {
-    setSeleccionadas((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
-  };
-
-  const toggleSeleccionTodos = (llantas) => {
-    const ids = llantas.map((l) => l.id);
-    const todosMarcados = ids.every((id) => seleccionadas.includes(id));
-
-    if (todosMarcados) {
-      setSeleccionadas((prev) => prev.filter((id) => !ids.includes(id)));
-    } else {
-      setSeleccionadas((prev) => [...new Set([...prev, ...ids])]);
-    }
-  };
-
   const totalUnidades = llantasFiltradas.reduce((sum, l) => sum + (l.stock || 0), 0);
   const totalReferencias = llantasFiltradas.length;
   const stockImpares = llantasFiltradas.filter((l) => l.stock > 0 && l.stock % 2 !== 0).length;
@@ -118,30 +101,111 @@ function VisorStock() {
     }
   };
 
-  const copiarSeleccion = () => {
-    if (seleccionadas.length === 0) {
-      alert("⚠️ Selecciona al menos una llanta");
+  // Agregar al carrito
+  const agregarAlCarrito = (llanta) => {
+    const cantidad = prompt(`¿Cuántas unidades de ${llanta.referencia} vas a pedir?`, "4");
+    
+    if (cantidad && !isNaN(cantidad) && parseInt(cantidad) > 0) {
+      const cantidadNum = parseInt(cantidad);
+      
+      // Verificar si ya está en el carrito
+      const existe = carritoPedido.find((item) => item.id === llanta.id);
+      
+      if (existe) {
+        // Actualizar cantidad
+        setCarritoPedido((prev) =>
+          prev.map((item) =>
+            item.id === llanta.id
+              ? { ...item, cantidadPedir: item.cantidadPedir + cantidadNum }
+              : item
+          )
+        );
+      } else {
+        // Agregar nuevo
+        setCarritoPedido((prev) => [
+          ...prev,
+          {
+            id: llanta.id,
+            referencia: llanta.referencia,
+            marca: llanta.marca,
+            proveedor: llanta.proveedor,
+            stockActual: llanta.stock,
+            cantidadPedir: cantidadNum,
+          },
+        ]);
+      }
+      
+      alert(`✅ ${cantidadNum} unidades agregadas al pedido`);
+    }
+  };
+
+  // Eliminar del carrito
+  const eliminarDelCarrito = (id) => {
+    setCarritoPedido((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  // Actualizar cantidad en el carrito
+  const actualizarCantidad = (id, nuevaCantidad) => {
+    if (nuevaCantidad <= 0) {
+      eliminarDelCarrito(id);
+    } else {
+      setCarritoPedido((prev) =>
+        prev.map((item) =>
+          item.id === id ? { ...item, cantidadPedir: parseInt(nuevaCantidad) } : item
+        )
+      );
+    }
+  };
+
+  // Vaciar carrito
+  const vaciarCarrito = () => {
+    if (window.confirm("¿Vaciar todo el carrito de pedido?")) {
+      setCarritoPedido([]);
+    }
+  };
+
+  // Enviar por WhatsApp
+  const enviarPorWhatsApp = () => {
+    if (carritoPedido.length === 0) {
+      alert("⚠️ El carrito está vacío");
       return;
     }
 
-    const llantasSeleccionadas = llantas.filter((l) => seleccionadas.includes(l.id));
-
-    let texto = `📋 PEDIDO - ${marcaSeleccionada.toUpperCase()}\n`;
+    let texto = `📋 *PEDIDO DE LLANTAS*\n`;
+    texto += `Marca: *${marcaSeleccionada}*\n`;
     texto += `Fecha: ${new Date().toLocaleDateString("es-CO")}\n`;
     texto += `━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
 
-    llantasSeleccionadas.forEach((l) => {
-      texto += `• ${l.referencia} - Stock actual: ${l.stock}\n`;
+    carritoPedido.forEach((item, index) => {
+      texto += `${index + 1}. *${item.referencia}*\n`;
+      texto += `   Cantidad a pedir: *${item.cantidadPedir} unidades*\n`;
+      texto += `   Stock actual: ${item.stockActual}\n`;
+      if (item.proveedor) {
+        texto += `   Proveedor: ${item.proveedor}\n`;
+      }
+      texto += `\n`;
     });
 
-    texto += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-    texto += `Total: ${llantasSeleccionadas.length} referencias seleccionadas`;
+    const totalUnidadesPedir = carritoPedido.reduce((sum, item) => sum + item.cantidadPedir, 0);
 
+    texto += `━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    texto += `*RESUMEN:*\n`;
+    texto += `• Total referencias: ${carritoPedido.length}\n`;
+    texto += `• Total unidades a pedir: ${totalUnidadesPedir}`;
+
+    // Copiar al portapapeles
     navigator.clipboard.writeText(texto);
 
     // Abrir WhatsApp
     const mensajeEncoded = encodeURIComponent(texto);
     window.open(`https://wa.me/?text=${mensajeEncoded}`, "_blank");
+
+    // Preguntar si quiere vaciar el carrito
+    setTimeout(() => {
+      if (window.confirm("Pedido enviado ✅\n¿Deseas vaciar el carrito?")) {
+        setCarritoPedido([]);
+      }
+    }, 500);
   };
 
   const EncabezadoOrdenable = ({ campo, children }) => (
@@ -173,11 +237,16 @@ function VisorStock() {
 
             <div className="flex gap-2">
               <button
-                onClick={copiarSeleccion}
-                disabled={seleccionadas.length === 0}
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() => setMostrarCarrito(!mostrarCarrito)}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-md hover:shadow-lg relative"
               >
-                📱 Enviar ({seleccionadas.length})
+                <ShoppingCart size={18} />
+                Carrito
+                {carritoPedido.length > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                    {carritoPedido.length}
+                  </span>
+                )}
               </button>
               <button
                 onClick={() => navigate("/")}
@@ -205,7 +274,6 @@ function VisorStock() {
                 value={marcaSeleccionada}
                 onChange={(e) => {
                   setMarcaSeleccionada(e.target.value);
-                  setSeleccionadas([]);
                   setDimensionesExpandidas({});
                 }}
                 className="w-full px-4 py-3 text-xl font-bold border-2 border-slate-300 rounded-xl shadow-sm focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-all duration-200"
@@ -298,17 +366,6 @@ function VisorStock() {
                             </span>
                           )}
                         </div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleSeleccionTodos(llantasGrupo);
-                          }}
-                          className="bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1 rounded-lg text-xs font-bold transition-all"
-                        >
-                          {llantasGrupo.every((l) => seleccionadas.includes(l.id))
-                            ? "Deseleccionar"
-                            : "Seleccionar Todos"}
-                        </button>
                       </div>
                     </div>
 
@@ -318,16 +375,6 @@ function VisorStock() {
                         <table className="w-full text-xs">
                           <thead className="bg-slate-100 border-b border-slate-200">
                             <tr>
-                              <th className="p-2 text-left w-10">
-                                <input
-                                  type="checkbox"
-                                  onChange={() => toggleSeleccionTodos(llantasGrupo)}
-                                  checked={llantasGrupo.every((l) =>
-                                    seleccionadas.includes(l.id)
-                                  )}
-                                  className="cursor-pointer w-3 h-3"
-                                />
-                              </th>
                               <EncabezadoOrdenable campo="referencia">
                                 Referencia
                               </EncabezadoOrdenable>
@@ -337,6 +384,9 @@ function VisorStock() {
                               <EncabezadoOrdenable campo="stock">
                                 Stock
                               </EncabezadoOrdenable>
+                              <th className="p-2 text-center text-xs font-bold text-gray-700">
+                                Acción
+                              </th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-100">
@@ -344,6 +394,7 @@ function VisorStock() {
                               const esImpar = llanta.stock > 0 && llanta.stock % 2 !== 0;
                               const esCritico = llanta.stock > 0 && llanta.stock <= 3;
                               const estaAgotado = llanta.stock === 0;
+                              const estaEnCarrito = carritoPedido.some((item) => item.id === llanta.id);
 
                               return (
                                 <tr
@@ -351,17 +402,9 @@ function VisorStock() {
                                   className={`${
                                     idx % 2 === 0 ? "bg-white" : "bg-gray-50"
                                   } hover:bg-blue-50 transition-colors ${
-                                    seleccionadas.includes(llanta.id) ? "bg-blue-100" : ""
+                                    estaEnCarrito ? "bg-purple-50" : ""
                                   }`}
                                 >
-                                  <td className="p-2">
-                                    <input
-                                      type="checkbox"
-                                      checked={seleccionadas.includes(llanta.id)}
-                                      onChange={() => toggleSeleccion(llanta.id)}
-                                      className="cursor-pointer w-3 h-3"
-                                    />
-                                  </td>
                                   <td className="p-2">
                                     <span className="text-sm font-semibold text-gray-800">
                                       {llanta.referencia}
@@ -397,6 +440,18 @@ function VisorStock() {
                                       )}
                                     </div>
                                   </td>
+                                  <td className="p-2 text-center">
+                                    <button
+                                      onClick={() => agregarAlCarrito(llanta)}
+                                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm hover:shadow-md ${
+                                        estaEnCarrito
+                                          ? "bg-purple-200 text-purple-800 hover:bg-purple-300"
+                                          : "bg-blue-500 text-white hover:bg-blue-600"
+                                      }`}
+                                    >
+                                      {estaEnCarrito ? "✓ Agregado" : "+ Agregar"}
+                                    </button>
+                                  </td>
                                 </tr>
                               );
                             })}
@@ -409,6 +464,127 @@ function VisorStock() {
               })}
             </div>
           </>
+        )}
+
+        {/* Modal del Carrito */}
+        {mostrarCarrito && (
+          <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+              {/* Header del Carrito */}
+              <div className="bg-gradient-to-r from-purple-600 to-purple-700 p-6 text-white">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h2 className="text-2xl font-bold flex items-center gap-2">
+                      <ShoppingCart size={28} />
+                      Carrito de Pedido
+                    </h2>
+                    <p className="text-sm opacity-90 mt-1">
+                      {carritoPedido.length} referencias seleccionadas
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setMostrarCarrito(false)}
+                    className="hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-all"
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Contenido del Carrito */}
+              <div className="flex-1 overflow-y-auto p-6">
+                {carritoPedido.length === 0 ? (
+                  <div className="text-center py-12">
+                    <ShoppingCart size={64} className="mx-auto text-gray-300 mb-4" />
+                    <p className="text-gray-500 text-lg">El carrito está vacío</p>
+                    <p className="text-gray-400 text-sm mt-2">
+                      Agrega productos desde la lista
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {carritoPedido.map((item) => (
+                      <div
+                        key={item.id}
+                        className="bg-gray-50 rounded-xl p-4 border-2 border-gray-200 hover:border-purple-300 transition-all"
+                      >
+                        <div className="flex justify-between items-start mb-3">
+                          <div className="flex-1">
+                            <h3 className="font-bold text-lg text-gray-800">
+                              {item.referencia}
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                              Marca: {item.marca} • Stock actual: {item.stockActual}
+                            </p>
+                            {item.proveedor && (
+                              <p className="text-xs text-gray-500">
+                                Proveedor: {item.proveedor}
+                              </p>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => eliminarDelCarrito(item.id)}
+                            className="text-red-500 hover:text-red-700 hover:bg-red-100 rounded-full p-2 transition-all"
+                            title="Eliminar"
+                          >
+                            <X size={20} />
+                          </button>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <label className="text-sm font-semibold text-gray-700">
+                            Cantidad a pedir:
+                          </label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={item.cantidadPedir}
+                            onChange={(e) => actualizarCantidad(item.id, e.target.value)}
+                            className="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg font-bold text-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                          />
+                          <span className="text-sm text-gray-600">unidades</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Footer del Carrito */}
+              {carritoPedido.length > 0 && (
+                <div className="border-t-2 border-gray-200 p-6 bg-gray-50">
+                  <div className="mb-4">
+                    <div className="flex justify-between text-lg font-bold text-gray-800">
+                      <span>Total referencias:</span>
+                      <span>{carritoPedido.length}</span>
+                    </div>
+                    <div className="flex justify-between text-lg font-bold text-gray-800">
+                      <span>Total unidades a pedir:</span>
+                      <span>
+                        {carritoPedido.reduce((sum, item) => sum + item.cantidadPedir, 0)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={enviarPorWhatsApp}
+                      className="flex-1 bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-3 rounded-xl font-bold hover:from-green-700 hover:to-green-800 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+                    >
+                      <span className="text-xl">📱</span>
+                      Enviar por WhatsApp
+                    </button>
+                    <button
+                      onClick={vaciarCarrito}
+                      className="bg-red-500 text-white px-6 py-3 rounded-xl font-bold hover:bg-red-600 transition-all shadow-lg hover:shadow-xl"
+                    >
+                      🗑️ Vaciar
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         )}
       </div>
     </div>

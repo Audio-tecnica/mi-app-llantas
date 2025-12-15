@@ -45,24 +45,24 @@ function VisorStock() {
   };
 
   // Función ACTUALIZADA para verificar si una llanta tiene promoción
-  const obtenerPromocion = (marca, referencia, diseno) => {
-    // Primero busca promoción exacta con diseño
-    const promoExacta = promociones.find(
-      p => p.marca === marca && 
-           p.referencia === referencia && 
-           p.diseno === diseno && 
-           p.activa
-    );
-    
-    if (promoExacta) return promoExacta;
-    
-    // Si no encuentra con diseño exacto, busca cualquier promoción de esa referencia
-    return promociones.find(
-      p => p.marca === marca && 
-           p.referencia === referencia && 
-           p.activa
-    );
-  };
+ const obtenerPromocion = (marca, referencia, diseno) => {
+  // Primero busca promoción exacta con diseño
+  const promoExacta = promociones.find(
+    p => p.marca === marca && 
+         p.referencia === referencia && 
+         p.diseno === diseno && 
+         p.activa
+  );
+  
+  if (promoExacta) return promoExacta;
+  
+  // Si no encuentra con diseño exacto, busca cualquier promoción de esa referencia
+  return promociones.find(
+    p => p.marca === marca && 
+         p.referencia === referencia && 
+         p.activa
+  );
+};
 
   const marcasUnicas = [...new Set(llantas.map((l) => l.marca))].sort();
 

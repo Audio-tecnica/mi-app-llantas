@@ -44,10 +44,23 @@ function VisorStock() {
     }
   };
 
-  // Función para verificar si una llanta tiene promoción
-  const obtenerPromocion = (marca, referencia) => {
+  // Función ACTUALIZADA para verificar si una llanta tiene promoción
+  const obtenerPromocion = (marca, referencia, diseno) => {
+    // Primero busca promoción exacta con diseño
+    const promoExacta = promociones.find(
+      p => p.marca === marca && 
+           p.referencia === referencia && 
+           p.diseno === diseno && 
+           p.activa
+    );
+    
+    if (promoExacta) return promoExacta;
+    
+    // Si no encuentra con diseño exacto, busca cualquier promoción de esa referencia
     return promociones.find(
-      p => p.marca === marca && p.referencia === referencia && p.activa
+      p => p.marca === marca && 
+           p.referencia === referencia && 
+           p.activa
     );
   };
 
@@ -112,9 +125,9 @@ function VisorStock() {
   const stockImpares = llantasFiltradas.filter((l) => l.stock > 0 && l.stock % 2 !== 0).length;
   const stockCriticos = llantasFiltradas.filter((l) => l.stock > 0 && l.stock <= 3).length;
   
-  // Nueva estadística: total en promoción
+  // ACTUALIZADO: incluir diseño en la búsqueda
   const totalEnPromocion = llantasFiltradas.filter((l) => 
-    obtenerPromocion(l.marca, l.referencia)
+    obtenerPromocion(l.marca, l.referencia, l.diseno)
   ).length;
 
   const handleOrdenar = (campo) => {
@@ -128,7 +141,7 @@ function VisorStock() {
 
   // Agregar al carrito
   const agregarAlCarrito = (llanta) => {
-    const cantidad = prompt(`¿Cuántas unidades de ${llanta.referencia} vas a pedir?`, "4");
+    const cantidad = prompt(`¿Cuántas unidades de ${llanta.referencia} ${llanta.diseno ? '(' + llanta.diseno + ')' : ''} vas a pedir?`, "4");
     
     if (cantidad && !isNaN(cantidad) && parseInt(cantidad) > 0) {
       const cantidadNum = parseInt(cantidad);
@@ -149,6 +162,7 @@ function VisorStock() {
           {
             id: llanta.id,
             referencia: llanta.referencia,
+            diseno: llanta.diseno,
             marca: llanta.marca,
             proveedor: llanta.proveedor,
             stockActual: llanta.stock,
@@ -196,6 +210,9 @@ function VisorStock() {
 
     carritoPedido.forEach((item, index) => {
       texto += `${index + 1}. *${item.referencia}*\n`;
+      if (item.diseno) {
+        texto += `   Diseño: ${item.diseno}\n`;
+      }
       texto += `   Cantidad: *${item.cantidadPedir} unidades*\n`;
       if (item.proveedor) {
         texto += `   Proveedor: ${item.proveedor}\n`;
@@ -355,7 +372,10 @@ function VisorStock() {
                 const totalGrupo = llantasGrupo.reduce((sum, l) => sum + (l.stock || 0), 0);
                 const criticosGrupo = llantasGrupo.filter((l) => l.stock > 0 && l.stock <= 3).length;
                 const imparesGrupo = llantasGrupo.filter((l) => l.stock > 0 && l.stock % 2 !== 0).length;
-                const promosGrupo = llantasGrupo.filter((l) => obtenerPromocion(l.marca, l.referencia)).length;
+                // ACTUALIZADO: incluir diseño
+                const promosGrupo = llantasGrupo.filter((l) => 
+                  obtenerPromocion(l.marca, l.referencia, l.diseno)
+                ).length;
 
                 return (
                   <div key={rin} className="bg-white rounded-xl shadow-lg overflow-hidden">
@@ -406,6 +426,9 @@ function VisorStock() {
                               <EncabezadoOrdenable campo="referencia">
                                 Referencia
                               </EncabezadoOrdenable>
+                              <th className="p-2 text-left text-xs font-bold text-gray-700">
+                                Diseño
+                              </th>
                               <EncabezadoOrdenable campo="proveedor">
                                 Proveedor
                               </EncabezadoOrdenable>
@@ -423,7 +446,8 @@ function VisorStock() {
                               const esCritico = llanta.stock > 0 && llanta.stock <= 3;
                               const estaAgotado = llanta.stock === 0;
                               const estaEnCarrito = carritoPedido.some((item) => item.id === llanta.id);
-                              const promocion = obtenerPromocion(llanta.marca, llanta.referencia);
+                              // ACTUALIZADO: incluir diseño
+                              const promocion = obtenerPromocion(llanta.marca, llanta.referencia, llanta.diseno);
 
                               return (
                                 <tr
@@ -447,6 +471,11 @@ function VisorStock() {
                                         </div>
                                       )}
                                     </div>
+                                  </td>
+                                  <td className="p-2">
+                                    <span className="text-xs font-medium text-blue-600">
+                                      {llanta.diseno || "—"}
+                                    </span>
                                   </td>
                                   <td className="p-2">
                                     <span className="text-xs text-gray-600">

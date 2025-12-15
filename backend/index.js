@@ -985,9 +985,14 @@ app.post("/api/procesar-promociones", uploadPDF.single("pdf"), async (req, res) 
       return res.status(400).json({ error: "No se recibió archivo PDF" });
     }
 
+    console.log("📄 Procesando PDF...");
+
     // Extraer texto del PDF
     const pdfData = await pdfParse(req.file.buffer);
     const texto = pdfData.text;
+
+    console.log("📄 Texto extraído del PDF (primeros 500 caracteres):");
+    console.log(texto.substring(0, 500));
 
     // Detectar mes actual
     const mesActual = new Date().toLocaleDateString("es-CO", {
@@ -995,17 +1000,22 @@ app.post("/api/procesar-promociones", uploadPDF.single("pdf"), async (req, res) 
       year: "numeric",
     });
 
-    // Detectar marca actual
-    let marcaActual = "MOMO"; // Default
-    if (texto.toUpperCase().includes("YOKOHAMA")) marcaActual = "YOKOHAMA";
-    else if (texto.toUpperCase().includes("PIRELLI")) marcaActual = "PIRELLI";
-    else if (texto.toUpperCase().includes("GOODYEAR")) marcaActual = "GOODYEAR";
-    else if (texto.toUpperCase().includes("FEDERAL")) marcaActual = "FEDERAL";
-    else if (texto.toUpperCase().includes("NITTO")) marcaActual = "NITTO";
-    else if (texto.toUpperCase().includes("ALLIANCE")) marcaActual = "ALLIANCE";
-    else if (texto.toUpperCase().includes("VENOM")) marcaActual = "VENOM";
-    else if (texto.toUpperCase().includes("YEADA")) marcaActual = "YEADA";
-    else if (texto.toUpperCase().includes("GENERAL")) marcaActual = "GENERAL";
+    // Detectar marca actual (buscar en el texto)
+    let marcaActual = "DESCONOCIDA";
+    const textoUpper = texto.toUpperCase();
+    
+    if (textoUpper.includes("YOKOHAMA")) marcaActual = "YOKOHAMA";
+    else if (textoUpper.includes("PIRELLI")) marcaActual = "PIRELLI";
+    else if (textoUpper.includes("GOODYEAR")) marcaActual = "GOODYEAR";
+    else if (textoUpper.includes("FEDERAL")) marcaActual = "FEDERAL";
+    else if (textoUpper.includes("NITTO")) marcaActual = "NITTO";
+    else if (textoUpper.includes("ALLIANCE")) marcaActual = "ALLIANCE";
+    else if (textoUpper.includes("VENOM")) marcaActual = "VENOM";
+    else if (textoUpper.includes("YEADA")) marcaActual = "YEADA";
+    else if (textoUpper.includes("GENERAL")) marcaActual = "GENERAL";
+    else if (textoUpper.includes("MOMO")) marcaActual = "MOMO";
+
+    console.log("🏷️ Marca detectada:", marcaActual);
 
     // Desactivar todas las promociones anteriores de esta marca
     await pool.query(
@@ -1013,80 +1023,75 @@ app.post("/api/procesar-promociones", uploadPDF.single("pdf"), async (req, res) 
       [marcaActual]
     );
 
-    // Expresión regular para detectar líneas de promociones
-    const regex = /(\d{3}\/\d{2}\s*R\d{2}[A-Z]*)\s+([A-Z0-9\s]+?)\s+(\d+)\s+\$?([\d,]+)/gi;
+    console.log("🔄 Promociones anteriores desactivadas");
+
+    // Múltiples expresiones regulares para diferentes formatos
+    const regexFormatos = [
+      // Formato 1: "185/60 R14    M2    74    $189,999"
+      /(\d{3}\/\d{2}\s*R\d{2}[A-Z]*)\s+([A-Z0-9\s\.]+?)\s+(\d+)\s+\$?([\d,\.]+)/gi,
+      
+      // Formato 2: "185/60R14 M2 74 189999" (sin espacios ni $)
+      /(\d{3}\/\d{2}R\d{2}[A-Z]*)\s+([A-Z0-9\s\.]+?)\s+(\d+)\s+([\d,\.]+)/gi,
+      
+      // Formato 3: Con guiones o tabs
+      /(\d{3}\/\d{2}\s*R\d{2}[A-Z]*)\s*[\t\-]+\s*([A-Z0-9\s\.]+?)\s*[\t\-]+\s*(\d+)\s*[\t\-]+\s*\$?([\d,\.]+)/gi,
+    ];
 
     let promocionesAgregadas = 0;
-    let match;
+    let lineasEncontradas = [];
 
-    while ((match = regex.exec(texto)) !== null) {
-      const referencia = match[1].trim().replace(/\s+/g, "");
-      const diseno = match[2].trim();
-      const cantidades = parseInt(match[3]);
-      const precioTexto = match[4].replace(/,/g, "");
-      const precio = parseFloat(precioTexto);
-
-      if (referencia && precio > 0) {
+    // Intentar con cada formato de regex
+    for (const regex of regexFormatos) {
+      let match;
+      while ((match = regex.exec(texto)) !== null) {
         try {
-          await pool.query(
-            `INSERT INTO promociones (marca, referencia, diseno, precio_promo, cantidades_disponibles, mes, activa)
-             VALUES ($1, $2, $3, $4, $5, $6, true)`,
-            [marcaActual, referencia, diseno, precio, cantidades, mesActual]
-          );
-          promocionesAgregadas++;
+          const referencia = match[1].trim().replace(/\s+/g, "");
+          const diseno = match[2].trim();
+          const cantidades = parseInt(match[3]);
+          const precioTexto = match[4].replace(/[,$\.]/g, "");
+          const precio = parseFloat(precioTexto);
+
+          // Validar que los datos sean válidos
+          if (referencia && !isNaN(precio) && precio > 0 && !isNaN(cantidades)) {
+            lineasEncontradas.push({
+              referencia,
+              diseno,
+              cantidades,
+              precio
+            });
+
+            await pool.query(
+              `INSERT INTO promociones (marca, referencia, diseno, precio_promo, cantidades_disponibles, mes, activa)
+               VALUES ($1, $2, $3, $4, $5, $6, true)`,
+              [marcaActual, referencia, diseno, precio, cantidades, mesActual]
+            );
+            
+            promocionesAgregadas++;
+          }
         } catch (insertError) {
-          console.error("Error insertando promoción:", insertError);
+          console.error("❌ Error insertando promoción:", insertError.message);
         }
       }
     }
+
+    console.log(`✅ Se agregaron ${promocionesAgregadas} promociones`);
+    console.log("📋 Primeras 5 promociones detectadas:", lineasEncontradas.slice(0, 5));
 
     res.json({
       success: true,
       promocionesAgregadas,
       marca: marcaActual,
       mes: mesActual,
+      muestras: lineasEncontradas.slice(0, 5) // Para debug
     });
-  } catch (e) {
-    console.error("Error procesando PDF:", e);
-    res.status(500).json({ error: "Error procesando PDF: " + e.message });
-  }
-});
 
-// Desactivar promoción
-app.post("/api/desactivar-promocion", async (req, res) => {
-  const { id } = req.body;
-  try {
-    await pool.query("UPDATE promociones SET activa=false WHERE id=$1", [id]);
-    res.json({ success: true });
   } catch (e) {
-    console.error("Error desactivando promoción:", e);
-    res.status(500).json({ error: "Error desactivando promoción" });
-  }
-});
-
-// Limpiar promociones inactivas
-app.post("/api/limpiar-promociones-inactivas", async (req, res) => {
-  try {
-    await pool.query("DELETE FROM promociones WHERE activa=false");
-    res.json({ success: true });
-  } catch (e) {
-    console.error("Error limpiando promociones:", e);
-    res.status(500).json({ error: "Error limpiando promociones" });
-  }
-});
-
-// Verificar si una llanta tiene promoción
-app.get("/api/verificar-promocion/:marca/:referencia", async (req, res) => {
-  const { marca, referencia } = req.params;
-  try {
-    const { rows } = await pool.query(
-      "SELECT * FROM promociones WHERE marca=$1 AND referencia=$2 AND activa=true LIMIT 1",
-      [marca, referencia]
-    );
-    res.json(rows[0] || null);
-  } catch (e) {
-    console.error("Error verificando promoción:", e);
-    res.status(500).json({ error: "Error verificando promoción" });
+    console.error("❌ Error procesando PDF:", e);
+    res.status(500).json({ 
+      error: "Error procesando PDF",
+      detalle: e.message,
+      stack: e.stack 
+    });
   }
 });
 

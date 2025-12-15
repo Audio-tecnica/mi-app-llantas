@@ -5,15 +5,16 @@ const xlsx = require("xlsx");
 const { Pool } = require("pg");
 const path = require("path");
 const fs = require("fs");
-const axios = require("axios"); // ⬅️ NUEVO: Para remove.bg
-const FormData = require("form-data"); // ⬅️ NUEVO: Para remove.bg
+const axios = require("axios");
+const FormData = require("form-data");
+const multer = require('multer');
+const pdfParse = require("pdf-parse"); // ⬅️ AGREGADO
 
 const app = express();
 const PORT = process.env.PORT || 10000;
 
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
-const multer = require('multer');
 
 // ===========================
 // CONFIGURAR CLOUDINARY
@@ -25,21 +26,22 @@ cloudinary.config({
 });
 
 // ⬇️⬇️⬇️ NUEVO: API KEY DE REMOVE.BG ⬇️⬇️⬇️
-// Consigue tu API key gratis en: https://remove.bg/api
 const REMOVE_BG_API_KEY = process.env.REMOVE_BG_API_KEY || 'BFz2WwvkwPfh33YAbnMiD7Ke';
-// ⬆️⬆️⬆️ IMPORTANTE: Reemplaza 'TU_API_KEY_AQUI' con tu API key real ⬆️⬆️⬆️
 
-// Configurar almacenamiento en Cloudinary
-const storage = new CloudinaryStorage({
+// Configuración de Cloudinary para imágenes
+const cloudinaryStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: 'rines',
-    allowed_formats: ['jpg', 'png', 'jpeg', 'gif', 'webp'],
-    transformation: [{ width: 800, height: 800, crop: 'limit' }]
-  },
+    folder: 'llantas',
+    allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
+  }
 });
 
-const upload = multer({ storage: storage });
+// ⬅️ Para subir imágenes a Cloudinary
+const uploadImage = multer({ storage: cloudinaryStorage });
+
+// ⬅️ Para subir PDFs (se guardan en memoria)
+const uploadPDF = multer({ storage: multer.memoryStorage() });
 
 // PostgreSQL
 const pool = new Pool({
@@ -107,24 +109,19 @@ crearTabla();
 
 /**
  * Función para remover el fondo de una imagen usando remove.bg
- * @param {string} imageUrl - URL de la imagen en Cloudinary
- * @returns {Promise<string>} - URL de la imagen procesada en Cloudinary
  */
 async function removerFondoRin(imageUrl) {
   try {
     console.log('🔄 Procesando imagen con remove.bg:', imageUrl);
 
-    // Descargar la imagen desde Cloudinary
     const imageResponse = await axios.get(imageUrl, { 
       responseType: 'arraybuffer' 
     });
 
-    // Crear FormData para enviar a remove.bg
     const formData = new FormData();
     formData.append('image_file_b64', Buffer.from(imageResponse.data).toString('base64'));
     formData.append('size', 'auto');
 
-    // Llamar a la API de remove.bg
     const response = await axios({
       method: 'post',
       url: 'https://api.remove.bg/v1.0/removebg',
@@ -142,12 +139,11 @@ async function removerFondoRin(imageUrl) {
 
     console.log('✅ Fondo removido exitosamente');
 
-    // Subir la imagen procesada de vuelta a Cloudinary
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           folder: 'rines',
-          format: 'png', // Importante: guardar como PNG para mantener transparencia
+          format: 'png',
           public_id: `sin-fondo-${Date.now()}`,
         },
         (error, result) => {
@@ -167,12 +163,11 @@ async function removerFondoRin(imageUrl) {
   } catch (error) {
     console.error('❌ Error al remover fondo:', error.message);
     
-    // Si falla, retornar la imagen original
     if (error.response?.status === 403) {
       console.error('❌ API Key inválida o límite de remove.bg alcanzado');
     }
     
-    return imageUrl; // Retornar imagen original si falla
+    return imageUrl;
   }
 }
 
@@ -185,7 +180,6 @@ app.post("/api/rines/:id/procesar-fondo", async (req, res) => {
     
     console.log(`🔄 Procesando fondo del rin ID: ${id}`);
 
-    // Obtener el rin de la base de datos
     const result = await pool.query("SELECT * FROM rines WHERE id = $1", [id]);
     
     if (result.rows.length === 0) {
@@ -198,10 +192,8 @@ app.post("/api/rines/:id/procesar-fondo", async (req, res) => {
       return res.status(400).json({ error: "El rin no tiene foto" });
     }
 
-    // Procesar la imagen
     const urlSinFondo = await removerFondoRin(rin.foto);
     
-    // Actualizar en la base de datos
     await pool.query(
       "UPDATE rines SET foto = $1, foto_original = $2 WHERE id = $3",
       [urlSinFondo, rin.foto, id]
@@ -242,7 +234,6 @@ app.post("/api/rines/procesar-todos", async (req, res) => {
 
     for (const rin of rines) {
       try {
-        // Saltar si ya tiene foto_original (ya fue procesado)
         if (rin.foto_original) {
           console.log(`⏭️ Rin ${rin.id} ya fue procesado, saltando...`);
           continue;
@@ -252,7 +243,6 @@ app.post("/api/rines/procesar-todos", async (req, res) => {
         
         const urlSinFondo = await removerFondoRin(rin.foto);
         
-        // Solo actualizar si cambió la URL (remove.bg funcionó)
         if (urlSinFondo !== rin.foto) {
           await pool.query(
             "UPDATE rines SET foto = $1, foto_original = $2 WHERE id = $3",
@@ -274,7 +264,6 @@ app.post("/api/rines/procesar-todos", async (req, res) => {
           });
         }
 
-        // Esperar 1 segundo entre cada imagen (límite de rate de remove.bg)
         await new Promise(resolve => setTimeout(resolve, 1000));
 
       } catch (error) {
@@ -608,8 +597,7 @@ app.post("/api/eliminar-rin", async (req, res) => {
 // ===========================
 //   SUBIR FOTO PARA RINES 
 // ===========================
-// ⬇️ MODIFICADO: Ahora procesa automáticamente con remove.bg
-app.post("/api/rines/subir-foto", upload.single('foto'), async (req, res) => {
+app.post("/api/rines/subir-foto", uploadImage.single('foto'), async (req, res) => {
   try {
     console.log("📥 Body recibido:", req.body);
     console.log("📸 Archivo recibido:", req.file);
@@ -630,13 +618,11 @@ app.post("/api/rines/subir-foto", upload.single('foto'), async (req, res) => {
 
     console.log("✅ Foto subida a Cloudinary:", urlFoto);
 
-    // Si procesarFondo es true, remover el fondo
     if (procesarFondo === 'true' || procesarFondo === true) {
       console.log("🔄 Procesando fondo automáticamente...");
       const urlSinFondo = await removerFondoRin(urlFoto);
       
       if (urlSinFondo !== urlFoto) {
-        // Guardar original y usar la procesada
         await pool.query(
           "UPDATE rines SET foto = $1, foto_original = $2 WHERE id = $3", 
           [urlSinFondo, urlFoto, id]
@@ -652,7 +638,6 @@ app.post("/api/rines/subir-foto", upload.single('foto'), async (req, res) => {
       }
     }
 
-    // Si no se procesa o falla, guardar original
     await pool.query("UPDATE rines SET foto = $1 WHERE id = $2", [urlFoto, id]);
 
     console.log("✅ URL guardada en BD para rin ID:", id);
@@ -978,10 +963,136 @@ app.post("/api/eliminar-luz", async (req, res) => {
   }
 });
 
+// ---------------- PROMOCIONES ----------------
+
+// Obtener promociones activas
+app.get("/api/promociones", async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      "SELECT * FROM promociones ORDER BY marca, referencia"
+    );
+    res.json(rows);
+  } catch (e) {
+    console.error("Error obteniendo promociones:", e);
+    res.status(500).json({ error: "Error obteniendo promociones" });
+  }
+});
+
+// Procesar PDF de promociones
+app.post("/api/procesar-promociones", uploadPDF.single("pdf"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No se recibió archivo PDF" });
+    }
+
+    // Extraer texto del PDF
+    const pdfData = await pdfParse(req.file.buffer);
+    const texto = pdfData.text;
+
+    // Detectar mes actual
+    const mesActual = new Date().toLocaleDateString("es-CO", {
+      month: "long",
+      year: "numeric",
+    });
+
+    // Detectar marca actual
+    let marcaActual = "MOMO"; // Default
+    if (texto.toUpperCase().includes("YOKOHAMA")) marcaActual = "YOKOHAMA";
+    else if (texto.toUpperCase().includes("PIRELLI")) marcaActual = "PIRELLI";
+    else if (texto.toUpperCase().includes("GOODYEAR")) marcaActual = "GOODYEAR";
+    else if (texto.toUpperCase().includes("FEDERAL")) marcaActual = "FEDERAL";
+    else if (texto.toUpperCase().includes("NITTO")) marcaActual = "NITTO";
+    else if (texto.toUpperCase().includes("ALLIANCE")) marcaActual = "ALLIANCE";
+    else if (texto.toUpperCase().includes("VENOM")) marcaActual = "VENOM";
+    else if (texto.toUpperCase().includes("YEADA")) marcaActual = "YEADA";
+    else if (texto.toUpperCase().includes("GENERAL")) marcaActual = "GENERAL";
+
+    // Desactivar todas las promociones anteriores de esta marca
+    await pool.query(
+      "UPDATE promociones SET activa=false WHERE marca=$1 AND activa=true",
+      [marcaActual]
+    );
+
+    // Expresión regular para detectar líneas de promociones
+    const regex = /(\d{3}\/\d{2}\s*R\d{2}[A-Z]*)\s+([A-Z0-9\s]+?)\s+(\d+)\s+\$?([\d,]+)/gi;
+
+    let promocionesAgregadas = 0;
+    let match;
+
+    while ((match = regex.exec(texto)) !== null) {
+      const referencia = match[1].trim().replace(/\s+/g, "");
+      const diseno = match[2].trim();
+      const cantidades = parseInt(match[3]);
+      const precioTexto = match[4].replace(/,/g, "");
+      const precio = parseFloat(precioTexto);
+
+      if (referencia && precio > 0) {
+        try {
+          await pool.query(
+            `INSERT INTO promociones (marca, referencia, diseno, precio_promo, cantidades_disponibles, mes, activa)
+             VALUES ($1, $2, $3, $4, $5, $6, true)`,
+            [marcaActual, referencia, diseno, precio, cantidades, mesActual]
+          );
+          promocionesAgregadas++;
+        } catch (insertError) {
+          console.error("Error insertando promoción:", insertError);
+        }
+      }
+    }
+
+    res.json({
+      success: true,
+      promocionesAgregadas,
+      marca: marcaActual,
+      mes: mesActual,
+    });
+  } catch (e) {
+    console.error("Error procesando PDF:", e);
+    res.status(500).json({ error: "Error procesando PDF: " + e.message });
+  }
+});
+
+// Desactivar promoción
+app.post("/api/desactivar-promocion", async (req, res) => {
+  const { id } = req.body;
+  try {
+    await pool.query("UPDATE promociones SET activa=false WHERE id=$1", [id]);
+    res.json({ success: true });
+  } catch (e) {
+    console.error("Error desactivando promoción:", e);
+    res.status(500).json({ error: "Error desactivando promoción" });
+  }
+});
+
+// Limpiar promociones inactivas
+app.post("/api/limpiar-promociones-inactivas", async (req, res) => {
+  try {
+    await pool.query("DELETE FROM promociones WHERE activa=false");
+    res.json({ success: true });
+  } catch (e) {
+    console.error("Error limpiando promociones:", e);
+    res.status(500).json({ error: "Error limpiando promociones" });
+  }
+});
+
+// Verificar si una llanta tiene promoción
+app.get("/api/verificar-promocion/:marca/:referencia", async (req, res) => {
+  const { marca, referencia } = req.params;
+  try {
+    const { rows } = await pool.query(
+      "SELECT * FROM promociones WHERE marca=$1 AND referencia=$2 AND activa=true LIMIT 1",
+      [marca, referencia]
+    );
+    res.json(rows[0] || null);
+  } catch (e) {
+    console.error("Error verificando promoción:", e);
+    res.status(500).json({ error: "Error verificando promoción" });
+  }
+});
+
 // Run server
 app.listen(PORT, () => {
   console.log(`✅ Servidor escuchando en puerto ${PORT}`);
   console.log(`📁 Cloudinary configurado correctamente`);
   console.log(`🎨 Remove.bg ${REMOVE_BG_API_KEY !== 'TU_API_KEY_AQUI' ? 'ACTIVADO ✅' : 'PENDIENTE (configura tu API key)'}`);
 });
-

@@ -85,7 +85,8 @@ function TirosArrastre() {
   };
 
   const handleEliminarMultiples = async () => {
-    if (!window.confirm("¿Eliminar los tiros de arrastre seleccionados?")) return;
+    if (!window.confirm("¿Eliminar los tiros de arrastre seleccionados?"))
+      return;
     try {
       const referencias = tiros
         .filter((t) => seleccionadas.includes(t.id))
@@ -132,19 +133,36 @@ function TirosArrastre() {
       const cambios = [];
 
       if (String(tiroOriginalEdicion.referencia) !== String(tiro.referencia)) {
-        cambios.push(`Referencia: ${tiroOriginalEdicion.referencia} → ${tiro.referencia}`);
+        cambios.push(
+          `Referencia: ${tiroOriginalEdicion.referencia} → ${tiro.referencia}`
+        );
       }
       if (String(tiroOriginalEdicion.marca) !== String(tiro.marca)) {
         cambios.push(`Marca: ${tiroOriginalEdicion.marca} → ${tiro.marca}`);
       }
-      if (String(tiroOriginalEdicion.proveedor || "") !== String(tiro.proveedor || "")) {
-        cambios.push(`Proveedor: ${tiroOriginalEdicion.proveedor || "vacío"} → ${tiro.proveedor || "vacío"}`);
+      if (
+        String(tiroOriginalEdicion.proveedor || "") !==
+        String(tiro.proveedor || "")
+      ) {
+        cambios.push(
+          `Proveedor: ${tiroOriginalEdicion.proveedor || "vacío"} → ${
+            tiro.proveedor || "vacío"
+          }`
+        );
       }
       if (Number(tiroOriginalEdicion.costo) !== Number(tiro.costo)) {
-        cambios.push(`Costo: $${Number(tiroOriginalEdicion.costo).toLocaleString("es-CO")} → $${Number(tiro.costo).toLocaleString("es-CO")}`);
+        cambios.push(
+          `Costo: $${Number(tiroOriginalEdicion.costo).toLocaleString(
+            "es-CO"
+          )} → $${Number(tiro.costo).toLocaleString("es-CO")}`
+        );
       }
       if (Number(tiroOriginalEdicion.precio) !== Number(tiro.precio)) {
-        cambios.push(`Precio: $${Number(tiroOriginalEdicion.precio).toLocaleString("es-CO")} → $${Number(tiro.precio).toLocaleString("es-CO")}`);
+        cambios.push(
+          `Precio: $${Number(tiroOriginalEdicion.precio).toLocaleString(
+            "es-CO"
+          )} → $${Number(tiro.precio).toLocaleString("es-CO")}`
+        );
       }
       if (Number(tiroOriginalEdicion.stock) !== Number(tiro.stock)) {
         cambios.push(`Stock: ${tiroOriginalEdicion.stock} → ${tiro.stock}`);
@@ -201,7 +219,10 @@ function TirosArrastre() {
         stock: parseInt(nuevoItem.stock) || 0,
       };
 
-      await axios.post(`${API_URL}/api/agregar-tiro-arrastre`, nuevoTiroFormateado);
+      await axios.post(
+        `${API_URL}/api/agregar-tiro-arrastre`,
+        nuevoTiroFormateado
+      );
 
       await registrarActividad(
         "NUEVO TIRO ARRASTRE",
@@ -242,7 +263,7 @@ function TirosArrastre() {
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
           <div className="flex justify-between items-center flex-wrap gap-4">
             <img src="/logowp.PNG" className="h-12 w-auto" alt="Logo" />
-            
+
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setMostrarModal(true)}
@@ -251,7 +272,7 @@ function TirosArrastre() {
                 <span className="text-lg">+</span>
                 Agregar tiro
               </button>
-              
+
               <button
                 onClick={handleEliminarMultiples}
                 disabled={seleccionadas.length === 0}
@@ -337,12 +358,23 @@ function TirosArrastre() {
                 <span>🏕️</span>
                 Carpas
               </button>
+              <button
+                onClick={() => navigate("/sonido")}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-200 shadow-md hover:shadow-lg"
+              >
+                <span>🔊</span>
+                Sonido
+              </button>
             </div>
 
             {/* Contador de resultados */}
             <div className="bg-white rounded-lg shadow-md px-4 py-2 mb-4 inline-block">
               <span className="text-sm text-gray-600">
-                📊 Mostrando <span className="font-bold text-slate-700">{filtradas.length}</span> resultados
+                📊 Mostrando{" "}
+                <span className="font-bold text-slate-700">
+                  {filtradas.length}
+                </span>{" "}
+                resultados
               </span>
             </div>
 
@@ -396,12 +428,15 @@ function TirosArrastre() {
                           type="checkbox"
                           onChange={(e) => {
                             if (e.target.checked) {
-                              setSeleccionadas(filtradas.map(t => t.id));
+                              setSeleccionadas(filtradas.map((t) => t.id));
                             } else {
                               setSeleccionadas([]);
                             }
                           }}
-                          checked={seleccionadas.length === filtradas.length && filtradas.length > 0}
+                          checked={
+                            seleccionadas.length === filtradas.length &&
+                            filtradas.length > 0
+                          }
                           className="cursor-pointer w-4 h-4"
                         />
                       </th>
@@ -463,7 +498,9 @@ function TirosArrastre() {
                     {filtradas.map((t, idx) => (
                       <tr
                         key={t.id}
-                        className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50 transition-colors`}
+                        className={`${
+                          idx % 2 === 0 ? "bg-white" : "bg-gray-50"
+                        } hover:bg-blue-50 transition-colors`}
                       >
                         <td className="p-3">
                           <input
@@ -480,7 +517,11 @@ function TirosArrastre() {
                               <input
                                 value={t.referencia}
                                 onChange={(e) =>
-                                  actualizarCampo(t.id, "referencia", e.target.value)
+                                  actualizarCampo(
+                                    t.id,
+                                    "referencia",
+                                    e.target.value
+                                  )
                                 }
                                 className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
                               />
@@ -498,7 +539,11 @@ function TirosArrastre() {
                               <input
                                 value={t.proveedor}
                                 onChange={(e) =>
-                                  actualizarCampo(t.id, "proveedor", e.target.value)
+                                  actualizarCampo(
+                                    t.id,
+                                    "proveedor",
+                                    e.target.value
+                                  )
                                 }
                                 className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
                               />
@@ -518,7 +563,11 @@ function TirosArrastre() {
                                 type="number"
                                 value={t.precio}
                                 onChange={(e) =>
-                                  actualizarCampo(t.id, "precio", e.target.value)
+                                  actualizarCampo(
+                                    t.id,
+                                    "precio",
+                                    e.target.value
+                                  )
                                 }
                                 className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
                               />
@@ -567,7 +616,9 @@ function TirosArrastre() {
                               </span>
                             </td>
                             <td className="p-3 text-gray-700">{t.marca}</td>
-                            <td className="p-3 text-gray-700">{t.proveedor || "—"}</td>
+                            <td className="p-3 text-gray-700">
+                              {t.proveedor || "—"}
+                            </td>
                             <td className="p-3 text-right text-blue-600 font-semibold">
                               {mostrarCosto
                                 ? `$${Number(t.costo).toLocaleString("es-CO")}`
@@ -576,7 +627,11 @@ function TirosArrastre() {
                             <td className="p-3 text-right text-green-600 font-semibold">
                               ${Number(t.precio || 0).toLocaleString("es-CO")}
                             </td>
-                            <td className={`p-3 text-center font-semibold ${t.stock === 0 ? "text-red-600" : "text-gray-700"}`}>
+                            <td
+                              className={`p-3 text-center font-semibold ${
+                                t.stock === 0 ? "text-red-600" : "text-gray-700"
+                              }`}
+                            >
                               {t.stock === 0 ? (
                                 <span className="inline-flex items-center gap-1 bg-red-100 px-2 py-1 rounded-full text-xs">
                                   ❌
@@ -639,7 +694,10 @@ function TirosArrastre() {
                       placeholder={`Ingrese ${campo.label.toLowerCase()}`}
                       value={nuevoItem[campo.key]}
                       onChange={(e) =>
-                        setNuevoItem({ ...nuevoItem, [campo.key]: e.target.value })
+                        setNuevoItem({
+                          ...nuevoItem,
+                          [campo.key]: e.target.value,
+                        })
                       }
                       className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-all"
                     />

@@ -9,6 +9,7 @@ import Tapetes from './Tapetes';
 import Rines from './Rines';
 import Carpas from './Carpas';
 import TirosArrastre from './TirosArrastre';
+import Sonido from './Sonido';
 import './index.css';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 
@@ -23,6 +24,7 @@ root.render(
       <Route path="/rines" element={<Protegido><Rines /></Protegido>} />
       <Route path="/carpas" element={<Carpas />} />
       <Route path="/tiros-arrastre" element={<Protegido><TirosArrastre /></Protegido>} />
+      <Route path="/sonido" element={<Protegido><Sonido /></Protegido>} />
     </Routes>
   </BrowserRouter>
 );

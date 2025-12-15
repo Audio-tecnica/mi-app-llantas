@@ -7,6 +7,7 @@ import Protegido from './Protegido';
 import LoginPage from './LoginPage';
 import Tapetes from './Tapetes';
 import Rines from './Rines';
+import Carpas from './Carpas';
 import './index.css';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 

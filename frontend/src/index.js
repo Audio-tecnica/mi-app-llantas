@@ -10,7 +10,8 @@ import Rines from './Rines';
 import Carpas from './Carpas';
 import TirosArrastre from './TirosArrastre';
 import Sonido from './Sonido';
-import Luces from './Luces'; 
+import Luces from './Luces';
+import VisorStock from './VisorStock'; 
 import './index.css';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 
@@ -27,6 +28,7 @@ root.render(
       <Route path="/tiros-arrastre" element={<Protegido><TirosArrastre /></Protegido>} />
       <Route path="/sonido" element={<Protegido><Sonido /></Protegido>} />
       <Route path="/luces" element={<Protegido><Luces /></Protegido>} />
+      <Route path="/visor-stock" element={<Protegido><VisorStock /></Protegido>} />
     </Routes>
   </BrowserRouter>
 );

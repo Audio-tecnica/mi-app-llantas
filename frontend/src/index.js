@@ -19,6 +19,7 @@ root.render(
       <Route path="/subir" element={<Protegido><SubirArchivo /></Protegido>} />
       <Route path="/tapetes" element={<Protegido><Tapetes /></Protegido>} />
       <Route path="/rines" element={<Protegido><Rines /></Protegido>} />
+      <Route path="/carpas" element={<Carpas />} />
     </Routes>
   </BrowserRouter>
 );

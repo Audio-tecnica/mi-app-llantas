@@ -210,4 +210,69 @@ app.listen(PORT, () => {
   console.log(`Servidor escuchando en puerto ${PORT}`);
 });
 
+// ---------------- CARPAS ----------------
+
+// Obtener carpas
+app.get("/api/carpas", async (req, res) => {
+  try {
+    const { rows } = await pool.query("SELECT * FROM carpas ORDER BY id ASC");
+    res.json(rows);
+  } catch (e) {
+    console.error("Error obteniendo carpas:", e);
+    res.status(500).json({ error: "Error obteniendo carpas" });
+  }
+});
+
+// Agregar carpa
+app.post("/api/agregar-carpa", async (req, res) => {
+  const { marca, referencia, proveedor, costo, precio, stock } = req.body;
+
+  try {
+    await pool.query(
+      `INSERT INTO carpas (marca, referencia, proveedor, costo, precio, stock, fecha_creacion)
+       VALUES ($1,$2,$3,$4,$5,$6,NOW())`,
+      [
+        marca,
+        referencia,
+        proveedor || "",
+        parseFloat(costo) || 0,
+        parseFloat(precio) || 0,
+        parseInt(stock) || 0,
+      ]
+    );
+    res.json({ success: true });
+  } catch (e) {
+    console.error("Error agregando carpa:", e);
+    res.status(500).json({ error: "Error agregando carpa" });
+  }
+});
+
+// Editar carpa
+app.post("/api/editar-carpa", async (req, res) => {
+  const { id, marca, referencia, proveedor, costo, precio, stock } = req.body;
+
+  try {
+    await pool.query(
+      `UPDATE carpas SET
+        marca=$1, referencia=$2, proveedor=$3, costo=$4, precio=$5, stock=$6
+       WHERE id=$7`,
+      [marca, referencia, proveedor || "", parseFloat(costo), parseFloat(precio), parseInt(stock), id]
+    );
+    res.json({ success: true });
+  } catch (e) {
+    console.error("Error editando carpa:", e);
+    res.status(500).json({ error: "Error editando carpa" });
+  }
+});
+
+// Eliminar carpa
+app.post("/api/eliminar-carpa", async (req, res) => {
+  try {
+    await pool.query("DELETE FROM carpas WHERE id=$1", [req.body.id]);
+    res.json({ success: true });
+  } catch (e) {
+    console.error("Error eliminando carpa:", e);
+    res.status(500).json({ error: "Error eliminando carpa" });
+  }
+});
 

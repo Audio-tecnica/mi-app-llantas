@@ -3,6 +3,7 @@ import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ComparadorLlantas from "./ComparadorLlantas";
+import Carpas from './Carpas';
 
 function App() {
   const [mostrarCosto, setMostrarCosto] = useState(false);

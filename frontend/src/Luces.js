@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "./index.css";
 
-function Tapetes() {
+function Luces() {
   const [mostrarCosto, setMostrarCosto] = useState(false);
   const navigate = useNavigate();
-  const [tapetes, setTapetes] = useState([]);
+  const [luces, setLuces] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [marcaSeleccionada, setMarcaSeleccionada] = useState("");
   const [mensaje, setMensaje] = useState("");
@@ -26,7 +26,7 @@ function Tapetes() {
   const [seleccionadas, setSeleccionadas] = useState([]);
 
   // ✅ Estado para guardar valores originales antes de editar
-  const [tapeteOriginalEdicion, setTapeteOriginalEdicion] = useState(null);
+  const [luzOriginalEdicion, setLuzOriginalEdicion] = useState(null);
 
   const API_URL = "https://mi-app-llantas.onrender.com";
 
@@ -43,22 +43,22 @@ function Tapetes() {
     }
   };
 
-  // 📦 Cargar tapetes
+  // 📦 Cargar luces
   useEffect(() => {
     axios
-      .get(`${API_URL}/api/tapetes`)
-      .then((res) => setTapetes(res.data))
-      .catch(() => setMensaje("Error al cargar tapetes ❌"))
+      .get(`${API_URL}/api/luces`)
+      .then((res) => setLuces(res.data))
+      .catch(() => setMensaje("Error al cargar luces ❌"))
       .finally(() => setCargando(false));
   }, []);
 
-  const marcasUnicas = [...new Set(tapetes.map((t) => t.marca))];
+  const marcasUnicas = [...new Set(luces.map((l) => l.marca))];
 
-  const filtradas = tapetes.filter((t) => {
-    const coincideBusqueda = t.referencia
+  const filtradas = luces.filter((l) => {
+    const coincideBusqueda = l.referencia
       ?.toLowerCase()
       .includes(busqueda.toLowerCase());
-    const coincideMarca = !marcaSeleccionada || t.marca === marcaSeleccionada;
+    const coincideMarca = !marcaSeleccionada || l.marca === marcaSeleccionada;
     return coincideBusqueda && coincideMarca;
   });
 
@@ -73,7 +73,7 @@ function Tapetes() {
           : b[campo]?.toString().localeCompare(a[campo]?.toString());
       }
     });
-    setTapetes(ordenadas);
+    setLuces(ordenadas);
     setOrden({ campo, asc });
   };
 
@@ -85,26 +85,26 @@ function Tapetes() {
   };
 
   const handleEliminarMultiples = async () => {
-    if (!window.confirm("¿Eliminar los tapetes seleccionados?")) return;
+    if (!window.confirm("¿Eliminar las luces seleccionadas?")) return;
     try {
-      const referencias = tapetes
-        .filter((t) => seleccionadas.includes(t.id))
-        .map((t) => t.referencia)
+      const referencias = luces
+        .filter((l) => seleccionadas.includes(l.id))
+        .map((l) => l.referencia)
         .join(", ");
 
       for (let id of seleccionadas) {
-        await axios.post(`${API_URL}/api/eliminar-tapete`, { id });
+        await axios.post(`${API_URL}/api/eliminar-luz`, { id });
       }
 
       await registrarActividad(
-        "ELIMINACIÓN MÚLTIPLE TAPETES",
-        `Se eliminaron ${seleccionadas.length} tapetes: ${referencias}`
+        "ELIMINACIÓN MÚLTIPLE LUCES",
+        `Se eliminaron ${seleccionadas.length} luces: ${referencias}`
       );
 
-      const { data } = await axios.get(`${API_URL}/api/tapetes`);
-      setTapetes(data);
+      const { data } = await axios.get(`${API_URL}/api/luces`);
+      setLuces(data);
       setSeleccionadas([]);
-      setMensaje("Tapetes eliminados ✅");
+      setMensaje("Luces eliminadas ✅");
       setTimeout(() => setMensaje(""), 2000);
     } catch {
       setMensaje("Error al eliminar ❌");
@@ -114,73 +114,54 @@ function Tapetes() {
 
   // ✅ Función para iniciar edición guardando valores originales
   const iniciarEdicion = (id) => {
-    const tapete = tapetes.find((t) => t.id === id);
-    if (tapete) {
-      setTapeteOriginalEdicion(JSON.parse(JSON.stringify(tapete)));
+    const luz = luces.find((l) => l.id === id);
+    if (luz) {
+      setLuzOriginalEdicion(JSON.parse(JSON.stringify(luz)));
       setModoEdicion(id);
     }
   };
 
   // ✅ Función guardar con detalle de cambios
-  const handleGuardar = async (tapete) => {
+  const handleGuardar = async (luz) => {
     try {
-      if (!tapeteOriginalEdicion) {
-        setMensaje("Error: No se encontró el tapete original ❌");
+      if (!luzOriginalEdicion) {
+        setMensaje("Error: No se encontró la luz original ❌");
         return;
       }
 
       const cambios = [];
 
-      if (
-        String(tapeteOriginalEdicion.referencia) !== String(tapete.referencia)
-      ) {
-        cambios.push(
-          `Referencia: ${tapeteOriginalEdicion.referencia} → ${tapete.referencia}`
-        );
+      if (String(luzOriginalEdicion.referencia) !== String(luz.referencia)) {
+        cambios.push(`Referencia: ${luzOriginalEdicion.referencia} → ${luz.referencia}`);
       }
-      if (String(tapeteOriginalEdicion.marca) !== String(tapete.marca)) {
-        cambios.push(`Marca: ${tapeteOriginalEdicion.marca} → ${tapete.marca}`);
+      if (String(luzOriginalEdicion.marca) !== String(luz.marca)) {
+        cambios.push(`Marca: ${luzOriginalEdicion.marca} → ${luz.marca}`);
       }
-      if (
-        String(tapeteOriginalEdicion.proveedor || "") !==
-        String(tapete.proveedor || "")
-      ) {
-        cambios.push(
-          `Proveedor: ${tapeteOriginalEdicion.proveedor || "vacío"} → ${
-            tapete.proveedor || "vacío"
-          }`
-        );
+      if (String(luzOriginalEdicion.proveedor || "") !== String(luz.proveedor || "")) {
+        cambios.push(`Proveedor: ${luzOriginalEdicion.proveedor || "vacío"} → ${luz.proveedor || "vacío"}`);
       }
-      if (Number(tapeteOriginalEdicion.costo) !== Number(tapete.costo)) {
-        cambios.push(
-          `Costo: $${Number(tapeteOriginalEdicion.costo).toLocaleString(
-            "es-CO"
-          )} → $${Number(tapete.costo).toLocaleString("es-CO")}`
-        );
+      if (Number(luzOriginalEdicion.costo) !== Number(luz.costo)) {
+        cambios.push(`Costo: $${Number(luzOriginalEdicion.costo).toLocaleString("es-CO")} → $${Number(luz.costo).toLocaleString("es-CO")}`);
       }
-      if (Number(tapeteOriginalEdicion.precio) !== Number(tapete.precio)) {
-        cambios.push(
-          `Precio: $${Number(tapeteOriginalEdicion.precio).toLocaleString(
-            "es-CO"
-          )} → $${Number(tapete.precio).toLocaleString("es-CO")}`
-        );
+      if (Number(luzOriginalEdicion.precio) !== Number(luz.precio)) {
+        cambios.push(`Precio: $${Number(luzOriginalEdicion.precio).toLocaleString("es-CO")} → $${Number(luz.precio).toLocaleString("es-CO")}`);
       }
-      if (Number(tapeteOriginalEdicion.stock) !== Number(tapete.stock)) {
-        cambios.push(`Stock: ${tapeteOriginalEdicion.stock} → ${tapete.stock}`);
+      if (Number(luzOriginalEdicion.stock) !== Number(luz.stock)) {
+        cambios.push(`Stock: ${luzOriginalEdicion.stock} → ${luz.stock}`);
       }
 
-      await axios.post(`${API_URL}/api/editar-tapete`, tapete);
+      await axios.post(`${API_URL}/api/editar-luz`, luz);
 
       if (cambios.length > 0) {
         await registrarActividad(
-          "EDICIÓN TAPETE",
-          `Tapete ${tapete.referencia}: ${cambios.join(", ")}`
+          "EDICIÓN LUZ",
+          `Luz ${luz.referencia}: ${cambios.join(", ")}`
         );
       }
 
       setMensaje("Cambios guardados ✅");
       setModoEdicion(null);
-      setTapeteOriginalEdicion(null);
+      setLuzOriginalEdicion(null);
       setTimeout(() => setMensaje(""), 2000);
     } catch {
       setMensaje("Error al guardar ❌");
@@ -189,19 +170,19 @@ function Tapetes() {
   };
 
   const handleEliminar = async (id) => {
-    if (!window.confirm("¿Eliminar este tapete?")) return;
+    if (!window.confirm("¿Eliminar esta luz?")) return;
     try {
-      const tapete = tapetes.find((t) => t.id === id);
+      const luz = luces.find((l) => l.id === id);
 
-      await axios.post(`${API_URL}/api/eliminar-tapete`, { id });
+      await axios.post(`${API_URL}/api/eliminar-luz`, { id });
 
       await registrarActividad(
-        "ELIMINACIÓN TAPETE",
-        `Se eliminó: ${tapete.referencia} - ${tapete.marca}`
+        "ELIMINACIÓN LUZ",
+        `Se eliminó: ${luz.referencia} - ${luz.marca}`
       );
 
-      setTapetes((prev) => prev.filter((t) => t.id !== id));
-      setMensaje("Tapete eliminado ✅");
+      setLuces((prev) => prev.filter((l) => l.id !== id));
+      setMensaje("Luz eliminada ✅");
       setTimeout(() => setMensaje(""), 2000);
     } catch {
       setMensaje("Error al eliminar ❌");
@@ -211,7 +192,7 @@ function Tapetes() {
 
   const handleAgregar = async () => {
     try {
-      const nuevoTapeteFormateado = {
+      const nuevaLuzFormateada = {
         marca: nuevoItem.marca,
         referencia: nuevoItem.referencia,
         proveedor: nuevoItem.proveedor || "",
@@ -220,15 +201,15 @@ function Tapetes() {
         stock: parseInt(nuevoItem.stock) || 0,
       };
 
-      await axios.post(`${API_URL}/api/agregar-tapete`, nuevoTapeteFormateado);
+      await axios.post(`${API_URL}/api/agregar-luz`, nuevaLuzFormateada);
 
       await registrarActividad(
-        "NUEVO TAPETE",
+        "NUEVA LUZ",
         `Se agregó: ${nuevoItem.referencia} - ${nuevoItem.marca} (Stock: ${nuevoItem.stock})`
       );
 
-      const { data } = await axios.get(`${API_URL}/api/tapetes`);
-      setTapetes(data);
+      const { data } = await axios.get(`${API_URL}/api/luces`);
+      setLuces(data);
       setMostrarModal(false);
       setNuevoItem({
         referencia: "",
@@ -238,18 +219,18 @@ function Tapetes() {
         precio: "",
         stock: "",
       });
-      setMensaje("Tapete agregado ✅");
+      setMensaje("Luz agregada ✅");
       setTimeout(() => setMensaje(""), 2000);
     } catch (e) {
-      console.error("❌ Error al agregar tapete:", e);
+      console.error("❌ Error al agregar luz:", e);
       setMensaje("Error al agregar ❌");
       setTimeout(() => setMensaje(""), 2000);
     }
   };
 
   const actualizarCampo = (id, campo, valor) => {
-    setTapetes((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, [campo]: valor } : t))
+    setLuces((prev) =>
+      prev.map((l) => (l.id === id ? { ...l, [campo]: valor } : l))
     );
   };
 
@@ -261,16 +242,16 @@ function Tapetes() {
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
           <div className="flex justify-between items-center flex-wrap gap-4">
             <img src="/logowp.PNG" className="h-12 w-auto" alt="Logo" />
-
+            
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setMostrarModal(true)}
                 className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-200 shadow-md hover:shadow-lg"
               >
                 <span className="text-lg">+</span>
-                Agregar tapete
+                Agregar luz
               </button>
-
+              
               <button
                 onClick={handleEliminarMultiples}
                 disabled={seleccionadas.length === 0}
@@ -340,6 +321,15 @@ function Tapetes() {
                 <span>⚙️</span>
                 Rines
               </button>
+
+              <button
+                onClick={() => navigate("/tapetes")}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-200 shadow-md hover:shadow-lg"
+              >
+                <span>🧵</span>
+                Tapetes
+              </button>
+
               <button
                 onClick={() => navigate("/carpas")}
                 className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-200 shadow-md hover:shadow-lg"
@@ -347,6 +337,7 @@ function Tapetes() {
                 <span>🏕️</span>
                 Carpas
               </button>
+
               <button
                 onClick={() => navigate("/tiros-arrastre")}
                 className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-200 shadow-md hover:shadow-lg"
@@ -354,6 +345,7 @@ function Tapetes() {
                 <span>🔗</span>
                 Tiros
               </button>
+
               <button
                 onClick={() => navigate("/sonido")}
                 className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-200 shadow-md hover:shadow-lg"
@@ -361,31 +353,20 @@ function Tapetes() {
                 <span>🔊</span>
                 Sonido
               </button>
-              <button
-                onClick={() => navigate("/luces")}
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-200 shadow-md hover:shadow-lg"
-              >
-                <span>💡</span>
-                Luces
-              </button>
             </div>
 
             {/* Contador de resultados */}
             <div className="bg-white rounded-lg shadow-md px-4 py-2 mb-4 inline-block">
               <span className="text-sm text-gray-600">
-                📊 Mostrando{" "}
-                <span className="font-bold text-slate-700">
-                  {filtradas.length}
-                </span>{" "}
-                resultados
+                📊 Mostrando <span className="font-bold text-slate-700">{filtradas.length}</span> resultados
               </span>
             </div>
 
             {/* Panel de búsqueda mejorado */}
             <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
               <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                <span>🔍</span>
-                Búsqueda de Tapetes
+                <span>💡</span>
+                Búsqueda de Luces
               </h2>
 
               <div className="space-y-4">
@@ -431,15 +412,12 @@ function Tapetes() {
                           type="checkbox"
                           onChange={(e) => {
                             if (e.target.checked) {
-                              setSeleccionadas(filtradas.map((t) => t.id));
+                              setSeleccionadas(filtradas.map(l => l.id));
                             } else {
                               setSeleccionadas([]);
                             }
                           }}
-                          checked={
-                            seleccionadas.length === filtradas.length &&
-                            filtradas.length > 0
-                          }
+                          checked={seleccionadas.length === filtradas.length && filtradas.length > 0}
                           className="cursor-pointer w-4 h-4"
                         />
                       </th>
@@ -498,55 +476,45 @@ function Tapetes() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filtradas.map((t, idx) => (
+                    {filtradas.map((l, idx) => (
                       <tr
-                        key={t.id}
-                        className={`${
-                          idx % 2 === 0 ? "bg-white" : "bg-gray-50"
-                        } hover:bg-blue-50 transition-colors`}
+                        key={l.id}
+                        className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50 transition-colors`}
                       >
                         <td className="p-3">
                           <input
                             type="checkbox"
-                            checked={seleccionadas.includes(t.id)}
-                            onChange={() => toggleSeleccion(t.id)}
+                            checked={seleccionadas.includes(l.id)}
+                            onChange={() => toggleSeleccion(l.id)}
                             className="cursor-pointer w-4 h-4"
                           />
                         </td>
 
-                        {modoEdicion === t.id ? (
+                        {modoEdicion === l.id ? (
                           <>
                             <td className="p-2">
                               <input
-                                value={t.referencia}
+                                value={l.referencia}
                                 onChange={(e) =>
-                                  actualizarCampo(
-                                    t.id,
-                                    "referencia",
-                                    e.target.value
-                                  )
+                                  actualizarCampo(l.id, "referencia", e.target.value)
                                 }
                                 className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
                               />
                             </td>
                             <td className="p-2">
                               <input
-                                value={t.marca}
+                                value={l.marca}
                                 onChange={(e) =>
-                                  actualizarCampo(t.id, "marca", e.target.value)
+                                  actualizarCampo(l.id, "marca", e.target.value)
                                 }
                                 className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
                               />
                             </td>
                             <td className="p-2">
                               <input
-                                value={t.proveedor}
+                                value={l.proveedor}
                                 onChange={(e) =>
-                                  actualizarCampo(
-                                    t.id,
-                                    "proveedor",
-                                    e.target.value
-                                  )
+                                  actualizarCampo(l.id, "proveedor", e.target.value)
                                 }
                                 className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
                               />
@@ -554,9 +522,9 @@ function Tapetes() {
                             <td className="p-2">
                               <input
                                 type="number"
-                                value={t.costo}
+                                value={l.costo}
                                 onChange={(e) =>
-                                  actualizarCampo(t.id, "costo", e.target.value)
+                                  actualizarCampo(l.id, "costo", e.target.value)
                                 }
                                 className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
                               />
@@ -564,13 +532,9 @@ function Tapetes() {
                             <td className="p-2">
                               <input
                                 type="number"
-                                value={t.precio}
+                                value={l.precio}
                                 onChange={(e) =>
-                                  actualizarCampo(
-                                    t.id,
-                                    "precio",
-                                    e.target.value
-                                  )
+                                  actualizarCampo(l.id, "precio", e.target.value)
                                 }
                                 className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
                               />
@@ -578,9 +542,9 @@ function Tapetes() {
                             <td className="p-2">
                               <input
                                 type="number"
-                                value={t.stock}
+                                value={l.stock}
                                 onChange={(e) =>
-                                  actualizarCampo(t.id, "stock", e.target.value)
+                                  actualizarCampo(l.id, "stock", e.target.value)
                                 }
                                 className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
                               />
@@ -589,7 +553,7 @@ function Tapetes() {
                               <div className="flex flex-col gap-2 items-center">
                                 <div className="flex gap-2">
                                   <button
-                                    onClick={() => handleGuardar(t)}
+                                    onClick={() => handleGuardar(l)}
                                     className="bg-green-500 text-white px-4 py-2 text-xs rounded-lg hover:bg-green-600 transition-all shadow-md font-medium"
                                   >
                                     💾 Guardar
@@ -597,11 +561,11 @@ function Tapetes() {
                                   <button
                                     onClick={() => {
                                       setModoEdicion(null);
-                                      setTapeteOriginalEdicion(null);
+                                      setLuzOriginalEdicion(null);
                                       // Recargar datos para descartar cambios
                                       axios
-                                        .get(`${API_URL}/api/tapetes`)
-                                        .then((res) => setTapetes(res.data));
+                                        .get(`${API_URL}/api/luces`)
+                                        .then((res) => setLuces(res.data));
                                     }}
                                     className="bg-gray-400 text-white px-4 py-2 text-xs rounded-lg hover:bg-gray-500 transition-all shadow-md font-medium"
                                   >
@@ -615,45 +579,39 @@ function Tapetes() {
                           <>
                             <td className="p-3">
                               <span className="font-semibold text-gray-800">
-                                {t.referencia}
+                                {l.referencia}
                               </span>
                             </td>
-                            <td className="p-3 text-gray-700">{t.marca}</td>
-                            <td className="p-3 text-gray-700">
-                              {t.proveedor || "—"}
-                            </td>
+                            <td className="p-3 text-gray-700">{l.marca}</td>
+                            <td className="p-3 text-gray-700">{l.proveedor || "—"}</td>
                             <td className="p-3 text-right text-blue-600 font-semibold">
                               {mostrarCosto
-                                ? `$${Number(t.costo).toLocaleString("es-CO")}`
+                                ? `$${Number(l.costo).toLocaleString("es-CO")}`
                                 : "•••••"}
                             </td>
                             <td className="p-3 text-right text-green-600 font-semibold">
-                              ${Number(t.precio || 0).toLocaleString("es-CO")}
+                              ${Number(l.precio || 0).toLocaleString("es-CO")}
                             </td>
-                            <td
-                              className={`p-3 text-center font-semibold ${
-                                t.stock === 0 ? "text-red-600" : "text-gray-700"
-                              }`}
-                            >
-                              {t.stock === 0 ? (
+                            <td className={`p-3 text-center font-semibold ${l.stock === 0 ? "text-red-600" : "text-gray-700"}`}>
+                              {l.stock === 0 ? (
                                 <span className="inline-flex items-center gap-1 bg-red-100 px-2 py-1 rounded-full text-xs">
                                   ❌
                                 </span>
                               ) : (
-                                t.stock
+                                l.stock
                               )}
                             </td>
                             <td className="p-3">
                               <div className="flex gap-2 justify-center items-center">
                                 <button
-                                  onClick={() => iniciarEdicion(t.id)}
+                                  onClick={() => iniciarEdicion(l.id)}
                                   className="bg-slate-200 hover:bg-slate-300 px-3 py-1.5 text-sm rounded-lg transition-all shadow-sm hover:shadow-md"
                                   title="Editar"
                                 >
                                   ✏️
                                 </button>
                                 <button
-                                  onClick={() => handleEliminar(t.id)}
+                                  onClick={() => handleEliminar(l.id)}
                                   className="bg-red-500 text-white hover:bg-red-600 px-3 py-1.5 text-sm rounded-lg transition-all shadow-sm hover:shadow-md"
                                   title="Eliminar"
                                 >
@@ -672,13 +630,13 @@ function Tapetes() {
           </>
         )}
 
-        {/* Modal agregar tapete */}
+        {/* Modal agregar luz */}
         {mostrarModal && (
           <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
             <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md transform transition-all">
               <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-2">
                 <span>➕</span>
-                Agregar Nuevo Tapete
+                Agregar Nueva Luz
               </h2>
               <div className="space-y-4">
                 {[
@@ -697,10 +655,7 @@ function Tapetes() {
                       placeholder={`Ingrese ${campo.label.toLowerCase()}`}
                       value={nuevoItem[campo.key]}
                       onChange={(e) =>
-                        setNuevoItem({
-                          ...nuevoItem,
-                          [campo.key]: e.target.value,
-                        })
+                        setNuevoItem({ ...nuevoItem, [campo.key]: e.target.value })
                       }
                       className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-all"
                     />
@@ -729,4 +684,4 @@ function Tapetes() {
   );
 }
 
-export default Tapetes;
+export default Luces;

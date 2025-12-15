@@ -131,23 +131,47 @@ function Sonido() {
 
       const cambios = [];
 
-      if (String(productoOriginalEdicion.referencia) !== String(producto.referencia)) {
-        cambios.push(`Referencia: ${productoOriginalEdicion.referencia} → ${producto.referencia}`);
+      if (
+        String(productoOriginalEdicion.referencia) !==
+        String(producto.referencia)
+      ) {
+        cambios.push(
+          `Referencia: ${productoOriginalEdicion.referencia} → ${producto.referencia}`
+        );
       }
       if (String(productoOriginalEdicion.marca) !== String(producto.marca)) {
-        cambios.push(`Marca: ${productoOriginalEdicion.marca} → ${producto.marca}`);
+        cambios.push(
+          `Marca: ${productoOriginalEdicion.marca} → ${producto.marca}`
+        );
       }
-      if (String(productoOriginalEdicion.proveedor || "") !== String(producto.proveedor || "")) {
-        cambios.push(`Proveedor: ${productoOriginalEdicion.proveedor || "vacío"} → ${producto.proveedor || "vacío"}`);
+      if (
+        String(productoOriginalEdicion.proveedor || "") !==
+        String(producto.proveedor || "")
+      ) {
+        cambios.push(
+          `Proveedor: ${productoOriginalEdicion.proveedor || "vacío"} → ${
+            producto.proveedor || "vacío"
+          }`
+        );
       }
       if (Number(productoOriginalEdicion.costo) !== Number(producto.costo)) {
-        cambios.push(`Costo: $${Number(productoOriginalEdicion.costo).toLocaleString("es-CO")} → $${Number(producto.costo).toLocaleString("es-CO")}`);
+        cambios.push(
+          `Costo: $${Number(productoOriginalEdicion.costo).toLocaleString(
+            "es-CO"
+          )} → $${Number(producto.costo).toLocaleString("es-CO")}`
+        );
       }
       if (Number(productoOriginalEdicion.precio) !== Number(producto.precio)) {
-        cambios.push(`Precio: $${Number(productoOriginalEdicion.precio).toLocaleString("es-CO")} → $${Number(producto.precio).toLocaleString("es-CO")}`);
+        cambios.push(
+          `Precio: $${Number(productoOriginalEdicion.precio).toLocaleString(
+            "es-CO"
+          )} → $${Number(producto.precio).toLocaleString("es-CO")}`
+        );
       }
       if (Number(productoOriginalEdicion.stock) !== Number(producto.stock)) {
-        cambios.push(`Stock: ${productoOriginalEdicion.stock} → ${producto.stock}`);
+        cambios.push(
+          `Stock: ${productoOriginalEdicion.stock} → ${producto.stock}`
+        );
       }
 
       await axios.post(`${API_URL}/api/editar-sonido`, producto);
@@ -201,7 +225,10 @@ function Sonido() {
         stock: parseInt(nuevoItem.stock) || 0,
       };
 
-      await axios.post(`${API_URL}/api/agregar-sonido`, nuevoProductoFormateado);
+      await axios.post(
+        `${API_URL}/api/agregar-sonido`,
+        nuevoProductoFormateado
+      );
 
       await registrarActividad(
         "NUEVO PRODUCTO SONIDO",
@@ -242,7 +269,7 @@ function Sonido() {
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
           <div className="flex justify-between items-center flex-wrap gap-4">
             <img src="/logowp.PNG" className="h-12 w-auto" alt="Logo" />
-            
+
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setMostrarModal(true)}
@@ -251,7 +278,7 @@ function Sonido() {
                 <span className="text-lg">+</span>
                 Agregar producto
               </button>
-              
+
               <button
                 onClick={handleEliminarMultiples}
                 disabled={seleccionadas.length === 0}
@@ -345,12 +372,23 @@ function Sonido() {
                 <span>🔗</span>
                 Tiros
               </button>
+              <button
+                onClick={() => navigate("/luces")}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-200 shadow-md hover:shadow-lg"
+              >
+                <span>💡</span>
+                Luces
+              </button>
             </div>
 
             {/* Contador de resultados */}
             <div className="bg-white rounded-lg shadow-md px-4 py-2 mb-4 inline-block">
               <span className="text-sm text-gray-600">
-                📊 Mostrando <span className="font-bold text-slate-700">{filtradas.length}</span> resultados
+                📊 Mostrando{" "}
+                <span className="font-bold text-slate-700">
+                  {filtradas.length}
+                </span>{" "}
+                resultados
               </span>
             </div>
 
@@ -404,12 +442,15 @@ function Sonido() {
                           type="checkbox"
                           onChange={(e) => {
                             if (e.target.checked) {
-                              setSeleccionadas(filtradas.map(p => p.id));
+                              setSeleccionadas(filtradas.map((p) => p.id));
                             } else {
                               setSeleccionadas([]);
                             }
                           }}
-                          checked={seleccionadas.length === filtradas.length && filtradas.length > 0}
+                          checked={
+                            seleccionadas.length === filtradas.length &&
+                            filtradas.length > 0
+                          }
                           className="cursor-pointer w-4 h-4"
                         />
                       </th>
@@ -471,7 +512,9 @@ function Sonido() {
                     {filtradas.map((p, idx) => (
                       <tr
                         key={p.id}
-                        className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50 transition-colors`}
+                        className={`${
+                          idx % 2 === 0 ? "bg-white" : "bg-gray-50"
+                        } hover:bg-blue-50 transition-colors`}
                       >
                         <td className="p-3">
                           <input
@@ -488,7 +531,11 @@ function Sonido() {
                               <input
                                 value={p.referencia}
                                 onChange={(e) =>
-                                  actualizarCampo(p.id, "referencia", e.target.value)
+                                  actualizarCampo(
+                                    p.id,
+                                    "referencia",
+                                    e.target.value
+                                  )
                                 }
                                 className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
                               />
@@ -506,7 +553,11 @@ function Sonido() {
                               <input
                                 value={p.proveedor}
                                 onChange={(e) =>
-                                  actualizarCampo(p.id, "proveedor", e.target.value)
+                                  actualizarCampo(
+                                    p.id,
+                                    "proveedor",
+                                    e.target.value
+                                  )
                                 }
                                 className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
                               />
@@ -526,7 +577,11 @@ function Sonido() {
                                 type="number"
                                 value={p.precio}
                                 onChange={(e) =>
-                                  actualizarCampo(p.id, "precio", e.target.value)
+                                  actualizarCampo(
+                                    p.id,
+                                    "precio",
+                                    e.target.value
+                                  )
                                 }
                                 className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
                               />
@@ -575,7 +630,9 @@ function Sonido() {
                               </span>
                             </td>
                             <td className="p-3 text-gray-700">{p.marca}</td>
-                            <td className="p-3 text-gray-700">{p.proveedor || "—"}</td>
+                            <td className="p-3 text-gray-700">
+                              {p.proveedor || "—"}
+                            </td>
                             <td className="p-3 text-right text-blue-600 font-semibold">
                               {mostrarCosto
                                 ? `$${Number(p.costo).toLocaleString("es-CO")}`
@@ -584,7 +641,11 @@ function Sonido() {
                             <td className="p-3 text-right text-green-600 font-semibold">
                               ${Number(p.precio || 0).toLocaleString("es-CO")}
                             </td>
-                            <td className={`p-3 text-center font-semibold ${p.stock === 0 ? "text-red-600" : "text-gray-700"}`}>
+                            <td
+                              className={`p-3 text-center font-semibold ${
+                                p.stock === 0 ? "text-red-600" : "text-gray-700"
+                              }`}
+                            >
                               {p.stock === 0 ? (
                                 <span className="inline-flex items-center gap-1 bg-red-100 px-2 py-1 rounded-full text-xs">
                                   ❌
@@ -647,7 +708,10 @@ function Sonido() {
                       placeholder={`Ingrese ${campo.label.toLowerCase()}`}
                       value={nuevoItem[campo.key]}
                       onChange={(e) =>
-                        setNuevoItem({ ...nuevoItem, [campo.key]: e.target.value })
+                        setNuevoItem({
+                          ...nuevoItem,
+                          [campo.key]: e.target.value,
+                        })
                       }
                       className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-all"
                     />

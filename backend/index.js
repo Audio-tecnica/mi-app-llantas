@@ -912,6 +912,72 @@ app.post("/api/eliminar-sonido", async (req, res) => {
   }
 });
 
+// ---------------- LUCES ----------------
+
+// Obtener luces
+app.get("/api/luces", async (req, res) => {
+  try {
+    const { rows } = await pool.query("SELECT * FROM luces ORDER BY id ASC");
+    res.json(rows);
+  } catch (e) {
+    console.error("Error obteniendo luces:", e);
+    res.status(500).json({ error: "Error obteniendo luces" });
+  }
+});
+
+// Agregar luz
+app.post("/api/agregar-luz", async (req, res) => {
+  const { marca, referencia, proveedor, costo, precio, stock } = req.body;
+
+  try {
+    await pool.query(
+      `INSERT INTO luces (marca, referencia, proveedor, costo, precio, stock, fecha_creacion)
+       VALUES ($1,$2,$3,$4,$5,$6,NOW())`,
+      [
+        marca,
+        referencia,
+        proveedor || "",
+        parseFloat(costo) || 0,
+        parseFloat(precio) || 0,
+        parseInt(stock) || 0,
+      ]
+    );
+    res.json({ success: true });
+  } catch (e) {
+    console.error("Error agregando luz:", e);
+    res.status(500).json({ error: "Error agregando luz" });
+  }
+});
+
+// Editar luz
+app.post("/api/editar-luz", async (req, res) => {
+  const { id, marca, referencia, proveedor, costo, precio, stock } = req.body;
+
+  try {
+    await pool.query(
+      `UPDATE luces SET
+        marca=$1, referencia=$2, proveedor=$3, costo=$4, precio=$5, stock=$6
+       WHERE id=$7`,
+      [marca, referencia, proveedor || "", parseFloat(costo), parseFloat(precio), parseInt(stock), id]
+    );
+    res.json({ success: true });
+  } catch (e) {
+    console.error("Error editando luz:", e);
+    res.status(500).json({ error: "Error editando luz" });
+  }
+});
+
+// Eliminar luz
+app.post("/api/eliminar-luz", async (req, res) => {
+  try {
+    await pool.query("DELETE FROM luces WHERE id=$1", [req.body.id]);
+    res.json({ success: true });
+  } catch (e) {
+    console.error("Error eliminando luz:", e);
+    res.status(500).json({ error: "Error eliminando luz" });
+  }
+});
+
 // Run server
 app.listen(PORT, () => {
   console.log(`✅ Servidor escuchando en puerto ${PORT}`);

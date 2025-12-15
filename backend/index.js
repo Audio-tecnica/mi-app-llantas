@@ -8,7 +8,7 @@ const fs = require("fs");
 const axios = require("axios");
 const FormData = require("form-data");
 const multer = require('multer');
-const pdfParse = require("pdf-parse/lib/pdf-parse.js");
+const pdfParse = require("pdf-parse");
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -996,7 +996,7 @@ app.post("/api/procesar-promociones", uploadPDF.single("pdf"), async (req, res) 
     console.log("📄 Iniciando extracción de texto con pdf-parse...");
 
     // Extraer texto del PDF
-    const pdfData = await pdfParse(req.file.buffer);
+    const pdfData = await pdfParse.default(req.file.buffer);
     const texto = pdfData.text;
 
     console.log("✅ Texto extraído correctamente");

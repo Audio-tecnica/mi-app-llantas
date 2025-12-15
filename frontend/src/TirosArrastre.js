@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "./index.css";
 
-function Carpas() {
+function TirosArrastre() {
   const [mostrarCosto, setMostrarCosto] = useState(false);
   const navigate = useNavigate();
-  const [carpas, setCarpas] = useState([]);
+  const [tiros, setTiros] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [marcaSeleccionada, setMarcaSeleccionada] = useState("");
   const [mensaje, setMensaje] = useState("");
@@ -26,7 +26,7 @@ function Carpas() {
   const [seleccionadas, setSeleccionadas] = useState([]);
 
   // ✅ Estado para guardar valores originales antes de editar
-  const [carpaOriginalEdicion, setCarpaOriginalEdicion] = useState(null);
+  const [tiroOriginalEdicion, setTiroOriginalEdicion] = useState(null);
 
   const API_URL = "https://mi-app-llantas.onrender.com";
 
@@ -43,22 +43,22 @@ function Carpas() {
     }
   };
 
-  // 📦 Cargar carpas
+  // 📦 Cargar tiros de arrastre
   useEffect(() => {
     axios
-      .get(`${API_URL}/api/carpas`)
-      .then((res) => setCarpas(res.data))
-      .catch(() => setMensaje("Error al cargar carpas ❌"))
+      .get(`${API_URL}/api/tiros-arrastre`)
+      .then((res) => setTiros(res.data))
+      .catch(() => setMensaje("Error al cargar tiros de arrastre ❌"))
       .finally(() => setCargando(false));
   }, []);
 
-  const marcasUnicas = [...new Set(carpas.map((c) => c.marca))];
+  const marcasUnicas = [...new Set(tiros.map((t) => t.marca))];
 
-  const filtradas = carpas.filter((c) => {
-    const coincideBusqueda = c.referencia
+  const filtradas = tiros.filter((t) => {
+    const coincideBusqueda = t.referencia
       ?.toLowerCase()
       .includes(busqueda.toLowerCase());
-    const coincideMarca = !marcaSeleccionada || c.marca === marcaSeleccionada;
+    const coincideMarca = !marcaSeleccionada || t.marca === marcaSeleccionada;
     return coincideBusqueda && coincideMarca;
   });
 
@@ -73,7 +73,7 @@ function Carpas() {
           : b[campo]?.toString().localeCompare(a[campo]?.toString());
       }
     });
-    setCarpas(ordenadas);
+    setTiros(ordenadas);
     setOrden({ campo, asc });
   };
 
@@ -85,26 +85,26 @@ function Carpas() {
   };
 
   const handleEliminarMultiples = async () => {
-    if (!window.confirm("¿Eliminar las carpas seleccionadas?")) return;
+    if (!window.confirm("¿Eliminar los tiros de arrastre seleccionados?")) return;
     try {
-      const referencias = carpas
-        .filter((c) => seleccionadas.includes(c.id))
-        .map((c) => c.referencia)
+      const referencias = tiros
+        .filter((t) => seleccionadas.includes(t.id))
+        .map((t) => t.referencia)
         .join(", ");
 
       for (let id of seleccionadas) {
-        await axios.post(`${API_URL}/api/eliminar-carpa`, { id });
+        await axios.post(`${API_URL}/api/eliminar-tiro-arrastre`, { id });
       }
 
       await registrarActividad(
-        "ELIMINACIÓN MÚLTIPLE CARPAS",
-        `Se eliminaron ${seleccionadas.length} carpas: ${referencias}`
+        "ELIMINACIÓN MÚLTIPLE TIROS ARRASTRE",
+        `Se eliminaron ${seleccionadas.length} tiros: ${referencias}`
       );
 
-      const { data } = await axios.get(`${API_URL}/api/carpas`);
-      setCarpas(data);
+      const { data } = await axios.get(`${API_URL}/api/tiros-arrastre`);
+      setTiros(data);
       setSeleccionadas([]);
-      setMensaje("Carpas eliminadas ✅");
+      setMensaje("Tiros de arrastre eliminados ✅");
       setTimeout(() => setMensaje(""), 2000);
     } catch {
       setMensaje("Error al eliminar ❌");
@@ -114,73 +114,54 @@ function Carpas() {
 
   // ✅ Función para iniciar edición guardando valores originales
   const iniciarEdicion = (id) => {
-    const carpa = carpas.find((c) => c.id === id);
-    if (carpa) {
-      setCarpaOriginalEdicion(JSON.parse(JSON.stringify(carpa)));
+    const tiro = tiros.find((t) => t.id === id);
+    if (tiro) {
+      setTiroOriginalEdicion(JSON.parse(JSON.stringify(tiro)));
       setModoEdicion(id);
     }
   };
 
   // ✅ Función guardar con detalle de cambios
-  const handleGuardar = async (carpa) => {
+  const handleGuardar = async (tiro) => {
     try {
-      if (!carpaOriginalEdicion) {
-        setMensaje("Error: No se encontró la carpa original ❌");
+      if (!tiroOriginalEdicion) {
+        setMensaje("Error: No se encontró el tiro original ❌");
         return;
       }
 
       const cambios = [];
 
-      if (
-        String(carpaOriginalEdicion.referencia) !== String(carpa.referencia)
-      ) {
-        cambios.push(
-          `Referencia: ${carpaOriginalEdicion.referencia} → ${carpa.referencia}`
-        );
+      if (String(tiroOriginalEdicion.referencia) !== String(tiro.referencia)) {
+        cambios.push(`Referencia: ${tiroOriginalEdicion.referencia} → ${tiro.referencia}`);
       }
-      if (String(carpaOriginalEdicion.marca) !== String(carpa.marca)) {
-        cambios.push(`Marca: ${carpaOriginalEdicion.marca} → ${carpa.marca}`);
+      if (String(tiroOriginalEdicion.marca) !== String(tiro.marca)) {
+        cambios.push(`Marca: ${tiroOriginalEdicion.marca} → ${tiro.marca}`);
       }
-      if (
-        String(carpaOriginalEdicion.proveedor || "") !==
-        String(carpa.proveedor || "")
-      ) {
-        cambios.push(
-          `Proveedor: ${carpaOriginalEdicion.proveedor || "vacío"} → ${
-            carpa.proveedor || "vacío"
-          }`
-        );
+      if (String(tiroOriginalEdicion.proveedor || "") !== String(tiro.proveedor || "")) {
+        cambios.push(`Proveedor: ${tiroOriginalEdicion.proveedor || "vacío"} → ${tiro.proveedor || "vacío"}`);
       }
-      if (Number(carpaOriginalEdicion.costo) !== Number(carpa.costo)) {
-        cambios.push(
-          `Costo: $${Number(carpaOriginalEdicion.costo).toLocaleString(
-            "es-CO"
-          )} → $${Number(carpa.costo).toLocaleString("es-CO")}`
-        );
+      if (Number(tiroOriginalEdicion.costo) !== Number(tiro.costo)) {
+        cambios.push(`Costo: $${Number(tiroOriginalEdicion.costo).toLocaleString("es-CO")} → $${Number(tiro.costo).toLocaleString("es-CO")}`);
       }
-      if (Number(carpaOriginalEdicion.precio) !== Number(carpa.precio)) {
-        cambios.push(
-          `Precio: $${Number(carpaOriginalEdicion.precio).toLocaleString(
-            "es-CO"
-          )} → $${Number(carpa.precio).toLocaleString("es-CO")}`
-        );
+      if (Number(tiroOriginalEdicion.precio) !== Number(tiro.precio)) {
+        cambios.push(`Precio: $${Number(tiroOriginalEdicion.precio).toLocaleString("es-CO")} → $${Number(tiro.precio).toLocaleString("es-CO")}`);
       }
-      if (Number(carpaOriginalEdicion.stock) !== Number(carpa.stock)) {
-        cambios.push(`Stock: ${carpaOriginalEdicion.stock} → ${carpa.stock}`);
+      if (Number(tiroOriginalEdicion.stock) !== Number(tiro.stock)) {
+        cambios.push(`Stock: ${tiroOriginalEdicion.stock} → ${tiro.stock}`);
       }
 
-      await axios.post(`${API_URL}/api/editar-carpa`, carpa);
+      await axios.post(`${API_URL}/api/editar-tiro-arrastre`, tiro);
 
       if (cambios.length > 0) {
         await registrarActividad(
-          "EDICIÓN CARPA",
-          `Carpa ${carpa.referencia}: ${cambios.join(", ")}`
+          "EDICIÓN TIRO ARRASTRE",
+          `Tiro ${tiro.referencia}: ${cambios.join(", ")}`
         );
       }
 
       setMensaje("Cambios guardados ✅");
       setModoEdicion(null);
-      setCarpaOriginalEdicion(null);
+      setTiroOriginalEdicion(null);
       setTimeout(() => setMensaje(""), 2000);
     } catch {
       setMensaje("Error al guardar ❌");
@@ -189,19 +170,19 @@ function Carpas() {
   };
 
   const handleEliminar = async (id) => {
-    if (!window.confirm("¿Eliminar esta carpa?")) return;
+    if (!window.confirm("¿Eliminar este tiro de arrastre?")) return;
     try {
-      const carpa = carpas.find((c) => c.id === id);
+      const tiro = tiros.find((t) => t.id === id);
 
-      await axios.post(`${API_URL}/api/eliminar-carpa`, { id });
+      await axios.post(`${API_URL}/api/eliminar-tiro-arrastre`, { id });
 
       await registrarActividad(
-        "ELIMINACIÓN CARPA",
-        `Se eliminó: ${carpa.referencia} - ${carpa.marca}`
+        "ELIMINACIÓN TIRO ARRASTRE",
+        `Se eliminó: ${tiro.referencia} - ${tiro.marca}`
       );
 
-      setCarpas((prev) => prev.filter((c) => c.id !== id));
-      setMensaje("Carpa eliminada ✅");
+      setTiros((prev) => prev.filter((t) => t.id !== id));
+      setMensaje("Tiro de arrastre eliminado ✅");
       setTimeout(() => setMensaje(""), 2000);
     } catch {
       setMensaje("Error al eliminar ❌");
@@ -211,7 +192,7 @@ function Carpas() {
 
   const handleAgregar = async () => {
     try {
-      const nuevaCarpaFormateada = {
+      const nuevoTiroFormateado = {
         marca: nuevoItem.marca,
         referencia: nuevoItem.referencia,
         proveedor: nuevoItem.proveedor || "",
@@ -220,15 +201,15 @@ function Carpas() {
         stock: parseInt(nuevoItem.stock) || 0,
       };
 
-      await axios.post(`${API_URL}/api/agregar-carpa`, nuevaCarpaFormateada);
+      await axios.post(`${API_URL}/api/agregar-tiro-arrastre`, nuevoTiroFormateado);
 
       await registrarActividad(
-        "NUEVA CARPA",
+        "NUEVO TIRO ARRASTRE",
         `Se agregó: ${nuevoItem.referencia} - ${nuevoItem.marca} (Stock: ${nuevoItem.stock})`
       );
 
-      const { data } = await axios.get(`${API_URL}/api/carpas`);
-      setCarpas(data);
+      const { data } = await axios.get(`${API_URL}/api/tiros-arrastre`);
+      setTiros(data);
       setMostrarModal(false);
       setNuevoItem({
         referencia: "",
@@ -238,18 +219,18 @@ function Carpas() {
         precio: "",
         stock: "",
       });
-      setMensaje("Carpa agregada ✅");
+      setMensaje("Tiro de arrastre agregado ✅");
       setTimeout(() => setMensaje(""), 2000);
     } catch (e) {
-      console.error("❌ Error al agregar carpa:", e);
+      console.error("❌ Error al agregar tiro de arrastre:", e);
       setMensaje("Error al agregar ❌");
       setTimeout(() => setMensaje(""), 2000);
     }
   };
 
   const actualizarCampo = (id, campo, valor) => {
-    setCarpas((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, [campo]: valor } : c))
+    setTiros((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, [campo]: valor } : t))
     );
   };
 
@@ -261,16 +242,16 @@ function Carpas() {
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
           <div className="flex justify-between items-center flex-wrap gap-4">
             <img src="/logowp.PNG" className="h-12 w-auto" alt="Logo" />
-
+            
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setMostrarModal(true)}
                 className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-200 shadow-md hover:shadow-lg"
               >
                 <span className="text-lg">+</span>
-                Agregar carpa
+                Agregar tiro
               </button>
-
+              
               <button
                 onClick={handleEliminarMultiples}
                 disabled={seleccionadas.length === 0}
@@ -356,31 +337,20 @@ function Carpas() {
                 <span>🏕️</span>
                 Carpas
               </button>
-              <button
-                onClick={() => navigate("/tiros-arrastre")}
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-200 shadow-md hover:shadow-lg"
-              >
-                <span>🔗</span>
-                Tiros
-              </button>
             </div>
 
             {/* Contador de resultados */}
             <div className="bg-white rounded-lg shadow-md px-4 py-2 mb-4 inline-block">
               <span className="text-sm text-gray-600">
-                📊 Mostrando{" "}
-                <span className="font-bold text-slate-700">
-                  {filtradas.length}
-                </span>{" "}
-                resultados
+                📊 Mostrando <span className="font-bold text-slate-700">{filtradas.length}</span> resultados
               </span>
             </div>
 
             {/* Panel de búsqueda mejorado */}
             <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
               <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                <span>🏕️</span>
-                Búsqueda de Carpas
+                <span>🔗</span>
+                Búsqueda de Tiros de Arrastre
               </h2>
 
               <div className="space-y-4">
@@ -426,15 +396,12 @@ function Carpas() {
                           type="checkbox"
                           onChange={(e) => {
                             if (e.target.checked) {
-                              setSeleccionadas(filtradas.map((c) => c.id));
+                              setSeleccionadas(filtradas.map(t => t.id));
                             } else {
                               setSeleccionadas([]);
                             }
                           }}
-                          checked={
-                            seleccionadas.length === filtradas.length &&
-                            filtradas.length > 0
-                          }
+                          checked={seleccionadas.length === filtradas.length && filtradas.length > 0}
                           className="cursor-pointer w-4 h-4"
                         />
                       </th>
@@ -493,55 +460,45 @@ function Carpas() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filtradas.map((c, idx) => (
+                    {filtradas.map((t, idx) => (
                       <tr
-                        key={c.id}
-                        className={`${
-                          idx % 2 === 0 ? "bg-white" : "bg-gray-50"
-                        } hover:bg-blue-50 transition-colors`}
+                        key={t.id}
+                        className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50 transition-colors`}
                       >
                         <td className="p-3">
                           <input
                             type="checkbox"
-                            checked={seleccionadas.includes(c.id)}
-                            onChange={() => toggleSeleccion(c.id)}
+                            checked={seleccionadas.includes(t.id)}
+                            onChange={() => toggleSeleccion(t.id)}
                             className="cursor-pointer w-4 h-4"
                           />
                         </td>
 
-                        {modoEdicion === c.id ? (
+                        {modoEdicion === t.id ? (
                           <>
                             <td className="p-2">
                               <input
-                                value={c.referencia}
+                                value={t.referencia}
                                 onChange={(e) =>
-                                  actualizarCampo(
-                                    c.id,
-                                    "referencia",
-                                    e.target.value
-                                  )
+                                  actualizarCampo(t.id, "referencia", e.target.value)
                                 }
                                 className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
                               />
                             </td>
                             <td className="p-2">
                               <input
-                                value={c.marca}
+                                value={t.marca}
                                 onChange={(e) =>
-                                  actualizarCampo(c.id, "marca", e.target.value)
+                                  actualizarCampo(t.id, "marca", e.target.value)
                                 }
                                 className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
                               />
                             </td>
                             <td className="p-2">
                               <input
-                                value={c.proveedor}
+                                value={t.proveedor}
                                 onChange={(e) =>
-                                  actualizarCampo(
-                                    c.id,
-                                    "proveedor",
-                                    e.target.value
-                                  )
+                                  actualizarCampo(t.id, "proveedor", e.target.value)
                                 }
                                 className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
                               />
@@ -549,9 +506,9 @@ function Carpas() {
                             <td className="p-2">
                               <input
                                 type="number"
-                                value={c.costo}
+                                value={t.costo}
                                 onChange={(e) =>
-                                  actualizarCampo(c.id, "costo", e.target.value)
+                                  actualizarCampo(t.id, "costo", e.target.value)
                                 }
                                 className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
                               />
@@ -559,13 +516,9 @@ function Carpas() {
                             <td className="p-2">
                               <input
                                 type="number"
-                                value={c.precio}
+                                value={t.precio}
                                 onChange={(e) =>
-                                  actualizarCampo(
-                                    c.id,
-                                    "precio",
-                                    e.target.value
-                                  )
+                                  actualizarCampo(t.id, "precio", e.target.value)
                                 }
                                 className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
                               />
@@ -573,9 +526,9 @@ function Carpas() {
                             <td className="p-2">
                               <input
                                 type="number"
-                                value={c.stock}
+                                value={t.stock}
                                 onChange={(e) =>
-                                  actualizarCampo(c.id, "stock", e.target.value)
+                                  actualizarCampo(t.id, "stock", e.target.value)
                                 }
                                 className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
                               />
@@ -584,7 +537,7 @@ function Carpas() {
                               <div className="flex flex-col gap-2 items-center">
                                 <div className="flex gap-2">
                                   <button
-                                    onClick={() => handleGuardar(c)}
+                                    onClick={() => handleGuardar(t)}
                                     className="bg-green-500 text-white px-4 py-2 text-xs rounded-lg hover:bg-green-600 transition-all shadow-md font-medium"
                                   >
                                     💾 Guardar
@@ -592,11 +545,11 @@ function Carpas() {
                                   <button
                                     onClick={() => {
                                       setModoEdicion(null);
-                                      setCarpaOriginalEdicion(null);
+                                      setTiroOriginalEdicion(null);
                                       // Recargar datos para descartar cambios
                                       axios
-                                        .get(`${API_URL}/api/carpas`)
-                                        .then((res) => setCarpas(res.data));
+                                        .get(`${API_URL}/api/tiros-arrastre`)
+                                        .then((res) => setTiros(res.data));
                                     }}
                                     className="bg-gray-400 text-white px-4 py-2 text-xs rounded-lg hover:bg-gray-500 transition-all shadow-md font-medium"
                                   >
@@ -610,45 +563,39 @@ function Carpas() {
                           <>
                             <td className="p-3">
                               <span className="font-semibold text-gray-800">
-                                {c.referencia}
+                                {t.referencia}
                               </span>
                             </td>
-                            <td className="p-3 text-gray-700">{c.marca}</td>
-                            <td className="p-3 text-gray-700">
-                              {c.proveedor || "—"}
-                            </td>
+                            <td className="p-3 text-gray-700">{t.marca}</td>
+                            <td className="p-3 text-gray-700">{t.proveedor || "—"}</td>
                             <td className="p-3 text-right text-blue-600 font-semibold">
                               {mostrarCosto
-                                ? `$${Number(c.costo).toLocaleString("es-CO")}`
+                                ? `$${Number(t.costo).toLocaleString("es-CO")}`
                                 : "•••••"}
                             </td>
                             <td className="p-3 text-right text-green-600 font-semibold">
-                              ${Number(c.precio || 0).toLocaleString("es-CO")}
+                              ${Number(t.precio || 0).toLocaleString("es-CO")}
                             </td>
-                            <td
-                              className={`p-3 text-center font-semibold ${
-                                c.stock === 0 ? "text-red-600" : "text-gray-700"
-                              }`}
-                            >
-                              {c.stock === 0 ? (
+                            <td className={`p-3 text-center font-semibold ${t.stock === 0 ? "text-red-600" : "text-gray-700"}`}>
+                              {t.stock === 0 ? (
                                 <span className="inline-flex items-center gap-1 bg-red-100 px-2 py-1 rounded-full text-xs">
                                   ❌
                                 </span>
                               ) : (
-                                c.stock
+                                t.stock
                               )}
                             </td>
                             <td className="p-3">
                               <div className="flex gap-2 justify-center items-center">
                                 <button
-                                  onClick={() => iniciarEdicion(c.id)}
+                                  onClick={() => iniciarEdicion(t.id)}
                                   className="bg-slate-200 hover:bg-slate-300 px-3 py-1.5 text-sm rounded-lg transition-all shadow-sm hover:shadow-md"
                                   title="Editar"
                                 >
                                   ✏️
                                 </button>
                                 <button
-                                  onClick={() => handleEliminar(c.id)}
+                                  onClick={() => handleEliminar(t.id)}
                                   className="bg-red-500 text-white hover:bg-red-600 px-3 py-1.5 text-sm rounded-lg transition-all shadow-sm hover:shadow-md"
                                   title="Eliminar"
                                 >
@@ -667,13 +614,13 @@ function Carpas() {
           </>
         )}
 
-        {/* Modal agregar carpa */}
+        {/* Modal agregar tiro de arrastre */}
         {mostrarModal && (
           <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
             <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md transform transition-all">
               <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-2">
                 <span>➕</span>
-                Agregar Nueva Carpa
+                Agregar Nuevo Tiro de Arrastre
               </h2>
               <div className="space-y-4">
                 {[
@@ -692,10 +639,7 @@ function Carpas() {
                       placeholder={`Ingrese ${campo.label.toLowerCase()}`}
                       value={nuevoItem[campo.key]}
                       onChange={(e) =>
-                        setNuevoItem({
-                          ...nuevoItem,
-                          [campo.key]: e.target.value,
-                        })
+                        setNuevoItem({ ...nuevoItem, [campo.key]: e.target.value })
                       }
                       className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-all"
                     />
@@ -724,4 +668,4 @@ function Carpas() {
   );
 }
 
-export default Carpas;
+export default TirosArrastre;

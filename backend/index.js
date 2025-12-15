@@ -780,6 +780,72 @@ app.post("/api/eliminar-carpa", async (req, res) => {
   }
 });
 
+// ---------------- TIROS DE ARRASTRE ----------------
+
+// Obtener tiros de arrastre
+app.get("/api/tiros-arrastre", async (req, res) => {
+  try {
+    const { rows } = await pool.query("SELECT * FROM tiros_arrastre ORDER BY id ASC");
+    res.json(rows);
+  } catch (e) {
+    console.error("Error obteniendo tiros de arrastre:", e);
+    res.status(500).json({ error: "Error obteniendo tiros de arrastre" });
+  }
+});
+
+// Agregar tiro de arrastre
+app.post("/api/agregar-tiro-arrastre", async (req, res) => {
+  const { marca, referencia, proveedor, costo, precio, stock } = req.body;
+
+  try {
+    await pool.query(
+      `INSERT INTO tiros_arrastre (marca, referencia, proveedor, costo, precio, stock, fecha_creacion)
+       VALUES ($1,$2,$3,$4,$5,$6,NOW())`,
+      [
+        marca,
+        referencia,
+        proveedor || "",
+        parseFloat(costo) || 0,
+        parseFloat(precio) || 0,
+        parseInt(stock) || 0,
+      ]
+    );
+    res.json({ success: true });
+  } catch (e) {
+    console.error("Error agregando tiro de arrastre:", e);
+    res.status(500).json({ error: "Error agregando tiro de arrastre" });
+  }
+});
+
+// Editar tiro de arrastre
+app.post("/api/editar-tiro-arrastre", async (req, res) => {
+  const { id, marca, referencia, proveedor, costo, precio, stock } = req.body;
+
+  try {
+    await pool.query(
+      `UPDATE tiros_arrastre SET
+        marca=$1, referencia=$2, proveedor=$3, costo=$4, precio=$5, stock=$6
+       WHERE id=$7`,
+      [marca, referencia, proveedor || "", parseFloat(costo), parseFloat(precio), parseInt(stock), id]
+    );
+    res.json({ success: true });
+  } catch (e) {
+    console.error("Error editando tiro de arrastre:", e);
+    res.status(500).json({ error: "Error editando tiro de arrastre" });
+  }
+});
+
+// Eliminar tiro de arrastre
+app.post("/api/eliminar-tiro-arrastre", async (req, res) => {
+  try {
+    await pool.query("DELETE FROM tiros_arrastre WHERE id=$1", [req.body.id]);
+    res.json({ success: true });
+  } catch (e) {
+    console.error("Error eliminando tiro de arrastre:", e);
+    res.status(500).json({ error: "Error eliminando tiro de arrastre" });
+  }
+});
+
 // Run server
 app.listen(PORT, () => {
   console.log(`✅ Servidor escuchando en puerto ${PORT}`);

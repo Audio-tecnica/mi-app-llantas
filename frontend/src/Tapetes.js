@@ -347,6 +347,13 @@ function Tapetes() {
                 <span>🏕️</span>
                 Carpas
               </button>
+              <button
+                onClick={() => navigate("/tiros-arrastre")}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-200 shadow-md hover:shadow-lg"
+              >
+                <span>🔗</span>
+                Tiros
+              </button>
             </div>
 
             {/* Contador de resultados */}

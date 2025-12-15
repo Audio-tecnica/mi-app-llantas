@@ -82,13 +82,13 @@ function VisorStock() {
 
     llantasFiltradas.forEach((l) => {
       const alerta = l.stock === 0 ? " ❌" : l.stock <= 3 ? " 🔴" : "";
-      const impar = l.stock > 0 && l.stock % 2 !== 0 ? " 🟡" : "";
+      const impar = l.stock > 0 && l.stock % 2 !== 0 ? " ⚠️" : "";
       texto += `${l.referencia}: ${l.stock} unidades${impar}${alerta}\n`;
     });
 
     texto += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
     texto += `Total: ${totalUnidades} unidades en ${totalReferencias} referencias\n`;
-    texto += `⚠️ Impares: ${stockImpares} | Críticos: ${stockCriticos} | Agotados: ${stockAgotados}`;
+    texto += `⚠️ Impares: ${stockImpares} | 🔴 Críticos: ${stockCriticos} | ❌ Agotados: ${stockAgotados}`;
 
     navigator.clipboard.writeText(texto);
     alert("✅ Copiado al portapapeles");
@@ -101,7 +101,7 @@ function VisorStock() {
       if (l.stock === 0) alertas.push("AGOTADO");
       else if (l.stock <= 3) alertas.push("CRÍTICO");
       if (l.stock > 0 && l.stock % 2 !== 0) alertas.push("IMPAR");
-      csv += `${l.referencia},${l.proveedor || ""},${l.stock},"${alertas.join(" - ")}"\n`;
+      csv += `${l.referencia},${l.proveedor || ""},${l.stock},"${alertas.join(" + ")}"\n`;
     });
 
     const blob = new Blob([csv], { type: "text/csv" });
@@ -116,13 +116,13 @@ function VisorStock() {
   const EncabezadoOrdenable = ({ campo, children }) => (
     <th
       onClick={() => handleOrdenar(campo)}
-      className="p-4 text-left text-base font-bold text-gray-700 cursor-pointer hover:bg-slate-200 transition-colors select-none"
+      className="p-4 text-left text-lg font-bold text-gray-700 cursor-pointer hover:bg-slate-200 transition-colors select-none"
     >
       <div className="flex items-center gap-2">
         {children}
         {ordenPor === campo && (
           <span className="text-slate-600">
-            {ordenAsc ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+            {ordenAsc ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
           </span>
         )}
       </div>
@@ -196,7 +196,7 @@ function VisorStock() {
               </div>
               <div className="bg-white rounded-xl shadow-md p-4 border-l-4 border-yellow-500">
                 <div className="text-3xl font-bold text-yellow-600">{stockImpares}</div>
-                <div className="text-sm text-gray-600 font-medium">🟡 Stock Impar</div>
+                <div className="text-sm text-gray-600 font-medium">⚠️ Stock Impar</div>
               </div>
               <div className="bg-white rounded-xl shadow-md p-4 border-l-4 border-red-500">
                 <div className="text-3xl font-bold text-red-600">{stockCriticos}</div>
@@ -211,7 +211,7 @@ function VisorStock() {
                   <h2 className="text-3xl font-bold mb-2">{marcaSeleccionada}</h2>
                   <p className="text-lg opacity-90">
                     {totalReferencias} referencias • {totalUnidades} unidades
-                    {stockImpares > 0 && ` • 🟡 ${stockImpares} impares`}
+                    {stockImpares > 0 && ` • ⚠️ ${stockImpares} impares`}
                     {stockCriticos > 0 && ` • 🔴 ${stockCriticos} críticos`}
                   </p>
                 </div>
@@ -224,30 +224,26 @@ function VisorStock() {
               </div>
             </div>
 
-            {/* Leyenda de Colores */}
+            {/* Leyenda Simple */}
             <div className="bg-white rounded-xl shadow-md p-4 mb-6">
-              <div className="flex flex-wrap gap-4 items-center text-sm">
-                <span className="font-bold text-gray-700">📌 Leyenda:</span>
+              <div className="flex flex-wrap gap-6 items-center text-sm">
+                <span className="font-bold text-gray-700 text-base">📌 Leyenda:</span>
                 <span className="flex items-center gap-2">
-                  <span className="w-6 h-6 bg-red-100 border-2 border-red-500 rounded"></span>
-                  <span className="font-medium text-gray-700">Stock Crítico (≤3)</span>
-                </span>
-                <span className="flex items-center gap-2">
-                  <span className="w-6 h-6 bg-yellow-100 border-2 border-yellow-500 rounded"></span>
-                  <span className="font-medium text-gray-700">Stock Impar</span>
-                </span>
-                <span className="flex items-center gap-2">
-                  <span className="w-6 h-6 bg-gray-200 border-2 border-gray-400 rounded"></span>
+                  <span className="text-2xl">❌</span>
                   <span className="font-medium text-gray-700">Agotado</span>
                 </span>
                 <span className="flex items-center gap-2">
-                  <span className="w-6 h-6 bg-green-100 border-2 border-green-500 rounded"></span>
-                  <span className="font-medium text-gray-700">Stock Normal</span>
+                  <span className="text-2xl">🔴</span>
+                  <span className="font-medium text-gray-700">Stock Crítico (≤3 unidades)</span>
+                </span>
+                <span className="flex items-center gap-2">
+                  <span className="text-2xl">⚠️</span>
+                  <span className="font-medium text-gray-700">Stock Impar</span>
                 </span>
               </div>
             </div>
 
-            {/* Tabla con Alertas Visuales */}
+            {/* Tabla Simplificada */}
             <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -260,7 +256,7 @@ function VisorStock() {
                         Proveedor
                       </EncabezadoOrdenable>
                       <EncabezadoOrdenable campo="stock">
-                        <span className="flex items-center gap-1">Stock / Unidades</span>
+                        Stock
                       </EncabezadoOrdenable>
                     </tr>
                   </thead>
@@ -277,65 +273,47 @@ function VisorStock() {
                         const esCritico = llanta.stock > 0 && llanta.stock <= 3;
                         const estaAgotado = llanta.stock === 0;
 
-                        // Determinar el color de fondo de la fila
-                        let bgColor = idx % 2 === 0 ? "bg-white" : "bg-gray-50";
-                        if (estaAgotado) {
-                          bgColor = "bg-gray-100";
-                        } else if (esCritico && esImpar) {
-                          bgColor = "bg-gradient-to-r from-red-50 via-yellow-50 to-red-50";
-                        } else if (esCritico) {
-                          bgColor = "bg-red-50";
-                        } else if (esImpar) {
-                          bgColor = "bg-yellow-50";
-                        }
-
                         return (
                           <tr
                             key={llanta.id}
-                            className={`${bgColor} hover:bg-blue-100 transition-colors`}
+                            className={`${
+                              idx % 2 === 0 ? "bg-white" : "bg-gray-50"
+                            } hover:bg-blue-50 transition-colors`}
                           >
                             <td className="p-4">
-                              <div className="flex items-center gap-2">
-                                <span className="text-lg font-semibold text-gray-800">
-                                  {llanta.referencia}
-                                </span>
-                              </div>
+                              <span className="text-xl font-semibold text-gray-800">
+                                {llanta.referencia}
+                              </span>
                             </td>
                             <td className="p-4">
-                              <span className="text-base text-gray-600">
+                              <span className="text-lg text-gray-600">
                                 {llanta.proveedor || "—"}
                               </span>
                             </td>
                             <td className="p-4">
-                              <div className="flex items-center justify-between gap-3">
-                                {/* Número de Stock */}
-                                <span className="text-2xl font-bold text-gray-800 min-w-[60px]">
-                                  {llanta.stock}
-                                </span>
-
-                                {/* Alertas */}
-                                <div className="flex items-center gap-2">
-                                  {estaAgotado && (
-                                    <span className="inline-flex items-center gap-1 bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-sm font-bold border-2 border-gray-400">
-                                      ❌ AGOTADO
-                                    </span>
-                                  )}
-                                  {esCritico && !estaAgotado && (
-                                    <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 px-3 py-1.5 rounded-lg text-sm font-bold border-2 border-red-500">
-                                      🔴 CRÍTICO
-                                    </span>
-                                  )}
-                                  {esImpar && !estaAgotado && (
-                                    <span className="inline-flex items-center gap-1 bg-yellow-100 text-yellow-700 px-3 py-1.5 rounded-lg text-sm font-bold border-2 border-yellow-500">
-                                      🟡 IMPAR
-                                    </span>
-                                  )}
-                                  {!estaAgotado && !esCritico && !esImpar && (
-                                    <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1.5 rounded-lg text-sm font-bold border-2 border-green-500">
-                                      ✓ OK
-                                    </span>
-                                  )}
-                                </div>
+                              <div className="flex items-center gap-3">
+                                {/* Stock con alertas integradas */}
+                                {estaAgotado ? (
+                                  <span className="text-3xl font-bold text-red-600 flex items-center gap-2">
+                                    {llanta.stock} ❌
+                                  </span>
+                                ) : esCritico && esImpar ? (
+                                  <span className="text-3xl font-bold text-red-600 flex items-center gap-2">
+                                    {llanta.stock} 🔴⚠️
+                                  </span>
+                                ) : esCritico ? (
+                                  <span className="text-3xl font-bold text-red-600 flex items-center gap-2">
+                                    {llanta.stock} 🔴
+                                  </span>
+                                ) : esImpar ? (
+                                  <span className="text-3xl font-bold text-yellow-600 flex items-center gap-2">
+                                    {llanta.stock} ⚠️
+                                  </span>
+                                ) : (
+                                  <span className="text-3xl font-bold text-green-600 flex items-center gap-2">
+                                    {llanta.stock}
+                                  </span>
+                                )}
                               </div>
                             </td>
                           </tr>

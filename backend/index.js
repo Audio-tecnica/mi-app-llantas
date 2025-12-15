@@ -980,27 +980,39 @@ app.get("/api/promociones", async (req, res) => {
 
 // Procesar PDF de promociones
 app.post("/api/procesar-promociones", uploadPDF.single("pdf"), async (req, res) => {
+  console.log("🔥 INICIO - Recibida petición de procesar PDF");
+  
   try {
+    console.log("📥 Verificando archivo...");
+    console.log("req.file:", req.file ? "SÍ EXISTE" : "NO EXISTE");
+    
     if (!req.file) {
+      console.log("❌ No se recibió archivo PDF");
       return res.status(400).json({ error: "No se recibió archivo PDF" });
     }
 
-    console.log("📄 Procesando PDF...");
+    console.log("📄 Tamaño del archivo:", req.file.size, "bytes");
+    console.log("📄 Tipo MIME:", req.file.mimetype);
+    console.log("📄 Iniciando extracción de texto con pdf-parse...");
 
     // Extraer texto del PDF
     const pdfData = await pdfParse(req.file.buffer);
     const texto = pdfData.text;
 
-    console.log("📄 Texto extraído del PDF (primeros 500 caracteres):");
+    console.log("✅ Texto extraído correctamente");
+    console.log("📄 Longitud del texto:", texto.length, "caracteres");
+    console.log("📄 Primeros 500 caracteres:");
     console.log(texto.substring(0, 500));
+    console.log("---");
 
     // Detectar mes actual
     const mesActual = new Date().toLocaleDateString("es-CO", {
       month: "long",
       year: "numeric",
     });
+    console.log("📅 Mes actual:", mesActual);
 
-    // Detectar marca actual (buscar en el texto)
+    // Detectar marca actual
     let marcaActual = "DESCONOCIDA";
     const textoUpper = texto.toUpperCase();
     
@@ -1017,33 +1029,33 @@ app.post("/api/procesar-promociones", uploadPDF.single("pdf"), async (req, res) 
 
     console.log("🏷️ Marca detectada:", marcaActual);
 
-    // Desactivar todas las promociones anteriores de esta marca
+    // Desactivar promociones anteriores
+    console.log("🔄 Desactivando promociones anteriores de", marcaActual);
     await pool.query(
       "UPDATE promociones SET activa=false WHERE marca=$1 AND activa=true",
       [marcaActual]
     );
+    console.log("✅ Promociones anteriores desactivadas");
 
-    console.log("🔄 Promociones anteriores desactivadas");
-
-    // Múltiples expresiones regulares para diferentes formatos
+    // Múltiples expresiones regulares
     const regexFormatos = [
-      // Formato 1: "185/60 R14    M2    74    $189,999"
       /(\d{3}\/\d{2}\s*R\d{2}[A-Z]*)\s+([A-Z0-9\s\.]+?)\s+(\d+)\s+\$?([\d,\.]+)/gi,
-      
-      // Formato 2: "185/60R14 M2 74 189999" (sin espacios ni $)
       /(\d{3}\/\d{2}R\d{2}[A-Z]*)\s+([A-Z0-9\s\.]+?)\s+(\d+)\s+([\d,\.]+)/gi,
-      
-      // Formato 3: Con guiones o tabs
       /(\d{3}\/\d{2}\s*R\d{2}[A-Z]*)\s*[\t\-]+\s*([A-Z0-9\s\.]+?)\s*[\t\-]+\s*(\d+)\s*[\t\-]+\s*\$?([\d,\.]+)/gi,
     ];
 
     let promocionesAgregadas = 0;
     let lineasEncontradas = [];
 
-    // Intentar con cada formato de regex
-    for (const regex of regexFormatos) {
+    console.log("🔍 Buscando promociones con", regexFormatos.length, "formatos de regex...");
+
+    for (let i = 0; i < regexFormatos.length; i++) {
+      const regex = regexFormatos[i];
       let match;
+      let matchesEncontrados = 0;
+      
       while ((match = regex.exec(texto)) !== null) {
+        matchesEncontrados++;
         try {
           const referencia = match[1].trim().replace(/\s+/g, "");
           const diseno = match[2].trim();
@@ -1051,14 +1063,8 @@ app.post("/api/procesar-promociones", uploadPDF.single("pdf"), async (req, res) 
           const precioTexto = match[4].replace(/[,$\.]/g, "");
           const precio = parseFloat(precioTexto);
 
-          // Validar que los datos sean válidos
           if (referencia && !isNaN(precio) && precio > 0 && !isNaN(cantidades)) {
-            lineasEncontradas.push({
-              referencia,
-              diseno,
-              cantidades,
-              precio
-            });
+            lineasEncontradas.push({ referencia, diseno, cantidades, precio });
 
             await pool.query(
               `INSERT INTO promociones (marca, referencia, diseno, precio_promo, cantidades_disponibles, mes, activa)
@@ -1072,25 +1078,28 @@ app.post("/api/procesar-promociones", uploadPDF.single("pdf"), async (req, res) 
           console.error("❌ Error insertando promoción:", insertError.message);
         }
       }
+      
+      console.log(`   Regex ${i + 1}: ${matchesEncontrados} matches encontrados`);
     }
 
-    console.log(`✅ Se agregaron ${promocionesAgregadas} promociones`);
-    console.log("📋 Primeras 5 promociones detectadas:", lineasEncontradas.slice(0, 5));
+    console.log(`✅ TOTAL: ${promocionesAgregadas} promociones agregadas`);
+    console.log("📋 Primeras 3 promociones:");
+    console.log(lineasEncontradas.slice(0, 3));
 
     res.json({
       success: true,
       promocionesAgregadas,
       marca: marcaActual,
       mes: mesActual,
-      muestras: lineasEncontradas.slice(0, 5) // Para debug
+      muestras: lineasEncontradas.slice(0, 5)
     });
 
   } catch (e) {
-    console.error("❌ Error procesando PDF:", e);
+    console.error("❌❌❌ ERROR FATAL:", e.message);
+    console.error("Stack trace:", e.stack);
     res.status(500).json({ 
       error: "Error procesando PDF",
-      detalle: e.message,
-      stack: e.stack 
+      detalle: e.message
     });
   }
 });

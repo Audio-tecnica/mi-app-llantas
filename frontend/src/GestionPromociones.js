@@ -12,6 +12,8 @@ function GestionPromociones() {
   const [procesando, setProcesando] = useState(false);
   const [archivoSeleccionado, setArchivoSeleccionado] = useState(null);
 
+  //const API_URL = "http://localhost:10000";
+
   const API_URL = "https://mi-app-llantas.onrender.com";
 
   // Cargar promociones actuales

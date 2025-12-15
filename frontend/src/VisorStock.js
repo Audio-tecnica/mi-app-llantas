@@ -1,18 +1,13 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import {
-  ChevronUp,
-  ChevronDown,
-  ChevronRight,
-  X,
-  ShoppingCart,
-} from "lucide-react";
+import { ChevronUp, ChevronDown, ChevronRight, X, ShoppingCart } from "lucide-react";
 import "./index.css";
 
 function VisorStock() {
   const navigate = useNavigate();
   const [llantas, setLlantas] = useState([]);
+  const [promociones, setPromociones] = useState([]);
   const [marcaSeleccionada, setMarcaSeleccionada] = useState("");
   const [cargando, setCargando] = useState(true);
   const [ordenPor, setOrdenPor] = useState("referencia");
@@ -24,18 +19,37 @@ function VisorStock() {
   const API_URL = "https://mi-app-llantas.onrender.com";
 
   useEffect(() => {
-    axios
-      .get(`${API_URL}/api/llantas`)
-      .then((res) => {
-        setLlantas(res.data);
-        const marcas = [...new Set(res.data.map((l) => l.marca))].sort();
-        if (marcas.length > 0) {
-          setMarcaSeleccionada(marcas[0]);
-        }
-      })
-      .catch((err) => console.error("Error:", err))
-      .finally(() => setCargando(false));
+    cargarDatos();
   }, []);
+
+  const cargarDatos = async () => {
+    setCargando(true);
+    try {
+      // Cargar llantas
+      const { data: llantasData } = await axios.get(`${API_URL}/api/llantas`);
+      setLlantas(llantasData);
+
+      // Cargar promociones
+      const { data: promoData } = await axios.get(`${API_URL}/api/promociones`);
+      setPromociones(promoData.filter(p => p.activa));
+
+      const marcas = [...new Set(llantasData.map((l) => l.marca))].sort();
+      if (marcas.length > 0) {
+        setMarcaSeleccionada(marcas[0]);
+      }
+    } catch (err) {
+      console.error("Error cargando datos:", err);
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  // Función para verificar si una llanta tiene promoción
+  const obtenerPromocion = (marca, referencia) => {
+    return promociones.find(
+      p => p.marca === marca && p.referencia === referencia && p.activa
+    );
+  };
 
   const marcasUnicas = [...new Set(llantas.map((l) => l.marca))].sort();
 
@@ -93,16 +107,14 @@ function VisorStock() {
     }));
   };
 
-  const totalUnidades = llantasFiltradas.reduce(
-    (sum, l) => sum + (l.stock || 0),
-    0
-  );
+  const totalUnidades = llantasFiltradas.reduce((sum, l) => sum + (l.stock || 0), 0);
   const totalReferencias = llantasFiltradas.length;
-  const stockImpares = llantasFiltradas.filter(
-    (l) => l.stock > 0 && l.stock % 2 !== 0
-  ).length;
-  const stockCriticos = llantasFiltradas.filter(
-    (l) => l.stock > 0 && l.stock <= 3
+  const stockImpares = llantasFiltradas.filter((l) => l.stock > 0 && l.stock % 2 !== 0).length;
+  const stockCriticos = llantasFiltradas.filter((l) => l.stock > 0 && l.stock <= 3).length;
+  
+  // Nueva estadística: total en promoción
+  const totalEnPromocion = llantasFiltradas.filter((l) => 
+    obtenerPromocion(l.marca, l.referencia)
   ).length;
 
   const handleOrdenar = (campo) => {
@@ -116,19 +128,14 @@ function VisorStock() {
 
   // Agregar al carrito
   const agregarAlCarrito = (llanta) => {
-    const cantidad = prompt(
-      `¿Cuántas unidades de ${llanta.referencia} vas a pedir?`,
-      "4"
-    );
-
+    const cantidad = prompt(`¿Cuántas unidades de ${llanta.referencia} vas a pedir?`, "4");
+    
     if (cantidad && !isNaN(cantidad) && parseInt(cantidad) > 0) {
       const cantidadNum = parseInt(cantidad);
-
-      // Verificar si ya está en el carrito
+      
       const existe = carritoPedido.find((item) => item.id === llanta.id);
-
+      
       if (existe) {
-        // Actualizar cantidad
         setCarritoPedido((prev) =>
           prev.map((item) =>
             item.id === llanta.id
@@ -137,7 +144,6 @@ function VisorStock() {
           )
         );
       } else {
-        // Agregar nuevo
         setCarritoPedido((prev) => [
           ...prev,
           {
@@ -150,39 +156,33 @@ function VisorStock() {
           },
         ]);
       }
-
+      
       alert(`✅ ${cantidadNum} unidades agregadas al pedido`);
     }
   };
 
-  // Eliminar del carrito
   const eliminarDelCarrito = (id) => {
     setCarritoPedido((prev) => prev.filter((item) => item.id !== id));
   };
 
-  // Actualizar cantidad en el carrito
   const actualizarCantidad = (id, nuevaCantidad) => {
     if (nuevaCantidad <= 0) {
       eliminarDelCarrito(id);
     } else {
       setCarritoPedido((prev) =>
         prev.map((item) =>
-          item.id === id
-            ? { ...item, cantidadPedir: parseInt(nuevaCantidad) }
-            : item
+          item.id === id ? { ...item, cantidadPedir: parseInt(nuevaCantidad) } : item
         )
       );
     }
   };
 
-  // Vaciar carrito
   const vaciarCarrito = () => {
     if (window.confirm("¿Vaciar todo el carrito de pedido?")) {
       setCarritoPedido([]);
     }
   };
 
-  // Enviar por WhatsApp
   const enviarPorWhatsApp = () => {
     if (carritoPedido.length === 0) {
       alert("⚠️ El carrito está vacío");
@@ -203,24 +203,18 @@ function VisorStock() {
       texto += `\n`;
     });
 
-    const totalUnidadesPedir = carritoPedido.reduce(
-      (sum, item) => sum + item.cantidadPedir,
-      0
-    );
+    const totalUnidadesPedir = carritoPedido.reduce((sum, item) => sum + item.cantidadPedir, 0);
 
     texto += `━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
     texto += `*RESUMEN:*\n`;
     texto += `• Total referencias: ${carritoPedido.length}\n`;
     texto += `• Total unidades a pedir: ${totalUnidadesPedir}`;
 
-    // Copiar al portapapeles
     navigator.clipboard.writeText(texto);
 
-    // Abrir WhatsApp
     const mensajeEncoded = encodeURIComponent(texto);
     window.open(`https://wa.me/?text=${mensajeEncoded}`, "_blank");
 
-    // Preguntar si quiere vaciar el carrito
     setTimeout(() => {
       if (window.confirm("Pedido enviado ✅\n¿Deseas vaciar el carrito?")) {
         setCarritoPedido([]);
@@ -252,9 +246,7 @@ function VisorStock() {
           <div className="flex justify-between items-center flex-wrap gap-3">
             <div className="flex items-center gap-2">
               <img src="/logowp.PNG" className="h-10 w-auto" alt="Logo" />
-              <h1 className="text-xl font-bold text-gray-800">
-                📊 Visor de Stock
-              </h1>
+              <h1 className="text-xl font-bold text-gray-800">📊 Visor de Stock</h1>
             </div>
 
             <div className="flex gap-2">
@@ -309,38 +301,26 @@ function VisorStock() {
             </div>
 
             {/* Estadísticas Compactas */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
               <div className="bg-white rounded-lg shadow-md p-3 border-l-4 border-blue-500">
-                <div className="text-2xl font-bold text-blue-600">
-                  {totalReferencias}
-                </div>
-                <div className="text-xs text-gray-600 font-medium">
-                  Referencias
-                </div>
+                <div className="text-2xl font-bold text-blue-600">{totalReferencias}</div>
+                <div className="text-xs text-gray-600 font-medium">Referencias</div>
               </div>
               <div className="bg-white rounded-lg shadow-md p-3 border-l-4 border-green-500">
-                <div className="text-2xl font-bold text-green-600">
-                  {totalUnidades}
-                </div>
-                <div className="text-xs text-gray-600 font-medium">
-                  Unidades
-                </div>
+                <div className="text-2xl font-bold text-green-600">{totalUnidades}</div>
+                <div className="text-xs text-gray-600 font-medium">Unidades</div>
               </div>
               <div className="bg-white rounded-lg shadow-md p-3 border-l-4 border-yellow-500">
-                <div className="text-2xl font-bold text-yellow-600">
-                  {stockImpares}
-                </div>
-                <div className="text-xs text-gray-600 font-medium">
-                  ⚠️ Impares
-                </div>
+                <div className="text-2xl font-bold text-yellow-600">{stockImpares}</div>
+                <div className="text-xs text-gray-600 font-medium">⚠️ Impares</div>
               </div>
               <div className="bg-white rounded-lg shadow-md p-3 border-l-4 border-red-500">
-                <div className="text-2xl font-bold text-red-600">
-                  {stockCriticos}
-                </div>
-                <div className="text-xs text-gray-600 font-medium">
-                  🔴 Críticos
-                </div>
+                <div className="text-2xl font-bold text-red-600">{stockCriticos}</div>
+                <div className="text-xs text-gray-600 font-medium">🔴 Críticos</div>
+              </div>
+              <div className="bg-white rounded-lg shadow-md p-3 border-l-4 border-amber-500">
+                <div className="text-2xl font-bold text-amber-600">{totalEnPromocion}</div>
+                <div className="text-xs text-gray-600 font-medium">🎉 Promos</div>
               </div>
             </div>
 
@@ -354,13 +334,15 @@ function VisorStock() {
                 </span>
                 <span className="flex items-center gap-1">
                   <span className="text-lg">🔴</span>
-                  <span className="font-medium text-gray-700">
-                    Crítico (≤3)
-                  </span>
+                  <span className="font-medium text-gray-700">Crítico (≤3)</span>
                 </span>
                 <span className="flex items-center gap-1">
                   <span className="text-lg">⚠️</span>
                   <span className="font-medium text-gray-700">Impar</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="text-lg">🎉</span>
+                  <span className="font-medium text-gray-700">Promoción</span>
                 </span>
               </div>
             </div>
@@ -370,22 +352,13 @@ function VisorStock() {
               {rinesOrdenados.map((rin) => {
                 const llantasGrupo = gruposPorRin[rin];
                 const estaExpandido = dimensionesExpandidas[rin];
-                const totalGrupo = llantasGrupo.reduce(
-                  (sum, l) => sum + (l.stock || 0),
-                  0
-                );
-                const criticosGrupo = llantasGrupo.filter(
-                  (l) => l.stock > 0 && l.stock <= 3
-                ).length;
-                const imparesGrupo = llantasGrupo.filter(
-                  (l) => l.stock > 0 && l.stock % 2 !== 0
-                ).length;
+                const totalGrupo = llantasGrupo.reduce((sum, l) => sum + (l.stock || 0), 0);
+                const criticosGrupo = llantasGrupo.filter((l) => l.stock > 0 && l.stock <= 3).length;
+                const imparesGrupo = llantasGrupo.filter((l) => l.stock > 0 && l.stock % 2 !== 0).length;
+                const promosGrupo = llantasGrupo.filter((l) => obtenerPromocion(l.marca, l.referencia)).length;
 
                 return (
-                  <div
-                    key={rin}
-                    className="bg-white rounded-xl shadow-lg overflow-hidden"
-                  >
+                  <div key={rin} className="bg-white rounded-xl shadow-lg overflow-hidden">
                     {/* Header del grupo */}
                     <div
                       onClick={() => toggleDimension(rin)}
@@ -405,6 +378,11 @@ function VisorStock() {
                           <span className="text-sm opacity-90">
                             {totalGrupo} unidades
                           </span>
+                          {promosGrupo > 0 && (
+                            <span className="bg-amber-500 text-amber-900 px-2 py-0.5 rounded-full text-xs font-bold">
+                              🎉 {promosGrupo}
+                            </span>
+                          )}
                           {imparesGrupo > 0 && (
                             <span className="bg-yellow-500 text-yellow-900 px-2 py-0.5 rounded-full text-xs font-bold">
                               ⚠️ {imparesGrupo}
@@ -441,14 +419,11 @@ function VisorStock() {
                           </thead>
                           <tbody className="divide-y divide-gray-100">
                             {llantasGrupo.map((llanta, idx) => {
-                              const esImpar =
-                                llanta.stock > 0 && llanta.stock % 2 !== 0;
-                              const esCritico =
-                                llanta.stock > 0 && llanta.stock <= 3;
+                              const esImpar = llanta.stock > 0 && llanta.stock % 2 !== 0;
+                              const esCritico = llanta.stock > 0 && llanta.stock <= 3;
                               const estaAgotado = llanta.stock === 0;
-                              const estaEnCarrito = carritoPedido.some(
-                                (item) => item.id === llanta.id
-                              );
+                              const estaEnCarrito = carritoPedido.some((item) => item.id === llanta.id);
+                              const promocion = obtenerPromocion(llanta.marca, llanta.referencia);
 
                               return (
                                 <tr
@@ -457,12 +432,21 @@ function VisorStock() {
                                     idx % 2 === 0 ? "bg-white" : "bg-gray-50"
                                   } hover:bg-blue-50 transition-colors ${
                                     estaEnCarrito ? "bg-purple-50" : ""
-                                  }`}
+                                  } ${promocion ? "bg-amber-50" : ""}`}
                                 >
                                   <td className="p-2">
-                                    <span className="text-sm font-semibold text-gray-800">
-                                      {llanta.referencia}
-                                    </span>
+                                    <div>
+                                      <span className="text-sm font-semibold text-gray-800">
+                                        {llanta.referencia}
+                                      </span>
+                                      {promocion && (
+                                        <div className="mt-1">
+                                          <span className="inline-flex items-center gap-1 bg-amber-500 text-amber-900 px-2 py-0.5 rounded-full text-xs font-bold">
+                                            🎉 PROMO ${Number(promocion.precio_promo).toLocaleString("es-CO")}
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
                                   </td>
                                   <td className="p-2">
                                     <span className="text-xs text-gray-600">
@@ -503,9 +487,7 @@ function VisorStock() {
                                           : "bg-blue-500 text-white hover:bg-blue-600"
                                       }`}
                                     >
-                                      {estaEnCarrito
-                                        ? "✓ Agregado"
-                                        : "+ Agregar"}
+                                      {estaEnCarrito ? "✓ Agregado" : "+ Agregar"}
                                     </button>
                                   </td>
                                 </tr>
@@ -551,13 +533,8 @@ function VisorStock() {
               <div className="flex-1 overflow-y-auto p-6">
                 {carritoPedido.length === 0 ? (
                   <div className="text-center py-12">
-                    <ShoppingCart
-                      size={64}
-                      className="mx-auto text-gray-300 mb-4"
-                    />
-                    <p className="text-gray-500 text-lg">
-                      El carrito está vacío
-                    </p>
+                    <ShoppingCart size={64} className="mx-auto text-gray-300 mb-4" />
+                    <p className="text-gray-500 text-lg">El carrito está vacío</p>
                     <p className="text-gray-400 text-sm mt-2">
                       Agrega productos desde la lista
                     </p>
@@ -575,8 +552,7 @@ function VisorStock() {
                               {item.referencia}
                             </h3>
                             <p className="text-sm text-gray-600">
-                              Marca: {item.marca} • Stock actual:{" "}
-                              {item.stockActual}
+                              Marca: {item.marca}
                             </p>
                             {item.proveedor && (
                               <p className="text-xs text-gray-500">
@@ -601,14 +577,10 @@ function VisorStock() {
                             type="number"
                             min="1"
                             value={item.cantidadPedir}
-                            onChange={(e) =>
-                              actualizarCantidad(item.id, e.target.value)
-                            }
+                            onChange={(e) => actualizarCantidad(item.id, e.target.value)}
                             className="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg font-bold text-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
                           />
-                          <span className="text-sm text-gray-600">
-                            unidades
-                          </span>
+                          <span className="text-sm text-gray-600">unidades</span>
                         </div>
                       </div>
                     ))}
@@ -627,10 +599,7 @@ function VisorStock() {
                     <div className="flex justify-between text-lg font-bold text-gray-800">
                       <span>Total unidades a pedir:</span>
                       <span>
-                        {carritoPedido.reduce(
-                          (sum, item) => sum + item.cantidadPedir,
-                          0
-                        )}
+                        {carritoPedido.reduce((sum, item) => sum + item.cantidadPedir, 0)}
                       </span>
                     </div>
                   </div>

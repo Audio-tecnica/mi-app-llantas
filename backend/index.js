@@ -8,7 +8,7 @@ const fs = require("fs");
 const axios = require("axios");
 const FormData = require("form-data");
 const multer = require('multer');
-const pdfParse = require("pdf-parse"); // ⬅️ AGREGADO
+const pdfParse = require("pdf-parse/lib/pdf-parse.js");
 
 const app = express();
 const PORT = process.env.PORT || 10000;

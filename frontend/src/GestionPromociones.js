@@ -259,29 +259,6 @@ function GestionPromociones() {
             📊 Generar SQL para Promociones
           </h2>
 
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
-            <p className="text-amber-800 font-bold mb-2">
-              💡 Recomendación: Usar OnlineOCR
-            </p>
-            <ol className="text-sm text-amber-700 space-y-1 list-decimal list-inside">
-              <li>
-                Ve a{" "}
-                <a
-                  href="https://www.onlineocr.net/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
-                >
-                  OnlineOCR.net
-                </a>
-              </li>
-              <li>Sube el PDF de promociones</li>
-              <li>Descarga como TXT o copia el texto</li>
-              <li>Pega el texto en el área de abajo</li>
-              <li>Click en "Generar SQL"</li>
-            </ol>
-          </div>
-
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">

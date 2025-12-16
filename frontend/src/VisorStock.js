@@ -462,7 +462,7 @@ function VisorStock() {
                   (l) => l.stock > 0 && l.stock % 2 !== 0
                 ).length;
                 const promosGrupo = llantasGrupo.filter((l) =>
-                  obtenerPromocion(l.marca, l.referencia, l.diseno)
+                  obtenerPromocion(l.marca, l.referencia)
                 ).length;
 
                 return (
@@ -538,7 +538,7 @@ function VisorStock() {
                               const estaEnCarrito = carritoPedido.some(
                                 (item) => item.id === llanta.id
                               );
-                              const promocion = obtenerPromocion(llanta.marca, llanta.referencia, llanta.diseno);
+                              const promocion = obtenerPromocion(llanta.marca, llanta.referencia);
 
                               return (
                                 <tr

@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { ChevronUp, ChevronDown, ChevronRight, X, ShoppingCart } from "lucide-react";
+import {
+  ChevronUp,
+  ChevronDown,
+  ChevronRight,
+  X,
+  ShoppingCart,
+} from "lucide-react";
 import "./index.css";
 
 function VisorStock() {
@@ -31,7 +37,7 @@ function VisorStock() {
 
       // Cargar promociones
       const { data: promoData } = await axios.get(`${API_URL}/api/promociones`);
-      setPromociones(promoData.filter(p => p.activa));
+      setPromociones(promoData.filter((p) => p.activa));
 
       const marcas = [...new Set(llantasData.map((l) => l.marca))].sort();
       if (marcas.length > 0) {
@@ -48,25 +54,25 @@ function VisorStock() {
   const obtenerPromocion = (marca, referencia) => {
     // Normalizar la referencia de la llanta (quitar prefijos y espacios extras)
     const normalizarRef = (ref) => {
-      if (!ref) return '';
+      if (!ref) return "";
       // Quitar prefijos como LT, P, etc.
-      let normalizada = ref.replace(/^(LT|P)\s*/i, '');
+      let normalizada = ref.replace(/^(LT|P)\s*/i, "");
       // Quitar el diseño si está pegado (ejemplo: "265/65R17 G015" -> "265/65R17")
-      normalizada = normalizada.split(' ')[0];
+      normalizada = normalizada.split(" ")[0];
       // Quitar espacios y pasar a mayúsculas
       return normalizada.trim().toUpperCase();
     };
 
     const refNormalizada = normalizarRef(referencia);
-    
+
     // Buscar promoción con referencia normalizada
-    const promo = promociones.find(p => {
+    const promo = promociones.find((p) => {
       const promoRefNormalizada = normalizarRef(p.referencia);
-      return p.marca === marca && 
-             promoRefNormalizada === refNormalizada && 
-             p.activa;
+      return (
+        p.marca === marca && promoRefNormalizada === refNormalizada && p.activa
+      );
     });
-    
+
     return promo;
   };
 
@@ -126,13 +132,20 @@ function VisorStock() {
     }));
   };
 
-  const totalUnidades = llantasFiltradas.reduce((sum, l) => sum + (l.stock || 0), 0);
+  const totalUnidades = llantasFiltradas.reduce(
+    (sum, l) => sum + (l.stock || 0),
+    0
+  );
   const totalReferencias = llantasFiltradas.length;
-  const stockImpares = llantasFiltradas.filter((l) => l.stock > 0 && l.stock % 2 !== 0).length;
-  const stockCriticos = llantasFiltradas.filter((l) => l.stock > 0 && l.stock <= 3).length;
-  
-  const totalEnPromocion = llantasFiltradas.filter((l) => 
-    obtenerPromocion(l.marca, l.referencia)
+  const stockImpares = llantasFiltradas.filter(
+    (l) => l.stock > 0 && l.stock % 2 !== 0
+  ).length;
+  const stockCriticos = llantasFiltradas.filter(
+    (l) => l.stock > 0 && l.stock <= 3
+  ).length;
+
+  const totalEnPromocion = llantasFiltradas.filter((l) =>
+    obtenerPromocion(l.marca, l.referencia, l.diseno)
   ).length;
 
   const handleOrdenar = (campo) => {
@@ -146,13 +159,16 @@ function VisorStock() {
 
   // Agregar al carrito
   const agregarAlCarrito = (llanta) => {
-    const cantidad = prompt(`¿Cuántas unidades de ${llanta.referencia} vas a pedir?`, "4");
-    
+    const cantidad = prompt(
+      `¿Cuántas unidades de ${llanta.referencia} vas a pedir?`,
+      "4"
+    );
+
     if (cantidad && !isNaN(cantidad) && parseInt(cantidad) > 0) {
       const cantidadNum = parseInt(cantidad);
-      
+
       const existe = carritoPedido.find((item) => item.id === llanta.id);
-      
+
       if (existe) {
         setCarritoPedido((prev) =>
           prev.map((item) =>
@@ -171,11 +187,11 @@ function VisorStock() {
             proveedor: llanta.proveedor,
             stockActual: llanta.stock,
             cantidadPedir: cantidadNum,
-            esPersonalizada: false
+            esPersonalizada: false,
           },
         ]);
       }
-      
+
       alert(`✅ ${cantidadNum} unidades agregadas al pedido`);
     }
   };
@@ -187,7 +203,7 @@ function VisorStock() {
 
     const diseno = prompt("Ingresa el diseño (opcional):");
     const cantidad = prompt("¿Cuántas unidades?", "4");
-    
+
     if (!cantidad || isNaN(cantidad) || parseInt(cantidad) <= 0) {
       alert("⚠️ Cantidad inválida");
       return;
@@ -195,7 +211,7 @@ function VisorStock() {
 
     // Agregar al carrito con ID temporal negativo
     const nuevoId = -(carritoPedido.length + 1);
-    
+
     setCarritoPedido((prev) => [
       ...prev,
       {
@@ -206,7 +222,7 @@ function VisorStock() {
         proveedor: "Por confirmar",
         stockActual: 0,
         cantidadPedir: parseInt(cantidad),
-        esPersonalizada: true
+        esPersonalizada: true,
       },
     ]);
 
@@ -223,7 +239,9 @@ function VisorStock() {
     } else {
       setCarritoPedido((prev) =>
         prev.map((item) =>
-          item.id === id ? { ...item, cantidadPedir: parseInt(nuevaCantidad) } : item
+          item.id === id
+            ? { ...item, cantidadPedir: parseInt(nuevaCantidad) }
+            : item
         )
       );
     }
@@ -252,17 +270,20 @@ function VisorStock() {
         texto += `   Diseño: ${item.diseno}\n`;
       }
       texto += `   Cantidad: *${item.cantidadPedir} unidades*\n`;
-      
+
       if (item.esPersonalizada) {
         texto += `   ⚠️ *REFERENCIA NO EN INVENTARIO*\n`;
       } else if (item.proveedor && item.proveedor !== "Por confirmar") {
         texto += `   Proveedor: ${item.proveedor}\n`;
       }
-      
+
       texto += `\n`;
     });
 
-    const totalUnidadesPedir = carritoPedido.reduce((sum, item) => sum + item.cantidadPedir, 0);
+    const totalUnidadesPedir = carritoPedido.reduce(
+      (sum, item) => sum + item.cantidadPedir,
+      0
+    );
 
     texto += `━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
     texto += `*RESUMEN:*\n`;
@@ -305,7 +326,9 @@ function VisorStock() {
           <div className="flex justify-between items-center flex-wrap gap-3">
             <div className="flex items-center gap-2">
               <img src="/logowp.PNG" className="h-10 w-auto" alt="Logo" />
-              <h1 className="text-xl font-bold text-gray-800">📊 Visor de Stock</h1>
+              <h1 className="text-xl font-bold text-gray-800">
+                📊 Visor de Stock
+              </h1>
             </div>
 
             <div className="flex gap-2">
@@ -362,24 +385,44 @@ function VisorStock() {
             {/* Estadísticas Compactas */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
               <div className="bg-white rounded-lg shadow-md p-3 border-l-4 border-blue-500">
-                <div className="text-2xl font-bold text-blue-600">{totalReferencias}</div>
-                <div className="text-xs text-gray-600 font-medium">Referencias</div>
+                <div className="text-2xl font-bold text-blue-600">
+                  {totalReferencias}
+                </div>
+                <div className="text-xs text-gray-600 font-medium">
+                  Referencias
+                </div>
               </div>
               <div className="bg-white rounded-lg shadow-md p-3 border-l-4 border-green-500">
-                <div className="text-2xl font-bold text-green-600">{totalUnidades}</div>
-                <div className="text-xs text-gray-600 font-medium">Unidades</div>
+                <div className="text-2xl font-bold text-green-600">
+                  {totalUnidades}
+                </div>
+                <div className="text-xs text-gray-600 font-medium">
+                  Unidades
+                </div>
               </div>
               <div className="bg-white rounded-lg shadow-md p-3 border-l-4 border-yellow-500">
-                <div className="text-2xl font-bold text-yellow-600">{stockImpares}</div>
-                <div className="text-xs text-gray-600 font-medium">⚠️ Impares</div>
+                <div className="text-2xl font-bold text-yellow-600">
+                  {stockImpares}
+                </div>
+                <div className="text-xs text-gray-600 font-medium">
+                  ⚠️ Impares
+                </div>
               </div>
               <div className="bg-white rounded-lg shadow-md p-3 border-l-4 border-red-500">
-                <div className="text-2xl font-bold text-red-600">{stockCriticos}</div>
-                <div className="text-xs text-gray-600 font-medium">🔴 Críticos</div>
+                <div className="text-2xl font-bold text-red-600">
+                  {stockCriticos}
+                </div>
+                <div className="text-xs text-gray-600 font-medium">
+                  🔴 Críticos
+                </div>
               </div>
               <div className="bg-white rounded-lg shadow-md p-3 border-l-4 border-amber-500">
-                <div className="text-2xl font-bold text-amber-600">{totalEnPromocion}</div>
-                <div className="text-xs text-gray-600 font-medium">🎉 Promos</div>
+                <div className="text-2xl font-bold text-amber-600">
+                  {totalEnPromocion}
+                </div>
+                <div className="text-xs text-gray-600 font-medium">
+                  🎉 Promos
+                </div>
               </div>
             </div>
 
@@ -393,7 +436,9 @@ function VisorStock() {
                 </span>
                 <span className="flex items-center gap-1">
                   <span className="text-lg">🔴</span>
-                  <span className="font-medium text-gray-700">Crítico (≤3)</span>
+                  <span className="font-medium text-gray-700">
+                    Crítico (≤3)
+                  </span>
                 </span>
                 <span className="flex items-center gap-1">
                   <span className="text-lg">⚠️</span>
@@ -411,15 +456,25 @@ function VisorStock() {
               {rinesOrdenados.map((rin) => {
                 const llantasGrupo = gruposPorRin[rin];
                 const estaExpandido = dimensionesExpandidas[rin];
-                const totalGrupo = llantasGrupo.reduce((sum, l) => sum + (l.stock || 0), 0);
-                const criticosGrupo = llantasGrupo.filter((l) => l.stock > 0 && l.stock <= 3).length;
-                const imparesGrupo = llantasGrupo.filter((l) => l.stock > 0 && l.stock % 2 !== 0).length;
-                const promosGrupo = llantasGrupo.filter((l) => 
-                  obtenerPromocion(l.marca, l.referencia)
+                const totalGrupo = llantasGrupo.reduce(
+                  (sum, l) => sum + (l.stock || 0),
+                  0
+                );
+                const criticosGrupo = llantasGrupo.filter(
+                  (l) => l.stock > 0 && l.stock <= 3
+                ).length;
+                const imparesGrupo = llantasGrupo.filter(
+                  (l) => l.stock > 0 && l.stock % 2 !== 0
+                ).length;
+                const promosGrupo = llantasGrupo.filter((l) =>
+                  obtenerPromocion(l.marca, l.referencia, l.diseno)
                 ).length;
 
                 return (
-                  <div key={rin} className="bg-white rounded-xl shadow-lg overflow-hidden">
+                  <div
+                    key={rin}
+                    className="bg-white rounded-xl shadow-lg overflow-hidden"
+                  >
                     {/* Header del grupo */}
                     <div
                       onClick={() => toggleDimension(rin)}
@@ -480,11 +535,15 @@ function VisorStock() {
                           </thead>
                           <tbody className="divide-y divide-gray-100">
                             {llantasGrupo.map((llanta, idx) => {
-                              const esImpar = llanta.stock > 0 && llanta.stock % 2 !== 0;
-                              const esCritico = llanta.stock > 0 && llanta.stock <= 3;
+                              const esImpar =
+                                llanta.stock > 0 && llanta.stock % 2 !== 0;
+                              const esCritico =
+                                llanta.stock > 0 && llanta.stock <= 3;
                               const estaAgotado = llanta.stock === 0;
-                              const estaEnCarrito = carritoPedido.some((item) => item.id === llanta.id);
-                              const promocion = obtenerPromocion(llanta.marca, llanta.referencia);
+                              const estaEnCarrito = carritoPedido.some(
+                                (item) => item.id === llanta.id
+                              );
+                              const promocion = obtenerPromocion(llanta.marca, llanta.referencia, llanta.diseno);
 
                               return (
                                 <tr
@@ -503,7 +562,10 @@ function VisorStock() {
                                       {promocion && (
                                         <div className="mt-1">
                                           <span className="inline-flex items-center gap-1 bg-amber-500 text-amber-900 px-2 py-0.5 rounded-full text-xs font-bold">
-                                            🎉 PROMO ${Number(promocion.precio_promo).toLocaleString("es-CO")}
+                                            🎉 PROMO $
+                                            {Number(
+                                              promocion.precio_promo
+                                            ).toLocaleString("es-CO")}
                                           </span>
                                         </div>
                                       )}
@@ -548,7 +610,9 @@ function VisorStock() {
                                           : "bg-blue-500 text-white hover:bg-blue-600"
                                       }`}
                                     >
-                                      {estaEnCarrito ? "✓ Agregado" : "+ Agregar"}
+                                      {estaEnCarrito
+                                        ? "✓ Agregado"
+                                        : "+ Agregar"}
                                     </button>
                                   </td>
                                 </tr>
@@ -594,10 +658,16 @@ function VisorStock() {
               <div className="flex-1 overflow-y-auto p-6">
                 {carritoPedido.length === 0 ? (
                   <div className="text-center py-12">
-                    <ShoppingCart size={64} className="mx-auto text-gray-300 mb-4" />
-                    <p className="text-gray-500 text-lg">El carrito está vacío</p>
+                    <ShoppingCart
+                      size={64}
+                      className="mx-auto text-gray-300 mb-4"
+                    />
+                    <p className="text-gray-500 text-lg">
+                      El carrito está vacío
+                    </p>
                     <p className="text-gray-400 text-sm mt-2">
-                      Agrega productos desde la lista o usa el botón de abajo para agregar referencias personalizadas
+                      Agrega productos desde la lista o usa el botón de abajo
+                      para agregar referencias personalizadas
                     </p>
                   </div>
                 ) : (
@@ -648,14 +718,18 @@ function VisorStock() {
                             type="number"
                             min="1"
                             value={item.cantidadPedir}
-                            onChange={(e) => actualizarCantidad(item.id, e.target.value)}
+                            onChange={(e) =>
+                              actualizarCantidad(item.id, e.target.value)
+                            }
                             className="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg font-bold text-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
                           />
-                          <span className="text-sm text-gray-600">unidades</span>
+                          <span className="text-sm text-gray-600">
+                            unidades
+                          </span>
                         </div>
                       </div>
                     ))}
-                    
+
                     {/* Botón para agregar referencia personalizada */}
                     <button
                       onClick={agregarReferenciaPersonalizada}
@@ -666,7 +740,7 @@ function VisorStock() {
                     </button>
                   </div>
                 )}
-                
+
                 {/* Botón para agregar referencia personalizada cuando está vacío */}
                 {carritoPedido.length === 0 && (
                   <button
@@ -690,7 +764,10 @@ function VisorStock() {
                     <div className="flex justify-between text-lg font-bold text-gray-800">
                       <span>Total unidades a pedir:</span>
                       <span>
-                        {carritoPedido.reduce((sum, item) => sum + item.cantidadPedir, 0)}
+                        {carritoPedido.reduce(
+                          (sum, item) => sum + item.cantidadPedir,
+                          0
+                        )}
                       </span>
                     </div>
                   </div>

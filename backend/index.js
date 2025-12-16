@@ -1051,35 +1051,49 @@ app.get("/api/promociones", async (req, res) => {
   }
 });
 
-// Procesar Excel de promociones
-app.post("/api/procesar-promociones", fileUpload(), async (req, res) => {
-  console.log("🔥 INICIO - Recibida petición de procesar Excel");
+// Extraer texto del PDF para SQL manual
+app.post("/api/procesar-promociones", uploadPDF.single("pdf"), async (req, res) => {
+  console.log("🔥 INICIO - Recibida petición de extraer texto del PDF");
   
   try {
-    if (!req.files || !req.files.file) {
-      console.log("❌ No se recibió archivo Excel");
-      return res.status(400).json({ error: "No se recibió archivo Excel" });
+    if (!req.file) {
+      console.log("❌ No se recibió archivo PDF");
+      return res.status(400).json({ error: "No se recibió archivo PDF" });
     }
 
-    const archivo = req.files.file;
-    console.log("📄 Archivo recibido:", archivo.name);
-    console.log("📄 Tamaño:", archivo.size, "bytes");
+    console.log("📄 Tamaño del archivo:", req.file.size, "bytes");
 
-    // Leer Excel
-    const workbook = xlsx.read(archivo.data, { type: "buffer" });
-    const hoja = workbook.Sheets[workbook.SheetNames[0]];
-    const datos = xlsx.utils.sheet_to_json(hoja);
+    // Intentar extraer texto con pdf-parse
+    let texto = "";
+    try {
+      const pdfData = await pdfParse(req.file.buffer);
+      texto = pdfData.text;
+      console.log("✅ Texto extraído con pdf-parse");
+    } catch (err) {
+      console.log("⚠️ No se pudo extraer texto (probablemente es una imagen)");
+      return res.json({
+        success: false,
+        esImagen: true,
+        mensaje: "El PDF parece ser una imagen escaneada. Use OCR online primero: https://www.onlineocr.net/"
+      });
+    }
 
-    console.log("✅ Excel procesado, filas encontradas:", datos.length);
-    console.log("📋 Primera fila:", datos[0]);
+    console.log("📄 Longitud del texto:", texto.length, "caracteres");
 
-    // Detectar marca (debe venir en el Excel o la detectamos del nombre del archivo)
-    let marcaActual = "YOKOHAMA"; // Default
+    // Detectar marca
+    let marcaActual = "DESCONOCIDA";
+    const textoUpper = texto.toUpperCase();
     
-    // Intentar detectar de la primera fila
-    if (datos[0] && datos[0].marca) {
-      marcaActual = datos[0].marca.toUpperCase();
-    }
+    if (textoUpper.includes("YOKOHAMA")) marcaActual = "YOKOHAMA";
+    else if (textoUpper.includes("PIRELLI")) marcaActual = "PIRELLI";
+    else if (textoUpper.includes("GOODYEAR")) marcaActual = "GOODYEAR";
+    else if (textoUpper.includes("FEDERAL")) marcaActual = "FEDERAL";
+    else if (textoUpper.includes("NITTO")) marcaActual = "NITTO";
+    else if (textoUpper.includes("ALLIANCE")) marcaActual = "ALLIANCE";
+    else if (textoUpper.includes("VENOM")) marcaActual = "VENOM";
+    else if (textoUpper.includes("YEADA")) marcaActual = "YEADA";
+    else if (textoUpper.includes("GENERAL")) marcaActual = "GENERAL";
+    else if (textoUpper.includes("MOMO")) marcaActual = "MOMO";
 
     console.log("🏷️ Marca detectada:", marcaActual);
 
@@ -1089,52 +1103,64 @@ app.post("/api/procesar-promociones", fileUpload(), async (req, res) => {
       year: "numeric",
     });
 
-    // Desactivar promociones anteriores de esta marca
-    console.log("🔄 Desactivando promociones anteriores de", marcaActual);
-    await pool.query(
-      "UPDATE promociones SET activa=false WHERE marca=$1 AND activa=true",
-      [marcaActual]
-    );
+    // Expresiones regulares para detectar líneas de promociones
+    const regexFormatos = [
+      /(\d{3}\/\d{2}\s*R\d{2}[A-Z]*)\s+([A-Z0-9\s\.]+?)\s+(\d+)\s+\$?([\d,\.]+)/gi,
+      /(\d{3}\/\d{2}R\d{2}[A-Z]*)\s+([A-Z0-9\s\.]+?)\s+(\d+)\s+([\d,\.]+)/gi,
+    ];
 
-    let promocionesAgregadas = 0;
+    let promociones = [];
 
-    // Insertar nuevas promociones
-    for (const fila of datos) {
-      try {
-        const referencia = fila.referencia || fila.Referencia || fila.REFERENCIA;
-        const diseno = fila.diseno || fila.diseño || fila.Diseño || fila.DISEÑO || "";
-        const precio = parseFloat(fila.precio_promo || fila.precio || fila.Precio || 0);
-        const cantidad = parseInt(fila.cantidad || fila.cantidades || fila.stock || 0);
-        const marca = (fila.marca || fila.Marca || marcaActual).toUpperCase();
+    for (const regex of regexFormatos) {
+      let match;
+      while ((match = regex.exec(texto)) !== null) {
+        const referencia = match[1].trim().replace(/\s+/g, "");
+        const diseno = match[2].trim();
+        const cantidades = parseInt(match[3]);
+        const precioTexto = match[4].replace(/[,$\.]/g, "");
+        const precio = parseFloat(precioTexto);
 
-        if (referencia && precio > 0) {
-          await pool.query(
-            `INSERT INTO promociones (marca, referencia, diseno, precio_promo, cantidades_disponibles, mes, activa)
-             VALUES ($1, $2, $3, $4, $5, $6, true)`,
-            [marca, referencia, diseno, precio, cantidad, mesActual]
-          );
-          
-          promocionesAgregadas++;
+        if (referencia && !isNaN(precio) && precio > 0 && !isNaN(cantidades)) {
+          promociones.push({
+            marca: marcaActual,
+            referencia,
+            diseno,
+            precio,
+            cantidades
+          });
         }
-      } catch (insertError) {
-        console.error("❌ Error insertando promoción:", insertError.message);
       }
     }
 
-    console.log(`✅ TOTAL: ${promocionesAgregadas} promociones agregadas`);
+    console.log(`✅ ${promociones.length} promociones detectadas`);
+
+    // Generar SQL
+    let sqlScript = `-- Promociones de ${marcaActual} - ${mesActual}\n`;
+    sqlScript += `-- Total: ${promociones.length} referencias\n\n`;
+    sqlScript += `-- Desactivar promociones anteriores\n`;
+    sqlScript += `UPDATE promociones SET activa=false WHERE marca='${marcaActual}' AND activa=true;\n\n`;
+    sqlScript += `-- Insertar nuevas promociones\n`;
+    sqlScript += `INSERT INTO promociones (marca, referencia, diseno, precio_promo, cantidades_disponibles, mes, activa) VALUES\n`;
+
+    promociones.forEach((promo, index) => {
+      const coma = index < promociones.length - 1 ? "," : ";";
+      sqlScript += `('${promo.marca}', '${promo.referencia}', '${promo.diseno}', ${promo.precio}, ${promo.cantidades}, '${mesActual}', true)${coma}\n`;
+    });
 
     res.json({
       success: true,
-      promocionesAgregadas,
       marca: marcaActual,
-      mes: mesActual
+      mes: mesActual,
+      totalPromociones: promociones.length,
+      sqlScript: sqlScript,
+      primerasLineas: promociones.slice(0, 5)
     });
 
   } catch (e) {
     console.error("❌❌❌ ERROR FATAL:", e.message);
     console.error("Stack trace:", e.stack);
     res.status(500).json({ 
-      error: "Error procesando Excel",
+      error: "Error procesando PDF",
       detalle: e.message
     });
   }

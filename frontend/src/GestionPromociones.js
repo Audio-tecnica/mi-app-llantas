@@ -10,6 +10,7 @@ function GestionPromociones() {
   const [mensaje, setMensaje] = useState("");
   const [cargando, setCargando] = useState(true);
   const [actividad, setActividad] = useState([]);
+  const [sqlGenerado, setSqlGenerado] = useState("");
 
   const API_URL = "https://mi-app-llantas.onrender.com";
 
@@ -31,18 +32,19 @@ function GestionPromociones() {
     }
   };
 
-  const procesarExcel = async () => {
+  const procesarPDF = async () => {
     if (!archivoSeleccionado) {
-      setMensaje("⚠️ Selecciona un archivo Excel primero");
+      setMensaje("⚠️ Selecciona un archivo PDF primero");
       return;
     }
 
     setProcesando(true);
-    setMensaje("📊 Procesando Excel...");
+    setMensaje("📄 Procesando PDF...");
+    setSqlGenerado("");
 
     try {
       const formData = new FormData();
-      formData.append("file", archivoSeleccionado);
+      formData.append("pdf", archivoSeleccionado);
 
       const { data } = await axios.post(
         `${API_URL}/api/procesar-promociones`,
@@ -52,23 +54,34 @@ function GestionPromociones() {
         }
       );
 
-      setMensaje(
-        `✅ ${data.promocionesAgregadas} promociones procesadas correctamente (${data.marca} - ${data.mes})`
-      );
-      
-      agregarLog(
-        `✅ Procesado: ${data.promocionesAgregadas} promos de ${data.marca}`
-      );
+      if (data.esImagen) {
+        setMensaje("⚠️ " + data.mensaje);
+        agregarLog("⚠️ PDF es imagen - usar OCR");
+        return;
+      }
 
-      setArchivoSeleccionado(null);
-      cargarPromociones();
+      if (data.success) {
+        setMensaje(
+          `✅ ${data.totalPromociones} promociones detectadas de ${data.marca}`
+        );
+        setSqlGenerado(data.sqlScript);
+        agregarLog(
+          `✅ SQL generado: ${data.totalPromociones} promos de ${data.marca}`
+        );
+      }
     } catch (err) {
-      console.error("Error procesando Excel:", err);
-      setMensaje("❌ Error procesando Excel: " + (err.response?.data?.detalle || err.message));
-      agregarLog(`❌ Error procesando Excel`);
+      console.error("Error procesando PDF:", err);
+      setMensaje("❌ Error procesando PDF: " + (err.response?.data?.detalle || err.message));
+      agregarLog(`❌ Error procesando PDF`);
     } finally {
       setProcesando(false);
     }
+  };
+
+  const copiarSQL = () => {
+    navigator.clipboard.writeText(sqlGenerado);
+    setMensaje("✅ SQL copiado al portapapeles");
+    agregarLog("📋 SQL copiado al portapapeles");
   };
 
   const desactivarPromocion = async (id) => {
@@ -129,7 +142,7 @@ function GestionPromociones() {
                   🎉 Gestión de Promociones
                 </h1>
                 <p className="text-sm text-gray-600">
-                  Carga y administra las promociones mensuales
+                  Genera SQL desde PDF y gestiona promociones
                 </p>
               </div>
             </div>
@@ -169,29 +182,37 @@ function GestionPromociones() {
           </div>
         </div>
 
-        {/* Subir Excel */}
+        {/* Generador de SQL desde PDF */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
           <h2 className="text-xl font-bold text-gray-800 mb-4">
-            📊 Cargar Promociones desde Excel
+            📄 Generar SQL desde PDF
           </h2>
 
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">
-                Archivo Excel:
+                Archivo PDF:
               </label>
               <input
                 type="file"
-                accept=".xlsx,.xls"
+                accept=".pdf"
                 onChange={(e) => setArchivoSeleccionado(e.target.files[0])}
                 className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none p-2"
                 disabled={procesando}
               />
               <p className="text-sm text-gray-500 mt-1">
-                Selecciona un archivo Excel (.xlsx) con las promociones
+                Selecciona el PDF de promociones (debe tener texto seleccionable)
               </p>
-              <p className="text-xs text-blue-600 mt-2">
-                💡 Formato: marca | referencia | diseno | precio_promo | cantidad
+              <p className="text-xs text-amber-600 mt-2">
+                ⚠️ Si el PDF es una imagen escaneada, usa primero: 
+                <a 
+                  href="https://www.onlineocr.net/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline ml-1"
+                >
+                  OnlineOCR.net
+                </a>
               </p>
             </div>
 
@@ -204,15 +225,15 @@ function GestionPromociones() {
             )}
 
             <button
-              onClick={procesarExcel}
+              onClick={procesarPDF}
               disabled={procesando || !archivoSeleccionado}
               className={`w-full py-3 px-6 rounded-lg font-bold text-white transition-all shadow-md hover:shadow-lg ${
                 procesando || !archivoSeleccionado
                   ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+                  : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
               }`}
             >
-              {procesando ? "⏳ Procesando..." : "📊 Procesar y Cargar Promociones"}
+              {procesando ? "⏳ Procesando..." : "🔄 Generar SQL"}
             </button>
 
             {mensaje && (
@@ -226,6 +247,43 @@ function GestionPromociones() {
                 }`}
               >
                 <p className="font-medium">{mensaje}</p>
+              </div>
+            )}
+
+            {sqlGenerado && (
+              <div className="mt-4 space-y-3">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <p className="text-green-800 font-bold mb-2">
+                    ✅ SQL Generado - Listo para Supabase
+                  </p>
+                  <p className="text-sm text-green-700">
+                    Copia este código y pégalo en Supabase SQL Editor
+                  </p>
+                </div>
+
+                <div className="relative">
+                  <pre className="bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto text-xs max-h-96 overflow-y-auto border-2 border-gray-700 font-mono">
+{sqlGenerado}
+                  </pre>
+                  <button
+                    onClick={copiarSQL}
+                    className="absolute top-2 right-2 bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-600 transition-all shadow-md"
+                  >
+                    📋 Copiar SQL
+                  </button>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-blue-800 font-bold mb-2">📝 Instrucciones:</p>
+                  <ol className="text-sm text-blue-700 space-y-1 list-decimal list-inside">
+                    <li>Click en "📋 Copiar SQL"</li>
+                    <li>Ve a Supabase → SQL Editor</li>
+                    <li>Pega el código</li>
+                    <li>Click en "Run"</li>
+                    <li>Recarga esta página para ver las promociones</li>
+                    <li>¡Las promociones aparecerán automáticamente en el Visor de Stock!</li>
+                  </ol>
+                </div>
               </div>
             )}
           </div>
@@ -254,7 +312,7 @@ function GestionPromociones() {
         <div className="bg-white rounded-xl shadow-lg p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold text-gray-800">
-              📦 Promociones Cargadas
+              📦 Promociones Activas
             </h2>
             {totalInactivas > 0 && (
               <button
@@ -277,7 +335,7 @@ function GestionPromociones() {
                 No hay promociones cargadas
               </p>
               <p className="text-gray-400 text-sm mt-2">
-                Sube un archivo Excel para comenzar
+                Sube un PDF para generar el SQL
               </p>
             </div>
           ) : (

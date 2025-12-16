@@ -11,6 +11,70 @@ function GestionPromociones() {
   const [cargando, setCargando] = useState(true);
   const [actividad, setActividad] = useState([]);
   const [sqlGenerado, setSqlGenerado] = useState("");
+  const [textoPromociones, setTextoPromociones] = useState("");
+  const [marcaSeleccionada, setMarcaSeleccionada] = useState("YOKOHAMA");
+
+  const generarSQLManual = () => {
+  setProcesando(true);
+  setMensaje("🔄 Generando SQL...");
+  setSqlGenerado("");
+
+  try {
+    const lineas = textoPromociones.split('\n').filter(l => l.trim());
+    
+    // Regex para detectar líneas
+    const regex = /(\d{3}\/\d{2}\s*R\d{2}[A-Z]*)\s+([A-Z0-9\s\.]+?)\s+(\d+)\s+\$?([\d,\.]+)/i;
+    
+    let promociones = [];
+
+    lineas.forEach(linea => {
+      const match = linea.match(regex);
+      if (match) {
+        const referencia = match[1].trim().replace(/\s+/g, "");
+        const diseno = match[2].trim();
+        const cantidades = parseInt(match[3]);
+        const precioTexto = match[4].replace(/[,$\.]/g, "");
+        const precio = parseFloat(precioTexto);
+
+        if (referencia && !isNaN(precio) && precio > 0) {
+          promociones.push({ referencia, diseno, precio, cantidades });
+        }
+      }
+    });
+
+    if (promociones.length === 0) {
+      setMensaje("⚠️ No se detectaron promociones válidas en el texto");
+      setProcesando(false);
+      return;
+    }
+
+    // Generar SQL
+    const mesActual = new Date().toLocaleDateString("es-CO", {
+      month: "long",
+      year: "numeric",
+    });
+
+    let sqlScript = `-- Promociones de ${marcaSeleccionada} - ${mesActual}\n`;
+    sqlScript += `-- Total: ${promociones.length} referencias\n\n`;
+    sqlScript += `-- Desactivar promociones anteriores\n`;
+    sqlScript += `UPDATE promociones SET activa=false WHERE marca='${marcaSeleccionada}' AND activa=true;\n\n`;
+    sqlScript += `-- Insertar nuevas promociones\n`;
+    sqlScript += `INSERT INTO promociones (marca, referencia, diseno, precio_promo, cantidades_disponibles, mes, activa) VALUES\n`;
+
+    promociones.forEach((promo, index) => {
+      const coma = index < promociones.length - 1 ? "," : ";";
+      sqlScript += `('${marcaSeleccionada}', '${promo.referencia}', '${promo.diseno}', ${promo.precio}, ${promo.cantidades}, '${mesActual}', true)${coma}\n`;
+    });
+
+    setSqlGenerado(sqlScript);
+    setMensaje(`✅ ${promociones.length} promociones detectadas de ${marcaSeleccionada}`);
+  } catch (err) {
+    console.error("Error generando SQL:", err);
+    setMensaje("❌ Error generando SQL: " + err.message);
+  } finally {
+    setProcesando(false);
+  }
+};
 
   const API_URL = "https://mi-app-llantas.onrender.com";
 
@@ -71,7 +135,10 @@ function GestionPromociones() {
       }
     } catch (err) {
       console.error("Error procesando PDF:", err);
-      setMensaje("❌ Error procesando PDF: " + (err.response?.data?.detalle || err.message));
+      setMensaje(
+        "❌ Error procesando PDF: " +
+          (err.response?.data?.detalle || err.message)
+      );
       agregarLog(`❌ Error procesando PDF`);
     } finally {
       setProcesando(false);
@@ -163,7 +230,9 @@ function GestionPromociones() {
                 <p className="text-sm text-gray-600 font-medium">
                   Promociones Activas
                 </p>
-                <p className="text-4xl font-bold text-green-600">{totalActivas}</p>
+                <p className="text-4xl font-bold text-green-600">
+                  {totalActivas}
+                </p>
               </div>
               <div className="text-5xl">✅</div>
             </div>
@@ -175,65 +244,95 @@ function GestionPromociones() {
                 <p className="text-sm text-gray-600 font-medium">
                   Promociones Inactivas
                 </p>
-                <p className="text-4xl font-bold text-gray-600">{totalInactivas}</p>
+                <p className="text-4xl font-bold text-gray-600">
+                  {totalInactivas}
+                </p>
               </div>
               <div className="text-5xl">⏸️</div>
             </div>
           </div>
         </div>
 
-        {/* Generador de SQL desde PDF */}
+        {/* Generador de SQL */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
           <h2 className="text-xl font-bold text-gray-800 mb-4">
-            📄 Generar SQL desde PDF
+            📊 Generar SQL para Promociones
           </h2>
+
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+            <p className="text-amber-800 font-bold mb-2">
+              💡 Recomendación: Usar OnlineOCR
+            </p>
+            <ol className="text-sm text-amber-700 space-y-1 list-decimal list-inside">
+              <li>
+                Ve a{" "}
+                <a
+                  href="https://www.onlineocr.net/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                >
+                  OnlineOCR.net
+                </a>
+              </li>
+              <li>Sube el PDF de promociones</li>
+              <li>Descarga como TXT o copia el texto</li>
+              <li>Pega el texto en el área de abajo</li>
+              <li>Click en "Generar SQL"</li>
+            </ol>
+          </div>
 
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">
-                Archivo PDF:
+                Pega aquí el texto extraído del PDF:
               </label>
-              <input
-                type="file"
-                accept=".pdf"
-                onChange={(e) => setArchivoSeleccionado(e.target.files[0])}
-                className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none p-2"
+              <textarea
+                value={textoPromociones}
+                onChange={(e) => setTextoPromociones(e.target.value)}
+                placeholder="Ejemplo:
+265/60R18  G015  62  649999
+215/55R17  ES32  25  484999
+205/55R16  ES32  534  299999"
+                className="w-full h-64 p-4 border-2 border-gray-300 rounded-lg font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                 disabled={procesando}
               />
               <p className="text-sm text-gray-500 mt-1">
-                Selecciona el PDF de promociones (debe tener texto seleccionable)
-              </p>
-              <p className="text-xs text-amber-600 mt-2">
-                ⚠️ Si el PDF es una imagen escaneada, usa primero: 
-                <a 
-                  href="https://www.onlineocr.net/" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline ml-1"
-                >
-                  OnlineOCR.net
-                </a>
+                Pega las líneas del PDF (referencia, diseño, cantidad, precio)
               </p>
             </div>
 
-            {archivoSeleccionado && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-sm text-blue-800">
-                  📄 Archivo seleccionado: <strong>{archivoSeleccionado.name}</strong>
-                </p>
-              </div>
-            )}
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">
+                Marca:
+              </label>
+              <select
+                value={marcaSeleccionada}
+                onChange={(e) => setMarcaSeleccionada(e.target.value)}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              >
+                <option value="YOKOHAMA">YOKOHAMA</option>
+                <option value="PIRELLI">PIRELLI</option>
+                <option value="GOODYEAR">GOODYEAR</option>
+                <option value="FEDERAL">FEDERAL</option>
+                <option value="NITTO">NITTO</option>
+                <option value="MOMO">MOMO</option>
+                <option value="ALLIANCE">ALLIANCE</option>
+                <option value="VENOM">VENOM</option>
+                <option value="GENERAL">GENERAL</option>
+              </select>
+            </div>
 
             <button
-              onClick={procesarPDF}
-              disabled={procesando || !archivoSeleccionado}
+              onClick={generarSQLManual}
+              disabled={procesando || !textoPromociones.trim()}
               className={`w-full py-3 px-6 rounded-lg font-bold text-white transition-all shadow-md hover:shadow-lg ${
-                procesando || !archivoSeleccionado
+                procesando || !textoPromociones.trim()
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
               }`}
             >
-              {procesando ? "⏳ Procesando..." : "🔄 Generar SQL"}
+              {procesando ? "⏳ Generando..." : "🔄 Generar SQL"}
             </button>
 
             {mensaje && (
@@ -263,7 +362,7 @@ function GestionPromociones() {
 
                 <div className="relative">
                   <pre className="bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto text-xs max-h-96 overflow-y-auto border-2 border-gray-700 font-mono">
-{sqlGenerado}
+                    {sqlGenerado}
                   </pre>
                   <button
                     onClick={copiarSQL}
@@ -274,39 +373,22 @@ function GestionPromociones() {
                 </div>
 
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p className="text-blue-800 font-bold mb-2">📝 Instrucciones:</p>
+                  <p className="text-blue-800 font-bold mb-2">
+                    📝 Instrucciones:
+                  </p>
                   <ol className="text-sm text-blue-700 space-y-1 list-decimal list-inside">
                     <li>Click en "📋 Copiar SQL"</li>
                     <li>Ve a Supabase → SQL Editor</li>
                     <li>Pega el código</li>
                     <li>Click en "Run"</li>
                     <li>Recarga esta página para ver las promociones</li>
-                    <li>¡Las promociones aparecerán automáticamente en el Visor de Stock!</li>
+                    <li>¡Las promociones aparecerán en el Visor de Stock!</li>
                   </ol>
                 </div>
               </div>
             )}
           </div>
         </div>
-
-        {/* Actividad reciente */}
-        {actividad.length > 0 && (
-          <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-            <h3 className="text-lg font-bold text-gray-800 mb-3">
-              📋 Actividad Reciente
-            </h3>
-            <div className="space-y-2">
-              {actividad.map((log, idx) => (
-                <div
-                  key={idx}
-                  className="text-sm text-gray-600 bg-gray-50 p-2 rounded border-l-2 border-blue-500"
-                >
-                  {log}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Lista de Promociones */}
         <div className="bg-white rounded-xl shadow-lg p-6">
@@ -351,7 +433,10 @@ function GestionPromociones() {
                   );
 
                   return (
-                    <div key={marca} className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div
+                      key={marca}
+                      className="border border-gray-200 rounded-lg overflow-hidden"
+                    >
                       <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
                         <h3 className="text-lg font-bold">
                           {marca} ({promosActivas.length} activas)
@@ -400,7 +485,10 @@ function GestionPromociones() {
                                   {promo.diseno || "—"}
                                 </td>
                                 <td className="p-3 text-sm font-bold text-green-600">
-                                  ${Number(promo.precio_promo).toLocaleString("es-CO")}
+                                  $
+                                  {Number(promo.precio_promo).toLocaleString(
+                                    "es-CO"
+                                  )}
                                 </td>
                                 <td className="p-3 text-sm text-gray-600">
                                   {promo.cantidades_disponibles || 0} unidades
@@ -422,7 +510,9 @@ function GestionPromociones() {
                                 <td className="p-3 text-center">
                                   {promo.activa && (
                                     <button
-                                      onClick={() => desactivarPromocion(promo.id)}
+                                      onClick={() =>
+                                        desactivarPromocion(promo.id)
+                                      }
                                       className="bg-red-500 text-white px-3 py-1 rounded text-xs font-bold hover:bg-red-600 transition-all"
                                     >
                                       Desactivar

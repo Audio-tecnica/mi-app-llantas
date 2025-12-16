@@ -1,13 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import {
-  ChevronUp,
-  ChevronDown,
-  ChevronRight,
-  X,
-  ShoppingCart,
-} from "lucide-react";
+import { ChevronUp, ChevronDown, ChevronRight, X, ShoppingCart } from "lucide-react";
 import "./index.css";
 
 function VisorStock() {
@@ -31,13 +25,11 @@ function VisorStock() {
   const cargarDatos = async () => {
     setCargando(true);
     try {
-      // Cargar llantas
       const { data: llantasData } = await axios.get(`${API_URL}/api/llantas`);
       setLlantas(llantasData);
 
-      // Cargar promociones
       const { data: promoData } = await axios.get(`${API_URL}/api/promociones`);
-      setPromociones(promoData.filter((p) => p.activa));
+      setPromociones(promoData.filter(p => p.activa));
 
       const marcas = [...new Set(llantasData.map((l) => l.marca))].sort();
       if (marcas.length > 0) {
@@ -50,29 +42,36 @@ function VisorStock() {
     }
   };
 
-    // ⭐ FUNCIÓN CORREGIDA - Ahora valida: marca + referencia + diseño
-  const obtenerPromocion = (marca, referencia, diseno) => {
-    // Normalizar la referencia de la llanta (quitar prefijos y espacios extras)
+  // ⭐ FUNCIÓN NUEVA: Extraer el diseño de la referencia
+  const extraerDiseno = (referencia) => {
+    if (!referencia) return '';
+    // La referencia viene como "265/65R17 G056"
+    // Queremos obtener solo "G056"
+    const partes = referencia.trim().split(/\s+/);
+    if (partes.length > 1) {
+      return partes[1];
+    }
+    return '';
+  };
+
+  // ⭐ FUNCIÓN CORREGIDA: Validar promociones con diseño incluido en referencia
+  const obtenerPromocion = (marca, referenciaCompleta) => {
     const normalizarRef = (ref) => {
       if (!ref) return '';
-      // Quitar prefijos como LT, P, etc.
       let normalizada = ref.replace(/^(LT|P)\s*/i, '');
-      // Quitar el diseño si está pegado (ejemplo: "265/65R17 G015" -> "265/65R17")
       normalizada = normalizada.split(' ')[0];
-      // Quitar espacios y pasar a mayúsculas
       return normalizada.trim().toUpperCase();
     };
 
-    // Normalizar diseño
     const normalizarDiseno = (dis) => {
       if (!dis) return '';
       return dis.trim().toUpperCase();
     };
 
-    const refNormalizada = normalizarRef(referencia);
-    const disenoNormalizado = normalizarDiseno(diseno);
+    const refNormalizada = normalizarRef(referenciaCompleta);
+    const disenoLlanta = extraerDiseno(referenciaCompleta);
+    const disenoNormalizado = normalizarDiseno(disenoLlanta);
     
-    // ⭐ BUSCAR PROMOCIÓN QUE COINCIDA CON: marca + referencia + diseño
     const promo = promociones.find(p => {
       const promoRefNormalizada = normalizarRef(p.referencia);
       const promoDisenoNormalizado = normalizarDiseno(p.diseno);
@@ -87,17 +86,13 @@ function VisorStock() {
   };
 
   const marcasUnicas = [...new Set(llantas.map((l) => l.marca))].sort();
-
-  // Filtrar por marca
   let llantasFiltradas = llantas.filter((l) => l.marca === marcaSeleccionada);
 
-  // Función para extraer el rin de la referencia
   const extraerRin = (referencia) => {
     const match = referencia?.match(/R(\d+)/i);
     return match ? match[1] : "Otros";
   };
 
-  // Agrupar por dimensión de rin
   const agruparPorRin = () => {
     const grupos = {};
     llantasFiltradas.forEach((llanta) => {
@@ -146,11 +141,7 @@ function VisorStock() {
   const totalReferencias = llantasFiltradas.length;
   const stockImpares = llantasFiltradas.filter((l) => l.stock > 0 && l.stock % 2 !== 0).length;
   const stockCriticos = llantasFiltradas.filter((l) => l.stock > 0 && l.stock <= 3).length;
-  
-  // ⭐ CORREGIDO - Ahora incluye el diseño en la validación
-  const totalEnPromocion = llantasFiltradas.filter((l) => 
-    obtenerPromocion(l.marca, l.referencia, l.diseno)
-  ).length;
+  const totalEnPromocion = llantasFiltradas.filter((l) => obtenerPromocion(l.marca, l.referencia)).length;
 
   const handleOrdenar = (campo) => {
     if (ordenPor === campo) {

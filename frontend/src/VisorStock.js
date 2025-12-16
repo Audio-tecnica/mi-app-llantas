@@ -50,29 +50,39 @@ function VisorStock() {
     }
   };
 
-  // Función MEJORADA para verificar si una llanta tiene promoción
-  const obtenerPromocion = (marca, referencia) => {
+    // ⭐ FUNCIÓN CORREGIDA - Ahora valida: marca + referencia + diseño
+  const obtenerPromocion = (marca, referencia, diseno) => {
     // Normalizar la referencia de la llanta (quitar prefijos y espacios extras)
     const normalizarRef = (ref) => {
-      if (!ref) return "";
+      if (!ref) return '';
       // Quitar prefijos como LT, P, etc.
-      let normalizada = ref.replace(/^(LT|P)\s*/i, "");
+      let normalizada = ref.replace(/^(LT|P)\s*/i, '');
       // Quitar el diseño si está pegado (ejemplo: "265/65R17 G015" -> "265/65R17")
-      normalizada = normalizada.split(" ")[0];
+      normalizada = normalizada.split(' ')[0];
       // Quitar espacios y pasar a mayúsculas
       return normalizada.trim().toUpperCase();
     };
 
+    // Normalizar diseño
+    const normalizarDiseno = (dis) => {
+      if (!dis) return '';
+      return dis.trim().toUpperCase();
+    };
+
     const refNormalizada = normalizarRef(referencia);
-
-    // Buscar promoción con referencia normalizada
-    const promo = promociones.find((p) => {
+    const disenoNormalizado = normalizarDiseno(diseno);
+    
+    // ⭐ BUSCAR PROMOCIÓN QUE COINCIDA CON: marca + referencia + diseño
+    const promo = promociones.find(p => {
       const promoRefNormalizada = normalizarRef(p.referencia);
-      return (
-        p.marca === marca && promoRefNormalizada === refNormalizada && p.activa
-      );
+      const promoDisenoNormalizado = normalizarDiseno(p.diseno);
+      
+      return p.marca === marca && 
+             promoRefNormalizada === refNormalizada && 
+             promoDisenoNormalizado === disenoNormalizado &&
+             p.activa;
     });
-
+    
     return promo;
   };
 
@@ -132,19 +142,13 @@ function VisorStock() {
     }));
   };
 
-  const totalUnidades = llantasFiltradas.reduce(
-    (sum, l) => sum + (l.stock || 0),
-    0
-  );
+  const totalUnidades = llantasFiltradas.reduce((sum, l) => sum + (l.stock || 0), 0);
   const totalReferencias = llantasFiltradas.length;
-  const stockImpares = llantasFiltradas.filter(
-    (l) => l.stock > 0 && l.stock % 2 !== 0
-  ).length;
-  const stockCriticos = llantasFiltradas.filter(
-    (l) => l.stock > 0 && l.stock <= 3
-  ).length;
-
-  const totalEnPromocion = llantasFiltradas.filter((l) =>
+  const stockImpares = llantasFiltradas.filter((l) => l.stock > 0 && l.stock % 2 !== 0).length;
+  const stockCriticos = llantasFiltradas.filter((l) => l.stock > 0 && l.stock <= 3).length;
+  
+  // ⭐ CORREGIDO - Ahora incluye el diseño en la validación
+  const totalEnPromocion = llantasFiltradas.filter((l) => 
     obtenerPromocion(l.marca, l.referencia, l.diseno)
   ).length;
 

@@ -7,35 +7,34 @@ const path = require("path");
 const fs = require("fs");
 const axios = require("axios");
 const FormData = require("form-data");
-const multer = require("multer");
-const pdfParse = require("pdf-parse");
+const multer = require('multer');
+const pdf = require('pdf-parse'); // ⬅️ CAMBIADO
 
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-const cloudinary = require("cloudinary").v2;
-const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
 // ===========================
 // CONFIGURAR CLOUDINARY
 // ===========================
 cloudinary.config({
-  cloud_name: "dlgub1vaf",
-  api_key: "971754543599966",
-  api_secret: "q8N34PNwLpnmBSvfhGYuk6jmYR4",
+  cloud_name: 'dlgub1vaf',
+  api_key: '971754543599966',
+  api_secret: 'q8N34PNwLpnmBSvfhGYuk6jmYR4'
 });
 
 // ⬇️⬇️⬇️ NUEVO: API KEY DE REMOVE.BG ⬇️⬇️⬇️
-const REMOVE_BG_API_KEY =
-  process.env.REMOVE_BG_API_KEY || "BFz2WwvkwPfh33YAbnMiD7Ke";
+const REMOVE_BG_API_KEY = process.env.REMOVE_BG_API_KEY || 'BFz2WwvkwPfh33YAbnMiD7Ke';
 
 // Configuración de Cloudinary para imágenes
 const cloudinaryStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: "llantas",
-    allowed_formats: ["jpg", "png", "jpeg", "webp"],
-  },
+    folder: 'llantas',
+    allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
+  }
 });
 
 // ⬅️ Para subir imágenes a Cloudinary
@@ -83,7 +82,7 @@ async function crearTabla() {
         comentario TEXT DEFAULT ''
       )
     `);
-
+    
     await pool.query(`
       DO $$ 
       BEGIN
@@ -98,7 +97,7 @@ async function crearTabla() {
         END IF;
       END $$;
     `);
-
+    
     console.log('Tabla "llantas" lista con todas las columnas.');
   } catch (err) {
     console.error("Error creando tabla:", err);
@@ -113,27 +112,24 @@ crearTabla();
  */
 async function removerFondoRin(imageUrl) {
   try {
-    console.log("🔄 Procesando imagen con remove.bg:", imageUrl);
+    console.log('🔄 Procesando imagen con remove.bg:', imageUrl);
 
-    const imageResponse = await axios.get(imageUrl, {
-      responseType: "arraybuffer",
+    const imageResponse = await axios.get(imageUrl, { 
+      responseType: 'arraybuffer' 
     });
 
     const formData = new FormData();
-    formData.append(
-      "image_file_b64",
-      Buffer.from(imageResponse.data).toString("base64")
-    );
-    formData.append("size", "auto");
+    formData.append('image_file_b64', Buffer.from(imageResponse.data).toString('base64'));
+    formData.append('size', 'auto');
 
     const response = await axios({
-      method: "post",
-      url: "https://api.remove.bg/v1.0/removebg",
+      method: 'post',
+      url: 'https://api.remove.bg/v1.0/removebg',
       data: formData,
-      responseType: "arraybuffer",
+      responseType: 'arraybuffer',
       headers: {
         ...formData.getHeaders(),
-        "X-Api-Key": REMOVE_BG_API_KEY,
+        'X-Api-Key': REMOVE_BG_API_KEY,
       },
     });
 
@@ -141,24 +137,21 @@ async function removerFondoRin(imageUrl) {
       throw new Error(`remove.bg retornó status ${response.status}`);
     }
 
-    console.log("✅ Fondo removido exitosamente");
+    console.log('✅ Fondo removido exitosamente');
 
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
-          folder: "rines",
-          format: "png",
+          folder: 'rines',
+          format: 'png',
           public_id: `sin-fondo-${Date.now()}`,
         },
         (error, result) => {
           if (error) {
-            console.error("❌ Error subiendo a Cloudinary:", error);
+            console.error('❌ Error subiendo a Cloudinary:', error);
             reject(error);
           } else {
-            console.log(
-              "✅ Imagen sin fondo subida a Cloudinary:",
-              result.secure_url
-            );
+            console.log('✅ Imagen sin fondo subida a Cloudinary:', result.secure_url);
             resolve(result.secure_url);
           }
         }
@@ -166,13 +159,14 @@ async function removerFondoRin(imageUrl) {
 
       uploadStream.end(Buffer.from(response.data));
     });
+
   } catch (error) {
-    console.error("❌ Error al remover fondo:", error.message);
-
+    console.error('❌ Error al remover fondo:', error.message);
+    
     if (error.response?.status === 403) {
-      console.error("❌ API Key inválida o límite de remove.bg alcanzado");
+      console.error('❌ API Key inválida o límite de remove.bg alcanzado');
     }
-
+    
     return imageUrl;
   }
 }
@@ -183,23 +177,23 @@ async function removerFondoRin(imageUrl) {
 app.post("/api/rines/:id/procesar-fondo", async (req, res) => {
   try {
     const { id } = req.params;
-
+    
     console.log(`🔄 Procesando fondo del rin ID: ${id}`);
 
     const result = await pool.query("SELECT * FROM rines WHERE id = $1", [id]);
-
+    
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "Rin no encontrado" });
     }
 
     const rin = result.rows[0];
-
+    
     if (!rin.foto) {
       return res.status(400).json({ error: "El rin no tiene foto" });
     }
 
     const urlSinFondo = await removerFondoRin(rin.foto);
-
+    
     await pool.query(
       "UPDATE rines SET foto = $1, foto_original = $2 WHERE id = $3",
       [urlSinFondo, rin.foto, id]
@@ -207,15 +201,16 @@ app.post("/api/rines/:id/procesar-fondo", async (req, res) => {
 
     res.json({
       success: true,
-      message: "Fondo removido correctamente",
+      message: 'Fondo removido correctamente',
       foto_nueva: urlSinFondo,
-      foto_original: rin.foto,
+      foto_original: rin.foto
     });
+
   } catch (error) {
-    console.error("❌ Error procesando fondo:", error);
-    res.status(500).json({
-      error: "Error al procesar imagen",
-      detalle: error.message,
+    console.error('❌ Error procesando fondo:', error);
+    res.status(500).json({ 
+      error: 'Error al procesar imagen',
+      detalle: error.message 
     });
   }
 });
@@ -225,18 +220,16 @@ app.post("/api/rines/:id/procesar-fondo", async (req, res) => {
  */
 app.post("/api/rines/procesar-todos", async (req, res) => {
   try {
-    console.log("🔄 Iniciando procesamiento en lote...");
+    console.log('🔄 Iniciando procesamiento en lote...');
 
-    const result = await pool.query(
-      "SELECT * FROM rines WHERE foto IS NOT NULL"
-    );
+    const result = await pool.query("SELECT * FROM rines WHERE foto IS NOT NULL");
     const rines = result.rows;
 
     const resultados = {
       total: rines.length,
       exitosos: 0,
       fallidos: 0,
-      detalles: [],
+      detalles: []
     };
 
     for (const rin of rines) {
@@ -247,55 +240,57 @@ app.post("/api/rines/procesar-todos", async (req, res) => {
         }
 
         console.log(`🔄 Procesando rin ${rin.id}: ${rin.referencia}`);
-
+        
         const urlSinFondo = await removerFondoRin(rin.foto);
-
+        
         if (urlSinFondo !== rin.foto) {
           await pool.query(
             "UPDATE rines SET foto = $1, foto_original = $2 WHERE id = $3",
             [urlSinFondo, rin.foto, rin.id]
           );
-
+          
           resultados.exitosos++;
           resultados.detalles.push({
             id: rin.id,
             referencia: rin.referencia,
-            estado: "exitoso",
+            estado: 'exitoso'
           });
         } else {
           resultados.fallidos++;
           resultados.detalles.push({
             id: rin.id,
             referencia: rin.referencia,
-            estado: "fallido",
+            estado: 'fallido'
           });
         }
 
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
       } catch (error) {
         console.error(`❌ Error procesando rin ${rin.id}:`, error.message);
         resultados.fallidos++;
         resultados.detalles.push({
           id: rin.id,
           referencia: rin.referencia,
-          estado: "error",
-          error: error.message,
+          estado: 'error',
+          error: error.message
         });
       }
     }
 
-    console.log("✅ Procesamiento completado:", resultados);
+    console.log('✅ Procesamiento completado:', resultados);
 
     res.json({
       success: true,
-      message: "Procesamiento completado",
-      resultados,
+      message: 'Procesamiento completado',
+      resultados
     });
+
   } catch (error) {
-    console.error("❌ Error en procesamiento en lote:", error);
-    res.status(500).json({
-      error: "Error al procesar lote",
-      detalle: error.message,
+    console.error('❌ Error en procesamiento en lote:', error);
+    res.status(500).json({ 
+      error: 'Error al procesar lote',
+      detalle: error.message 
     });
   }
 });
@@ -331,7 +326,7 @@ app.post("/api/upload", fileUpload(), async (req, res) => {
         parseInt(l["precio_cliente"]) || 0,
         parseInt(l["stock"]) || 0,
         l["consignacion"] || false,
-        l["comentario"] || "",
+        l["comentario"] || ""
       ]);
     }
 
@@ -342,14 +337,10 @@ app.post("/api/upload", fileUpload(), async (req, res) => {
   }
 });
 
-// REEMPLAZA estos 3 endpoints en tu index.js (líneas ~363-438)
-
-// Obtener llantas - ACTUALIZADO para incluir 'diseno'
+// Obtener llantas
 app.get("/api/llantas", async (req, res) => {
   try {
-    const { rows } = await pool.query(
-      "SELECT id, marca, referencia, diseno, stock, proveedor, costo_empresa, precio_cliente, consignacion, comentario FROM llantas ORDER BY id ASC"
-    );
+    const { rows } = await pool.query("SELECT * FROM llantas ORDER BY id ASC");
     res.json(rows);
   } catch (e) {
     console.error("Error obteniendo llantas:", e);
@@ -357,87 +348,63 @@ app.get("/api/llantas", async (req, res) => {
   }
 });
 
-// Editar llanta - ACTUALIZADO para incluir 'diseno'
-app.post("/api/editar-llanta", async (req, res) => {
-  const {
-    id,
-    referencia,
-    marca,
-    diseno,
-    proveedor,
-    costo_empresa,
-    precio_cliente,
-    stock,
-    consignacion,
-    comentario,
-  } = req.body;
-
+// Editar llanta
+app.post('/api/editar-llanta', async (req, res) => {
+  const { id, referencia, marca, proveedor, costo_empresa, precio_cliente, stock, consignacion, comentario } = req.body;
+  
   try {
     await pool.query(
       `UPDATE llantas SET 
         referencia = $1, 
         marca = $2, 
-        diseno = $3,
-        proveedor = $4, 
-        costo_empresa = $5, 
-        precio_cliente = $6, 
-        stock = $7, 
-        consignacion = $8, 
-        comentario = $9 
-      WHERE id = $10`,
+        proveedor = $3, 
+        costo_empresa = $4, 
+        precio_cliente = $5, 
+        stock = $6, 
+        consignacion = $7, 
+        comentario = $8 
+      WHERE id = $9`,
       [
-        referencia,
-        marca,
-        diseno || "",
-        proveedor,
-        parseInt(costo_empresa),
-        parseInt(precio_cliente),
-        parseInt(stock),
-        consignacion || false,
-        comentario || "",
-        id,
+        referencia, 
+        marca, 
+        proveedor, 
+        parseInt(costo_empresa), 
+        parseInt(precio_cliente), 
+        parseInt(stock), 
+        consignacion || false, 
+        comentario || '', 
+        id
       ]
     );
     res.json({ success: true });
   } catch (error) {
-    console.error("Error editando llanta:", error);
+    console.error('Error editando llanta:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// Agregar llanta - ACTUALIZADO para incluir 'diseno'
+// Agregar llanta
 app.post("/api/agregar-llanta", async (req, res) => {
-  const {
-    referencia,
-    marca,
-    diseno,
-    proveedor,
-    costo_empresa,
-    precio_cliente,
-    stock,
-    consignacion,
-    comentario,
-  } = req.body;
+  const { referencia, marca, proveedor, costo_empresa, precio_cliente, stock, consignacion, comentario } = req.body;
 
   try {
     await pool.query(
-      `INSERT INTO llantas (referencia, marca, diseno, proveedor, costo_empresa, precio_cliente, stock, consignacion, comentario)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+      `INSERT INTO llantas (referencia, marca, proveedor, costo_empresa, precio_cliente, stock, consignacion, comentario)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
       [
         referencia,
         marca,
-        diseno || "",
         proveedor,
         parseInt(costo_empresa),
         parseInt(precio_cliente),
         parseInt(stock),
         consignacion || false,
-        comentario || "",
+        comentario || ''
       ]
     );
     res.json({ success: true });
   } catch (e) {
-    console.error("Error agregando llanta:", e);
+    console.error('Error agregando llanta:', e);
     res.status(500).json({ error: "Error agregando llanta" });
   }
 });
@@ -544,8 +511,7 @@ app.get("/api/rines", async (req, res) => {
 
 // Agregar rin
 app.post("/api/agregar-rin", async (req, res) => {
-  const { marca, referencia, proveedor, medida, costo, precio, stock } =
-    req.body;
+  const { marca, referencia, proveedor, medida, costo, precio, stock } = req.body;
 
   try {
     const result = await pool.query(
@@ -564,7 +530,7 @@ app.post("/api/agregar-rin", async (req, res) => {
         parseInt(stock) || 0,
       ]
     );
-
+    
     res.json(result.rows[0]);
   } catch (error) {
     console.error("Error agregando rin:", error);
@@ -574,18 +540,7 @@ app.post("/api/agregar-rin", async (req, res) => {
 
 // Editar rin
 app.post("/api/editar-rin", async (req, res) => {
-  const {
-    id,
-    marca,
-    referencia,
-    proveedor,
-    medida,
-    costo,
-    precio,
-    stock,
-    remision,
-    comentario,
-  } = req.body;
+  const { id, marca, referencia, proveedor, medida, costo, precio, stock, remision, comentario } = req.body;
 
   console.log("📥 Datos recibidos para editar:", req.body);
 
@@ -616,14 +571,14 @@ app.post("/api/editar-rin", async (req, res) => {
         id,
       ]
     );
-
+    
     console.log("✅ Rin actualizado:", result.rows[0]);
     res.json(result.rows[0]);
   } catch (error) {
     console.error("❌ Error editando rin:", error);
-    res.status(500).json({
+    res.status(500).json({ 
       error: "Error editando rin",
-      detalle: error.message,
+      detalle: error.message 
     });
   }
 });
@@ -640,69 +595,62 @@ app.post("/api/eliminar-rin", async (req, res) => {
 });
 
 // ===========================
-//   SUBIR FOTO PARA RINES
+//   SUBIR FOTO PARA RINES 
 // ===========================
-app.post(
-  "/api/rines/subir-foto",
-  uploadImage.single("foto"),
-  async (req, res) => {
-    try {
-      console.log("📥 Body recibido:", req.body);
-      console.log("📸 Archivo recibido:", req.file);
-
-      const { id, procesarFondo } = req.body;
-
-      if (!id) {
-        console.error("❌ ID no proporcionado");
-        return res.status(400).json({ error: "ID del rin no proporcionado" });
-      }
-
-      if (!req.file) {
-        console.error("❌ No se recibió archivo");
-        return res.status(400).json({ error: "No se recibió ninguna imagen" });
-      }
-
-      let urlFoto = req.file.path;
-
-      console.log("✅ Foto subida a Cloudinary:", urlFoto);
-
-      if (procesarFondo === "true" || procesarFondo === true) {
-        console.log("🔄 Procesando fondo automáticamente...");
-        const urlSinFondo = await removerFondoRin(urlFoto);
-
-        if (urlSinFondo !== urlFoto) {
-          await pool.query(
-            "UPDATE rines SET foto = $1, foto_original = $2 WHERE id = $3",
-            [urlSinFondo, urlFoto, id]
-          );
-
-          console.log("✅ Foto procesada y guardada");
-          return res.json({
-            success: true,
-            foto: urlSinFondo,
-            foto_original: urlFoto,
-            procesada: true,
-          });
-        }
-      }
-
-      await pool.query("UPDATE rines SET foto = $1 WHERE id = $2", [
-        urlFoto,
-        id,
-      ]);
-
-      console.log("✅ URL guardada en BD para rin ID:", id);
-
-      res.json({ success: true, foto: urlFoto, procesada: false });
-    } catch (error) {
-      console.error("❌ Error completo al subir foto:", error);
-      res.status(500).json({
-        error: error.message || "Error al subir foto",
-        details: error.toString(),
-      });
+app.post("/api/rines/subir-foto", uploadImage.single('foto'), async (req, res) => {
+  try {
+    console.log("📥 Body recibido:", req.body);
+    console.log("📸 Archivo recibido:", req.file);
+    
+    const { id, procesarFondo } = req.body;
+    
+    if (!id) {
+      console.error("❌ ID no proporcionado");
+      return res.status(400).json({ error: "ID del rin no proporcionado" });
     }
+    
+    if (!req.file) {
+      console.error("❌ No se recibió archivo");
+      return res.status(400).json({ error: "No se recibió ninguna imagen" });
+    }
+
+    let urlFoto = req.file.path;
+
+    console.log("✅ Foto subida a Cloudinary:", urlFoto);
+
+    if (procesarFondo === 'true' || procesarFondo === true) {
+      console.log("🔄 Procesando fondo automáticamente...");
+      const urlSinFondo = await removerFondoRin(urlFoto);
+      
+      if (urlSinFondo !== urlFoto) {
+        await pool.query(
+          "UPDATE rines SET foto = $1, foto_original = $2 WHERE id = $3", 
+          [urlSinFondo, urlFoto, id]
+        );
+        
+        console.log("✅ Foto procesada y guardada");
+        return res.json({ 
+          success: true, 
+          foto: urlSinFondo,
+          foto_original: urlFoto,
+          procesada: true
+        });
+      }
+    }
+
+    await pool.query("UPDATE rines SET foto = $1 WHERE id = $2", [urlFoto, id]);
+
+    console.log("✅ URL guardada en BD para rin ID:", id);
+
+    res.json({ success: true, foto: urlFoto, procesada: false });
+  } catch (error) {
+    console.error("❌ Error completo al subir foto:", error);
+    res.status(500).json({ 
+      error: error.message || "Error al subir foto",
+      details: error.toString()
+    });
   }
-);
+});
 
 // ===========================
 //        LOGS ACTIVIDAD
@@ -721,9 +669,7 @@ app.post("/api/log-actividad", async (req, res) => {
     res.json({ success: true, id: result.rows[0].id });
   } catch (err) {
     console.error("❌ Error guardando log:", err);
-    res
-      .status(500)
-      .json({ error: "Error al guardar log", detalles: err.message });
+    res.status(500).json({ error: "Error al guardar log", detalles: err.message });
   }
 });
 
@@ -737,9 +683,7 @@ app.get("/api/logs", async (req, res) => {
     res.json(result.rows);
   } catch (err) {
     console.error("❌ Error obteniendo logs:", err);
-    res
-      .status(500)
-      .json({ error: "Error al obtener logs", detalles: err.message });
+    res.status(500).json({ error: "Error al obtener logs", detalles: err.message });
   }
 });
 
@@ -826,9 +770,7 @@ app.post("/api/eliminar-carpa", async (req, res) => {
 // Obtener tiros de arrastre
 app.get("/api/tiros-arrastre", async (req, res) => {
   try {
-    const { rows } = await pool.query(
-      "SELECT * FROM tiros_arrastre ORDER BY id ASC"
-    );
+    const { rows } = await pool.query("SELECT * FROM tiros_arrastre ORDER BY id ASC");
     res.json(rows);
   } catch (e) {
     console.error("Error obteniendo tiros de arrastre:", e);
@@ -869,15 +811,7 @@ app.post("/api/editar-tiro-arrastre", async (req, res) => {
       `UPDATE tiros_arrastre SET
         marca=$1, referencia=$2, proveedor=$3, costo=$4, precio=$5, stock=$6
        WHERE id=$7`,
-      [
-        marca,
-        referencia,
-        proveedor || "",
-        parseFloat(costo),
-        parseFloat(precio),
-        parseInt(stock),
-        id,
-      ]
+      [marca, referencia, proveedor || "", parseFloat(costo), parseFloat(precio), parseInt(stock), id]
     );
     res.json({ success: true });
   } catch (e) {
@@ -943,15 +877,7 @@ app.post("/api/editar-sonido", async (req, res) => {
       `UPDATE sonido SET
         marca=$1, referencia=$2, proveedor=$3, costo=$4, precio=$5, stock=$6
        WHERE id=$7`,
-      [
-        marca,
-        referencia,
-        proveedor || "",
-        parseFloat(costo),
-        parseFloat(precio),
-        parseInt(stock),
-        id,
-      ]
+      [marca, referencia, proveedor || "", parseFloat(costo), parseFloat(precio), parseInt(stock), id]
     );
     res.json({ success: true });
   } catch (e) {
@@ -1017,15 +943,7 @@ app.post("/api/editar-luz", async (req, res) => {
       `UPDATE luces SET
         marca=$1, referencia=$2, proveedor=$3, costo=$4, precio=$5, stock=$6
        WHERE id=$7`,
-      [
-        marca,
-        referencia,
-        proveedor || "",
-        parseFloat(costo),
-        parseFloat(precio),
-        parseInt(stock),
-        id,
-      ]
+      [marca, referencia, proveedor || "", parseFloat(costo), parseFloat(precio), parseInt(stock), id]
     );
     res.json({ success: true });
   } catch (e) {
@@ -1051,7 +969,7 @@ app.post("/api/eliminar-luz", async (req, res) => {
 app.get("/api/promociones", async (req, res) => {
   try {
     const { rows } = await pool.query(
-      "SELECT * FROM promociones ORDER BY marca, referencia, diseno"
+      "SELECT * FROM promociones ORDER BY marca, referencia"
     );
     res.json(rows);
   } catch (e) {
@@ -1061,162 +979,172 @@ app.get("/api/promociones", async (req, res) => {
 });
 
 // Procesar PDF de promociones
-app.post(
-  "/api/procesar-promociones",
-  uploadPDF.single("pdf"),
-  async (req, res) => {
-    console.log("🔥 INICIO - Recibida petición de procesar PDF");
-
-    try {
-      console.log("📥 Verificando archivo...");
-      console.log("req.file:", req.file ? "SÍ EXISTE" : "NO EXISTE");
-
-      if (!req.file) {
-        console.log("❌ No se recibió archivo PDF");
-        return res.status(400).json({ error: "No se recibió archivo PDF" });
-      }
-
-      console.log("📄 Tamaño del archivo:", req.file.size, "bytes");
-      console.log("📄 Tipo MIME:", req.file.mimetype);
-      console.log("📄 Iniciando extracción de texto con pdf-parse...");
-
-      // Extraer texto del PDF
-      const pdfData = await pdfParse.default(req.file.buffer);
-      const texto = pdfData.text;
-
-      console.log("✅ Texto extraído correctamente");
-      console.log("📄 Longitud del texto:", texto.length, "caracteres");
-      console.log("📄 Primeros 500 caracteres:");
-      console.log(texto.substring(0, 500));
-      console.log("---");
-
-      // Detectar mes actual
-      const mesActual = new Date().toLocaleDateString("es-CO", {
-        month: "long",
-        year: "numeric",
-      });
-      console.log("📅 Mes actual:", mesActual);
-
-      // Detectar marca actual
-      let marcaActual = "DESCONOCIDA";
-      const textoUpper = texto.toUpperCase();
-
-      if (textoUpper.includes("YOKOHAMA")) marcaActual = "YOKOHAMA";
-      else if (textoUpper.includes("PIRELLI")) marcaActual = "PIRELLI";
-      else if (textoUpper.includes("GOODYEAR")) marcaActual = "GOODYEAR";
-      else if (textoUpper.includes("FEDERAL")) marcaActual = "FEDERAL";
-      else if (textoUpper.includes("NITTO")) marcaActual = "NITTO";
-      else if (textoUpper.includes("ALLIANCE")) marcaActual = "ALLIANCE";
-      else if (textoUpper.includes("VENOM")) marcaActual = "VENOM";
-      else if (textoUpper.includes("YEADA")) marcaActual = "YEADA";
-      else if (textoUpper.includes("GENERAL")) marcaActual = "GENERAL";
-      else if (textoUpper.includes("MOMO")) marcaActual = "MOMO";
-
-      console.log("🏷️ Marca detectada:", marcaActual);
-
-      // Desactivar promociones anteriores
-      console.log("🔄 Desactivando promociones anteriores de", marcaActual);
-      await pool.query(
-        "UPDATE promociones SET activa=false WHERE marca=$1 AND activa=true",
-        [marcaActual]
-      );
-      console.log("✅ Promociones anteriores desactivadas");
-
-      // Múltiples expresiones regulares
-      const regexFormatos = [
-        /(\d{3}\/\d{2}\s*R\d{2}[A-Z]*)\s+([A-Z0-9\s\.]+?)\s+(\d+)\s+\$?([\d,\.]+)/gi,
-        /(\d{3}\/\d{2}R\d{2}[A-Z]*)\s+([A-Z0-9\s\.]+?)\s+(\d+)\s+([\d,\.]+)/gi,
-        /(\d{3}\/\d{2}\s*R\d{2}[A-Z]*)\s*[\t\-]+\s*([A-Z0-9\s\.]+?)\s*[\t\-]+\s*(\d+)\s*[\t\-]+\s*\$?([\d,\.]+)/gi,
-      ];
-
-      let promocionesAgregadas = 0;
-      let lineasEncontradas = [];
-
-      console.log(
-        "🔍 Buscando promociones con",
-        regexFormatos.length,
-        "formatos de regex..."
-      );
-
-      for (let i = 0; i < regexFormatos.length; i++) {
-        const regex = regexFormatos[i];
-        let match;
-        let matchesEncontrados = 0;
-
-        while ((match = regex.exec(texto)) !== null) {
-          matchesEncontrados++;
-          try {
-            const referencia = match[1].trim().replace(/\s+/g, "");
-            const diseno = match[2].trim();
-            const cantidades = parseInt(match[3]);
-            const precioTexto = match[4].replace(/[,$\.]/g, "");
-            const precio = parseFloat(precioTexto);
-
-            if (
-              referencia &&
-              !isNaN(precio) &&
-              precio > 0 &&
-              !isNaN(cantidades)
-            ) {
-              lineasEncontradas.push({
-                referencia,
-                diseno,
-                cantidades,
-                precio,
-              });
-
-              await pool.query(
-                `INSERT INTO promociones (marca, referencia, diseno, precio_promo, cantidades_disponibles, mes, activa)
-               VALUES ($1, $2, $3, $4, $5, $6, true)`,
-                [marcaActual, referencia, diseno, precio, cantidades, mesActual]
-              );
-
-              promocionesAgregadas++;
-            }
-          } catch (insertError) {
-            console.error(
-              "❌ Error insertando promoción:",
-              insertError.message
-            );
-          }
-        }
-
-        console.log(
-          `   Regex ${i + 1}: ${matchesEncontrados} matches encontrados`
-        );
-      }
-
-      console.log(`✅ TOTAL: ${promocionesAgregadas} promociones agregadas`);
-      console.log("📋 Primeras 3 promociones:");
-      console.log(lineasEncontradas.slice(0, 3));
-
-      res.json({
-        success: true,
-        promocionesAgregadas,
-        marca: marcaActual,
-        mes: mesActual,
-        muestras: lineasEncontradas.slice(0, 5),
-      });
-    } catch (e) {
-      console.error("❌❌❌ ERROR FATAL:", e.message);
-      console.error("Stack trace:", e.stack);
-      res.status(500).json({
-        error: "Error procesando PDF",
-        detalle: e.message,
-      });
+app.post("/api/procesar-promociones", uploadPDF.single("pdf"), async (req, res) => {
+  console.log("🔥 INICIO - Recibida petición de procesar PDF");
+  
+  try {
+    console.log("📥 Verificando archivo...");
+    console.log("req.file:", req.file ? "SÍ EXISTE" : "NO EXISTE");
+    
+    if (!req.file) {
+      console.log("❌ No se recibió archivo PDF");
+      return res.status(400).json({ error: "No se recibió archivo PDF" });
     }
+
+    console.log("📄 Tamaño del archivo:", req.file.size, "bytes");
+    console.log("📄 Tipo MIME:", req.file.mimetype);
+    console.log("📄 Iniciando extracción de texto con pdf-parse...");
+
+    // Extraer texto del PDF
+    const pdfData = await pdf(req.file.buffer); // ⬅️ CAMBIADO
+    const texto = pdfData.text;
+
+    console.log("✅ Texto extraído correctamente");
+    console.log("📄 Longitud del texto:", texto.length, "caracteres");
+    console.log("📄 Primeros 500 caracteres:");
+    console.log(texto.substring(0, 500));
+    console.log("---");
+
+    // Detectar mes actual
+    const mesActual = new Date().toLocaleDateString("es-CO", {
+      month: "long",
+      year: "numeric",
+    });
+    console.log("📅 Mes actual:", mesActual);
+
+    // Detectar marca actual
+    let marcaActual = "DESCONOCIDA";
+    const textoUpper = texto.toUpperCase();
+    
+    if (textoUpper.includes("YOKOHAMA")) marcaActual = "YOKOHAMA";
+    else if (textoUpper.includes("PIRELLI")) marcaActual = "PIRELLI";
+    else if (textoUpper.includes("GOODYEAR")) marcaActual = "GOODYEAR";
+    else if (textoUpper.includes("FEDERAL")) marcaActual = "FEDERAL";
+    else if (textoUpper.includes("NITTO")) marcaActual = "NITTO";
+    else if (textoUpper.includes("ALLIANCE")) marcaActual = "ALLIANCE";
+    else if (textoUpper.includes("VENOM")) marcaActual = "VENOM";
+    else if (textoUpper.includes("YEADA")) marcaActual = "YEADA";
+    else if (textoUpper.includes("GENERAL")) marcaActual = "GENERAL";
+    else if (textoUpper.includes("MOMO")) marcaActual = "MOMO";
+
+    console.log("🏷️ Marca detectada:", marcaActual);
+
+    // Desactivar promociones anteriores
+    console.log("🔄 Desactivando promociones anteriores de", marcaActual);
+    await pool.query(
+      "UPDATE promociones SET activa=false WHERE marca=$1 AND activa=true",
+      [marcaActual]
+    );
+    console.log("✅ Promociones anteriores desactivadas");
+
+    // Múltiples expresiones regulares
+    const regexFormatos = [
+      /(\d{3}\/\d{2}\s*R\d{2}[A-Z]*)\s+([A-Z0-9\s\.]+?)\s+(\d+)\s+\$?([\d,\.]+)/gi,
+      /(\d{3}\/\d{2}R\d{2}[A-Z]*)\s+([A-Z0-9\s\.]+?)\s+(\d+)\s+([\d,\.]+)/gi,
+      /(\d{3}\/\d{2}\s*R\d{2}[A-Z]*)\s*[\t\-]+\s*([A-Z0-9\s\.]+?)\s*[\t\-]+\s*(\d+)\s*[\t\-]+\s*\$?([\d,\.]+)/gi,
+    ];
+
+    let promocionesAgregadas = 0;
+    let lineasEncontradas = [];
+
+    console.log("🔍 Buscando promociones con", regexFormatos.length, "formatos de regex...");
+
+    for (let i = 0; i < regexFormatos.length; i++) {
+      const regex = regexFormatos[i];
+      let match;
+      let matchesEncontrados = 0;
+      
+      while ((match = regex.exec(texto)) !== null) {
+        matchesEncontrados++;
+        try {
+          const referencia = match[1].trim().replace(/\s+/g, "");
+          const diseno = match[2].trim();
+          const cantidades = parseInt(match[3]);
+          const precioTexto = match[4].replace(/[,$\.]/g, "");
+          const precio = parseFloat(precioTexto);
+
+          if (referencia && !isNaN(precio) && precio > 0 && !isNaN(cantidades)) {
+            lineasEncontradas.push({ referencia, diseno, cantidades, precio });
+
+            await pool.query(
+              `INSERT INTO promociones (marca, referencia, diseno, precio_promo, cantidades_disponibles, mes, activa)
+               VALUES ($1, $2, $3, $4, $5, $6, true)`,
+              [marcaActual, referencia, diseno, precio, cantidades, mesActual]
+            );
+            
+            promocionesAgregadas++;
+          }
+        } catch (insertError) {
+          console.error("❌ Error insertando promoción:", insertError.message);
+        }
+      }
+      
+      console.log(`   Regex ${i + 1}: ${matchesEncontrados} matches encontrados`);
+    }
+
+    console.log(`✅ TOTAL: ${promocionesAgregadas} promociones agregadas`);
+    console.log("📋 Primeras 3 promociones:");
+    console.log(lineasEncontradas.slice(0, 3));
+
+    res.json({
+      success: true,
+      promocionesAgregadas,
+      marca: marcaActual,
+      mes: mesActual,
+      muestras: lineasEncontradas.slice(0, 5)
+    });
+
+  } catch (e) {
+    console.error("❌❌❌ ERROR FATAL:", e.message);
+    console.error("Stack trace:", e.stack);
+    res.status(500).json({ 
+      error: "Error procesando PDF",
+      detalle: e.message
+    });
   }
-);
+});
+
+// Desactivar promoción
+app.post("/api/desactivar-promocion", async (req, res) => {
+  const { id } = req.body;
+  try {
+    await pool.query("UPDATE promociones SET activa=false WHERE id=$1", [id]);
+    res.json({ success: true });
+  } catch (e) {
+    console.error("Error desactivando promoción:", e);
+    res.status(500).json({ error: "Error desactivando promoción" });
+  }
+});
+
+// Limpiar promociones inactivas
+app.post("/api/limpiar-promociones-inactivas", async (req, res) => {
+  try {
+    await pool.query("DELETE FROM promociones WHERE activa=false");
+    res.json({ success: true });
+  } catch (e) {
+    console.error("Error limpiando promociones:", e);
+    res.status(500).json({ error: "Error limpiando promociones" });
+  }
+});
+
+// Verificar si una llanta tiene promoción
+app.get("/api/verificar-promocion/:marca/:referencia", async (req, res) => {
+  const { marca, referencia } = req.params;
+  try {
+    const { rows } = await pool.query(
+      "SELECT * FROM promociones WHERE marca=$1 AND referencia=$2 AND activa=true LIMIT 1",
+      [marca, referencia]
+    );
+    res.json(rows[0] || null);
+  } catch (e) {
+    console.error("Error verificando promoción:", e);
+    res.status(500).json({ error: "Error verificando promoción" });
+  }
+});
 
 // Run server
 app.listen(PORT, () => {
   console.log(`✅ Servidor escuchando en puerto ${PORT}`);
   console.log(`📁 Cloudinary configurado correctamente`);
-  console.log(
-    `🎨 Remove.bg ${
-      REMOVE_BG_API_KEY !== "TU_API_KEY_AQUI"
-        ? "ACTIVADO ✅"
-        : "PENDIENTE (configura tu API key)"
-    }`
-  );
+  console.log(`🎨 Remove.bg ${REMOVE_BG_API_KEY !== 'TU_API_KEY_AQUI' ? 'ACTIVADO ✅' : 'PENDIENTE (configura tu API key)'}`);
 });

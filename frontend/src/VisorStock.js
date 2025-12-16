@@ -171,12 +171,46 @@ function VisorStock() {
             proveedor: llanta.proveedor,
             stockActual: llanta.stock,
             cantidadPedir: cantidadNum,
+            esPersonalizada: false
           },
         ]);
       }
       
       alert(`✅ ${cantidadNum} unidades agregadas al pedido`);
     }
+  };
+
+  // Agregar referencia personalizada
+  const agregarReferenciaPersonalizada = () => {
+    const referencia = prompt("Ingresa la referencia (ej: 225/45R17):");
+    if (!referencia || referencia.trim() === "") return;
+
+    const diseno = prompt("Ingresa el diseño (opcional):");
+    const cantidad = prompt("¿Cuántas unidades?", "4");
+    
+    if (!cantidad || isNaN(cantidad) || parseInt(cantidad) <= 0) {
+      alert("⚠️ Cantidad inválida");
+      return;
+    }
+
+    // Agregar al carrito con ID temporal negativo
+    const nuevoId = -(carritoPedido.length + 1);
+    
+    setCarritoPedido((prev) => [
+      ...prev,
+      {
+        id: nuevoId,
+        referencia: referencia.trim(),
+        diseno: diseno ? diseno.trim() : null,
+        marca: marcaSeleccionada,
+        proveedor: "Por confirmar",
+        stockActual: 0,
+        cantidadPedir: parseInt(cantidad),
+        esPersonalizada: true
+      },
+    ]);
+
+    alert(`✅ Referencia personalizada agregada: ${referencia}`);
   };
 
   const eliminarDelCarrito = (id) => {
@@ -214,10 +248,17 @@ function VisorStock() {
 
     carritoPedido.forEach((item, index) => {
       texto += `${index + 1}. *${item.referencia}*\n`;
+      if (item.diseno) {
+        texto += `   Diseño: ${item.diseno}\n`;
+      }
       texto += `   Cantidad: *${item.cantidadPedir} unidades*\n`;
-      if (item.proveedor) {
+      
+      if (item.esPersonalizada) {
+        texto += `   ⚠️ *REFERENCIA NO EN INVENTARIO*\n`;
+      } else if (item.proveedor && item.proveedor !== "Por confirmar") {
         texto += `   Proveedor: ${item.proveedor}\n`;
       }
+      
       texto += `\n`;
     });
 
@@ -556,7 +597,7 @@ function VisorStock() {
                     <ShoppingCart size={64} className="mx-auto text-gray-300 mb-4" />
                     <p className="text-gray-500 text-lg">El carrito está vacío</p>
                     <p className="text-gray-400 text-sm mt-2">
-                      Agrega productos desde la lista
+                      Agrega productos desde la lista o usa el botón de abajo para agregar referencias personalizadas
                     </p>
                   </div>
                 ) : (
@@ -568,12 +609,22 @@ function VisorStock() {
                       >
                         <div className="flex justify-between items-start mb-3">
                           <div className="flex-1">
-                            <h3 className="font-bold text-lg text-gray-800">
+                            <h3 className="font-bold text-lg text-gray-800 flex items-center gap-2">
                               {item.referencia}
+                              {item.esPersonalizada && (
+                                <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full">
+                                  Personalizada
+                                </span>
+                              )}
                             </h3>
                             <p className="text-sm text-gray-600">
                               Marca: {item.marca}
                             </p>
+                            {item.diseno && (
+                              <p className="text-xs text-blue-600">
+                                Diseño: {item.diseno}
+                              </p>
+                            )}
                             {item.proveedor && (
                               <p className="text-xs text-gray-500">
                                 Proveedor: {item.proveedor}
@@ -604,7 +655,27 @@ function VisorStock() {
                         </div>
                       </div>
                     ))}
+                    
+                    {/* Botón para agregar referencia personalizada */}
+                    <button
+                      onClick={agregarReferenciaPersonalizada}
+                      className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-3 rounded-xl font-bold hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                    >
+                      <span className="text-xl">➕</span>
+                      Agregar Referencia Personalizada
+                    </button>
                   </div>
+                )}
+                
+                {/* Botón para agregar referencia personalizada cuando está vacío */}
+                {carritoPedido.length === 0 && (
+                  <button
+                    onClick={agregarReferenciaPersonalizada}
+                    className="w-full mt-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-3 rounded-xl font-bold hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                  >
+                    <span className="text-xl">➕</span>
+                    Agregar Referencia Personalizada
+                  </button>
                 )}
               </div>
 

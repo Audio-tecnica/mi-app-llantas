@@ -22,95 +22,53 @@ function VisorStock() {
     cargarDatos();
   }, []);
 
-  // Reemplaza la función cargarDatos con esta versión con debug:
+  const cargarDatos = async () => {
+    setCargando(true);
+    try {
+      // Cargar llantas
+      const { data: llantasData } = await axios.get(`${API_URL}/api/llantas`);
+      setLlantas(llantasData);
 
-// Reemplaza la función cargarDatos con esta versión con debug:
+      // Cargar promociones
+      const { data: promoData } = await axios.get(`${API_URL}/api/promociones`);
+      setPromociones(promoData.filter(p => p.activa));
 
-const cargarDatos = async () => {
-  setCargando(true);
-  try {
-    // Cargar llantas
-    const { data: llantasData } = await axios.get(`${API_URL}/api/llantas`);
-    console.log("🔍 LLANTAS CARGADAS:", llantasData.length);
-    console.log("🔍 Primera llanta:", llantasData[0]);
-    console.log("🔍 Campos de la primera llanta:", Object.keys(llantasData[0] || {}));
-    setLlantas(llantasData);
-
-    // Cargar promociones
-    const { data: promoData } = await axios.get(`${API_URL}/api/promociones`);
-    console.log("🔍 PROMOCIONES CARGADAS:", promoData.length);
-    console.log("🔍 Promociones ACTIVAS:", promoData.filter(p => p.activa).length);
-    console.log("🔍 Primera promoción:", promoData[0]);
-    console.log("🔍 Promociones de YOKOHAMA:", promoData.filter(p => p.marca === 'YOKOHAMA' && p.activa).length);
-    
-    // Mostrar ejemplo de coincidencia
-    const yokohamaLlantas = llantasData.filter(l => l.marca === 'YOKOHAMA');
-    const yokohamaPromos = promoData.filter(p => p.marca === 'YOKOHAMA' && p.activa);
-    console.log("🔍 Llantas YOKOHAMA:", yokohamaLlantas.length);
-    console.log("🔍 Ejemplo llanta YOKOHAMA:", yokohamaLlantas[0]);
-    console.log("🔍 Ejemplo promo YOKOHAMA:", yokohamaPromos[0]);
-    
-    // Ver las primeras 10 referencias de llantas YOKOHAMA
-    console.log("🔍 REFERENCIAS DE LLANTAS YOKOHAMA:");
-    yokohamaLlantas.slice(0, 10).forEach(l => {
-      console.log(`   ${l.referencia} - Diseño: ${l.diseno || 'NULL'}`);
-    });
-    
-    // Ver las primeras 10 referencias de promociones YOKOHAMA
-    console.log("🔍 REFERENCIAS DE PROMOS YOKOHAMA:");
-    yokohamaPromos.slice(0, 10).forEach(p => {
-      console.log(`   ${p.referencia} - Diseño: ${p.diseno}`);
-    });
-    
-    // Intentar hacer match manual
-    if (yokohamaLlantas[0] && yokohamaPromos[0]) {
-      const llanta = yokohamaLlantas.find(l => l.referencia === '215/55R17');
-      const promo = yokohamaPromos.find(p => p.referencia === '215/55R17');
-      console.log("🔍 Llanta 215/55R17:", llanta);
-      console.log("🔍 Promo 215/55R17:", promo);
-      
-      if (llanta && promo) {
-        console.log("🔍 COMPARACIÓN:");
-        console.log("   Llanta.diseno:", llanta.diseno, "| Tipo:", typeof llanta.diseno);
-        console.log("   Promo.diseno:", promo.diseno, "| Tipo:", typeof promo.diseno);
-        console.log("   ¿Son iguales?:", llanta.diseno === promo.diseno);
-      } else {
-        console.log("⚠️ NO HAY COINCIDENCIA - La llanta no existe en el inventario");
+      const marcas = [...new Set(llantasData.map((l) => l.marca))].sort();
+      if (marcas.length > 0) {
+        setMarcaSeleccionada(marcas[0]);
       }
+    } catch (err) {
+      console.error("Error cargando datos:", err);
+    } finally {
+      setCargando(false);
     }
+  };
+
+  // Función MEJORADA para verificar si una llanta tiene promoción
+  const obtenerPromocion = (marca, referencia) => {
+    // Normalizar la referencia de la llanta (quitar prefijos y espacios extras)
+    const normalizarRef = (ref) => {
+      if (!ref) return '';
+      // Quitar prefijos como LT, P, etc.
+      let normalizada = ref.replace(/^(LT|P)\s*/i, '');
+      // Quitar el diseño si está pegado (ejemplo: "265/65R17 G015" -> "265/65R17")
+      normalizada = normalizada.split(' ')[0];
+      // Quitar espacios y pasar a mayúsculas
+      return normalizada.trim().toUpperCase();
+    };
+
+    const refNormalizada = normalizarRef(referencia);
     
-    setPromociones(promoData.filter(p => p.activa));
-
-    const marcas = [...new Set(llantasData.map((l) => l.marca))].sort();
-    if (marcas.length > 0) {
-      setMarcaSeleccionada(marcas[0]);
-    }
-  } catch (err) {
-    console.error("❌ Error cargando datos:", err);
-  } finally {
-    setCargando(false);
-  }
-};
-
-  // Función ACTUALIZADA para verificar si una llanta tiene promoción
- const obtenerPromocion = (marca, referencia, diseno) => {
-  // Primero busca promoción exacta con diseño
-  const promoExacta = promociones.find(
-    p => p.marca === marca && 
-         p.referencia === referencia && 
-         p.diseno === diseno && 
-         p.activa
-  );
-  
-  if (promoExacta) return promoExacta;
-  
-  // Si no encuentra con diseño exacto, busca cualquier promoción de esa referencia
-  return promociones.find(
-    p => p.marca === marca && 
-         p.referencia === referencia && 
-         p.activa
-  );
-};
+    // Buscar promoción con referencia normalizada
+    const promo = promociones.find(p => {
+      const promoRefNormalizada = normalizarRef(p.referencia);
+      return p.marca === marca && 
+             promoRefNormalizada === refNormalizada && 
+             p.activa;
+    });
+    
+    return promo;
+  };
 
   const marcasUnicas = [...new Set(llantas.map((l) => l.marca))].sort();
 
@@ -173,9 +131,8 @@ const cargarDatos = async () => {
   const stockImpares = llantasFiltradas.filter((l) => l.stock > 0 && l.stock % 2 !== 0).length;
   const stockCriticos = llantasFiltradas.filter((l) => l.stock > 0 && l.stock <= 3).length;
   
-  // ACTUALIZADO: incluir diseño en la búsqueda
   const totalEnPromocion = llantasFiltradas.filter((l) => 
-    obtenerPromocion(l.marca, l.referencia, l.diseno)
+    obtenerPromocion(l.marca, l.referencia)
   ).length;
 
   const handleOrdenar = (campo) => {
@@ -189,7 +146,7 @@ const cargarDatos = async () => {
 
   // Agregar al carrito
   const agregarAlCarrito = (llanta) => {
-    const cantidad = prompt(`¿Cuántas unidades de ${llanta.referencia} ${llanta.diseno ? '(' + llanta.diseno + ')' : ''} vas a pedir?`, "4");
+    const cantidad = prompt(`¿Cuántas unidades de ${llanta.referencia} vas a pedir?`, "4");
     
     if (cantidad && !isNaN(cantidad) && parseInt(cantidad) > 0) {
       const cantidadNum = parseInt(cantidad);
@@ -210,7 +167,6 @@ const cargarDatos = async () => {
           {
             id: llanta.id,
             referencia: llanta.referencia,
-            diseno: llanta.diseno,
             marca: llanta.marca,
             proveedor: llanta.proveedor,
             stockActual: llanta.stock,
@@ -258,9 +214,6 @@ const cargarDatos = async () => {
 
     carritoPedido.forEach((item, index) => {
       texto += `${index + 1}. *${item.referencia}*\n`;
-      if (item.diseno) {
-        texto += `   Diseño: ${item.diseno}\n`;
-      }
       texto += `   Cantidad: *${item.cantidadPedir} unidades*\n`;
       if (item.proveedor) {
         texto += `   Proveedor: ${item.proveedor}\n`;
@@ -420,9 +373,8 @@ const cargarDatos = async () => {
                 const totalGrupo = llantasGrupo.reduce((sum, l) => sum + (l.stock || 0), 0);
                 const criticosGrupo = llantasGrupo.filter((l) => l.stock > 0 && l.stock <= 3).length;
                 const imparesGrupo = llantasGrupo.filter((l) => l.stock > 0 && l.stock % 2 !== 0).length;
-                // ACTUALIZADO: incluir diseño
                 const promosGrupo = llantasGrupo.filter((l) => 
-                  obtenerPromocion(l.marca, l.referencia, l.diseno)
+                  obtenerPromocion(l.marca, l.referencia)
                 ).length;
 
                 return (
@@ -474,9 +426,6 @@ const cargarDatos = async () => {
                               <EncabezadoOrdenable campo="referencia">
                                 Referencia
                               </EncabezadoOrdenable>
-                              <th className="p-2 text-left text-xs font-bold text-gray-700">
-                                Diseño
-                              </th>
                               <EncabezadoOrdenable campo="proveedor">
                                 Proveedor
                               </EncabezadoOrdenable>
@@ -494,8 +443,7 @@ const cargarDatos = async () => {
                               const esCritico = llanta.stock > 0 && llanta.stock <= 3;
                               const estaAgotado = llanta.stock === 0;
                               const estaEnCarrito = carritoPedido.some((item) => item.id === llanta.id);
-                              // ACTUALIZADO: incluir diseño
-                              const promocion = obtenerPromocion(llanta.marca, llanta.referencia, llanta.diseno);
+                              const promocion = obtenerPromocion(llanta.marca, llanta.referencia);
 
                               return (
                                 <tr
@@ -519,11 +467,6 @@ const cargarDatos = async () => {
                                         </div>
                                       )}
                                     </div>
-                                  </td>
-                                  <td className="p-2">
-                                    <span className="text-xs font-medium text-blue-600">
-                                      {llanta.diseno || "—"}
-                                    </span>
                                   </td>
                                   <td className="p-2">
                                     <span className="text-xs text-gray-600">

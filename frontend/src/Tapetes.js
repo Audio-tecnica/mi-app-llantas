@@ -260,7 +260,7 @@ function Tapetes() {
       >
         <div className="p-6">
           <div className="flex items-center justify-between mb-8">
-            <img src="/logowp.PNG" className="h-10 w-auto" alt="Logo" />
+            <img src="/logowp.PNG" className="h-16 w-auto" alt="Logo" />
             <button
               onClick={() => setMenuAbierto(false)}
               className="lg:hidden text-white hover:bg-slate-700 p-2 rounded"

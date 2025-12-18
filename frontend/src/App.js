@@ -744,10 +744,10 @@ function App() {
                 {filtradas.map((ll) => (
                   <div
                     key={ll.id}
-                    className="bg-white rounded-lg shadow-sm border border-gray-200 p-2.5"
+                    className="bg-white rounded-lg shadow-sm border border-gray-200 p-3"
                   >
                     {/* Header con checkbox y referencia */}
-                    <div className="flex items-start gap-1.5 mb-2">
+                    <div className="flex items-start gap-2 mb-2">
                       <input
                         type="checkbox"
                         checked={seleccionadas.includes(ll.id)}
@@ -755,19 +755,19 @@ function App() {
                         className="cursor-pointer mt-0.5 flex-shrink-0"
                       />
                       <div className="flex-1 min-w-0">
-                        <div className="font-bold text-slate-800 text-xs leading-tight truncate flex items-center gap-1">
+                        <div className="font-bold text-slate-800 text-sm leading-tight flex items-center gap-1">
                           <span className="truncate">{ll.referencia}</span>
                           {ll.comentario && (
                             <button
                               onClick={() => setComentarioModal(ll)}
-                              className="w-3.5 h-3.5 bg-blue-500 rounded-full flex items-center justify-center text-white flex-shrink-0"
-                              style={{ fontSize: "7px" }}
+                              className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center text-white flex-shrink-0"
+                              style={{ fontSize: "8px" }}
                             >
                               💬
                             </button>
                           )}
                         </div>
-                        <div className="text-[10px] text-gray-500 truncate leading-tight">
+                        <div className="text-xs text-gray-600 truncate font-medium mt-0.5">
                           {ll.marca}
                         </div>
                       </div>
@@ -775,25 +775,29 @@ function App() {
 
                     {/* Badges de consignación */}
                     {ll.consignacion && (
-                      <div className="mb-1.5">
-                        <span className="inline-block bg-orange-100 text-orange-700 text-[9px] px-1.5 py-0.5 rounded-full">
+                      <div className="mb-2">
+                        <span className="inline-block bg-orange-100 text-orange-700 text-[10px] px-2 py-0.5 rounded-full font-medium">
                           Consignación
                         </span>
                       </div>
                     )}
 
-                    {/* Info grid compacta */}
-                    <div className="space-y-0.5 text-[10px] mb-2 leading-tight">
+                    {/* Info grid - MÁS GRANDE Y VISIBLE */}
+                    <div className="space-y-1 text-xs mb-2.5">
                       <div className="flex justify-between items-center">
-                        <span className="text-gray-500">Proveedor:</span>
-                        <span className="font-medium truncate ml-1 max-w-[60%] text-right">
+                        <span className="text-gray-500 font-medium">
+                          Proveedor:
+                        </span>
+                        <span className="font-semibold truncate ml-2 max-w-[55%] text-right text-slate-800">
                           {ll.proveedor || "—"}
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-gray-500">Stock:</span>
+                        <span className="text-gray-500 font-medium">
+                          Stock:
+                        </span>
                         <span
-                          className={`font-bold ${
+                          className={`font-bold text-sm ${
                             ll.stock === 0
                               ? "text-red-600"
                               : ll.stock % 2 !== 0
@@ -805,8 +809,10 @@ function App() {
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-gray-500">Precio:</span>
-                        <span className="font-semibold text-green-600">
+                        <span className="text-gray-500 font-medium">
+                          Precio:
+                        </span>
+                        <span className="font-bold text-sm text-green-600">
                           $
                           {Number(ll.precio_cliente || 0).toLocaleString(
                             "es-CO"
@@ -815,8 +821,10 @@ function App() {
                       </div>
                       {mostrarCosto && (
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-500">Costo:</span>
-                          <span className="font-semibold text-blue-600">
+                          <span className="text-gray-500 font-medium">
+                            Costo:
+                          </span>
+                          <span className="font-bold text-sm text-blue-600">
                             $
                             {Number(ll.costo_empresa || 0).toLocaleString(
                               "es-CO"
@@ -826,8 +834,8 @@ function App() {
                       )}
                     </div>
 
-                    {/* Botones de acción ultra compactos */}
-                    <div className="grid grid-cols-3 gap-0.5">
+                    {/* Botones MÁS PEQUEÑOS - Solo iconos */}
+                    <div className="grid grid-cols-5 gap-1">
                       <button
                         onClick={() =>
                           window.open(
@@ -835,21 +843,24 @@ function App() {
                             "_blank"
                           )
                         }
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-1 py-1 text-[10px] rounded transition-all"
+                        className="bg-blue-500 hover:bg-blue-600 text-white p-1.5 rounded transition-all flex items-center justify-center"
+                        title="Buscar en Llantar"
                       >
-                        🔍
+                        <span className="text-sm">🔍</span>
                       </button>
                       <button
                         onClick={() => handleAgregarComparador(ll)}
-                        className="bg-purple-500 hover:bg-purple-600 text-white px-1 py-1 text-[10px] rounded transition-all"
+                        className="bg-purple-500 hover:bg-purple-600 text-white p-1.5 rounded transition-all flex items-center justify-center"
+                        title="Comparar"
                       >
-                        ⚖️
+                        <span className="text-sm">⚖️</span>
                       </button>
                       <button
                         onClick={() => iniciarEdicion(ll.id)}
-                        className="bg-slate-100 hover:bg-slate-200 px-1 py-1 text-[10px] rounded transition-all"
+                        className="bg-slate-200 hover:bg-slate-300 p-1.5 rounded transition-all flex items-center justify-center"
+                        title="Editar"
                       >
-                        ✏️
+                        <span className="text-sm">✏️</span>
                       </button>
                       <button
                         onClick={async () => {
@@ -861,15 +872,17 @@ function App() {
                             await guardarComentario(ll, texto);
                           }
                         }}
-                        className="bg-yellow-100 hover:bg-yellow-200 px-1 py-1 text-[10px] rounded transition-all"
+                        className="bg-yellow-100 hover:bg-yellow-200 p-1.5 rounded transition-all flex items-center justify-center"
+                        title="Comentario"
                       >
-                        💬
+                        <span className="text-sm">💬</span>
                       </button>
                       <button
                         onClick={() => handleEliminar(ll.id)}
-                        className="col-span-2 bg-red-100 hover:bg-red-200 text-red-700 px-1 py-1 text-[10px] rounded transition-all"
+                        className="bg-red-100 hover:bg-red-200 text-red-700 p-1.5 rounded transition-all flex items-center justify-center"
+                        title="Eliminar"
                       >
-                        🗑️
+                        <span className="text-sm">🗑️</span>
                       </button>
                     </div>
                   </div>

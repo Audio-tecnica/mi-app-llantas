@@ -238,19 +238,17 @@ const TarjetaLlanta = ({
               "_blank"
             )
           }
-          className="bg-blue-500 hover:bg-blue-600 text-white px-1 py-1 rounded transition-all flex items-center justify-center gap-0.5"
-          style={{ flex: "0 0 45%" }}
+          className="flex-1 bg-blue-500 active:bg-blue-600 text-white px-1.5 py-1 rounded flex items-center justify-center gap-0.5 text-[9px]"
         >
-          <span className="text-xs">🔍</span>
-          <span className="text-[9px] font-medium">Llantar</span>
+          <span className="text-[10px]">🔍</span>
+          <span className="font-medium">Llantar</span>
         </button>
         <button
           onClick={() => handleAgregarComparador(ll)}
-          className="bg-purple-500 hover:bg-purple-600 text-white px-1 py-1 rounded transition-all flex items-center justify-center gap-0.5"
-          style={{ flex: "0 0 40%" }}
+          className="flex-1 bg-purple-500 active:bg-purple-600 text-white px-1.5 py-1 rounded flex items-center justify-center gap-0.5 text-[9px]"
         >
-          <span className="text-xs">⚖️</span>
-          <span className="text-[9px] font-medium">Web</span>
+          <span className="text-[10px]">⚖️</span>
+          <span className="font-medium">Web</span>
         </button>
 
         {/* Menú de 3 puntos */}

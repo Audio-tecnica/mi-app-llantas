@@ -227,7 +227,7 @@ const TarjetaLlanta = ({
         )}
       </div>
 
-      {/* Botones compactos con ancho fijo */}
+      {/* Botones más compactos */}
       <div className="flex gap-1">
         <button
           onClick={() =>
@@ -238,29 +238,26 @@ const TarjetaLlanta = ({
               "_blank"
             )
           }
-          className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1.5 rounded transition-all flex items-center justify-center gap-1"
-          style={{ minWidth: "70px" }}
+          className="bg-blue-500 hover:bg-blue-600 text-white px-1.5 py-1.5 rounded transition-all flex items-center justify-center gap-0.5 flex-1"
         >
-          <span className="text-sm">🔍</span>
-          <span className="text-[10px] font-medium">Llantar</span>
+          <span className="text-xs">🔍</span>
+          <span className="text-[9px] font-medium">Llantar</span>
         </button>
         <button
           onClick={() => handleAgregarComparador(ll)}
-          className="bg-purple-500 hover:bg-purple-600 text-white px-2 py-1.5 rounded transition-all flex items-center justify-center gap-1"
-          style={{ minWidth: "60px" }}
+          className="bg-purple-500 hover:bg-purple-600 text-white px-1.5 py-1.5 rounded transition-all flex items-center justify-center gap-0.5 flex-1"
         >
-          <span className="text-sm">⚖️</span>
-          <span className="text-[10px] font-medium">Web</span>
+          <span className="text-xs">⚖️</span>
+          <span className="text-[9px] font-medium">Web</span>
         </button>
 
         {/* Menú de 3 puntos */}
         <div className="relative">
           <button
             onClick={() => setMenuAbierto(!menuAbierto)}
-            className="bg-slate-200 hover:bg-slate-300 p-1.5 px-2.5 rounded transition-all"
-            style={{ minWidth: "32px" }}
+            className="bg-slate-200 hover:bg-slate-300 p-1.5 rounded transition-all w-8 h-full flex items-center justify-center"
           >
-            <span className="text-lg font-bold text-slate-700">⋮</span>
+            <span className="text-base font-bold text-slate-700">⋮</span>
           </button>
 
           {menuAbierto && (

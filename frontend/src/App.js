@@ -227,7 +227,7 @@ const TarjetaLlanta = ({
         )}
       </div>
 
-      {/* Botones más compactos */}
+      {/* Botones MUCHO más compactos */}
       <div className="flex gap-1">
         <button
           onClick={() =>
@@ -238,24 +238,27 @@ const TarjetaLlanta = ({
               "_blank"
             )
           }
-          className="bg-blue-500 hover:bg-blue-600 text-white px-1.5 py-1.5 rounded transition-all flex items-center justify-center gap-0.5 flex-1"
+          className="bg-blue-500 hover:bg-blue-600 text-white px-1 py-1 rounded transition-all flex items-center justify-center gap-0.5"
+          style={{ flex: "0 0 45%" }}
         >
           <span className="text-xs">🔍</span>
           <span className="text-[9px] font-medium">Llantar</span>
         </button>
         <button
           onClick={() => handleAgregarComparador(ll)}
-          className="bg-purple-500 hover:bg-purple-600 text-white px-1.5 py-1.5 rounded transition-all flex items-center justify-center gap-0.5 flex-1"
+          className="bg-purple-500 hover:bg-purple-600 text-white px-1 py-1 rounded transition-all flex items-center justify-center gap-0.5"
+          style={{ flex: "0 0 40%" }}
         >
           <span className="text-xs">⚖️</span>
           <span className="text-[9px] font-medium">Web</span>
         </button>
 
         {/* Menú de 3 puntos */}
-        <div className="relative">
+        <div className="relative" style={{ flex: "0 0 auto" }}>
           <button
             onClick={() => setMenuAbierto(!menuAbierto)}
-            className="bg-slate-200 hover:bg-slate-300 p-1.5 rounded transition-all w-8 h-full flex items-center justify-center"
+            className="bg-slate-200 hover:bg-slate-300 p-1 rounded transition-all flex items-center justify-center"
+            style={{ width: "28px", height: "28px" }}
           >
             <span className="text-base font-bold text-slate-700">⋮</span>
           </button>

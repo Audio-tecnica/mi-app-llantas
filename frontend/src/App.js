@@ -417,7 +417,7 @@ function App() {
       >
         <div className="p-6">
           <div className="flex items-center justify-between mb-8">
-            <img src="/logowp.PNG" className="h-10 w-auto" alt="Logo" />
+            <img src="/logowp.PNG" className="h-16 w-auto" alt="Logo" />
             <button
               onClick={() => setMenuAbierto(false)}
               className="lg:hidden text-white hover:bg-slate-700 p-2 rounded"
@@ -670,7 +670,7 @@ function App() {
               </div>
 
               {/* Panel de búsqueda con fondo tenue */}
-              <div className="bg-gradient-to-br from-slate-50 to-blue-80 rounded-lg shadow-sm border border-slate-200 p-4 mb-4">
+              <div className="bg-gradient-to-br from-slate-50 to-blue-150 rounded-lg shadow-sm border border-slate-200 p-4 mb-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">

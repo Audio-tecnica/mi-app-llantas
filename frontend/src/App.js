@@ -1337,7 +1337,7 @@ function App() {
             <div className="bg-slate-800 p-6 text-white">
               <div className="flex justify-between items-center">
                 <div>
-                  <h2 className="text-2xl font-bold">📋 Historial</h2>
+                  <h2 className="text-2xl font-bold">📋 Update</h2>
                   <p className="text-slate-300 text-sm mt-1">
                     Registro de cambios
                   </p>

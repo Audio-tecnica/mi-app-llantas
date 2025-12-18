@@ -14,9 +14,147 @@ const TarjetaLlanta = ({
   guardarComentario,
   handleEliminar,
   handleAgregarComparador,
+  modoEdicion,
+  actualizarCampo,
+  handleGuardar,
+  setModoEdicion,
+  setLlantaOriginalEdicion,
+  API_URL,
+  setLlantas,
 }) => {
   const [menuAbierto, setMenuAbierto] = useState(false);
 
+  // Si está en modo edición, mostrar formulario
+  if (modoEdicion === ll.id) {
+    return (
+      <div className="bg-blue-50 rounded-lg shadow-sm border-2 border-blue-300 p-3">
+        <div className="text-xs font-bold text-blue-800 mb-3">
+          ✏️ Editando: {ll.referencia}
+        </div>
+
+        <div className="space-y-2 mb-3">
+          <div>
+            <label className="block text-[10px] font-medium text-gray-600 mb-0.5">
+              Referencia
+            </label>
+            <input
+              value={ll.referencia}
+              onChange={(e) =>
+                actualizarCampo(ll.id, "referencia", e.target.value)
+              }
+              className="w-full border-2 border-blue-300 rounded text-xs p-1.5 focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-medium text-gray-600 mb-0.5">
+              Marca
+            </label>
+            <input
+              value={ll.marca}
+              onChange={(e) => actualizarCampo(ll.id, "marca", e.target.value)}
+              className="w-full border-2 border-blue-300 rounded text-xs p-1.5 focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-medium text-gray-600 mb-0.5">
+              Proveedor
+            </label>
+            <input
+              value={ll.proveedor}
+              onChange={(e) =>
+                actualizarCampo(ll.id, "proveedor", e.target.value)
+              }
+              className="w-full border-2 border-blue-300 rounded text-xs p-1.5 focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="block text-[10px] font-medium text-gray-600 mb-0.5">
+                Costo
+              </label>
+              <input
+                type="number"
+                value={ll.costo_empresa}
+                onChange={(e) =>
+                  actualizarCampo(ll.id, "costo_empresa", e.target.value)
+                }
+                className="w-full border-2 border-blue-300 rounded text-xs p-1.5 focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-medium text-gray-600 mb-0.5">
+                Precio
+              </label>
+              <input
+                type="number"
+                value={ll.precio_cliente}
+                onChange={(e) =>
+                  actualizarCampo(ll.id, "precio_cliente", e.target.value)
+                }
+                className="w-full border-2 border-blue-300 rounded text-xs p-1.5 focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-medium text-gray-600 mb-0.5">
+              Stock
+            </label>
+            <input
+              type="number"
+              value={ll.stock}
+              onChange={(e) => actualizarCampo(ll.id, "stock", e.target.value)}
+              className="w-full border-2 border-blue-300 rounded text-xs p-1.5 focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="flex items-center gap-2 text-xs">
+              <input
+                type="checkbox"
+                checked={ll.consignacion || false}
+                onChange={() =>
+                  actualizarCampo(ll.id, "consignacion", !ll.consignacion)
+                }
+                className="cursor-pointer"
+              />
+              <span className="font-medium text-orange-700">
+                Marcar como consignación
+              </span>
+            </label>
+          </div>
+        </div>
+
+        {/* Botones de guardar/cancelar */}
+        <div className="flex gap-2">
+          <button
+            onClick={() => handleGuardar(ll)}
+            className="flex-1 bg-green-500 hover:bg-green-600 text-white px-3 py-2 text-xs rounded font-semibold transition-all"
+          >
+            💾 Guardar
+          </button>
+          <button
+            onClick={() => {
+              setModoEdicion(null);
+              setLlantaOriginalEdicion(null);
+              axios
+                .get(`${API_URL}/api/llantas`)
+                .then((res) => setLlantas(res.data));
+            }}
+            className="flex-1 bg-gray-400 hover:bg-gray-500 text-white px-3 py-2 text-xs rounded font-semibold transition-all"
+          >
+            ✖ Cancelar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Vista normal (no editando)
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 relative">
       {/* Header con checkbox y referencia */}
@@ -89,7 +227,7 @@ const TarjetaLlanta = ({
         )}
       </div>
 
-      {/* Botones compactos */}
+      {/* Botones compactos con ancho fijo */}
       <div className="flex gap-1">
         <button
           onClick={() =>
@@ -100,14 +238,16 @@ const TarjetaLlanta = ({
               "_blank"
             )
           }
-          className="flex-1 bg-blue-500 hover:bg-blue-600 text-white p-1.5 rounded transition-all flex items-center justify-center gap-1"
+          className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1.5 rounded transition-all flex items-center justify-center gap-1"
+          style={{ minWidth: "70px" }}
         >
           <span className="text-sm">🔍</span>
           <span className="text-[10px] font-medium">Llantar</span>
         </button>
         <button
           onClick={() => handleAgregarComparador(ll)}
-          className="flex-1 bg-purple-500 hover:bg-purple-600 text-white p-1.5 rounded transition-all flex items-center justify-center gap-1"
+          className="bg-purple-500 hover:bg-purple-600 text-white px-2 py-1.5 rounded transition-all flex items-center justify-center gap-1"
+          style={{ minWidth: "60px" }}
         >
           <span className="text-sm">⚖️</span>
           <span className="text-[10px] font-medium">Web</span>
@@ -117,7 +257,8 @@ const TarjetaLlanta = ({
         <div className="relative">
           <button
             onClick={() => setMenuAbierto(!menuAbierto)}
-            className="bg-slate-200 hover:bg-slate-300 p-1.5 px-2 rounded transition-all"
+            className="bg-slate-200 hover:bg-slate-300 p-1.5 px-2.5 rounded transition-all"
+            style={{ minWidth: "32px" }}
           >
             <span className="text-lg font-bold text-slate-700">⋮</span>
           </button>
@@ -920,6 +1061,13 @@ function App() {
                     guardarComentario={guardarComentario}
                     handleEliminar={handleEliminar}
                     handleAgregarComparador={handleAgregarComparador}
+                    modoEdicion={modoEdicion}
+                    actualizarCampo={actualizarCampo}
+                    handleGuardar={handleGuardar}
+                    setModoEdicion={setModoEdicion}
+                    setLlantaOriginalEdicion={setLlantaOriginalEdicion}
+                    API_URL="https://mi-app-llantas.onrender.com"
+                    setLlantas={setLlantas}
                   />
                 ))}
               </div>

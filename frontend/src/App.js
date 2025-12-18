@@ -510,7 +510,7 @@ function App() {
         ></div>
       )}
 
-      {/* Main Content */}
+  {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-screen">
         {/* Top bar */}
         <header className="bg-white shadow-sm px-4 py-3 sticky top-0 z-30">
@@ -526,8 +526,19 @@ function App() {
               Inventario de Llantas
             </h1>
 
-            <div className="text-sm text-slate-600 bg-slate-100 px-3 py-1 rounded-full">
-              {filtradas.length}
+            <div className="flex items-center gap-2">
+              {/* Botón mostrar/ocultar costo - visible en móvil */}
+              <button
+                onClick={() => setMostrarCosto(!mostrarCosto)}
+                className="lg:hidden bg-slate-100 hover:bg-slate-200 p-2 rounded transition-all"
+                title={mostrarCosto ? "Ocultar costos" : "Mostrar costos"}
+              >
+                {mostrarCosto ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+
+              <div className="text-sm text-slate-600 bg-slate-100 px-3 py-1 rounded-full">
+                {filtradas.length}
+              </div>
             </div>
           </div>
         </header>

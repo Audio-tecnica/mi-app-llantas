@@ -493,8 +493,7 @@ function App() {
             </div>
           </div>
         )}
-
-        {/* Contenido principal */}
+{/* Contenido principal */}
         {cargando ? (
           <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-slate-700 mb-4"></div>
@@ -502,8 +501,142 @@ function App() {
           </div>
         ) : (
           <>
-            {/* Botones de navegación mejorados */}
-            <div className="flex flex-wrap gap-3 mb-6">
+            {/* Sección de navegación mejorada - Dashboard style */}
+            <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <span>📊</span>
+                Panel de Control
+              </h2>
+              
+              {/* Grid de botones principales */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
+                <button
+                  onClick={() => setMostrarModal(true)}
+                  className="flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-slate-700 to-slate-800 text-white p-4 rounded-xl hover:from-slate-800 hover:to-slate-900 transition-all shadow-md hover:shadow-lg min-h-[100px]"
+                >
+                  <span className="text-3xl">+</span>
+                  <span className="text-sm font-medium text-center">Agregar llanta</span>
+                </button>
+
+                <button
+                  onClick={handleEliminarMultiples}
+                  disabled={seleccionadas.length === 0}
+                  className="flex flex-col items-center justify-center gap-2 bg-slate-600 text-white p-4 rounded-xl hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg disabled:shadow-none min-h-[100px]"
+                >
+                  <span className="text-3xl">🗑️</span>
+                  <span className="text-sm font-medium text-center">Eliminar ({seleccionadas.length})</span>
+                </button>
+
+                <button
+                  onClick={abrirLogActividades}
+                  className="flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-slate-800 to-slate-900 text-white p-4 rounded-xl hover:from-slate-900 hover:to-black transition-all shadow-md hover:shadow-lg border border-slate-700 min-h-[100px]"
+                >
+                  <span className="text-3xl">📋</span>
+                  <span className="text-sm font-medium text-center">Historial</span>
+                </button>
+
+                <button
+                  onClick={() => window.open("/lista_llantar.pdf", "_blank")}
+                  className="flex flex-col items-center justify-center gap-2 bg-slate-700 text-white p-4 rounded-xl hover:bg-slate-800 transition-all shadow-md hover:shadow-lg min-h-[100px]"
+                >
+                  <span className="text-3xl">📄</span>
+                  <span className="text-sm font-medium text-center">Lista Llantar</span>
+                </button>
+
+                <button
+                  onClick={() => setMostrarComparador(true)}
+                  className="flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-blue-600 to-blue-700 text-white p-4 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-md hover:shadow-lg min-h-[100px]"
+                >
+                  <span className="text-3xl">📊</span>
+                  <span className="text-sm font-medium text-center">Comparar</span>
+                </button>
+
+                <button
+                  onClick={() => navigate("/visor-stock")}
+                  className="flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-blue-600 to-blue-700 text-white p-4 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-md hover:shadow-lg min-h-[100px]"
+                >
+                  <span className="text-3xl">📈</span>
+                  <span className="text-sm font-medium text-center">Visor Stock</span>
+                </button>
+
+                <button
+                  onClick={() => navigate("/promociones")}
+                  className="flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-amber-600 to-amber-700 text-white p-4 rounded-xl hover:from-amber-700 hover:to-amber-800 transition-all shadow-md hover:shadow-lg min-h-[100px]"
+                >
+                  <span className="text-3xl">🎉</span>
+                  <span className="text-sm font-medium text-center">Promociones</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    localStorage.removeItem("acceso");
+                    window.location.href = "/login";
+                  }}
+                  className="flex flex-col items-center justify-center gap-2 bg-slate-500 text-white p-4 rounded-xl hover:bg-slate-600 transition-all shadow-md hover:shadow-lg min-h-[100px]"
+                >
+                  <span className="text-3xl">🚪</span>
+                  <span className="text-sm font-medium text-center">Salir</span>
+                </button>
+              </div>
+
+              {/* Separador */}
+              <div className="border-t border-gray-200 my-4"></div>
+
+              {/* Sección de categorías */}
+              <h3 className="text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wide">Categorías</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                <button
+                  onClick={() => navigate("/tapetes")}
+                  className="flex flex-col items-center justify-center gap-2 bg-white border-2 border-slate-300 text-slate-700 p-4 rounded-xl hover:bg-slate-50 hover:border-slate-400 transition-all shadow-sm hover:shadow-md min-h-[90px]"
+                >
+                  <span className="text-2xl">🚗</span>
+                  <span className="text-xs font-medium text-center">Tapetes</span>
+                </button>
+
+                <button
+                  onClick={() => navigate("/rines")}
+                  className="flex flex-col items-center justify-center gap-2 bg-white border-2 border-slate-300 text-slate-700 p-4 rounded-xl hover:bg-slate-50 hover:border-slate-400 transition-all shadow-sm hover:shadow-md min-h-[90px]"
+                >
+                  <span className="text-2xl">⚙️</span>
+                  <span className="text-xs font-medium text-center">Rines</span>
+                </button>
+
+                <button
+                  onClick={() => navigate("/carpas")}
+                  className="flex flex-col items-center justify-center gap-2 bg-white border-2 border-slate-300 text-slate-700 p-4 rounded-xl hover:bg-slate-50 hover:border-slate-400 transition-all shadow-sm hover:shadow-md min-h-[90px]"
+                >
+                  <span className="text-2xl">🏕️</span>
+                  <span className="text-xs font-medium text-center">Carpas</span>
+                </button>
+
+                <button
+                  onClick={() => navigate("/tiros-arrastre")}
+                  className="flex flex-col items-center justify-center gap-2 bg-white border-2 border-slate-300 text-slate-700 p-4 rounded-xl hover:bg-slate-50 hover:border-slate-400 transition-all shadow-sm hover:shadow-md min-h-[90px]"
+                >
+                  <span className="text-2xl">🔗</span>
+                  <span className="text-xs font-medium text-center">Tiros</span>
+                </button>
+
+                <button
+                  onClick={() => navigate("/sonido")}
+                  className="flex flex-col items-center justify-center gap-2 bg-white border-2 border-slate-300 text-slate-700 p-4 rounded-xl hover:bg-slate-50 hover:border-slate-400 transition-all shadow-sm hover:shadow-md min-h-[90px]"
+                >
+                  <span className="text-2xl">🔊</span>
+                  <span className="text-xs font-medium text-center">Sonido</span>
+                </button>
+
+                <button
+                  onClick={() => navigate("/luces")}
+                  className="flex flex-col items-center justify-center gap-2 bg-white border-2 border-slate-300 text-slate-700 p-4 rounded-xl hover:bg-slate-50 hover:border-slate-400 transition-all shadow-sm hover:shadow-md min-h-[90px]"
+                >
+                  <span className="text-2xl">💡</span>
+                  <span className="text-xs font-medium text-center">Luces</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Botón de limpiar filtros */}
+            <div className="mb-6">
               <button
                 onClick={() => {
                   setBusqueda("");
@@ -513,51 +646,6 @@ function App() {
               >
                 <span>🔄</span>
                 Limpiar filtros
-              </button>
-
-              <button
-                onClick={() => navigate("/tapetes")}
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-200 shadow-md hover:shadow-lg"
-              >
-                <span>🚗</span>
-                Tapetes
-              </button>
-
-              <button
-                onClick={() => navigate("/rines")}
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-200 shadow-md hover:shadow-lg"
-              >
-                <span>⚙️</span>
-                Rines
-              </button>
-              <button
-                onClick={() => navigate("/carpas")}
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-200 shadow-md hover:shadow-lg"
-              >
-                <span>🏕️</span>
-                Carpas
-              </button>
-              <button
-                onClick={() => navigate("/tiros-arrastre")}
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-200 shadow-md hover:shadow-lg"
-              >
-                <span>🔗</span>
-                Tiros
-              </button>
-              <button
-                onClick={() => navigate("/sonido")}
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-200 shadow-md hover:shadow-lg"
-              >
-                <span>🔊</span>
-                Sonido
-              </button>
-
-              <button
-                onClick={() => navigate("/luces")}
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-200 shadow-md hover:shadow-lg"
-              >
-                <span>💡</span>
-                Luces
               </button>
             </div>
 

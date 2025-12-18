@@ -425,7 +425,7 @@ function App() {
             <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-3">
               Principal
             </div>
-            
+
             <button
               onClick={() => window.location.reload()}
               className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg bg-slate-700 hover:bg-slate-600 transition-all text-sm"
@@ -521,7 +521,7 @@ function App() {
             >
               <Menu size={24} />
             </button>
-            
+
             <h1 className="text-lg font-bold text-slate-800">
               Inventario de Llantas
             </h1>
@@ -551,13 +551,21 @@ function App() {
               {/* Dashboard Cards - Más compactas */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <div className="text-2xl font-bold text-slate-700">{filtradas.length}</div>
-                  <div className="text-slate-500 text-xs mt-1">Total Llantas</div>
+                  <div className="text-2xl font-bold text-slate-700">
+                    {filtradas.length}
+                  </div>
+                  <div className="text-slate-500 text-xs mt-1">
+                    Total Llantas
+                  </div>
                 </div>
 
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <div className="text-2xl font-bold text-slate-700">{seleccionadas.length}</div>
-                  <div className="text-slate-500 text-xs mt-1">Seleccionadas</div>
+                  <div className="text-2xl font-bold text-slate-700">
+                    {seleccionadas.length}
+                  </div>
+                  <div className="text-slate-500 text-xs mt-1">
+                    Seleccionadas
+                  </div>
                 </div>
 
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -568,7 +576,9 @@ function App() {
                 </div>
 
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <div className="text-2xl font-bold text-slate-700">{marcasUnicas.length}</div>
+                  <div className="text-2xl font-bold text-slate-700">
+                    {marcasUnicas.length}
+                  </div>
                   <div className="text-slate-500 text-xs mt-1">Marcas</div>
                 </div>
               </div>
@@ -656,6 +666,21 @@ function App() {
                       placeholder="Buscar..."
                       value={busqueda}
                       onChange={(e) => setBusqueda(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && busqueda.trim() !== "") {
+                          let nuevas = [
+                            busqueda,
+                            ...busquedasRecientes.filter((v) => v !== busqueda),
+                          ];
+                          if (nuevas.length > 5) nuevas = nuevas.slice(0, 5);
+                          setBusquedasRecientes(nuevas);
+                          localStorage.setItem(
+                            "busquedasRecientes",
+                            JSON.stringify(nuevas)
+                          );
+                          setBusqueda("");
+                        }
+                      }}
                       className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none"
                     />
                   </div>
@@ -678,6 +703,26 @@ function App() {
                     </select>
                   </div>
                 </div>
+
+                {/* Búsquedas recientes */}
+                {busquedasRecientes.length > 0 && (
+                  <div className="mt-3">
+                    <span className="text-xs font-medium text-gray-600 mb-2 block">
+                      Búsquedas recientes:
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {busquedasRecientes.map((b, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setBusqueda(b)}
+                          className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium hover:bg-slate-200 hover:text-slate-900 transition-all"
+                        >
+                          {b}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Tabla - Vista de tarjetas en móvil */}
@@ -698,8 +743,20 @@ function App() {
                             className="cursor-pointer"
                           />
                           <div>
-                            <div className="font-bold text-slate-800">{ll.referencia}</div>
-                            <div className="text-xs text-gray-500">{ll.marca}</div>
+                            <div className="font-bold text-slate-800 flex items-center gap-2">
+                              {ll.referencia}
+                              {ll.comentario && (
+                                <button
+                                  onClick={() => setComentarioModal(ll)}
+                                  className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs hover:bg-blue-600"
+                                >
+                                  💬
+                                </button>
+                              )}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {ll.marca}
+                            </div>
                           </div>
                         </div>
                         {ll.consignacion && (
@@ -709,14 +766,43 @@ function App() {
                         )}
                       </div>
 
+                      {/* Botones de búsqueda */}
+                      <div className="flex gap-2 mb-3">
+                        <button
+                          onClick={() =>
+                            window.open(
+                              `https://www.llantar.com.co/search?q=${encodeURIComponent(
+                                ll.referencia
+                              )}`,
+                              "_blank"
+                            )
+                          }
+                          className="flex-1 bg-blue-500 text-white px-3 py-1.5 rounded text-xs hover:bg-blue-600 transition-all"
+                        >
+                          🔍 Llantar
+                        </button>
+                        <button
+                          onClick={() => abrirComparador(ll.referencia)}
+                          className="flex-1 bg-purple-600 text-white px-3 py-1.5 rounded text-xs hover:bg-purple-700 transition-all"
+                        >
+                          📊 Comparar
+                        </button>
+                      </div>
+
                       <div className="grid grid-cols-2 gap-2 text-sm mb-3">
                         <div>
-                          <span className="text-gray-500 text-xs">Proveedor:</span>
+                          <span className="text-gray-500 text-xs">
+                            Proveedor:
+                          </span>
                           <div className="font-medium">{ll.proveedor}</div>
                         </div>
                         <div>
                           <span className="text-gray-500 text-xs">Stock:</span>
-                          <div className={`font-bold ${ll.stock === 0 ? 'text-red-600' : 'text-green-600'}`}>
+                          <div
+                            className={`font-bold ${
+                              ll.stock === 0 ? "text-red-600" : "text-green-600"
+                            }`}
+                          >
                             {ll.stock === 0 ? "Sin stock" : ll.stock}
                           </div>
                         </div>
@@ -728,7 +814,9 @@ function App() {
                         </div>
                         {mostrarCosto && (
                           <div>
-                            <span className="text-gray-500 text-xs">Costo:</span>
+                            <span className="text-gray-500 text-xs">
+                              Costo:
+                            </span>
                             <div className="font-medium text-blue-600">
                               ${(ll.costo_empresa || 0).toLocaleString()}
                             </div>
@@ -993,7 +1081,9 @@ function App() {
                                             .get(
                                               "https://mi-app-llantas.onrender.com/api/llantas"
                                             )
-                                            .then((res) => setLlantas(res.data));
+                                            .then((res) =>
+                                              setLlantas(res.data)
+                                            );
                                         }}
                                         className="bg-gray-400 text-white px-2 py-1 text-xs rounded hover:bg-gray-500"
                                       >

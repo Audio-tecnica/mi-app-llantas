@@ -670,7 +670,7 @@ function App() {
               </div>
 
               {/* Panel de búsqueda con fondo tenue */}
-              <div className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-lg shadow-sm border border-slate-200 p-4 mb-4">
+              <div className="bg-gradient-to-br from-slate-50 to-blue-80 rounded-lg shadow-sm border border-slate-200 p-4 mb-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">

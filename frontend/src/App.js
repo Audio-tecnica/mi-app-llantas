@@ -929,7 +929,7 @@ function App() {
                   className="flex items-center justify-center gap-1 bg-slate-700 text-white px-3 py-2 rounded-lg hover:bg-slate-800 transition-all text-xs"
                 >
                   <span>📋</span>
-                  <span>Historial</span>
+                  <span>Update</span>
                 </button>
 
                 <button

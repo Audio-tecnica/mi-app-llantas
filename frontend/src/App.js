@@ -834,12 +834,15 @@ function App() {
                       )}
                     </div>
 
+                    
                     {/* Botones MÁS PEQUEÑOS - Solo iconos */}
                     <div className="grid grid-cols-5 gap-1">
                       <button
                         onClick={() =>
                           window.open(
-                            `https://llantar.com/llantas?marca=${ll.marca}&referencia=${ll.referencia}`,
+                            `https://www.llantar.com.co/search?q=${encodeURIComponent(
+                              ll.referencia
+                            )}`,
                             "_blank"
                           )
                         }
@@ -887,7 +890,7 @@ function App() {
                     </div>
                   </div>
                 ))}
-              </div>
+              </div>  
 
               {/* Vista desktop - tabla */}
               <div className="hidden lg:block bg-white rounded-lg shadow-sm overflow-hidden">

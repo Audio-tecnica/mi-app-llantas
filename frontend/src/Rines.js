@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Menu, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 function Rines() {
@@ -26,19 +26,16 @@ function Rines() {
   const [cargando, setCargando] = useState(true);
   const [orden, setOrden] = useState({ campo: "", asc: true });
   const [seleccionadas, setSeleccionadas] = useState([]);
-
   const [fotoModal, setFotoModal] = useState(null);
   const [subirFotoId, setSubirFotoId] = useState(null);
   const [archivoFoto, setArchivoFoto] = useState(null);
   const [subiendoFoto, setSubiendoFoto] = useState(false);
   const [comentarioModal, setComentarioModal] = useState(null);
-
-  // ✅ Estado para guardar valores originales antes de editar
   const [rinOriginalEdicion, setRinOriginalEdicion] = useState(null);
+  const [menuAbierto, setMenuAbierto] = useState(false);
 
   const API_URL = "https://mi-app-llantas.onrender.com";
 
-  // ✅ Función para registrar actividad en el historial
   const registrarActividad = async (tipo, detalles) => {
     try {
       await axios.post(`${API_URL}/api/log-actividad`, {
@@ -123,7 +120,6 @@ function Rines() {
     );
   };
 
-  // ✅ Función AGREGAR con registro de actividad
   const handleAgregar = async () => {
     try {
       const { referencia, marca, proveedor, medida, costo, precio, stock } =
@@ -202,7 +198,6 @@ function Rines() {
     }
   };
 
-  // ✅ Función para iniciar edición guardando valores originales
   const iniciarEdicion = (id) => {
     const rin = rines.find((r) => r.id === id);
     if (rin) {
@@ -211,7 +206,6 @@ function Rines() {
     }
   };
 
-  // ✅ Función GUARDAR COMENTARIO con registro de actividad
   const guardarComentario = async (rin, texto) => {
     try {
       const rinFormateado = {
@@ -253,7 +247,6 @@ function Rines() {
     }
   };
 
-  // ✅ Función GUARDAR con detalle de cambios
   const handleGuardar = async (rin) => {
     try {
       if (!rinOriginalEdicion) {
@@ -311,16 +304,6 @@ function Rines() {
         cambios.push(
           `Remisión: ${rinOriginalEdicion.remision ? "Sí" : "No"} → ${
             rin.remision ? "Sí" : "No"
-          }`
-        );
-      }
-      if (
-        String(rinOriginalEdicion.comentario || "") !==
-        String(rin.comentario || "")
-      ) {
-        cambios.push(
-          `Comentario: ${
-            rinOriginalEdicion.comentario ? "modificado" : "agregado"
           }`
         );
       }
@@ -444,7 +427,6 @@ function Rines() {
     }
   };
 
-  // ✅ Función ELIMINAR con registro de actividad
   const handleEliminar = async (id) => {
     if (!window.confirm("¿Estás seguro de eliminar este rin?")) return;
     try {
@@ -467,825 +449,1009 @@ function Rines() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="max-w-7xl mx-auto p-4 sm:p-6">
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-          <div className="flex justify-between items-center flex-wrap gap-4">
-            <img src="/logowp.PNG" className="h-12 w-auto" alt="Logo" />
-
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setMostrarModal(true)}
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-200 shadow-md hover:shadow-lg"
-              >
-                <span className="text-lg">+</span>
-                Agregar rin
-              </button>
-
-              <button
-                onClick={handleEliminarMultiples}
-                disabled={seleccionadas.length === 0}
-                className="inline-flex items-center gap-2 bg-slate-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg disabled:shadow-none"
-              >
-                <span>🗑️</span>
-                Eliminar ({seleccionadas.length})
-              </button>
-
-              <button
-                onClick={() => {
-                  localStorage.removeItem("acceso");
-                  window.location.href = "/login";
-                }}
-                className="inline-flex items-center gap-2 bg-slate-500 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-600 transition-all duration-200 shadow-md hover:shadow-lg"
-              >
-                <span>🚪</span>
-                Salir
-              </button>
-            </div>
+    <div className="flex min-h-screen bg-gray-50">
+      {/* Sidebar */}
+      <aside
+        className={`fixed lg:sticky top-0 left-0 h-screen bg-slate-800 text-white transition-all duration-300 z-50 ${
+          menuAbierto ? "w-64" : "w-0 lg:w-64"
+        } overflow-hidden`}
+      >
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-8">
+            <img src="/logowp.PNG" className="h-10 w-auto" alt="Logo" />
+            <button
+              onClick={() => setMenuAbierto(false)}
+              className="lg:hidden text-white hover:bg-slate-700 p-2 rounded"
+            >
+              <X size={24} />
+            </button>
           </div>
+
+          <nav className="space-y-1">
+            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-3">
+              Principal
+            </div>
+
+            <button
+              onClick={() => navigate("/")}
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-slate-700 transition-all text-sm"
+            >
+              <span>🏠</span>
+              <span>Llantas</span>
+            </button>
+
+            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-3 mt-6">
+              Categorías
+            </div>
+
+            <button
+              onClick={() => navigate("/tapetes")}
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-slate-700 transition-all text-sm"
+            >
+              <span>🚗</span>
+              <span>Tapetes</span>
+            </button>
+
+            <button
+              onClick={() => navigate("/rines")}
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg bg-slate-700 transition-all text-sm"
+            >
+              <span>⚙️</span>
+              <span>Rines</span>
+            </button>
+
+            <button
+              onClick={() => navigate("/carpas")}
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-slate-700 transition-all text-sm"
+            >
+              <span>🏕️</span>
+              <span>Carpas</span>
+            </button>
+
+            <button
+              onClick={() => navigate("/tiros-arrastre")}
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-slate-700 transition-all text-sm"
+            >
+              <span>🔗</span>
+              <span>Tiros</span>
+            </button>
+
+            <button
+              onClick={() => navigate("/sonido")}
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-slate-700 transition-all text-sm"
+            >
+              <span>🔊</span>
+              <span>Sonido</span>
+            </button>
+
+            <button
+              onClick={() => navigate("/luces")}
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-slate-700 transition-all text-sm"
+            >
+              <span>💡</span>
+              <span>Luces</span>
+            </button>
+
+            <div className="border-t border-slate-700 my-4"></div>
+
+            <button
+              onClick={() => {
+                localStorage.removeItem("acceso");
+                window.location.href = "/login";
+              }}
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-red-600 transition-all text-sm"
+            >
+              <span>🚪</span>
+              <span>Cerrar Sesión</span>
+            </button>
+          </nav>
         </div>
+      </aside>
 
-        {mensaje && (
-          <div className="bg-blue-50 border-l-4 border-blue-500 text-blue-800 p-4 rounded-lg mb-6 shadow-md animate-fade-in">
+      {/* Overlay para móvil */}
+      {menuAbierto && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setMenuAbierto(false)}
+        ></div>
+      )}
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-h-screen">
+        {/* Top bar */}
+        <header className="bg-white shadow-sm px-4 py-3 sticky top-0 z-30">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => setMenuAbierto(true)}
+              className="lg:hidden text-slate-800 hover:bg-slate-100 p-2 rounded"
+            >
+              <Menu size={24} />
+            </button>
+
+            <h1 className="text-lg font-bold text-slate-800">
+              Inventario de Rines
+            </h1>
+
             <div className="flex items-center gap-2">
-              <span className="text-xl">ℹ️</span>
-              <span className="font-medium">{mensaje}</span>
+              <button
+                onClick={() => setMostrarCosto(!mostrarCosto)}
+                className="lg:hidden bg-slate-100 hover:bg-slate-200 p-2 rounded transition-all"
+                title={mostrarCosto ? "Ocultar costos" : "Mostrar costos"}
+              >
+                {mostrarCosto ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+
+              <div className="text-sm text-slate-600 bg-slate-100 px-3 py-1 rounded-full">
+                {filtradas.length}
+              </div>
             </div>
           </div>
-        )}
+        </header>
 
-        {cargando ? (
-          <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-slate-700 mb-4"></div>
-            <p className="text-gray-600 text-lg">Cargando inventario...</p>
-          </div>
-        ) : (
-          <>
-            <div className="flex flex-wrap gap-3 mb-6">
-              <button
-                onClick={() => {
-                  setBusqueda("");
-                  setMarcaSeleccionada("");
-                  setMedidaSeleccionada("");
-                  setSubmedidaSeleccionada("");
-                }}
-                className="inline-flex items-center gap-2 bg-white text-slate-700 px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-50 transition-all duration-200 shadow-md hover:shadow-lg border border-slate-200"
-              >
-                <span>🔄</span>
-                Limpiar filtros
-              </button>
-
-              <button
-                onClick={() => navigate("/")}
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-200 shadow-md hover:shadow-lg"
-              >
-                <span>🚗</span>
-                Llantas
-              </button>
-
-              <button
-                onClick={() => navigate("/tapetes")}
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-200 shadow-md hover:shadow-lg"
-              >
-                <span>🏠</span>
-                Tapetes
-              </button>
-
-              <button
-                onClick={() => navigate("/carpas")}
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-200 shadow-md hover:shadow-lg"
-              >
-                <span>🏕️</span>
-                Carpas
-              </button>
-              <button
-                onClick={() => navigate("/tiros-arrastre")}
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-200 shadow-md hover:shadow-lg"
-              >
-                <span>🔗</span>
-                Tiros
-              </button>
-              <button
-                onClick={() => navigate("/sonido")}
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-200 shadow-md hover:shadow-lg"
-              >
-                <span>🔊</span>
-                Sonido
-              </button>
-              <button
-                onClick={() => navigate("/luces")}
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-200 shadow-md hover:shadow-lg"
-              >
-                <span>💡</span>
-                Luces
-              </button>
+        {/* Content Area */}
+        <main className="flex-1 p-4">
+          {/* Mensajes */}
+          {mensaje && (
+            <div className="bg-blue-50 border-l-4 border-blue-500 text-blue-800 p-3 rounded-lg mb-4">
+              <span className="text-sm font-medium">{mensaje}</span>
             </div>
+          )}
 
-            <div className="bg-white rounded-lg shadow-md px-4 py-2 mb-4 inline-block">
-              <span className="text-sm text-gray-600">
-                📊 Mostrando{" "}
-                <span className="font-bold text-slate-700">
-                  {filtradas.length}
-                </span>{" "}
-                resultados
-              </span>
+          {cargando ? (
+            <div className="bg-white rounded-xl shadow p-12 text-center">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-slate-700 mb-4"></div>
+              <p className="text-gray-600">Cargando inventario...</p>
             </div>
-
-            <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                <span>🔍</span>
-                Búsqueda de Rines
-              </h2>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Referencia
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Buscar por referencia..."
-                    value={busqueda}
-                    onChange={(e) => setBusqueda(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-all duration-200"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Marca
-                  </label>
-                  <select
-                    value={marcaSeleccionada}
-                    onChange={(e) => setMarcaSeleccionada(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-all duration-200"
-                  >
-                    <option value="">Todas las marcas</option>
-                    {marcasUnicas.map((m) => (
-                      <option key={m} value={m}>
-                        {m}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Medida
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      onClick={() => {
-                        setMedidaSeleccionada("");
-                        setSubmedidaSeleccionada("");
-                      }}
-                      className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                        medidaSeleccionada === ""
-                          ? "bg-slate-700 text-white shadow-lg"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                      }`}
-                    >
-                      Todas
-                    </button>
-                    {medidasDisponibles.map((medida) => (
-                      <button
-                        key={medida}
-                        onClick={() => {
-                          setMedidaSeleccionada(medida);
-                          setSubmedidaSeleccionada("");
-                        }}
-                        className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                          medidaSeleccionada === medida
-                            ? "bg-blue-600 text-white shadow-lg"
-                            : "bg-blue-50 text-blue-700 hover:bg-blue-100"
-                        }`}
-                      >
-                        {medida}"
-                      </button>
-                    ))}
+          ) : (
+            <>
+              {/* Dashboard Cards */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="text-2xl font-bold text-slate-700">
+                    {filtradas.length}
+                  </div>
+                  <div className="text-slate-500 text-xs mt-1">
+                    Total Rines
                   </div>
                 </div>
 
-                {medidaSeleccionada && submedidasDisponibles.length > 0 && (
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="text-2xl font-bold text-slate-700">
+                    {seleccionadas.length}
+                  </div>
+                  <div className="text-slate-500 text-xs mt-1">
+                    Seleccionadas
+                  </div>
+                </div>
+
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="text-2xl font-bold text-slate-700">
+                    {filtradas.filter((r) => r.stock === 0).length}
+                  </div>
+                  <div className="text-slate-500 text-xs mt-1">Sin Stock</div>
+                </div>
+
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="text-2xl font-bold text-slate-700">
+                    {marcasUnicas.length}
+                  </div>
+                  <div className="text-slate-500 text-xs mt-1">Marcas</div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+                <button
+                  onClick={() => setMostrarModal(true)}
+                  className="flex items-center justify-center gap-1 bg-slate-700 text-white px-3 py-2 rounded-lg hover:bg-slate-800 transition-all text-xs"
+                >
+                  <span>+</span>
+                  <span>Agregar</span>
+                </button>
+
+                <button
+                  onClick={handleEliminarMultiples}
+                  disabled={seleccionadas.length === 0}
+                  className="flex items-center justify-center gap-1 bg-slate-600 text-white px-3 py-2 rounded-lg hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs"
+                >
+                  <span>🗑️</span>
+                  <span>Eliminar</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setBusqueda("");
+                    setMarcaSeleccionada("");
+                    setMedidaSeleccionada("");
+                    setSubmedidaSeleccionada("");
+                  }}
+                  className="flex items-center justify-center gap-1 bg-slate-600 text-white px-3 py-2 rounded-lg hover:bg-slate-700 transition-all text-xs"
+                >
+                  <span>🔄</span>
+                  <span>Limpiar</span>
+                </button>
+              </div>
+
+              {/* Panel de búsqueda */}
+              <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
+                <div className="space-y-3">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Submedida
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      Referencia
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Buscar..."
+                      value={busqueda}
+                      onChange={(e) => setBusqueda(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      Marca
+                    </label>
+                    <select
+                      value={marcaSeleccionada}
+                      onChange={(e) => setMarcaSeleccionada(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none"
+                    >
+                      <option value="">Todas</option>
+                      {marcasUnicas.map((m) => (
+                        <option key={m} value={m}>
+                          {m}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-2">
+                      Medida
                     </label>
                     <div className="flex flex-wrap gap-2">
                       <button
-                        onClick={() => setSubmedidaSeleccionada("")}
-                        className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                          submedidaSeleccionada === ""
-                            ? "bg-slate-700 text-white shadow-lg"
+                        onClick={() => {
+                          setMedidaSeleccionada("");
+                          setSubmedidaSeleccionada("");
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                          medidaSeleccionada === ""
+                            ? "bg-slate-700 text-white"
                             : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                         }`}
                       >
                         Todas
                       </button>
-                      {submedidasDisponibles.map((submedida) => (
+                      {medidasDisponibles.map((medida) => (
                         <button
-                          key={submedida}
-                          onClick={() => setSubmedidaSeleccionada(submedida)}
-                          className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                            submedidaSeleccionada === submedida
-                              ? "bg-green-600 text-white shadow-lg"
-                              : "bg-green-50 text-green-700 hover:bg-green-100"
+                          key={medida}
+                          onClick={() => {
+                            setMedidaSeleccionada(medida);
+                            setSubmedidaSeleccionada("");
+                          }}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                            medidaSeleccionada === medida
+                              ? "bg-blue-600 text-white"
+                              : "bg-blue-50 text-blue-700 hover:bg-blue-100"
                           }`}
                         >
-                          {submedida}
+                          {medida}"
                         </button>
                       ))}
                     </div>
                   </div>
-                )}
+
+                  {medidaSeleccionada && submedidasDisponibles.length > 0 && (
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-2">
+                        Submedida
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={() => setSubmedidaSeleccionada("")}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                            submedidaSeleccionada === ""
+                              ? "bg-slate-700 text-white"
+                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          }`}
+                        >
+                          Todas
+                        </button>
+                        {submedidasDisponibles.map((submedida) => (
+                          <button
+                            key={submedida}
+                            onClick={() =>
+                              setSubmedidaSeleccionada(submedida)
+                            }
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                              submedidaSeleccionada === submedida
+                                ? "bg-green-600 text-white"
+                                : "bg-green-50 text-green-700 hover:bg-green-100"
+                            }`}
+                          >
+                            {submedida}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
-              <div className="overflow-x-auto mt-6 rounded-xl border border-gray-200">
-                <table className="w-full text-sm">
-                  <thead className="bg-gradient-to-r from-slate-700 to-slate-800 text-white">
-                    <tr>
-                      <th className="p-3 text-left">
-                        <input
-                          type="checkbox"
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSeleccionadas(filtradas.map((r) => r.id));
-                            } else {
-                              setSeleccionadas([]);
-                            }
-                          }}
-                          checked={
-                            seleccionadas.length === filtradas.length &&
-                            filtradas.length > 0
-                          }
-                          className="cursor-pointer w-4 h-4"
+              {/* Vista móvil - tarjetas */}
+              <div className="lg:hidden space-y-3">
+                {filtradas.map((r) => (
+                  <div
+                    key={r.id}
+                    className="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
+                  >
+                    <div className="flex items-start gap-3 mb-3">
+                      <input
+                        type="checkbox"
+                        checked={seleccionadas.includes(r.id)}
+                        onChange={() => toggleSeleccion(r.id)}
+                        className="cursor-pointer mt-1"
+                      />
+                      
+                      {/* Foto */}
+                      {r.foto ? (
+                        <img
+                          src={r.foto}
+                          alt={r.referencia}
+                          onClick={() => setFotoModal(r.foto)}
+                          className="w-16 h-16 object-cover rounded-lg cursor-pointer border"
                         />
-                      </th>
-                      <th className="p-3 text-center min-w-40">Foto</th>
-                      <th
-                        onClick={() => ordenarPor("referencia")}
-                        className="cursor-pointer p-3 text-left hover:bg-slate-600 transition-colors"
-                      >
-                        Referencia
-                      </th>
-                      <th
-                        onClick={() => ordenarPor("marca")}
-                        className="cursor-pointer p-3 text-left hover:bg-slate-600 transition-colors"
-                      >
-                        Marca
-                      </th>
-                      <th
-                        onClick={() => ordenarPor("medida")}
-                        className="cursor-pointer p-3 text-left hover:bg-slate-600 transition-colors"
-                      >
-                        Medida
-                      </th>
-                      <th
-                        onClick={() => ordenarPor("proveedor")}
-                        className="cursor-pointer p-3 text-left hover:bg-slate-600 transition-colors"
-                      >
-                        Proveedor
-                      </th>
-                      <th
-                        onClick={() => ordenarPor("costo")}
-                        className="cursor-pointer p-3 text-right hover:bg-slate-600 transition-colors"
-                      >
-                        <div className="flex items-center justify-end gap-2">
-                          Costo
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setMostrarCosto(!mostrarCosto);
-                            }}
-                            className="hover:bg-slate-700 p-1 rounded"
-                          >
-                            {mostrarCosto ? (
-                              <EyeOff size={16} />
-                            ) : (
-                              <Eye size={16} />
-                            )}
-                          </button>
+                      ) : (
+                        <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center border">
+                          <span className="text-gray-400 text-xs">Sin foto</span>
                         </div>
-                      </th>
-                      <th
-                        onClick={() => ordenarPor("precio")}
-                        className="cursor-pointer p-3 text-right hover:bg-slate-600 transition-colors"
+                      )}
+
+                      <div className="flex-1">
+                        <div className="font-bold text-slate-800 flex items-center gap-2">
+                          {r.referencia}
+                          {r.comentario && (
+                            <button
+                              onClick={() => setComentarioModal(r)}
+                              className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs"
+                            >
+                              💬
+                            </button>
+                          )}
+                          {r.remision && (
+                            <span className="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                              R
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-gray-500">{r.marca}</div>
+                        {r.medida && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            Medida: {r.medida}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+                      <div>
+                        <span className="text-gray-500 text-xs">
+                          Proveedor:
+                        </span>
+                        <div className="font-medium">{r.proveedor || "—"}</div>
+                      </div>
+                      <div>
+                        <span className="text-gray-500 text-xs">Stock:</span>
+                        <div
+                          className={`font-bold ${
+                            r.stock === 0 ? "text-red-600" : "text-green-600"
+                          }`}
+                        >
+                          {r.stock === 0 ? "Sin stock" : r.stock}
+                        </div>
+                      </div>
+                      <div>
+                        <span className="text-gray-500 text-xs">Precio:</span>
+                        <div className="font-medium text-green-600">
+                          ${Number(r.precio || 0).toLocaleString("es-CO")}
+                        </div>
+                      </div>
+                      {mostrarCosto && (
+                        <div>
+                          <span className="text-gray-500 text-xs">Costo:</span>
+                          <div className="font-medium text-blue-600">
+                            ${Number(r.costo).toLocaleString("es-CO")}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => iniciarEdicion(r.id)}
+                        className="bg-slate-100 hover:bg-slate-200 px-3 py-1.5 text-xs rounded transition-all"
                       >
-                        Precio
-                      </th>
-                      <th
-                        onClick={() => ordenarPor("stock")}
-                        className="cursor-pointer p-3 text-center hover:bg-slate-600 transition-colors"
+                        ✏️ Editar
+                      </button>
+                      <button
+                        onClick={() => setSubirFotoId(r.id)}
+                        className="bg-green-100 hover:bg-green-200 text-green-700 px-3 py-1.5 text-xs rounded transition-all"
                       >
-                        Stock
-                      </th>
-                      <th className="p-3 text-center">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {filtradas.map((r, idx) => (
-                      <tr
-                        key={r.id}
-                        className={`${
-                          idx % 2 === 0 ? "bg-white" : "bg-gray-50"
-                        } hover:bg-blue-50 transition-colors`}
+                        📷 Foto
+                      </button>
+                      <button
+                        onClick={async () => {
+                          const texto = prompt(
+                            "Comentario:",
+                            r.comentario || ""
+                          );
+                          if (texto !== null) {
+                            await guardarComentario(r, texto);
+                          }
+                        }}
+                        className="bg-yellow-100 hover:bg-yellow-200 px-3 py-1.5 text-xs rounded transition-all"
                       >
-                        <td className="p-3">
+                        💬
+                      </button>
+                      <button
+                        onClick={() => handleEliminar(r.id)}
+                        className="bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 text-xs rounded transition-all"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Vista desktop - tabla */}
+              <div className="hidden lg:block bg-white rounded-lg shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-slate-700 text-white">
+                      <tr>
+                        <th className="p-2 text-left">
                           <input
                             type="checkbox"
-                            checked={seleccionadas.includes(r.id)}
-                            onChange={() => toggleSeleccion(r.id)}
-                            className="cursor-pointer w-4 h-4"
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSeleccionadas(filtradas.map((r) => r.id));
+                              } else {
+                                setSeleccionadas([]);
+                              }
+                            }}
+                            checked={
+                              seleccionadas.length === filtradas.length &&
+                              filtradas.length > 0
+                            }
+                            className="cursor-pointer"
                           />
-                        </td>
-
-                        {modoEdicion === r.id ? (
-                          <>
-                            <td className="p-3 text-center">
-                              {r.foto ? (
-                                <img
-                                  src={r.foto}
-                                  alt={r.referencia}
-                                  className="w-20 h-24 sm:w-16 sm:h-16 object-cover rounded-lg shadow-md mx-auto border-2 border-gray-200"
-                                  onError={(e) => {
-                                    e.target.style.display = "none";
-                                  }}
-                                />
+                        </th>
+                        <th className="p-2 text-center">Foto</th>
+                        <th
+                          onClick={() => ordenarPor("referencia")}
+                          className="cursor-pointer p-2 text-left hover:bg-slate-600"
+                        >
+                          Referencia
+                        </th>
+                        <th
+                          onClick={() => ordenarPor("marca")}
+                          className="cursor-pointer p-2 text-left hover:bg-slate-600"
+                        >
+                          Marca
+                        </th>
+                        <th
+                          onClick={() => ordenarPor("medida")}
+                          className="cursor-pointer p-2 text-left hover:bg-slate-600"
+                        >
+                          Medida
+                        </th>
+                        <th
+                          onClick={() => ordenarPor("proveedor")}
+                          className="cursor-pointer p-2 text-left hover:bg-slate-600"
+                        >
+                          Proveedor
+                        </th>
+                        <th
+                          onClick={() => ordenarPor("costo")}
+                          className="cursor-pointer p-2 text-right hover:bg-slate-600"
+                        >
+                          <div className="flex items-center justify-end gap-2">
+                            Costo
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setMostrarCosto(!mostrarCosto);
+                              }}
+                              className="hover:bg-slate-600 p-1 rounded"
+                            >
+                              {mostrarCosto ? (
+                                <EyeOff size={14} />
                               ) : (
-                                <div className="w-20 h-24 sm:w-16 sm:h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto border-2 border-gray-200">
-                                  <span className="text-gray-400 text-xs">
-                                    Sin foto
-                                  </span>
-                                </div>
+                                <Eye size={14} />
                               )}
-                            </td>
-                            <td className="p-2">
-                              <input
-                                value={r.referencia}
-                                onChange={(e) =>
-                                  actualizarCampo(
-                                    r.id,
-                                    "referencia",
-                                    e.target.value
-                                  )
-                                }
-                                className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
-                              />
-                            </td>
-                            <td className="p-2">
-                              <input
-                                value={r.marca}
-                                onChange={(e) =>
-                                  actualizarCampo(r.id, "marca", e.target.value)
-                                }
-                                className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
-                              />
-                            </td>
-                            <td className="p-2">
-                              <input
-                                value={r.medida}
-                                onChange={(e) =>
-                                  actualizarCampo(
-                                    r.id,
-                                    "medida",
-                                    e.target.value
-                                  )
-                                }
-                                className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
-                              />
-                            </td>
-                            <td className="p-2">
-                              <input
-                                value={r.proveedor}
-                                onChange={(e) =>
-                                  actualizarCampo(
-                                    r.id,
-                                    "proveedor",
-                                    e.target.value
-                                  )
-                                }
-                                className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
-                              />
-                            </td>
-                            <td className="p-2">
-                              <input
-                                type="number"
-                                value={r.costo}
-                                onChange={(e) =>
-                                  actualizarCampo(r.id, "costo", e.target.value)
-                                }
-                                className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
-                              />
-                            </td>
-                            <td className="p-2">
-                              <input
-                                type="number"
-                                value={r.precio}
-                                onChange={(e) =>
-                                  actualizarCampo(
-                                    r.id,
-                                    "precio",
-                                    e.target.value
-                                  )
-                                }
-                                className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
-                              />
-                            </td>
-                            <td className="p-2">
-                              <input
-                                type="number"
-                                value={r.stock}
-                                onChange={(e) =>
-                                  actualizarCampo(r.id, "stock", e.target.value)
-                                }
-                                className="w-full border-2 border-blue-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500 outline-none"
-                              />
-                            </td>
-                            <td className="p-3">
-                              <div className="flex flex-col gap-2 items-center">
-                                <button
-                                  onClick={() =>
-                                    actualizarCampo(
-                                      r.id,
-                                      "remision",
-                                      !r.remision
-                                    )
-                                  }
-                                  className={`px-3 py-1.5 text-xs rounded-lg font-semibold transition-all w-full ${
-                                    r.remision
-                                      ? "bg-red-500 text-white hover:bg-red-600 shadow-md"
-                                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                                  }`}
-                                >
-                                  {r.remision ? "✓ Remisión" : "Sin Remisión"}
-                                </button>
-
-                                <textarea
-                                  value={r.comentario || ""}
+                            </button>
+                          </div>
+                        </th>
+                        <th
+                          onClick={() => ordenarPor("precio")}
+                          className="cursor-pointer p-2 text-right hover:bg-slate-600"
+                        >
+                          Precio
+                        </th>
+                        <th
+                          onClick={() => ordenarPor("stock")}
+                          className="cursor-pointer p-2 text-center hover:bg-slate-600"
+                        >
+                          Stock
+                        </th>
+                        <th className="p-2 text-center">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {filtradas.map((r, idx) => (
+                        <tr
+                          key={r.id}
+                          className={`${
+                            idx % 2 === 0 ? "bg-white" : "bg-gray-50"
+                          } hover:bg-blue-50`}
+                        >
+                          <td className="p-2">
+                            <input
+                              type="checkbox"
+                              checked={seleccionadas.includes(r.id)}
+                              onChange={() => toggleSeleccion(r.id)}
+                              className="cursor-pointer"
+                            />
+                          </td>
+                          {modoEdicion === r.id ? (
+                            <>
+                              {/* Modo edición para desktop - similar al código original pero más compacto */}
+                              <td className="p-2 text-center">
+                                {r.foto ? (
+                                  <img
+                                    src={r.foto}
+                                    alt={r.referencia}
+                                    className="w-12 h-12 object-cover rounded-lg mx-auto border"
+                                  />
+                                ) : (
+                                  <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto border">
+                                    <span className="text-gray-400 text-xs">
+                                      —
+                                    </span>
+                                  </div>
+                                )}
+                              </td>
+                              <td className="p-2">
+                                <input
+                                  value={r.referencia}
                                   onChange={(e) =>
                                     actualizarCampo(
                                       r.id,
-                                      "comentario",
+                                      "referencia",
                                       e.target.value
                                     )
                                   }
-                                  placeholder="Escribe un comentario..."
-                                  className="w-full border-2 border-blue-300 rounded-lg text-xs p-2 focus:ring-2 focus:ring-blue-500 outline-none resize-none"
-                                  rows="2"
+                                  className="w-full border-2 border-blue-300 rounded text-sm p-1"
                                 />
-
-                                <button
-                                  onClick={() => handleGuardar(r)}
-                                  className="bg-green-500 text-white px-4 py-2 text-xs rounded-lg hover:bg-green-600 transition-all shadow-md font-medium w-full"
-                                >
-                                  💾 Guardar
-                                </button>
-
-                                <button
-                                  onClick={() => {
-                                    setModoEdicion(null);
-                                    setRinOriginalEdicion(null);
-                                    cargarRines();
-                                  }}
-                                  className="bg-gray-400 text-white px-4 py-2 text-xs rounded-lg hover:bg-gray-500 transition-all shadow-md font-medium w-full"
-                                >
-                                  ✖ Cancelar
-                                </button>
-                              </div>
-                            </td>
-                          </>
-                        ) : (
-                          <>
-                            <td className="p-3 text-center">
-                              {r.foto ? (
-                                <img
-                                  src={r.foto}
-                                  alt={r.referencia}
-                                  onClick={() => setFotoModal(r.foto)}
-                                  className="w-20 h-24 sm:w-16 sm:h-16 object-cover rounded-lg cursor-pointer hover:scale-110 transition-transform shadow-md mx-auto border-2 border-gray-200"
-                                  onError={(e) => {
-                                    e.target.style.display = "none";
-                                  }}
+                              </td>
+                              <td className="p-2">
+                                <input
+                                  value={r.marca}
+                                  onChange={(e) =>
+                                    actualizarCampo(
+                                      r.id,
+                                      "marca",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full border-2 border-blue-300 rounded text-sm p-1"
                                 />
-                              ) : (
-                                <div className="w-20 h-24 sm:w-16 sm:h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto border-2 border-gray-200">
-                                  <span className="text-gray-400 text-xs">
-                                    Sin foto
-                                  </span>
-                                </div>
-                              )}
-                            </td>
-                            <td className="p-3">
-                              <div className="flex items-center gap-2">
-                                <span className="font-semibold text-gray-800">
-                                  {r.referencia}
-                                </span>
-                                {r.comentario &&
-                                  typeof r.comentario === "string" &&
-                                  r.comentario.trim() !== "" && (
+                              </td>
+                              <td className="p-2">
+                                <input
+                                  value={r.medida}
+                                  onChange={(e) =>
+                                    actualizarCampo(
+                                      r.id,
+                                      "medida",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full border-2 border-blue-300 rounded text-sm p-1"
+                                />
+                              </td>
+                              <td className="p-2">
+                                <input
+                                  value={r.proveedor}
+                                  onChange={(e) =>
+                                    actualizarCampo(
+                                      r.id,
+                                      "proveedor",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full border-2 border-blue-300 rounded text-sm p-1"
+                                />
+                              </td>
+                              <td className="p-2">
+                                <input
+                                  type="number"
+                                  value={r.costo}
+                                  onChange={(e) =>
+                                    actualizarCampo(
+                                      r.id,
+                                      "costo",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full border-2 border-blue-300 rounded text-sm p-1"
+                                />
+                              </td>
+                              <td className="p-2">
+                                <input
+                                  type="number"
+                                  value={r.precio}
+                                  onChange={(e) =>
+                                    actualizarCampo(
+                                      r.id,
+                                      "precio",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full border-2 border-blue-300 rounded text-sm p-1"
+                                />
+                              </td>
+                              <td className="p-2">
+                                <input
+                                  type="number"
+                                  value={r.stock}
+                                  onChange={(e) =>
+                                    actualizarCampo(
+                                      r.id,
+                                      "stock",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full border-2 border-blue-300 rounded text-sm p-1"
+                                />
+                              </td>
+                              <td className="p-2">
+                                <div className="flex flex-col gap-1">
+                                  <button
+                                    onClick={() =>
+                                      actualizarCampo(
+                                        r.id,
+                                        "remision",
+                                        !r.remision
+                                      )
+                                    }
+                                    className={`px-2 py-1 text-xs rounded ${
+                                      r.remision
+                                        ? "bg-red-500 text-white"
+                                        : "bg-gray-200 text-gray-700"
+                                    }`}
+                                  >
+                                    {r.remision ? "✓ Remisión" : "Marcar"}
+                                  </button>
+                                  <div className="flex gap-1">
                                     <button
-                                      type="button"
+                                      onClick={() => handleGuardar(r)}
+                                      className="bg-green-500 text-white px-2 py-1 text-xs rounded hover:bg-green-600"
+                                    >
+                                      💾
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setModoEdicion(null);
+                                        setRinOriginalEdicion(null);
+                                        cargarRines();
+                                      }}
+                                      className="bg-gray-400 text-white px-2 py-1 text-xs rounded hover:bg-gray-500"
+                                    >
+                                      ✖
+                                    </button>
+                                  </div>
+                                </div>
+                              </td>
+                            </>
+                          ) : (
+                            <>
+                              <td className="p-2 text-center">
+                                {r.foto ? (
+                                  <img
+                                    src={r.foto}
+                                    alt={r.referencia}
+                                    onClick={() => setFotoModal(r.foto)}
+                                    className="w-12 h-12 object-cover rounded-lg cursor-pointer hover:scale-110 transition-transform mx-auto border"
+                                  />
+                                ) : (
+                                  <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto border">
+                                    <span className="text-gray-400 text-xs">
+                                      —
+                                    </span>
+                                  </div>
+                                )}
+                              </td>
+                              <td className="p-2">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-semibold">
+                                    {r.referencia}
+                                  </span>
+                                  {r.comentario && (
+                                    <button
                                       onClick={() => setComentarioModal(r)}
-                                      className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white hover:bg-blue-600 transition-all shadow-sm hover:shadow-md"
-                                      title="Ver comentario"
+                                      className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs"
                                     >
                                       💬
                                     </button>
                                   )}
-                                {r.remision && (
-                                  <div
-                                    className="w-6 h-6 bg-red-600 rounded-full flex items-center justify-center shadow-sm"
-                                    title="En remisión"
-                                  >
-                                    <span className="text-white font-bold text-xs">
+                                  {r.remision && (
+                                    <span className="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
                                       R
                                     </span>
-                                  </div>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="p-2">{r.marca}</td>
+                              <td className="p-2">{r.medida || "—"}</td>
+                              <td className="p-2">{r.proveedor || "—"}</td>
+                              <td className="p-2 text-right text-blue-600 font-semibold">
+                                {mostrarCosto
+                                  ? `$${Number(r.costo).toLocaleString(
+                                      "es-CO"
+                                    )}`
+                                  : "•••"}
+                              </td>
+                              <td className="p-2 text-right text-green-600 font-semibold">
+                                ${Number(r.precio || 0).toLocaleString(
+                                  "es-CO"
                                 )}
-                              </div>
-                            </td>
-                            <td className="p-3 text-gray-700">{r.marca}</td>
-                            <td className="p-3 text-gray-700">
-                              {r.medida || "—"}
-                            </td>
-                            <td className="p-3 text-gray-700">
-                              {r.proveedor || "—"}
-                            </td>
-                            <td className="p-3 text-right text-blue-600 font-semibold">
-                              {mostrarCosto
-                                ? `$${Number(r.costo).toLocaleString("es-CO")}`
-                                : "•••••"}
-                            </td>
-                            <td className="p-3 text-right text-green-600 font-semibold">
-                              ${Number(r.precio || 0).toLocaleString("es-CO")}
-                            </td>
-                            <td
-                              className={`p-3 text-center font-semibold ${
-                                r.stock === 0 ? "text-red-600" : "text-gray-700"
-                              }`}
-                            >
-                              {r.stock === 0 ? (
-                                <span className="inline-flex items-center gap-1 bg-red-100 px-2 py-1 rounded-full text-xs">
-                                  ❌
-                                </span>
-                              ) : (
-                                r.stock
-                              )}
-                            </td>
-                            <td className="p-3">
-                              <div className="grid grid-cols-2 gap-x-4 gap-y-2 justify-items-center">
-                                <button
-                                  onClick={() => iniciarEdicion(r.id)}
-                                  className="bg-slate-200 hover:bg-slate-300 w-10 h-10 text-lg rounded-lg transition-all shadow-sm hover:shadow-md flex items-center justify-center"
-                                  title="Editar"
-                                >
-                                  ✏️
-                                </button>
-                                <button
-                                  onClick={async () => {
-                                    const texto = prompt(
-                                      "Escribe un comentario para este rin:",
-                                      r.comentario || ""
-                                    );
-                                    if (texto !== null) {
-                                      await guardarComentario(r, texto);
-                                    }
-                                  }}
-                                  className="bg-yellow-500 text-white w-10 h-10 text-lg rounded-lg hover:bg-yellow-600 transition-all shadow-sm hover:shadow-md flex items-center justify-center"
-                                  title="Comentario"
-                                >
-                                  💬
-                                </button>
-                                <button
-                                  onClick={() => setSubirFotoId(r.id)}
-                                  className="bg-green-500 text-white w-10 h-10 text-lg rounded-lg hover:bg-green-600 transition-all shadow-sm hover:shadow-md flex items-center justify-center"
-                                  title="Subir foto"
-                                >
-                                  📷
-                                </button>
-                                <button
-                                  onClick={() => handleEliminar(r.id)}
-                                  className="bg-red-500 text-white w-10 h-10 text-lg rounded-lg hover:bg-red-600 transition-all shadow-sm hover:shadow-md flex items-center justify-center"
-                                  title="Eliminar"
-                                >
-                                  🗑️
-                                </button>
-                              </div>
-                            </td>
-                          </>
-                        )}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </>
-        )}
-
-        {mostrarModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md transform transition-all">
-              <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-2">
-                <span>➕</span>Agregar Nuevo Rin
-              </h2>
-              <div className="space-y-4">
-                {[
-                  { key: "referencia", label: "Referencia" },
-                  { key: "marca", label: "Marca" },
-                  { key: "medida", label: "Medida" },
-                  { key: "proveedor", label: "Proveedor" },
-                  { key: "costo", label: "Costo" },
-                  { key: "precio", label: "Precio" },
-                  { key: "stock", label: "Stock" },
-                ].map((campo) => (
-                  <div key={campo.key}>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {campo.label}
-                    </label>
-                    <input
-                      placeholder={`Ingrese ${campo.label.toLowerCase()}`}
-                      value={nuevoItem[campo.key]}
-                      onChange={(e) =>
-                        setNuevoItem({
-                          ...nuevoItem,
-                          [campo.key]: e.target.value,
-                        })
-                      }
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-all"
-                    />
-                  </div>
-                ))}
-              </div>
-              <div className="flex gap-3 mt-6">
-                <button
-                  onClick={handleAgregar}
-                  className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-green-600 hover:to-green-700 transition-all shadow-lg hover:shadow-xl"
-                >
-                  Guardar
-                </button>
-                <button
-                  onClick={() => setMostrarModal(false)}
-                  className="flex-1 bg-gray-400 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-500 transition-all shadow-lg hover:shadow-xl"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {subirFotoId && (
-          <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md transform transition-all">
-              <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-2">
-                <span>📷</span>Subir Foto del Rin
-              </h2>
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Seleccionar imagen
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setArchivoFoto(e.target.files[0])}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-all file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200"
-                />
-                {archivoFoto && (
-                  <p className="mt-3 text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
-                    ✓ Archivo seleccionado:{" "}
-                    <span className="font-semibold">{archivoFoto.name}</span>
-                  </p>
-                )}
-              </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => handleSubirFoto(subirFotoId)}
-                  disabled={subiendoFoto || !archivoFoto}
-                  className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-green-600 hover:to-green-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {subiendoFoto ? "Subiendo..." : "Subir foto"}
-                </button>
-                <button
-                  onClick={() => {
-                    setSubirFotoId(null);
-                    setArchivoFoto(null);
-                  }}
-                  disabled={subiendoFoto}
-                  className="flex-1 bg-gray-400 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-500 transition-all shadow-lg hover:shadow-xl disabled:opacity-50"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {fotoModal && (
-          <div
-            className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4 backdrop-blur-sm"
-            onClick={() => setFotoModal(null)}
-          >
-            <div
-              className="relative max-w-4xl max-h-screen bg-white rounded-2xl shadow-2xl overflow-hidden"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="bg-gradient-to-r from-slate-700 to-slate-900 p-6 text-white">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-2xl font-bold flex items-center gap-3">
-                    <span>📷</span>
-                    Vista de Imagen
-                  </h3>
-                  <button
-                    onClick={() => setFotoModal(null)}
-                    className="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-3 transition-all w-12 h-12 flex items-center justify-center text-3xl"
-                  >
-                    ×
-                  </button>
+                              </td>
+                              <td
+                                className={`p-2 text-center font-semibold ${
+                                  r.stock === 0
+                                    ? "text-red-600"
+                                    : "text-gray-700"
+                                }`}
+                              >
+                                {r.stock === 0 ? "❌" : r.stock}
+                              </td>
+                              <td className="p-2">
+                                <div className="flex gap-1 justify-center">
+                                  <button
+                                    onClick={() => iniciarEdicion(r.id)}
+                                    className="bg-slate-100 hover:bg-slate-200 px-2 py-1 text-xs rounded"
+                                  >
+                                    ✏️
+                                  </button>
+                                  <button
+                                    onClick={async () => {
+                                      const texto = prompt(
+                                        "Comentario:",
+                                        r.comentario || ""
+                                      );
+                                      if (texto !== null) {
+                                        await guardarComentario(r, texto);
+                                      }
+                                    }}
+                                    className="bg-yellow-100 hover:bg-yellow-200 px-2 py-1 text-xs rounded"
+                                  >
+                                    💬
+                                  </button>
+                                  <button
+                                    onClick={() => setSubirFotoId(r.id)}
+                                    className="bg-green-100 hover:bg-green-200 text-green-700 px-2 py-1 text-xs rounded"
+                                  >
+                                    📷
+                                  </button>
+                                  <button
+                                    onClick={() => handleEliminar(r.id)}
+                                    className="bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 text-xs rounded"
+                                  >
+                                    🗑️
+                                  </button>
+                                </div>
+                              </td>
+                            </>
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
-              <div className="p-6 bg-gray-50">
-                <img
-                  src={fotoModal}
-                  alt="Foto del rin"
-                  className="max-w-full max-h-[70vh] rounded-xl shadow-2xl object-contain mx-auto"
-                  onError={(e) => {
-                    e.target.src = "/placeholder-image.png";
-                    e.target.alt = "Error al cargar imagen";
-                  }}
-                />
-              </div>
-              <div className="bg-gray-100 p-6 border-t flex justify-end">
-                <button
-                  onClick={() => setFotoModal(null)}
-                  className="bg-slate-600 text-white px-8 py-3 rounded-xl hover:bg-slate-700 font-semibold transition-all shadow-lg hover:shadow-xl"
-                >
-                  Cerrar
-                </button>
-              </div>
+            </>
+          )}
+        </main>
+      </div>
+
+      {/* Modales (mantener los mismos modales del código original) */}
+      {mostrarModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4 text-gray-800">
+              ➕ Agregar Nuevo Rin
+            </h2>
+            <div className="space-y-3">
+              {[
+                { key: "referencia", label: "Referencia" },
+                { key: "marca", label: "Marca" },
+                { key: "medida", label: "Medida" },
+                { key: "proveedor", label: "Proveedor" },
+                { key: "costo", label: "Costo" },
+                { key: "precio", label: "Precio" },
+                { key: "stock", label: "Stock" },
+              ].map((campo) => (
+                <div key={campo.key}>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    {campo.label}
+                  </label>
+                  <input
+                    placeholder={`Ingrese ${campo.label.toLowerCase()}`}
+                    value={nuevoItem[campo.key]}
+                    onChange={(e) =>
+                      setNuevoItem({
+                        ...nuevoItem,
+                        [campo.key]: e.target.value,
+                      })
+                    }
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 outline-none"
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={handleAgregar}
+                className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700"
+              >
+                Guardar
+              </button>
+              <button
+                onClick={() => setMostrarModal(false)}
+                className="flex-1 bg-gray-400 text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-500"
+              >
+                Cancelar
+              </button>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {comentarioModal && (
+      {subirFotoId && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4 text-gray-800">
+              📷 Subir Foto del Rin
+            </h2>
+            <div className="mb-4">
+              <label className="block text-xs font-medium text-gray-700 mb-2">
+                Seleccionar imagen
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setArchivoFoto(e.target.files[0])}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:bg-slate-100 file:text-slate-700"
+              />
+              {archivoFoto && (
+                <p className="mt-2 text-xs text-gray-600">
+                  ✓ Archivo: {archivoFoto.name}
+                </p>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleSubirFoto(subirFotoId)}
+                disabled={subiendoFoto || !archivoFoto}
+                className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 disabled:opacity-50"
+              >
+                {subiendoFoto ? "Subiendo..." : "Subir"}
+              </button>
+              <button
+                onClick={() => {
+                  setSubirFotoId(null);
+                  setArchivoFoto(null);
+                }}
+                disabled={subiendoFoto}
+                className="flex-1 bg-gray-400 text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-500"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {fotoModal && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4"
+          onClick={() => setFotoModal(null)}
+        >
           <div
-            className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm"
-            onClick={() => setComentarioModal(null)}
+            className="relative max-w-4xl max-h-screen bg-white rounded-xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
           >
-            <div
-              className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-lg transform transition-all"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex justify-between items-start mb-6">
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                    <span>💬</span>
-                    Comentario
-                  </h3>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Ref: {comentarioModal.referencia}
-                  </p>
-                </div>
-                <button
-                  onClick={() => setComentarioModal(null)}
-                  className="text-gray-400 hover:text-gray-600 text-4xl leading-none hover:bg-gray-100 w-10 h-10 rounded-full transition-all"
-                >
-                  ×
-                </button>
-              </div>
-              <div className="bg-gray-50 p-6 rounded-xl mb-6 border-2 border-gray-100">
-                <p className="text-gray-800 whitespace-pre-wrap break-words leading-relaxed">
-                  {comentarioModal.comentario}
+            <div className="bg-slate-800 p-4 text-white flex justify-between items-center">
+              <h3 className="text-lg font-bold">📷 Vista de Imagen</h3>
+              <button
+                onClick={() => setFotoModal(null)}
+                className="text-white text-2xl hover:bg-slate-700 rounded-full w-8 h-8"
+              >
+                ×
+              </button>
+            </div>
+            <div className="p-4 bg-gray-50">
+              <img
+                src={fotoModal}
+                alt="Foto del rin"
+                className="max-w-full max-h-[70vh] rounded-lg object-contain mx-auto"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {comentarioModal && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4"
+          onClick={() => setComentarioModal(null)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="text-xl font-bold text-gray-800">
+                  💬 Comentario
+                </h3>
+                <p className="text-xs text-gray-500 mt-1">
+                  Ref: {comentarioModal.referencia}
                 </p>
               </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={async () => {
-                    const nuevoTexto = prompt(
-                      "Editar comentario:",
-                      comentarioModal.comentario
-                    );
-                    if (nuevoTexto !== null) {
-                      await guardarComentario(comentarioModal, nuevoTexto);
-                    }
-                  }}
-                  className="flex-1 bg-yellow-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-yellow-600 transition-all shadow-lg hover:shadow-xl"
-                >
-                  Editar
-                </button>
-                <button
-                  onClick={() => setComentarioModal(null)}
-                  className="flex-1 bg-gray-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-600 transition-all shadow-lg hover:shadow-xl"
-                >
-                  Cerrar
-                </button>
-              </div>
+              <button
+                onClick={() => setComentarioModal(null)}
+                className="text-gray-400 hover:text-gray-600 text-3xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-lg mb-4">
+              <p className="text-gray-800 whitespace-pre-wrap text-sm">
+                {comentarioModal.comentario}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={async () => {
+                  const nuevoTexto = prompt(
+                    "Editar comentario:",
+                    comentarioModal.comentario
+                  );
+                  if (nuevoTexto !== null) {
+                    await guardarComentario(comentarioModal, nuevoTexto);
+                  }
+                }}
+                className="flex-1 bg-yellow-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-yellow-600"
+              >
+                Editar
+              </button>
+              <button
+                onClick={() => setComentarioModal(null)}
+                className="flex-1 bg-gray-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-600"
+              >
+                Cerrar
+              </button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
 
-export default Rines;
+export default Rines; 

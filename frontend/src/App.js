@@ -740,34 +740,34 @@ function App() {
               </div>
 
               {/* Vista móvil - tarjetas 2x2 */}
-              <div className="lg:hidden grid grid-cols-2 gap-3 mb-4">
+              <div className="lg:hidden grid grid-cols-2 gap-2 mb-4">
                 {filtradas.map((ll) => (
                   <div
                     key={ll.id}
-                    className="bg-white rounded-lg shadow-sm border border-gray-200 p-3"
+                    className="bg-white rounded-lg shadow-sm border border-gray-200 p-2.5"
                   >
                     {/* Header con checkbox y referencia */}
-                    <div className="flex items-start gap-2 mb-2">
+                    <div className="flex items-start gap-1.5 mb-2">
                       <input
                         type="checkbox"
                         checked={seleccionadas.includes(ll.id)}
                         onChange={() => toggleSeleccion(ll.id)}
-                        className="cursor-pointer mt-1 flex-shrink-0"
+                        className="cursor-pointer mt-0.5 flex-shrink-0"
                       />
                       <div className="flex-1 min-w-0">
-                        <div className="font-bold text-slate-800 text-sm truncate flex items-center gap-1">
+                        <div className="font-bold text-slate-800 text-xs leading-tight truncate flex items-center gap-1">
                           <span className="truncate">{ll.referencia}</span>
                           {ll.comentario && (
                             <button
                               onClick={() => setComentarioModal(ll)}
-                              className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center text-white flex-shrink-0"
-                              style={{ fontSize: "8px" }}
+                              className="w-3.5 h-3.5 bg-blue-500 rounded-full flex items-center justify-center text-white flex-shrink-0"
+                              style={{ fontSize: "7px" }}
                             >
                               💬
                             </button>
                           )}
                         </div>
-                        <div className="text-xs text-gray-500 truncate">
+                        <div className="text-[10px] text-gray-500 truncate leading-tight">
                           {ll.marca}
                         </div>
                       </div>
@@ -775,22 +775,22 @@ function App() {
 
                     {/* Badges de consignación */}
                     {ll.consignacion && (
-                      <div className="mb-2">
-                        <span className="inline-block bg-orange-100 text-orange-700 text-xs px-2 py-0.5 rounded-full">
+                      <div className="mb-1.5">
+                        <span className="inline-block bg-orange-100 text-orange-700 text-[9px] px-1.5 py-0.5 rounded-full">
                           Consignación
                         </span>
                       </div>
                     )}
 
                     {/* Info grid compacta */}
-                    <div className="space-y-1 text-xs mb-3">
-                      <div className="flex justify-between">
+                    <div className="space-y-0.5 text-[10px] mb-2 leading-tight">
+                      <div className="flex justify-between items-center">
                         <span className="text-gray-500">Proveedor:</span>
-                        <span className="font-medium truncate ml-1">
+                        <span className="font-medium truncate ml-1 max-w-[60%] text-right">
                           {ll.proveedor || "—"}
                         </span>
                       </div>
-                      <div className="flex justify-between">
+                      <div className="flex justify-between items-center">
                         <span className="text-gray-500">Stock:</span>
                         <span
                           className={`font-bold ${
@@ -804,9 +804,9 @@ function App() {
                           {ll.stock === 0 ? "Sin stock" : ll.stock}
                         </span>
                       </div>
-                      <div className="flex justify-between">
+                      <div className="flex justify-between items-center">
                         <span className="text-gray-500">Precio:</span>
-                        <span className="font-medium text-green-600">
+                        <span className="font-semibold text-green-600">
                           $
                           {Number(ll.precio_cliente || 0).toLocaleString(
                             "es-CO"
@@ -814,9 +814,9 @@ function App() {
                         </span>
                       </div>
                       {mostrarCosto && (
-                        <div className="flex justify-between">
+                        <div className="flex justify-between items-center">
                           <span className="text-gray-500">Costo:</span>
-                          <span className="font-medium text-blue-600">
+                          <span className="font-semibold text-blue-600">
                             $
                             {Number(ll.costo_empresa || 0).toLocaleString(
                               "es-CO"
@@ -826,8 +826,8 @@ function App() {
                       )}
                     </div>
 
-                    {/* Botones de acción compactos */}
-                    <div className="grid grid-cols-2 gap-1">
+                    {/* Botones de acción ultra compactos */}
+                    <div className="grid grid-cols-3 gap-0.5">
                       <button
                         onClick={() =>
                           window.open(
@@ -835,19 +835,19 @@ function App() {
                             "_blank"
                           )
                         }
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1.5 text-xs rounded transition-all"
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-1 py-1 text-[10px] rounded transition-all"
                       >
-                        🔍Llantar
+                        🔍
                       </button>
                       <button
                         onClick={() => handleAgregarComparador(ll)}
-                        className="bg-purple-500 hover:bg-purple-600 text-white px-2 py-1.5 text-xs rounded transition-all"
+                        className="bg-purple-500 hover:bg-purple-600 text-white px-1 py-1 text-[10px] rounded transition-all"
                       >
-                        ⚖️Web
+                        ⚖️
                       </button>
                       <button
                         onClick={() => iniciarEdicion(ll.id)}
-                        className="bg-slate-100 hover:bg-slate-200 px-2 py-1.5 text-xs rounded transition-all"
+                        className="bg-slate-100 hover:bg-slate-200 px-1 py-1 text-[10px] rounded transition-all"
                       >
                         ✏️
                       </button>
@@ -861,13 +861,13 @@ function App() {
                             await guardarComentario(ll, texto);
                           }
                         }}
-                        className="bg-yellow-100 hover:bg-yellow-200 px-2 py-1.5 text-xs rounded transition-all"
+                        className="bg-yellow-100 hover:bg-yellow-200 px-1 py-1 text-[10px] rounded transition-all"
                       >
                         💬
                       </button>
                       <button
                         onClick={() => handleEliminar(ll.id)}
-                        className="col-span-2 bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1.5 text-xs rounded transition-all"
+                        className="col-span-2 bg-red-100 hover:bg-red-200 text-red-700 px-1 py-1 text-[10px] rounded transition-all"
                       >
                         🗑️
                       </button>

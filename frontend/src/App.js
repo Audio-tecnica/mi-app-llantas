@@ -1348,7 +1348,7 @@ function App() {
                                     }
                                     className="bg-purple-600 text-white px-2 py-1 rounded text-xs hover:bg-purple-700"
                                   >
-                                    Comp
+                                    Web
                                   </button>
                                 </div>
                               </td>

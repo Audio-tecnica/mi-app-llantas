@@ -417,7 +417,7 @@ function App() {
               onClick={() => setMenuAbierto(false)}
               className="lg:hidden text-white hover:bg-slate-700 p-2 rounded"
             >
-              <X size={24} />
+              <X size={30} />
             </button>
           </div>
 

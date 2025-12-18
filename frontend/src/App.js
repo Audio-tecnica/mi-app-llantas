@@ -130,6 +130,10 @@ function App() {
     window.open(url, "_blank");
   };
 
+  const handleAgregarComparador = (llanta) => {
+    abrirComparador(llanta.referencia);
+  };
+
   const marcasUnicas = [...new Set(llantas.map((l) => l.marca))];
 
   const filtradas = llantas.filter((l) => {
@@ -199,6 +203,7 @@ function App() {
         "https://mi-app-llantas.onrender.com/api/llantas"
       );
       setLlantas(data);
+      setComentarioModal(null);
       setMensaje("Comentario guardado ✅");
       setTimeout(() => setMensaje(""), 2000);
     } catch (error) {
@@ -412,7 +417,7 @@ function App() {
       >
         <div className="p-6">
           <div className="flex items-center justify-between mb-8">
-            <img src="/logowp.PNG" className="h-16 w-auto" alt="Logo" />
+            <img src="/logowp.PNG" className="h-10 w-auto" alt="Logo" />
             <button
               onClick={() => setMenuAbierto(false)}
               className="lg:hidden text-white hover:bg-slate-700 p-2 rounded"
@@ -431,7 +436,7 @@ function App() {
               className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg bg-slate-700 hover:bg-slate-600 transition-all text-sm"
             >
               <span>🏠</span>
-              <span>Dashboard</span>
+              <span>Llantas</span>
             </button>
 
             <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-3 mt-6">
@@ -510,7 +515,7 @@ function App() {
         ></div>
       )}
 
-  {/* Main Content */}
+      {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-screen">
         {/* Top bar */}
         <header className="bg-white shadow-sm px-4 py-3 sticky top-0 z-30">
@@ -527,7 +532,6 @@ function App() {
             </h1>
 
             <div className="flex items-center gap-2">
-              {/* Botón mostrar/ocultar costo - visible en móvil */}
               <button
                 onClick={() => setMostrarCosto(!mostrarCosto)}
                 className="lg:hidden bg-slate-100 hover:bg-slate-200 p-2 rounded transition-all"
@@ -559,7 +563,7 @@ function App() {
             </div>
           ) : (
             <>
-              {/* Dashboard Cards - Más compactas */}
+              {/* Dashboard Cards */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
                   <div className="text-2xl font-bold text-slate-700">
@@ -594,7 +598,7 @@ function App() {
                 </div>
               </div>
 
-              {/* Action Buttons - Más compactos */}
+              {/* Action Buttons */}
               <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 mb-4">
                 <button
                   onClick={() => setMostrarModal(true)}
@@ -665,7 +669,7 @@ function App() {
                 </button>
               </div>
 
-              {/* Panel de búsqueda - Más compacto */}
+              {/* Panel de búsqueda */}
               <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
@@ -689,7 +693,6 @@ function App() {
                             "busquedasRecientes",
                             JSON.stringify(nuevas)
                           );
-                          setBusqueda("");
                         }
                       }}
                       className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none"
@@ -736,247 +739,402 @@ function App() {
                 )}
               </div>
 
-              {/* Tabla - Vista de tarjetas en móvil */}
-              <div className="space-y-3">
-                {/* Vista móvil - tarjetas */}
-                <div className="lg:hidden space-y-3">
-                  {filtradas.map((ll) => (
-                    <div
-                      key={ll.id}
-                      className="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            checked={seleccionadas.includes(ll.id)}
-                            onChange={() => toggleSeleccion(ll.id)}
-                            className="cursor-pointer"
-                          />
-                          <div>
-                            <div className="font-bold text-slate-800 flex items-center gap-2">
-                              {ll.referencia}
-                              {ll.comentario && (
-                                <button
-                                  onClick={() => setComentarioModal(ll)}
-                                  className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs hover:bg-blue-600"
-                                >
-                                  💬
-                                </button>
-                              )}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {ll.marca}
-                            </div>
-                          </div>
+              {/* Vista móvil - tarjetas 2x2 */}
+              <div className="lg:hidden grid grid-cols-2 gap-3 mb-4">
+                {filtradas.map((ll) => (
+                  <div
+                    key={ll.id}
+                    className="bg-white rounded-lg shadow-sm border border-gray-200 p-3"
+                  >
+                    {/* Header con checkbox y referencia */}
+                    <div className="flex items-start gap-2 mb-2">
+                      <input
+                        type="checkbox"
+                        checked={seleccionadas.includes(ll.id)}
+                        onChange={() => toggleSeleccion(ll.id)}
+                        className="cursor-pointer mt-1 flex-shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold text-slate-800 text-sm truncate flex items-center gap-1">
+                          <span className="truncate">{ll.referencia}</span>
+                          {ll.comentario && (
+                            <button
+                              onClick={() => setComentarioModal(ll)}
+                              className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center text-white flex-shrink-0"
+                              style={{ fontSize: "8px" }}
+                            >
+                              💬
+                            </button>
+                          )}
                         </div>
-                        {ll.consignacion && (
-                          <span className="bg-red-100 text-red-700 text-xs px-2 py-1 rounded">
-                            Consig.
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Botones de búsqueda */}
-                      <div className="flex gap-2 mb-3">
-                        <button
-                          onClick={() =>
-                            window.open(
-                              `https://www.llantar.com.co/search?q=${encodeURIComponent(
-                                ll.referencia
-                              )}`,
-                              "_blank"
-                            )
-                          }
-                          className="flex-1 bg-blue-500 text-white px-3 py-1.5 rounded text-xs hover:bg-blue-600 transition-all"
-                        >
-                          🔍 Llantar
-                        </button>
-                        <button
-                          onClick={() => abrirComparador(ll.referencia)}
-                          className="flex-1 bg-purple-600 text-white px-3 py-1.5 rounded text-xs hover:bg-purple-700 transition-all"
-                        >
-                          📊 Comparar
-                        </button>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2 text-sm mb-3">
-                        <div>
-                          <span className="text-gray-500 text-xs">
-                            Proveedor:
-                          </span>
-                          <div className="font-medium">{ll.proveedor}</div>
+                        <div className="text-xs text-gray-500 truncate">
+                          {ll.marca}
                         </div>
-                        <div>
-                          <span className="text-gray-500 text-xs">Stock:</span>
-                          <div
-                            className={`font-bold ${
-                              ll.stock === 0 ? "text-red-600" : "text-green-600"
-                            }`}
-                          >
-                            {ll.stock === 0 ? "Sin stock" : ll.stock}
-                          </div>
-                        </div>
-                        <div>
-                          <span className="text-gray-500 text-xs">Precio:</span>
-                          <div className="font-medium text-green-600">
-                            ${ll.precio_cliente.toLocaleString()}
-                          </div>
-                        </div>
-                        {mostrarCosto && (
-                          <div>
-                            <span className="text-gray-500 text-xs">
-                              Costo:
-                            </span>
-                            <div className="font-medium text-blue-600">
-                              ${(ll.costo_empresa || 0).toLocaleString()}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex gap-2 flex-wrap">
-                        <button
-                          onClick={() => iniciarEdicion(ll.id)}
-                          className="flex-1 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 text-xs rounded transition-all"
-                        >
-                          ✏️ Editar
-                        </button>
-                        <button
-                          onClick={async () => {
-                            const texto = prompt(
-                              "Comentario:",
-                              ll.comentario || ""
-                            );
-                            if (texto !== null) {
-                              await guardarComentario(ll, texto);
-                            }
-                          }}
-                          className="flex-1 bg-yellow-100 hover:bg-yellow-200 px-3 py-1.5 text-xs rounded transition-all"
-                        >
-                          💬
-                        </button>
-                        <button
-                          onClick={() => handleEliminar(ll.id)}
-                          className="flex-1 bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 text-xs rounded transition-all"
-                        >
-                          🗑️
-                        </button>
                       </div>
                     </div>
-                  ))}
-                </div>
 
-                {/* Vista desktop - tabla */}
-                <div className="hidden lg:block bg-white rounded-lg shadow-sm overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead className="bg-slate-700 text-white">
-                        <tr>
-                          <th className="p-2 text-left">
+                    {/* Badges de consignación */}
+                    {ll.consignacion && (
+                      <div className="mb-2">
+                        <span className="inline-block bg-orange-100 text-orange-700 text-xs px-2 py-0.5 rounded-full">
+                          Consignación
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Info grid compacta */}
+                    <div className="space-y-1 text-xs mb-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Proveedor:</span>
+                        <span className="font-medium truncate ml-1">
+                          {ll.proveedor || "—"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Stock:</span>
+                        <span
+                          className={`font-bold ${
+                            ll.stock === 0
+                              ? "text-red-600"
+                              : ll.stock % 2 !== 0
+                              ? "text-orange-600"
+                              : "text-green-600"
+                          }`}
+                        >
+                          {ll.stock === 0 ? "Sin stock" : ll.stock}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Precio:</span>
+                        <span className="font-medium text-green-600">
+                          $
+                          {Number(ll.precio_cliente || 0).toLocaleString(
+                            "es-CO"
+                          )}
+                        </span>
+                      </div>
+                      {mostrarCosto && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Costo:</span>
+                          <span className="font-medium text-blue-600">
+                            $
+                            {Number(ll.costo_empresa || 0).toLocaleString(
+                              "es-CO"
+                            )}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Botones de acción compactos */}
+                    <div className="grid grid-cols-2 gap-1">
+                      <button
+                        onClick={() =>
+                          window.open(
+                            `https://llantar.com/llantas?marca=${ll.marca}&referencia=${ll.referencia}`,
+                            "_blank"
+                          )
+                        }
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1.5 text-xs rounded transition-all"
+                      >
+                        🔍
+                      </button>
+                      <button
+                        onClick={() => handleAgregarComparador(ll)}
+                        className="bg-purple-500 hover:bg-purple-600 text-white px-2 py-1.5 text-xs rounded transition-all"
+                      >
+                        ⚖️
+                      </button>
+                      <button
+                        onClick={() => iniciarEdicion(ll.id)}
+                        className="bg-slate-100 hover:bg-slate-200 px-2 py-1.5 text-xs rounded transition-all"
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        onClick={async () => {
+                          const texto = prompt(
+                            "Comentario:",
+                            ll.comentario || ""
+                          );
+                          if (texto !== null) {
+                            await guardarComentario(ll, texto);
+                          }
+                        }}
+                        className="bg-yellow-100 hover:bg-yellow-200 px-2 py-1.5 text-xs rounded transition-all"
+                      >
+                        💬
+                      </button>
+                      <button
+                        onClick={() => handleEliminar(ll.id)}
+                        className="col-span-2 bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1.5 text-xs rounded transition-all"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Vista desktop - tabla */}
+              <div className="hidden lg:block bg-white rounded-lg shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-slate-700 text-white">
+                      <tr>
+                        <th className="p-2 text-left">
+                          <input
+                            type="checkbox"
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSeleccionadas(filtradas.map((l) => l.id));
+                              } else {
+                                setSeleccionadas([]);
+                              }
+                            }}
+                            checked={
+                              seleccionadas.length === filtradas.length &&
+                              filtradas.length > 0
+                            }
+                            className="cursor-pointer"
+                          />
+                        </th>
+                        <th
+                          onClick={() => ordenarPor("referencia")}
+                          className="cursor-pointer p-2 text-left hover:bg-slate-600"
+                        >
+                          Referencia
+                        </th>
+                        <th className="p-2 text-center">Búsqueda</th>
+                        <th
+                          onClick={() => ordenarPor("marca")}
+                          className="cursor-pointer p-2 text-left hover:bg-slate-600"
+                        >
+                          Marca
+                        </th>
+                        <th
+                          onClick={() => ordenarPor("proveedor")}
+                          className="cursor-pointer p-2 text-left hover:bg-slate-600"
+                        >
+                          Proveedor
+                        </th>
+                        <th
+                          onClick={() => ordenarPor("costo_empresa")}
+                          className="cursor-pointer p-2 text-right hover:bg-slate-600"
+                        >
+                          <div className="flex items-center justify-end gap-2">
+                            Costo
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setMostrarCosto(!mostrarCosto);
+                              }}
+                              className="hover:bg-slate-600 p-1 rounded"
+                            >
+                              {mostrarCosto ? (
+                                <EyeOff size={14} />
+                              ) : (
+                                <Eye size={14} />
+                              )}
+                            </button>
+                          </div>
+                        </th>
+                        <th
+                          onClick={() => ordenarPor("precio_cliente")}
+                          className="cursor-pointer p-2 text-right hover:bg-slate-600"
+                        >
+                          Precio
+                        </th>
+                        <th
+                          onClick={() => ordenarPor("stock")}
+                          className="cursor-pointer p-2 text-center hover:bg-slate-600"
+                        >
+                          Stock
+                        </th>
+                        <th className="p-2 text-center">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {filtradas.map((ll, idx) => (
+                        <tr
+                          key={ll.id}
+                          className={`${
+                            idx % 2 === 0 ? "bg-white" : "bg-gray-50"
+                          } hover:bg-blue-50`}
+                        >
+                          <td className="p-2">
                             <input
                               type="checkbox"
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setSeleccionadas(filtradas.map((l) => l.id));
-                                } else {
-                                  setSeleccionadas([]);
-                                }
-                              }}
-                              checked={
-                                seleccionadas.length === filtradas.length &&
-                                filtradas.length > 0
-                              }
+                              checked={seleccionadas.includes(ll.id)}
+                              onChange={() => toggleSeleccion(ll.id)}
                               className="cursor-pointer"
                             />
-                          </th>
-                          <th
-                            onClick={() => ordenarPor("referencia")}
-                            className="cursor-pointer p-2 text-left hover:bg-slate-600"
-                          >
-                            Referencia
-                          </th>
-                          <th className="p-2 text-center">Búsqueda</th>
-                          <th
-                            onClick={() => ordenarPor("marca")}
-                            className="cursor-pointer p-2 text-left hover:bg-slate-600"
-                          >
-                            Marca
-                          </th>
-                          <th
-                            onClick={() => ordenarPor("proveedor")}
-                            className="cursor-pointer p-2 text-left hover:bg-slate-600"
-                          >
-                            Proveedor
-                          </th>
-                          <th
-                            onClick={() => ordenarPor("costo_empresa")}
-                            className="cursor-pointer p-2 text-right hover:bg-slate-600"
-                          >
-                            <div className="flex items-center justify-end gap-2">
-                              Costo
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setMostrarCosto(!mostrarCosto);
-                                }}
-                                className="hover:bg-slate-600 p-1 rounded"
-                              >
-                                {mostrarCosto ? (
-                                  <EyeOff size={14} />
-                                ) : (
-                                  <Eye size={14} />
-                                )}
-                              </button>
-                            </div>
-                          </th>
-                          <th
-                            onClick={() => ordenarPor("precio_cliente")}
-                            className="cursor-pointer p-2 text-right hover:bg-slate-600"
-                          >
-                            Precio
-                          </th>
-                          <th
-                            onClick={() => ordenarPor("stock")}
-                            className="cursor-pointer p-2 text-center hover:bg-slate-600"
-                          >
-                            Stock
-                          </th>
-                          <th className="p-2 text-center">Acciones</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-200">
-                        {filtradas.map((ll, idx) => (
-                          <tr
-                            key={ll.id}
-                            className={`${
-                              idx % 2 === 0 ? "bg-white" : "bg-gray-50"
-                            } hover:bg-blue-50`}
-                          >
-                            <td className="p-2">
-                              <input
-                                type="checkbox"
-                                checked={seleccionadas.includes(ll.id)}
-                                onChange={() => toggleSeleccion(ll.id)}
-                                className="cursor-pointer"
-                              />
-                            </td>
-                            {modoEdicion === ll.id ? (
-                              <>
-                                <td className="p-2">
-                                  <input
-                                    value={ll.referencia}
-                                    onChange={(e) =>
+                          </td>
+                          {modoEdicion === ll.id ? (
+                            <>
+                              <td className="p-2">
+                                <input
+                                  value={ll.referencia}
+                                  onChange={(e) =>
+                                    actualizarCampo(
+                                      ll.id,
+                                      "referencia",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full border-2 border-blue-300 rounded text-sm p-1"
+                                />
+                              </td>
+                              <td className="p-2">
+                                <button
+                                  onClick={() =>
+                                    window.open(
+                                      `https://www.llantar.com.co/search?q=${encodeURIComponent(
+                                        ll.referencia
+                                      )}`,
+                                      "_blank"
+                                    )
+                                  }
+                                  className="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600"
+                                >
+                                  Llantar
+                                </button>
+                              </td>
+                              <td className="p-2">
+                                <input
+                                  value={ll.marca}
+                                  onChange={(e) =>
+                                    actualizarCampo(
+                                      ll.id,
+                                      "marca",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full border-2 border-blue-300 rounded text-sm p-1"
+                                />
+                              </td>
+                              <td className="p-2">
+                                <input
+                                  value={ll.proveedor}
+                                  onChange={(e) =>
+                                    actualizarCampo(
+                                      ll.id,
+                                      "proveedor",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full border-2 border-blue-300 rounded text-sm p-1"
+                                />
+                              </td>
+                              <td className="p-2">
+                                <input
+                                  type="number"
+                                  value={ll.costo_empresa}
+                                  onChange={(e) =>
+                                    actualizarCampo(
+                                      ll.id,
+                                      "costo_empresa",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full border-2 border-blue-300 rounded text-sm p-1"
+                                />
+                              </td>
+                              <td className="p-2">
+                                <input
+                                  type="number"
+                                  value={ll.precio_cliente}
+                                  onChange={(e) =>
+                                    actualizarCampo(
+                                      ll.id,
+                                      "precio_cliente",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full border-2 border-blue-300 rounded text-sm p-1"
+                                />
+                              </td>
+                              <td className="p-2">
+                                <input
+                                  type="number"
+                                  value={ll.stock}
+                                  onChange={(e) =>
+                                    actualizarCampo(
+                                      ll.id,
+                                      "stock",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full border-2 border-blue-300 rounded text-sm p-1"
+                                />
+                              </td>
+                              <td className="p-2">
+                                <div className="flex flex-col gap-1">
+                                  <button
+                                    onClick={() =>
                                       actualizarCampo(
                                         ll.id,
-                                        "referencia",
-                                        e.target.value
+                                        "consignacion",
+                                        !ll.consignacion
                                       )
                                     }
-                                    className="w-full border-2 border-blue-300 rounded text-sm p-1"
-                                  />
-                                </td>
-                                <td className="p-2">
+                                    className={`px-2 py-1 text-xs rounded ${
+                                      ll.consignacion
+                                        ? "bg-red-500 text-white"
+                                        : "bg-gray-200 text-gray-700"
+                                    }`}
+                                  >
+                                    {ll.consignacion ? "✓ Consig." : "Marcar"}
+                                  </button>
+                                  <div className="flex gap-1">
+                                    <button
+                                      onClick={() => handleGuardar(ll)}
+                                      className="bg-green-500 text-white px-2 py-1 text-xs rounded hover:bg-green-600"
+                                    >
+                                      💾
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setModoEdicion(null);
+                                        setLlantaOriginalEdicion(null);
+                                        axios
+                                          .get(
+                                            "https://mi-app-llantas.onrender.com/api/llantas"
+                                          )
+                                          .then((res) => setLlantas(res.data));
+                                      }}
+                                      className="bg-gray-400 text-white px-2 py-1 text-xs rounded hover:bg-gray-500"
+                                    >
+                                      ✖
+                                    </button>
+                                  </div>
+                                </div>
+                              </td>
+                            </>
+                          ) : (
+                            <>
+                              <td className="p-2">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-semibold">
+                                    {ll.referencia}
+                                  </span>
+                                  {ll.comentario && (
+                                    <button
+                                      onClick={() => setComentarioModal(ll)}
+                                      className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs hover:bg-blue-600"
+                                    >
+                                      💬
+                                    </button>
+                                  )}
+                                  {ll.consignacion && (
+                                    <span className="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                                      C
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="p-2">
+                                <div className="flex gap-1">
                                   <button
                                     onClick={() =>
                                       window.open(
@@ -990,225 +1148,73 @@ function App() {
                                   >
                                     Llantar
                                   </button>
-                                </td>
-                                <td className="p-2">
-                                  <input
-                                    value={ll.marca}
-                                    onChange={(e) =>
-                                      actualizarCampo(
-                                        ll.id,
-                                        "marca",
-                                        e.target.value
-                                      )
+                                  <button
+                                    onClick={() =>
+                                      abrirComparador(ll.referencia)
                                     }
-                                    className="w-full border-2 border-blue-300 rounded text-sm p-1"
-                                  />
-                                </td>
-                                <td className="p-2">
-                                  <input
-                                    value={ll.proveedor}
-                                    onChange={(e) =>
-                                      actualizarCampo(
-                                        ll.id,
-                                        "proveedor",
-                                        e.target.value
-                                      )
-                                    }
-                                    className="w-full border-2 border-blue-300 rounded text-sm p-1"
-                                  />
-                                </td>
-                                <td className="p-2">
-                                  <input
-                                    type="number"
-                                    value={ll.costo_empresa}
-                                    onChange={(e) =>
-                                      actualizarCampo(
-                                        ll.id,
-                                        "costo_empresa",
-                                        e.target.value
-                                      )
-                                    }
-                                    className="w-full border-2 border-blue-300 rounded text-sm p-1"
-                                  />
-                                </td>
-                                <td className="p-2">
-                                  <input
-                                    type="number"
-                                    value={ll.precio_cliente}
-                                    onChange={(e) =>
-                                      actualizarCampo(
-                                        ll.id,
-                                        "precio_cliente",
-                                        e.target.value
-                                      )
-                                    }
-                                    className="w-full border-2 border-blue-300 rounded text-sm p-1"
-                                  />
-                                </td>
-                                <td className="p-2">
-                                  <input
-                                    type="number"
-                                    value={ll.stock}
-                                    onChange={(e) =>
-                                      actualizarCampo(
-                                        ll.id,
-                                        "stock",
-                                        e.target.value
-                                      )
-                                    }
-                                    className="w-full border-2 border-blue-300 rounded text-sm p-1"
-                                  />
-                                </td>
-                                <td className="p-2">
-                                  <div className="flex flex-col gap-1">
-                                    <button
-                                      onClick={() =>
-                                        actualizarCampo(
-                                          ll.id,
-                                          "consignacion",
-                                          !ll.consignacion
-                                        )
+                                    className="bg-purple-600 text-white px-2 py-1 rounded text-xs hover:bg-purple-700"
+                                  >
+                                    Comp
+                                  </button>
+                                </div>
+                              </td>
+                              <td className="p-2">{ll.marca}</td>
+                              <td className="p-2">{ll.proveedor}</td>
+                              <td className="p-2 text-right text-blue-600 font-semibold">
+                                {mostrarCosto
+                                  ? `$${(
+                                      ll.costo_empresa || 0
+                                    ).toLocaleString()}`
+                                  : "•••"}
+                              </td>
+                              <td className="p-2 text-right text-green-600 font-semibold">
+                                ${ll.precio_cliente.toLocaleString()}
+                              </td>
+                              <td
+                                className={`p-2 text-center font-semibold ${
+                                  ll.stock === 0
+                                    ? "text-red-600"
+                                    : "text-gray-700"
+                                }`}
+                              >
+                                {ll.stock === 0 ? "❌" : ll.stock}
+                              </td>
+                              <td className="p-2">
+                                <div className="flex gap-1 justify-center">
+                                  <button
+                                    onClick={() => iniciarEdicion(ll.id)}
+                                    className="bg-slate-100 hover:bg-slate-200 px-2 py-1 text-xs rounded"
+                                  >
+                                    ✏️
+                                  </button>
+                                  <button
+                                    onClick={async () => {
+                                      const texto = prompt(
+                                        "Comentario:",
+                                        ll.comentario || ""
+                                      );
+                                      if (texto !== null) {
+                                        await guardarComentario(ll, texto);
                                       }
-                                      className={`px-2 py-1 text-xs rounded ${
-                                        ll.consignacion
-                                          ? "bg-red-500 text-white"
-                                          : "bg-gray-200 text-gray-700"
-                                      }`}
-                                    >
-                                      {ll.consignacion ? "✓ Consig." : "Marcar"}
-                                    </button>
-                                    <div className="flex gap-1">
-                                      <button
-                                        onClick={() => handleGuardar(ll)}
-                                        className="bg-green-500 text-white px-2 py-1 text-xs rounded hover:bg-green-600"
-                                      >
-                                        💾
-                                      </button>
-                                      <button
-                                        onClick={() => {
-                                          setModoEdicion(null);
-                                          setLlantaOriginalEdicion(null);
-                                          axios
-                                            .get(
-                                              "https://mi-app-llantas.onrender.com/api/llantas"
-                                            )
-                                            .then((res) =>
-                                              setLlantas(res.data)
-                                            );
-                                        }}
-                                        className="bg-gray-400 text-white px-2 py-1 text-xs rounded hover:bg-gray-500"
-                                      >
-                                        ✖
-                                      </button>
-                                    </div>
-                                  </div>
-                                </td>
-                              </>
-                            ) : (
-                              <>
-                                <td className="p-2">
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-semibold">
-                                      {ll.referencia}
-                                    </span>
-                                    {ll.comentario && (
-                                      <button
-                                        onClick={() => setComentarioModal(ll)}
-                                        className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs hover:bg-blue-600"
-                                      >
-                                        💬
-                                      </button>
-                                    )}
-                                    {ll.consignacion && (
-                                      <span className="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                                        C
-                                      </span>
-                                    )}
-                                  </div>
-                                </td>
-                                <td className="p-2">
-                                  <div className="flex gap-1">
-                                    <button
-                                      onClick={() =>
-                                        window.open(
-                                          `https://www.llantar.com.co/search?q=${encodeURIComponent(
-                                            ll.referencia
-                                          )}`,
-                                          "_blank"
-                                        )
-                                      }
-                                      className="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600"
-                                    >
-                                      Llantar
-                                    </button>
-                                    <button
-                                      onClick={() =>
-                                        abrirComparador(ll.referencia)
-                                      }
-                                      className="bg-purple-600 text-white px-2 py-1 rounded text-xs hover:bg-purple-700"
-                                    >
-                                      Comp
-                                    </button>
-                                  </div>
-                                </td>
-                                <td className="p-2">{ll.marca}</td>
-                                <td className="p-2">{ll.proveedor}</td>
-                                <td className="p-2 text-right text-blue-600 font-semibold">
-                                  {mostrarCosto
-                                    ? `$${(
-                                        ll.costo_empresa || 0
-                                      ).toLocaleString()}`
-                                    : "•••"}
-                                </td>
-                                <td className="p-2 text-right text-green-600 font-semibold">
-                                  ${ll.precio_cliente.toLocaleString()}
-                                </td>
-                                <td
-                                  className={`p-2 text-center font-semibold ${
-                                    ll.stock === 0
-                                      ? "text-red-600"
-                                      : "text-gray-700"
-                                  }`}
-                                >
-                                  {ll.stock === 0 ? "❌" : ll.stock}
-                                </td>
-                                <td className="p-2">
-                                  <div className="flex gap-1 justify-center">
-                                    <button
-                                      onClick={() => iniciarEdicion(ll.id)}
-                                      className="bg-slate-100 hover:bg-slate-200 px-2 py-1 text-xs rounded"
-                                    >
-                                      ✏️
-                                    </button>
-                                    <button
-                                      onClick={async () => {
-                                        const texto = prompt(
-                                          "Comentario:",
-                                          ll.comentario || ""
-                                        );
-                                        if (texto !== null) {
-                                          await guardarComentario(ll, texto);
-                                        }
-                                      }}
-                                      className="bg-yellow-100 hover:bg-yellow-200 px-2 py-1 text-xs rounded"
-                                    >
-                                      💬
-                                    </button>
-                                    <button
-                                      onClick={() => handleEliminar(ll.id)}
-                                      className="bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 text-xs rounded"
-                                    >
-                                      🗑️
-                                    </button>
-                                  </div>
-                                </td>
-                              </>
-                            )}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                                    }}
+                                    className="bg-yellow-100 hover:bg-yellow-200 px-2 py-1 text-xs rounded"
+                                  >
+                                    💬
+                                  </button>
+                                  <button
+                                    onClick={() => handleEliminar(ll.id)}
+                                    className="bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 text-xs rounded"
+                                  >
+                                    🗑️
+                                  </button>
+                                </div>
+                              </td>
+                            </>
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </>
@@ -1216,7 +1222,7 @@ function App() {
         </main>
       </div>
 
-      {/* Modales (mantener los mismos del código anterior) */}
+      {/* Modal Agregar */}
       {mostrarModal && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
@@ -1268,6 +1274,7 @@ function App() {
         </div>
       )}
 
+      {/* Modal Comentario */}
       {comentarioModal && (
         <div
           className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4"
@@ -1307,7 +1314,6 @@ function App() {
                   );
                   if (nuevoTexto !== null) {
                     await guardarComentario(comentarioModal, nuevoTexto);
-                    setComentarioModal(null);
                   }
                 }}
                 className="flex-1 bg-yellow-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-yellow-600"
@@ -1325,6 +1331,7 @@ function App() {
         </div>
       )}
 
+      {/* Modal Log */}
       {mostrarLogModal && (
         <div
           className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"
@@ -1337,7 +1344,7 @@ function App() {
             <div className="bg-slate-800 p-6 text-white">
               <div className="flex justify-between items-center">
                 <div>
-                  <h2 className="text-2xl font-bold">📋 Update</h2>
+                  <h2 className="text-2xl font-bold">📋 Historial</h2>
                   <p className="text-slate-300 text-sm mt-1">
                     Registro de cambios
                   </p>
@@ -1454,6 +1461,7 @@ function App() {
         </div>
       )}
 
+      {/* Comparador */}
       {mostrarComparador && (
         <ComparadorLlantas
           llantas={llantas}

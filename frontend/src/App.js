@@ -1141,7 +1141,7 @@ function App() {
                   <input
                     type="file"
                     id="lista-llantar-input"
-                    accept="application/pdf"
+                    accept=".xlsx,.xls"
                     onChange={async (e) => {
                       const archivo = e.target.files[0];
                       if (!archivo) return;
@@ -1150,10 +1150,10 @@ function App() {
                         setMensaje("⏳ Procesando lista de Llantar...");
 
                         const formData = new FormData();
-                        formData.append("pdf", archivo);
+                        formData.append("excel", archivo);
 
                         const response = await axios.post(
-                          "https://mi-app-llantas.onrender.com/api/procesar-lista-llantar",
+                          "https://mi-app-llantas.onrender.com/api/procesar-excel-llantar",
                           formData,
                           {
                             headers: {
@@ -1165,7 +1165,7 @@ function App() {
                         const resultado = response.data;
 
                         setMensaje(
-                          `✅ Procesado: ${resultado.actualizadas} actualizadas, ${resultado.margenBajo} con margen bajo`
+                          `✅ Procesado: ${resultado.actualizadas} actualizadas, ${resultado.margenBajo} con margen bajo, ${resultado.bloqueadas} críticas`
                         );
 
                         // Recargar llantas
@@ -1175,7 +1175,7 @@ function App() {
                         setLlantas(data);
 
                         e.target.value = "";
-                        setTimeout(() => setMensaje(""), 3000);
+                        setTimeout(() => setMensaje(""), 4000);
                       } catch (error) {
                         console.error("Error:", error);
                         setMensaje("❌ Error al procesar la lista");

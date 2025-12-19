@@ -55,6 +55,7 @@ const pool = new Pool({
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cors())
 
 // ===========================
 //  CREAR CARPETA PARA FOTOS (legacy)
@@ -222,6 +223,75 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
     });
   }
 });
+
+// ============================================
+// FUNCIÓN PARA REMOVER FONDO DE RINES
+// ============================================
+async function removerFondoRin(imageUrl) {
+  try {
+    console.log("🔄 Procesando imagen con remove.bg:", imageUrl);
+
+    const imageResponse = await axios.get(imageUrl, {
+      responseType: "arraybuffer",
+    });
+
+    const formData = new FormData();
+    formData.append(
+      "image_file_b64",
+      Buffer.from(imageResponse.data).toString("base64")
+    );
+    formData.append("size", "auto");
+
+    const response = await axios({
+      method: "post",
+      url: "https://api.remove.bg/v1.0/removebg",
+      data: formData,
+      responseType: "arraybuffer",
+      headers: {
+        ...formData.getHeaders(),
+        "X-Api-Key": REMOVE_BG_API_KEY,
+      },
+    });
+
+    if (response.status !== 200) {
+      throw new Error(`remove.bg retornó status ${response.status}`);
+    }
+
+    console.log("✅ Fondo removido exitosamente");
+
+    return new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: "rines",
+          format: "png",
+          public_id: `sin-fondo-${Date.now()}`,
+        },
+        (error, result) => {
+          if (error) {
+            console.error("❌ Error subiendo a Cloudinary:", error);
+            reject(error);
+          } else {
+            console.log(
+              "✅ Imagen sin fondo subida a Cloudinary:",
+              result.secure_url
+            );
+            resolve(result.secure_url);
+          }
+        }
+      );
+
+      uploadStream.end(Buffer.from(response.data));
+    });
+  } catch (error) {
+    console.error("❌ Error al remover fondo:", error.message);
+
+    if (error.response?.status === 403) {
+      console.error("❌ API Key inválida o límite de remove.bg alcanzado");
+    }
+
+    return imageUrl;
+  }
+}
 /**
  * Endpoint para procesar TODOS los rines en lote
  */
@@ -1413,6 +1483,45 @@ app.get("/api/verificar-promocion/:marca/:referencia", async (req, res) => {
     res.status(500).json({ error: "Error verificando promoción" });
   }
 });
+
+// Crear tabla llantas si no existe
+async function crearTabla() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS llantas (
+        id SERIAL PRIMARY KEY,
+        referencia TEXT,
+        marca TEXT,
+        proveedor TEXT,
+        costo_empresa INTEGER,
+        precio_cliente INTEGER,
+        stock INTEGER,
+        consignacion BOOLEAN DEFAULT FALSE,
+        comentario TEXT DEFAULT ''
+      )
+    `);
+
+    await pool.query(`
+      DO $$ 
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                       WHERE table_name='llantas' AND column_name='consignacion') THEN
+          ALTER TABLE llantas ADD COLUMN consignacion BOOLEAN DEFAULT FALSE;
+        END IF;
+        
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                       WHERE table_name='llantas' AND column_name='comentario') THEN
+          ALTER TABLE llantas ADD COLUMN comentario TEXT DEFAULT '';
+        END IF;
+      END $$;
+    `);
+
+    console.log('Tabla "llantas" lista con todas las columnas.');
+  } catch (err) {
+    console.error("Error creando tabla:", err);
+  }
+}
+crearTabla();
 
 // Run server
 app.listen(PORT, () => {

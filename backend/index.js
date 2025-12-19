@@ -17,58 +17,62 @@ async function extraerDatosPDFLlantar(buffer) {
   try {
     const data = await pdfParse(buffer);
     const texto = data.text;
-    const lineas = texto.split('\n');
-    
+    const lineas = texto.split("\n");
+
     const llantas = [];
-    
+
     // Regex para capturar: MARCA REFERENCIA DISEÑO MEDIDA PRECIO
     // Ejemplo: "TOYO TY114020 PXTM1 195/55R15 451,973"
     for (let linea of lineas) {
       linea = linea.trim();
-      
+
       // Ignorar headers y líneas vacías
-      if (!linea || linea.includes('MARCA') || linea.includes('DISEÑO') || linea.includes('MEDIDA')) {
+      if (
+        !linea ||
+        linea.includes("MARCA") ||
+        linea.includes("DISEÑO") ||
+        linea.includes("MEDIDA")
+      ) {
         continue;
       }
-      
+
       // Buscar patrón de medida (195/55R15)
       const medidaMatch = linea.match(/(\d{3}\/\d{2}[A-Z]\d{2}[A-Z]?)/);
-      
+
       if (medidaMatch) {
         const medida = medidaMatch[1];
         const partes = linea.split(/\s+/);
-        
+
         // Precio siempre está al final
-        const precioTexto = partes[partes.length - 1].replace(/[,$]/g, '');
+        const precioTexto = partes[partes.length - 1].replace(/[,$]/g, "");
         const precio = parseInt(precioTexto);
-        
+
         if (isNaN(precio) || precio === 0) continue;
-        
+
         // Marca generalmente es la primera palabra
         const marca = partes[0];
-        
+
         // Referencia generalmente es la segunda
-        const referencia = partes[1] || '';
-        
+        const referencia = partes[1] || "";
+
         // Diseño es todo lo que está entre referencia y medida
-        const medidaIndex = partes.findIndex(p => p === medida);
-        const diseno = partes.slice(2, medidaIndex).join(' ');
-        
+        const medidaIndex = partes.findIndex((p) => p === medida);
+        const diseno = partes.slice(2, medidaIndex).join(" ");
+
         llantas.push({
           marca,
           referencia,
           diseno,
           medida,
-          precio
+          precio,
         });
       }
     }
-    
+
     console.log(`✅ PDF procesado: ${llantas.length} llantas encontradas`);
     return llantas;
-    
   } catch (error) {
-    console.error('❌ Error procesando PDF:', error);
+    console.error("❌ Error procesando PDF:", error);
     throw error;
   }
 }
@@ -1115,119 +1119,130 @@ app.get("/api/promociones", async (req, res) => {
 });
 
 // Extraer texto del PDF para SQL manual
-app.post("/api/procesar-promociones", uploadPDF.single("pdf"), async (req, res) => {
-  console.log("🔥 INICIO - Recibida petición de extraer texto del PDF");
-  
-  try {
-    if (!req.file) {
-      console.log("❌ No se recibió archivo PDF");
-      return res.status(400).json({ error: "No se recibió archivo PDF" });
-    }
+app.post(
+  "/api/procesar-promociones",
+  uploadPDF.single("pdf"),
+  async (req, res) => {
+    console.log("🔥 INICIO - Recibida petición de extraer texto del PDF");
 
-    console.log("📄 Tamaño del archivo:", req.file.size, "bytes");
-
-    // Intentar extraer texto con pdf-parse
-    let texto = "";
     try {
-      const pdfData = await pdfParse(req.file.buffer);
-      texto = pdfData.text;
-      console.log("✅ Texto extraído con pdf-parse");
-    } catch (err) {
-      console.log("⚠️ No se pudo extraer texto (probablemente es una imagen)");
-      return res.json({
-        success: false,
-        esImagen: true,
-        mensaje: "El PDF parece ser una imagen escaneada. Use OCR online primero: https://www.onlineocr.net/"
+      if (!req.file) {
+        console.log("❌ No se recibió archivo PDF");
+        return res.status(400).json({ error: "No se recibió archivo PDF" });
+      }
+
+      console.log("📄 Tamaño del archivo:", req.file.size, "bytes");
+
+      // Intentar extraer texto con pdf-parse
+      let texto = "";
+      try {
+        const pdfData = await pdfParse(req.file.buffer);
+        texto = pdfData.text;
+        console.log("✅ Texto extraído con pdf-parse");
+      } catch (err) {
+        console.log(
+          "⚠️ No se pudo extraer texto (probablemente es una imagen)"
+        );
+        return res.json({
+          success: false,
+          esImagen: true,
+          mensaje:
+            "El PDF parece ser una imagen escaneada. Use OCR online primero: https://www.onlineocr.net/",
+        });
+      }
+
+      console.log("📄 Longitud del texto:", texto.length, "caracteres");
+
+      // Detectar marca
+      let marcaActual = "DESCONOCIDA";
+      const textoUpper = texto.toUpperCase();
+
+      if (textoUpper.includes("YOKOHAMA")) marcaActual = "YOKOHAMA";
+      else if (textoUpper.includes("PIRELLI")) marcaActual = "PIRELLI";
+      else if (textoUpper.includes("GOODYEAR")) marcaActual = "GOODYEAR";
+      else if (textoUpper.includes("FEDERAL")) marcaActual = "FEDERAL";
+      else if (textoUpper.includes("NITTO")) marcaActual = "NITTO";
+      else if (textoUpper.includes("ALLIANCE")) marcaActual = "ALLIANCE";
+      else if (textoUpper.includes("VENOM")) marcaActual = "VENOM";
+      else if (textoUpper.includes("YEADA")) marcaActual = "YEADA";
+      else if (textoUpper.includes("GENERAL")) marcaActual = "GENERAL";
+      else if (textoUpper.includes("MOMO")) marcaActual = "MOMO";
+
+      console.log("🏷️ Marca detectada:", marcaActual);
+
+      // Detectar mes actual
+      const mesActual = new Date().toLocaleDateString("es-CO", {
+        month: "long",
+        year: "numeric",
       });
-    }
 
-    console.log("📄 Longitud del texto:", texto.length, "caracteres");
+      // Expresiones regulares para detectar líneas de promociones
+      const regexFormatos = [
+        /(\d{3}\/\d{2}\s*R\d{2}[A-Z]*)\s+([A-Z0-9\s\.]+?)\s+(\d+)\s+\$?([\d,\.]+)/gi,
+        /(\d{3}\/\d{2}R\d{2}[A-Z]*)\s+([A-Z0-9\s\.]+?)\s+(\d+)\s+([\d,\.]+)/gi,
+      ];
 
-    // Detectar marca
-    let marcaActual = "DESCONOCIDA";
-    const textoUpper = texto.toUpperCase();
-    
-    if (textoUpper.includes("YOKOHAMA")) marcaActual = "YOKOHAMA";
-    else if (textoUpper.includes("PIRELLI")) marcaActual = "PIRELLI";
-    else if (textoUpper.includes("GOODYEAR")) marcaActual = "GOODYEAR";
-    else if (textoUpper.includes("FEDERAL")) marcaActual = "FEDERAL";
-    else if (textoUpper.includes("NITTO")) marcaActual = "NITTO";
-    else if (textoUpper.includes("ALLIANCE")) marcaActual = "ALLIANCE";
-    else if (textoUpper.includes("VENOM")) marcaActual = "VENOM";
-    else if (textoUpper.includes("YEADA")) marcaActual = "YEADA";
-    else if (textoUpper.includes("GENERAL")) marcaActual = "GENERAL";
-    else if (textoUpper.includes("MOMO")) marcaActual = "MOMO";
+      let promociones = [];
 
-    console.log("🏷️ Marca detectada:", marcaActual);
+      for (const regex of regexFormatos) {
+        let match;
+        while ((match = regex.exec(texto)) !== null) {
+          const referencia = match[1].trim().replace(/\s+/g, "");
+          const diseno = match[2].trim();
+          const cantidades = parseInt(match[3]);
+          const precioTexto = match[4].replace(/[,$\.]/g, "");
+          const precio = parseFloat(precioTexto);
 
-    // Detectar mes actual
-    const mesActual = new Date().toLocaleDateString("es-CO", {
-      month: "long",
-      year: "numeric",
-    });
-
-    // Expresiones regulares para detectar líneas de promociones
-    const regexFormatos = [
-      /(\d{3}\/\d{2}\s*R\d{2}[A-Z]*)\s+([A-Z0-9\s\.]+?)\s+(\d+)\s+\$?([\d,\.]+)/gi,
-      /(\d{3}\/\d{2}R\d{2}[A-Z]*)\s+([A-Z0-9\s\.]+?)\s+(\d+)\s+([\d,\.]+)/gi,
-    ];
-
-    let promociones = [];
-
-    for (const regex of regexFormatos) {
-      let match;
-      while ((match = regex.exec(texto)) !== null) {
-        const referencia = match[1].trim().replace(/\s+/g, "");
-        const diseno = match[2].trim();
-        const cantidades = parseInt(match[3]);
-        const precioTexto = match[4].replace(/[,$\.]/g, "");
-        const precio = parseFloat(precioTexto);
-
-        if (referencia && !isNaN(precio) && precio > 0 && !isNaN(cantidades)) {
-          promociones.push({
-            marca: marcaActual,
-            referencia,
-            diseno,
-            precio,
-            cantidades
-          });
+          if (
+            referencia &&
+            !isNaN(precio) &&
+            precio > 0 &&
+            !isNaN(cantidades)
+          ) {
+            promociones.push({
+              marca: marcaActual,
+              referencia,
+              diseno,
+              precio,
+              cantidades,
+            });
+          }
         }
       }
+
+      console.log(`✅ ${promociones.length} promociones detectadas`);
+
+      // Generar SQL
+      let sqlScript = `-- Promociones de ${marcaActual} - ${mesActual}\n`;
+      sqlScript += `-- Total: ${promociones.length} referencias\n\n`;
+      sqlScript += `-- Desactivar promociones anteriores\n`;
+      sqlScript += `UPDATE promociones SET activa=false WHERE marca='${marcaActual}' AND activa=true;\n\n`;
+      sqlScript += `-- Insertar nuevas promociones\n`;
+      sqlScript += `INSERT INTO promociones (marca, referencia, diseno, precio_promo, cantidades_disponibles, mes, activa) VALUES\n`;
+
+      promociones.forEach((promo, index) => {
+        const coma = index < promociones.length - 1 ? "," : ";";
+        sqlScript += `('${promo.marca}', '${promo.referencia}', '${promo.diseno}', ${promo.precio}, ${promo.cantidades}, '${mesActual}', true)${coma}\n`;
+      });
+
+      res.json({
+        success: true,
+        marca: marcaActual,
+        mes: mesActual,
+        totalPromociones: promociones.length,
+        sqlScript: sqlScript,
+        primerasLineas: promociones.slice(0, 5),
+      });
+    } catch (e) {
+      console.error("❌❌❌ ERROR FATAL:", e.message);
+      console.error("Stack trace:", e.stack);
+      res.status(500).json({
+        error: "Error procesando PDF",
+        detalle: e.message,
+      });
     }
-
-    console.log(`✅ ${promociones.length} promociones detectadas`);
-
-    // Generar SQL
-    let sqlScript = `-- Promociones de ${marcaActual} - ${mesActual}\n`;
-    sqlScript += `-- Total: ${promociones.length} referencias\n\n`;
-    sqlScript += `-- Desactivar promociones anteriores\n`;
-    sqlScript += `UPDATE promociones SET activa=false WHERE marca='${marcaActual}' AND activa=true;\n\n`;
-    sqlScript += `-- Insertar nuevas promociones\n`;
-    sqlScript += `INSERT INTO promociones (marca, referencia, diseno, precio_promo, cantidades_disponibles, mes, activa) VALUES\n`;
-
-    promociones.forEach((promo, index) => {
-      const coma = index < promociones.length - 1 ? "," : ";";
-      sqlScript += `('${promo.marca}', '${promo.referencia}', '${promo.diseno}', ${promo.precio}, ${promo.cantidades}, '${mesActual}', true)${coma}\n`;
-    });
-
-    res.json({
-      success: true,
-      marca: marcaActual,
-      mes: mesActual,
-      totalPromociones: promociones.length,
-      sqlScript: sqlScript,
-      primerasLineas: promociones.slice(0, 5)
-    });
-
-  } catch (e) {
-    console.error("❌❌❌ ERROR FATAL:", e.message);
-    console.error("Stack trace:", e.stack);
-    res.status(500).json({ 
-      error: "Error procesando PDF",
-      detalle: e.message
-    });
   }
-});
+);
 
 // Desactivar promoción
 app.post("/api/desactivar-promocion", async (req, res) => {
@@ -1258,42 +1273,46 @@ async function extraerDatosPDFLlantar(buffer) {
   try {
     const data = await pdfParse(buffer);
     const texto = data.text;
-    const lineas = texto.split('\n');
-    
+    const lineas = texto.split("\n");
+
     const llantas = [];
-    
+
     for (let linea of lineas) {
       linea = linea.trim();
-      
-      if (!linea || linea.includes('MARCA') || linea.includes('DISEÑO') || linea.includes('MEDIDA')) {
+
+      if (
+        !linea ||
+        linea.includes("MARCA") ||
+        linea.includes("DISEÑO") ||
+        linea.includes("MEDIDA")
+      ) {
         continue;
       }
-      
+
       const medidaMatch = linea.match(/(\d{3}\/\d{2}[A-Z]\d{2}[A-Z]?)/);
-      
+
       if (medidaMatch) {
         const medida = medidaMatch[1];
         const partes = linea.split(/\s+/);
-        
-        const precioTexto = partes[partes.length - 1].replace(/[,$]/g, '');
+
+        const precioTexto = partes[partes.length - 1].replace(/[,$]/g, "");
         const precio = parseInt(precioTexto);
-        
+
         if (isNaN(precio) || precio === 0) continue;
-        
+
         const marca = partes[0];
-        const referencia = partes[1] || '';
-        const medidaIndex = partes.findIndex(p => p === medida);
-        const diseno = partes.slice(2, medidaIndex).join(' ');
-        
+        const referencia = partes[1] || "";
+        const medidaIndex = partes.findIndex((p) => p === medida);
+        const diseno = partes.slice(2, medidaIndex).join(" ");
+
         llantas.push({ marca, referencia, diseno, medida, precio });
       }
     }
-    
+
     console.log(`✅ PDF procesado: ${llantas.length} llantas encontradas`);
     return llantas;
-    
   } catch (error) {
-    console.error('❌ Error procesando PDF:', error);
+    console.error("❌ Error procesando PDF:", error);
     throw error;
   }
 }
@@ -1301,115 +1320,143 @@ async function extraerDatosPDFLlantar(buffer) {
 // ============================================
 // ENDPOINT: PROCESAR LISTA LLANTAR
 // ============================================
-app.post('/api/procesar-lista-llantar', uploadPDF.single('pdf'), async (req, res) => {
-  try {
-    console.log('📄 Recibiendo PDF de Llantar...');
-    
-    if (!req.file) {
-      return res.status(400).json({ error: 'No se recibió ningún archivo' });
-    }
+app.post(
+  "/api/procesar-lista-llantar",
+  uploadPDF.single("pdf"),
+  async (req, res) => {
+    try {
+      console.log("📄 Recibiendo PDF de Llantar...");
 
-    const datosLlantar = await extraerDatosPDFLlantar(req.file.buffer);
-    
-    if (datosLlantar.length === 0) {
-      return res.status(400).json({ error: 'No se pudieron extraer datos del PDF' });
-    }
-
-    console.log(`📊 Procesando ${datosLlantar.length} llantas de Llantar...`);
-
-    const { rows: inventario } = await pool.query('SELECT * FROM llantas');
-    console.log(`💾 Inventario actual: ${inventario.length} llantas`);
-
-    const resultado = {
-      actualizadas: 0,
-      margenBajo: 0,
-      bloqueadas: 0,
-      detalles: []
-    };
-
-    for (const itemLlantar of datosLlantar) {
-      const llantaDB = inventario.find(l => {
-        const coincideMarca = l.marca?.toUpperCase() === itemLlantar.marca?.toUpperCase();
-        const coincideMedida = l.referencia?.includes(itemLlantar.medida);
-        
-        if (itemLlantar.referencia && l.referencia) {
-          const coincideRef = l.referencia?.toUpperCase().includes(itemLlantar.referencia?.toUpperCase());
-          return coincideMarca && (coincideMedida || coincideRef);
-        }
-        
-        return coincideMarca && coincideMedida;
-      });
-
-      if (!llantaDB) continue;
-
-      const divisor = itemLlantar.marca?.toUpperCase() === 'TOYO' ? 1.15 : 1.20;
-      const precioEsperado = llantaDB.costo_empresa / divisor;
-      const margenReal = itemLlantar.precio - llantaDB.costo_empresa;
-      const porcentajeReal = (margenReal / llantaDB.costo_empresa) * 100;
-
-      let alertaMargen = null;
-      let estadoActualizacion = 'actualizada';
-
-      if (porcentajeReal < 15) {
-        const tipo = porcentajeReal < 10 ? 'critico' : 'bajo';
-        
-        alertaMargen = {
-          tipo,
-          costoReal: llantaDB.costo_empresa,
-          precioEsperado: Math.round(precioEsperado),
-          precioPublico: itemLlantar.precio,
-          margenDisponible: Math.round(margenReal),
-          porcentajeReal: parseFloat(porcentajeReal.toFixed(1))
-        };
-
-        estadoActualizacion = tipo === 'critico' ? 'critico' : 'margen_bajo';
-        
-        if (tipo === 'critico') {
-          resultado.bloqueadas++;
-        } else {
-          resultado.margenBajo++;
-        }
+      if (!req.file) {
+        return res.status(400).json({ error: "No se recibió ningún archivo" });
       }
 
-      const precioAnterior = llantaDB.precio_cliente;
-      const cambio = ((itemLlantar.precio - precioAnterior) / precioAnterior) * 100;
+      const datosLlantar = await extraerDatosPDFLlantar(req.file.buffer);
 
-      await pool.query(
-        `UPDATE llantas 
+      if (datosLlantar.length === 0) {
+        return res
+          .status(400)
+          .json({ error: "No se pudieron extraer datos del PDF" });
+      }
+
+      console.log(`📊 Procesando ${datosLlantar.length} llantas de Llantar...`);
+      console.log(
+        "🔍 PRIMERAS 10 LLANTAS EXTRAÍDAS:",
+        JSON.stringify(datosLlantar.slice(0, 10), null, 2)
+      );
+
+      const { rows: inventario } = await pool.query("SELECT * FROM llantas");
+      console.log(`💾 Inventario actual: ${inventario.length} llantas`);
+      console.log(
+        "🔍 PRIMERAS 5 LLANTAS EN BD:",
+        JSON.stringify(
+          inventario.slice(0, 5).map((l) => ({
+            marca: l.marca,
+            referencia: l.referencia,
+            costo: l.costo_empresa,
+          })),
+          null,
+          2
+        )
+      );
+
+      const resultado = {
+        actualizadas: 0,
+        margenBajo: 0,
+        bloqueadas: 0,
+        detalles: [],
+      };
+
+      for (const itemLlantar of datosLlantar) {
+        const llantaDB = inventario.find((l) => {
+          const coincideMarca =
+            l.marca?.toUpperCase() === itemLlantar.marca?.toUpperCase();
+          const coincideMedida = l.referencia?.includes(itemLlantar.medida);
+
+          if (itemLlantar.referencia && l.referencia) {
+            const coincideRef = l.referencia
+              ?.toUpperCase()
+              .includes(itemLlantar.referencia?.toUpperCase());
+            return coincideMarca && (coincideMedida || coincideRef);
+          }
+
+          return coincideMarca && coincideMedida;
+        });
+
+        if (!llantaDB) continue;
+
+        const divisor =
+          itemLlantar.marca?.toUpperCase() === "TOYO" ? 1.15 : 1.2;
+        const precioEsperado = llantaDB.costo_empresa / divisor;
+        const margenReal = itemLlantar.precio - llantaDB.costo_empresa;
+        const porcentajeReal = (margenReal / llantaDB.costo_empresa) * 100;
+
+        let alertaMargen = null;
+        let estadoActualizacion = "actualizada";
+
+        if (porcentajeReal < 15) {
+          const tipo = porcentajeReal < 10 ? "critico" : "bajo";
+
+          alertaMargen = {
+            tipo,
+            costoReal: llantaDB.costo_empresa,
+            precioEsperado: Math.round(precioEsperado),
+            precioPublico: itemLlantar.precio,
+            margenDisponible: Math.round(margenReal),
+            porcentajeReal: parseFloat(porcentajeReal.toFixed(1)),
+          };
+
+          estadoActualizacion = tipo === "critico" ? "critico" : "margen_bajo";
+
+          if (tipo === "critico") {
+            resultado.bloqueadas++;
+          } else {
+            resultado.margenBajo++;
+          }
+        }
+
+        const precioAnterior = llantaDB.precio_cliente;
+        const cambio =
+          ((itemLlantar.precio - precioAnterior) / precioAnterior) * 100;
+
+        await pool.query(
+          `UPDATE llantas 
          SET precio_cliente = $1, 
              alerta_margen = $2, 
              fecha_ultima_actualizacion = NOW()
          WHERE id = $3`,
-        [itemLlantar.precio, JSON.stringify(alertaMargen), llantaDB.id]
+          [itemLlantar.precio, JSON.stringify(alertaMargen), llantaDB.id]
+        );
+
+        resultado.actualizadas++;
+
+        resultado.detalles.push({
+          marca: itemLlantar.marca,
+          medida: itemLlantar.medida,
+          diseno: itemLlantar.diseno,
+          referencia: llantaDB.referencia,
+          estado: estadoActualizacion,
+          precioAnterior,
+          precioNuevo: itemLlantar.precio,
+          cambio: parseFloat(cambio.toFixed(1)),
+          margen: alertaMargen ? parseFloat(porcentajeReal.toFixed(1)) : null,
+        });
+      }
+
+      console.log(
+        `✅ Actualizadas: ${resultado.actualizadas}, ⚠️ Bajo: ${resultado.margenBajo}, 🔴 Bloq: ${resultado.bloqueadas}`
       );
 
-      resultado.actualizadas++;
-
-      resultado.detalles.push({
-        marca: itemLlantar.marca,
-        medida: itemLlantar.medida,
-        diseno: itemLlantar.diseno,
-        referencia: llantaDB.referencia,
-        estado: estadoActualizacion,
-        precioAnterior,
-        precioNuevo: itemLlantar.precio,
-        cambio: parseFloat(cambio.toFixed(1)),
-        margen: alertaMargen ? parseFloat(porcentajeReal.toFixed(1)) : null
+      res.json(resultado);
+    } catch (error) {
+      console.error("❌ Error:", error);
+      res.status(500).json({
+        error: "Error procesando lista de Llantar",
+        detalles: error.message,
       });
     }
-
-    console.log(`✅ Actualizadas: ${resultado.actualizadas}, ⚠️ Bajo: ${resultado.margenBajo}, 🔴 Bloq: ${resultado.bloqueadas}`);
-
-    res.json(resultado);
-
-  } catch (error) {
-    console.error('❌ Error:', error);
-    res.status(500).json({ 
-      error: 'Error procesando lista de Llantar',
-      detalles: error.message 
-    });
   }
-});
+);
 // Verificar si una llanta tiene promoción
 app.get("/api/verificar-promocion/:marca/:referencia", async (req, res) => {
   const { marca, referencia } = req.params;

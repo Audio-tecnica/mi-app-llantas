@@ -21,90 +21,105 @@ async function extraerDatosPDFLlantar(buffer) {
     
     const llantas = [];
     
-    console.log('📄 Primeras 20 líneas del PDF:');
-    console.log(lineas.slice(0, 20).join('\n'));
+    console.log('📄 Total de líneas en el PDF:', lineas.length);
+    console.log('📄 Primeras 30 líneas del PDF:');
+    lineas.slice(0, 30).forEach((linea, i) => {
+      console.log(`${i}: ${linea}`);
+    });
     
-    for (let linea of lineas) {
-      linea = linea.trim();
+    for (let i = 0; i < lineas.length; i++) {
+      let linea = lineas[i].trim();
       
-      // Ignorar headers, líneas vacías, y líneas que no tengan números
+      // Ignorar líneas vacías y headers
       if (!linea || 
           linea.includes('MARCA') || 
           linea.includes('DISEÑO') || 
           linea.includes('MEDIDA') ||
           linea.includes('CODIGO') ||
           linea.includes('VENTA') ||
-          linea.length < 10) {
+          linea.includes('MINIMA') ||
+          linea.includes('PUBLICO') ||
+          linea.length < 15) {
         continue;
       }
       
-      // Buscar patrón de medida (195/55R15, 225/60R18, etc)
-      const medidaRegex = /(\d{3}\/\d{2}[A-Z]\d{2}[A-Z]?)/;
+      // Buscar medida (ej: 195/55R15, 225/60R18, LT265/70R17)
+      const medidaRegex = /(LT)?(\d{3}\/\d{2}[A-Z]\d{2}[A-Z]?)/i;
       const medidaMatch = linea.match(medidaRegex);
       
       if (!medidaMatch) continue;
       
-      const medida = medidaMatch[1];
+      const medidaCompleta = medidaMatch[0]; // Puede incluir LT
+      const medida = medidaMatch[2]; // Solo la medida numérica
       
-      // Buscar precio al final (puede tener comas o puntos)
-      const precioRegex = /([\d,\.]+)$/;
+      // Buscar precio (al final de la línea, puede tener puntos o comas)
+      // Formato: 451,973 o 451.973 o 451973
+      const precioRegex = /[\s]+([\d]{3}[,\.]?[\d]{3})\s*$/;
       const precioMatch = linea.match(precioRegex);
       
-      if (!precioMatch) continue;
+      if (!precioMatch) {
+        console.log(`⚠️ No se encontró precio en: ${linea.substring(0, 50)}...`);
+        continue;
+      }
       
       const precioTexto = precioMatch[1].replace(/[,\.]/g, '');
       const precio = parseInt(precioTexto);
       
-      // El precio debe ser mayor a 100,000 (para filtrar errores)
-      if (isNaN(precio) || precio < 100000) continue;
+      // Validar precio (debe estar entre 100,000 y 10,000,000)
+      if (isNaN(precio) || precio < 100000 || precio > 10000000) {
+        console.log(`⚠️ Precio inválido (${precio}) en: ${linea.substring(0, 50)}...`);
+        continue;
+      }
       
-      // Extraer marca (primera palabra antes de espacios o números)
-      const marcaRegex = /^([A-Z][A-Z\s]+?)(?=\s+[A-Z0-9]|\s+\d)/;
-      const marcaMatch = linea.match(marcaRegex);
+      // Quitar el precio de la línea para seguir procesando
+      linea = linea.substring(0, precioMatch.index).trim();
       
-      let marca = 'DESCONOCIDA';
-      if (marcaMatch) {
-        marca = marcaMatch[1].trim();
-      } else {
-        // Si no coincide, tomar la primera palabra
-        const primeraPalabra = linea.split(/\s+/)[0];
-        if (primeraPalabra && /^[A-Z]+$/.test(primeraPalabra)) {
-          marca = primeraPalabra;
+      // Extraer MARCA (primera palabra en mayúsculas)
+      const palabras = linea.split(/\s+/);
+      let marca = palabras[0] || 'DESCONOCIDA';
+      
+      // Si la primera palabra es muy corta, tomar más palabras
+      if (marca.length <= 2 && palabras.length > 1) {
+        marca = palabras.slice(0, 2).join(' ');
+      }
+      
+      marca = marca.toUpperCase().trim();
+      
+      // Extraer REFERENCIA (código alfanumérico después de marca)
+      let referencia = palabras[1] || '';
+      
+      // Extraer DISEÑO (todo entre referencia y medida)
+      const posicionMedida = linea.indexOf(medidaCompleta);
+      let diseno = '';
+      
+      if (palabras.length > 2) {
+        const textoDespuesMarca = palabras.slice(1).join(' ');
+        const posicionMedidaRelativa = textoDespuesMarca.indexOf(medidaCompleta);
+        if (posicionMedidaRelativa > 0) {
+          diseno = textoDespuesMarca.substring(0, posicionMedidaRelativa).trim();
+          // La primera palabra del diseño probablemente sea la referencia
+          const partesDiseno = diseno.split(/\s+/);
+          if (partesDiseno.length > 0) {
+            referencia = partesDiseno[0];
+            diseno = partesDiseno.slice(1).join(' ');
+          }
         }
       }
       
-      // Extraer referencia (código alfanumérico después de la marca)
-      const posicionMarca = linea.indexOf(marca);
-      const despuesMarca = linea.substring(posicionMarca + marca.length).trim();
-      const refRegex = /^([A-Z0-9]+)/;
-      const refMatch = despuesMarca.match(refRegex);
-      const referencia = refMatch ? refMatch[1] : '';
-      
-      // Diseño es todo lo que está entre referencia y medida
-      const posicionMedida = linea.indexOf(medida);
-      let diseno = '';
-      if (referencia) {
-        const posicionRef = linea.indexOf(referencia);
-        diseno = linea.substring(posicionRef + referencia.length, posicionMedida).trim();
-      } else {
-        diseno = linea.substring(posicionMarca + marca.length, posicionMedida).trim();
-      }
-      
-      // Limpiar diseño de caracteres extraños
-      diseno = diseno.replace(/\s+/g, ' ').trim();
-      
-      llantas.push({
-        marca: marca.trim(),
+      const llantaExtraida = {
+        marca: marca,
         referencia: referencia.trim(),
-        diseno: diseno,
+        diseno: diseno.trim(),
         medida: medida,
         precio: precio
-      });
+      };
       
-      console.log(`✅ Extraída: ${marca} | ${referencia} | ${medida} | $${precio.toLocaleString()}`);
+      llantas.push(llantaExtraida);
+      
+      console.log(`✅ ${llantas.length}. ${marca} | ${referencia} | ${medida} | $${precio.toLocaleString('es-CO')}`);
     }
     
-    console.log(`✅ PDF procesado: ${llantas.length} llantas encontradas`);
+    console.log(`✅ TOTAL PROCESADO: ${llantas.length} llantas encontradas`);
     return llantas;
     
   } catch (error) {

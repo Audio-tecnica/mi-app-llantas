@@ -1251,6 +1251,52 @@ app.post("/api/limpiar-promociones-inactivas", async (req, res) => {
     res.status(500).json({ error: "Error limpiando promociones" });
   }
 });
+// ============================================
+// FUNCIÓN PARA EXTRAER DATOS DEL PDF DE LLANTAR
+// ============================================
+async function extraerDatosPDFLlantar(buffer) {
+  try {
+    const data = await pdfParse(buffer);
+    const texto = data.text;
+    const lineas = texto.split('\n');
+    
+    const llantas = [];
+    
+    for (let linea of lineas) {
+      linea = linea.trim();
+      
+      if (!linea || linea.includes('MARCA') || linea.includes('DISEÑO') || linea.includes('MEDIDA')) {
+        continue;
+      }
+      
+      const medidaMatch = linea.match(/(\d{3}\/\d{2}[A-Z]\d{2}[A-Z]?)/);
+      
+      if (medidaMatch) {
+        const medida = medidaMatch[1];
+        const partes = linea.split(/\s+/);
+        
+        const precioTexto = partes[partes.length - 1].replace(/[,$]/g, '');
+        const precio = parseInt(precioTexto);
+        
+        if (isNaN(precio) || precio === 0) continue;
+        
+        const marca = partes[0];
+        const referencia = partes[1] || '';
+        const medidaIndex = partes.findIndex(p => p === medida);
+        const diseno = partes.slice(2, medidaIndex).join(' ');
+        
+        llantas.push({ marca, referencia, diseno, medida, precio });
+      }
+    }
+    
+    console.log(`✅ PDF procesado: ${llantas.length} llantas encontradas`);
+    return llantas;
+    
+  } catch (error) {
+    console.error('❌ Error procesando PDF:', error);
+    throw error;
+  }
+}
 
 // ============================================
 // ENDPOINT: PROCESAR LISTA LLANTAR
@@ -1263,23 +1309,17 @@ app.post('/api/procesar-lista-llantar', uploadPDF.single('pdf'), async (req, res
       return res.status(400).json({ error: 'No se recibió ningún archivo' });
     }
 
-    // 1. Extraer datos del PDF
     const datosLlantar = await extraerDatosPDFLlantar(req.file.buffer);
     
     if (datosLlantar.length === 0) {
-      return res.status(400).json({ 
-        error: 'No se pudieron extraer datos del PDF' 
-      });
+      return res.status(400).json({ error: 'No se pudieron extraer datos del PDF' });
     }
 
     console.log(`📊 Procesando ${datosLlantar.length} llantas de Llantar...`);
 
-    // 2. Obtener inventario actual
     const { rows: inventario } = await pool.query('SELECT * FROM llantas');
-
     console.log(`💾 Inventario actual: ${inventario.length} llantas`);
 
-    // 3. Procesar actualizaciones
     const resultado = {
       actualizadas: 0,
       margenBajo: 0,
@@ -1288,7 +1328,6 @@ app.post('/api/procesar-lista-llantar', uploadPDF.single('pdf'), async (req, res
     };
 
     for (const itemLlantar of datosLlantar) {
-      // Buscar coincidencia por marca + medida
       const llantaDB = inventario.find(l => {
         const coincideMarca = l.marca?.toUpperCase() === itemLlantar.marca?.toUpperCase();
         const coincideMedida = l.referencia?.includes(itemLlantar.medida);
@@ -1303,13 +1342,11 @@ app.post('/api/procesar-lista-llantar', uploadPDF.single('pdf'), async (req, res
 
       if (!llantaDB) continue;
 
-      // Calcular margen según marca
       const divisor = itemLlantar.marca?.toUpperCase() === 'TOYO' ? 1.15 : 1.20;
       const precioEsperado = llantaDB.costo_empresa / divisor;
       const margenReal = itemLlantar.precio - llantaDB.costo_empresa;
       const porcentajeReal = (margenReal / llantaDB.costo_empresa) * 100;
 
-      // Determinar tipo de alerta
       let alertaMargen = null;
       let estadoActualizacion = 'actualizada';
 
@@ -1334,7 +1371,6 @@ app.post('/api/procesar-lista-llantar', uploadPDF.single('pdf'), async (req, res
         }
       }
 
-      // Actualizar precio en BD
       const precioAnterior = llantaDB.precio_cliente;
       const cambio = ((itemLlantar.precio - precioAnterior) / precioAnterior) * 100;
 
@@ -1362,9 +1398,7 @@ app.post('/api/procesar-lista-llantar', uploadPDF.single('pdf'), async (req, res
       });
     }
 
-    console.log(`✅ Actualizadas: ${resultado.actualizadas}`);
-    console.log(`⚠️ Margen Bajo: ${resultado.margenBajo}`);
-    console.log(`🔴 Bloqueadas: ${resultado.bloqueadas}`);
+    console.log(`✅ Actualizadas: ${resultado.actualizadas}, ⚠️ Bajo: ${resultado.margenBajo}, 🔴 Bloq: ${resultado.bloqueadas}`);
 
     res.json(resultado);
 
@@ -1376,7 +1410,6 @@ app.post('/api/procesar-lista-llantar', uploadPDF.single('pdf'), async (req, res
     });
   }
 });
-
 // Verificar si una llanta tiene promoción
 app.get("/api/verificar-promocion/:marca/:referencia", async (req, res) => {
   const { marca, referencia } = req.params;

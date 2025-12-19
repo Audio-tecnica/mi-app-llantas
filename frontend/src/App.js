@@ -1206,7 +1206,7 @@ function App() {
                   className="flex items-center justify-center gap-1 bg-slate-600 text-white px-3 py-2 rounded-lg hover:bg-slate-700 transition-all text-xs"
                 >
                   <span>📈</span>
-                  <span>Visor</span>
+                  <span>Pedido llantas</span>
                 </button>
 
                 <button

@@ -746,7 +746,7 @@ function App() {
       >
         <div className="p-6">
           <div className="flex items-center justify-between mb-8">
-            <img src="/logowp.PNG" className="h-10 w-auto" alt="Logo" />
+            <img src="/logowp.PNG" className="h-16 w-auto" alt="Logo" />
             <button
               onClick={() => setMenuAbierto(false)}
               className="lg:hidden text-white hover:bg-slate-700 p-2 rounded"
@@ -1370,7 +1370,7 @@ function App() {
                                     }
                                     className="bg-purple-600 text-white px-2 py-1 rounded text-xs hover:bg-purple-700"
                                   >
-                                    Comp
+                                    Web
                                   </button>
                                 </div>
                               </td>

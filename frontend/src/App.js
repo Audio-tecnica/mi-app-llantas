@@ -4,7 +4,160 @@ import { Eye, EyeOff, Menu, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ComparadorLlantas from "./ComparadorLlantas";
 
-// Componente para cada tarjeta de llanta
+// ============================================
+// COMPONENTE MODAL ALERTA MARGEN
+// ============================================
+const ModalAlertaMargen = ({ alerta, llanta, onCerrar }) => {
+  const {
+    tipo,
+    costoReal,
+    precioEsperado,
+    precioPublico,
+    margenDisponible,
+    porcentajeReal,
+  } = alerta;
+
+  const divisor = llanta.marca === "TOYO" ? 1.15 : 1.2;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl w-11/12 max-w-lg">
+        {/* Header */}
+        <div
+          className={`${
+            tipo === "critico" ? "bg-red-600" : "bg-yellow-600"
+          } text-white px-6 py-4 rounded-t-lg`}
+        >
+          <h2 className="text-xl font-bold flex items-center gap-2">
+            {tipo === "critico" ? "🔴" : "⚠️"}
+            ALERTA DE MARGEN {tipo.toUpperCase()}
+          </h2>
+        </div>
+
+        {/* Body */}
+        <div className="px-6 py-4 space-y-4">
+          {/* Info de la llanta */}
+          <div className="bg-gray-50 p-3 rounded">
+            <p className="font-bold text-gray-800">
+              {llanta.marca} {llanta.referencia}
+            </p>
+          </div>
+
+          {/* Proveedor */}
+          <div className="text-sm">
+            <p className="text-gray-600">
+              Proveedor:{" "}
+              <span className="font-semibold text-gray-800">
+                {llanta.proveedor}
+              </span>{" "}
+              (margen mínimo: costo/{divisor})
+            </p>
+          </div>
+
+          {/* Cálculos */}
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-gray-600">Tu costo:</span>
+              <span className="font-semibold">
+                ${costoReal.toLocaleString("es-CO")}
+              </span>
+            </div>
+
+            <div className="flex justify-between">
+              <span className="text-gray-600">
+                Precio esperado (costo/{divisor}):
+              </span>
+              <span className="font-semibold text-blue-600">
+                ${Math.round(precioEsperado).toLocaleString("es-CO")}
+              </span>
+            </div>
+
+            <div className="flex justify-between">
+              <span className="text-gray-600">Precio público Llantar:</span>
+              <span className="font-semibold text-green-600">
+                ${precioPublico.toLocaleString("es-CO")}
+              </span>
+            </div>
+
+            <div className="border-t pt-2 mt-2">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Margen disponible:</span>
+                <span
+                  className={`font-bold ${
+                    tipo === "critico" ? "text-red-600" : "text-yellow-600"
+                  }`}
+                >
+                  ${margenDisponible.toLocaleString("es-CO")} (
+                  {porcentajeReal.toFixed(1)}%)
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Explicación del problema */}
+          <div
+            className={`p-3 rounded border-l-4 ${
+              tipo === "critico"
+                ? "bg-red-50 border-red-500"
+                : "bg-yellow-50 border-yellow-500"
+            }`}
+          >
+            <p className="font-semibold text-gray-800 mb-2">
+              {tipo === "critico" ? "⛔" : "⚠️"} PROBLEMA:
+            </p>
+            <p className="text-sm text-gray-700">
+              El precio público de Llantar ($
+              {precioPublico.toLocaleString("es-CO")}) está{" "}
+              <strong>DEMASIADO CERCANO</strong> a tu costo real ($
+              {costoReal.toLocaleString("es-CO")}).
+            </p>
+            <p className="text-sm text-gray-700 mt-2">
+              Tu margen real es solo ${margenDisponible.toLocaleString("es-CO")}{" "}
+              ({porcentajeReal.toFixed(1)}%), insuficiente para cubrir gastos
+              operativos.
+            </p>
+          </div>
+
+          {/* Recomendación */}
+          <div className="bg-blue-50 p-3 rounded border-l-4 border-blue-500">
+            <p className="font-semibold text-gray-800 mb-2">
+              💡 RECOMENDACIÓN:
+            </p>
+            <ul className="text-sm text-gray-700 list-disc list-inside space-y-1">
+              {tipo === "critico" ? (
+                <>
+                  <li>
+                    <strong>NO comprar</strong> esta referencia en este momento
+                  </li>
+                  <li>Negociar mejor precio con tu proveedor</li>
+                  <li>Considerar proveedores alternativos</li>
+                </>
+              ) : (
+                <>
+                  <li>Evaluar si la rotación justifica el margen bajo</li>
+                  <li>Intentar negociar descuento con proveedor</li>
+                  <li>Monitorear competencia antes de comprar</li>
+                </>
+              )}
+            </ul>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 bg-gray-50 flex justify-end rounded-b-lg">
+          <button
+            onClick={onCerrar}
+            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Componente para cada tarjeta de llanta (CON ALERTA DE MARGEN)
 const TarjetaLlanta = ({
   ll,
   seleccionadas,
@@ -23,6 +176,31 @@ const TarjetaLlanta = ({
   setLlantas,
 }) => {
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const [mostrarAlerta, setMostrarAlerta] = useState(false);
+
+  // Badge de alerta según tipo
+  const BadgeAlerta = () => {
+    if (!ll.alerta_margen) return null;
+
+    const { tipo } = ll.alerta_margen;
+
+    return (
+      <div
+        onClick={(e) => {
+          e.stopPropagation();
+          setMostrarAlerta(true);
+        }}
+        className={`flex items-center gap-1 px-2 py-0.5 rounded-full cursor-pointer text-[10px] font-bold ${
+          tipo === "critico"
+            ? "bg-red-100 text-red-700 border border-red-300"
+            : "bg-yellow-100 text-yellow-700 border border-yellow-300"
+        }`}
+      >
+        {tipo === "critico" ? "🔴" : "⚠️"}
+        <span>MARGEN</span>
+      </div>
+    );
+  };
 
   // Si está en modo edición, mostrar formulario
   if (modoEdicion === ll.id) {
@@ -156,160 +334,172 @@ const TarjetaLlanta = ({
 
   // Vista normal (no editando)
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 relative">
-      {/* Header con checkbox y referencia */}
-      <div className="flex items-start gap-2 mb-2">
-        <input
-          type="checkbox"
-          checked={seleccionadas.includes(ll.id)}
-          onChange={() => toggleSeleccion(ll.id)}
-          className="cursor-pointer mt-0.5 flex-shrink-0"
-        />
-        <div className="flex-1 min-w-0">
-          <div className="font-bold text-slate-800 text-sm leading-tight flex items-center gap-1">
-            <span className="truncate">{ll.referencia}</span>
-            {ll.comentario && (
-              <span className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center text-white flex-shrink-0 text-[8px]">
-                💬
-              </span>
-            )}
+    <>
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 relative">
+        {/* Header con checkbox y referencia */}
+        <div className="flex items-start gap-2 mb-2">
+          <input
+            type="checkbox"
+            checked={seleccionadas.includes(ll.id)}
+            onChange={() => toggleSeleccion(ll.id)}
+            className="cursor-pointer mt-0.5 flex-shrink-0"
+          />
+          <div className="flex-1 min-w-0">
+            <div className="font-bold text-slate-800 text-sm leading-tight flex items-center gap-1">
+              <span className="truncate">{ll.referencia}</span>
+              {ll.comentario && (
+                <span className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center text-white flex-shrink-0 text-[8px]">
+                  💬
+                </span>
+              )}
+            </div>
+            <div className="text-xs text-gray-600 truncate font-medium mt-0.5">
+              {ll.marca}
+            </div>
           </div>
-          <div className="text-xs text-gray-600 truncate font-medium mt-0.5">
-            {ll.marca}
-          </div>
         </div>
-      </div>
 
-      {/* Badges de consignación */}
-      {ll.consignacion && (
-        <div className="mb-2">
-          <span className="inline-block bg-orange-100 text-orange-700 text-[10px] px-2 py-0.5 rounded-full font-medium">
-            Consignación
-          </span>
+        {/* Badges de consignación y alerta */}
+        <div className="mb-2 flex items-center gap-1 flex-wrap">
+          {ll.consignacion && (
+            <span className="inline-block bg-orange-100 text-orange-700 text-[10px] px-2 py-0.5 rounded-full font-medium">
+              Consignación
+            </span>
+          )}
+          <BadgeAlerta />
         </div>
-      )}
 
-      {/* Info grid */}
-      <div className="space-y-1 text-xs mb-2.5">
-        <div className="flex justify-between items-center">
-          <span className="text-gray-500 font-medium">Proveedor:</span>
-          <span className="font-semibold truncate ml-2 max-w-[55%] text-right text-slate-800">
-            {ll.proveedor || "—"}
-          </span>
-        </div>
-        <div className="flex justify-between items-center">
-          <span className="text-gray-500 font-medium">Stock:</span>
-          <span
-            className={`font-bold text-sm ${
-              ll.stock === 0
-                ? "text-red-600"
-                : ll.stock % 2 !== 0
-                ? "text-orange-600"
-                : "text-green-600"
-            }`}
-          >
-            {ll.stock === 0 ? "Sin stock" : ll.stock}
-          </span>
-        </div>
-        <div className="flex justify-between items-center">
-          <span className="text-gray-500 font-medium">Precio:</span>
-          <span className="font-bold text-sm text-green-600">
-            ${Number(ll.precio_cliente || 0).toLocaleString("es-CO")}
-          </span>
-        </div>
-        {mostrarCosto && (
+        {/* Info grid */}
+        <div className="space-y-1 text-xs mb-2.5">
           <div className="flex justify-between items-center">
-            <span className="text-gray-500 font-medium">Costo:</span>
-            <span className="font-bold text-sm text-blue-600">
-              ${Number(ll.costo_empresa || 0).toLocaleString("es-CO")}
+            <span className="text-gray-500 font-medium">Proveedor:</span>
+            <span className="font-semibold truncate ml-2 max-w-[55%] text-right text-slate-800">
+              {ll.proveedor || "—"}
             </span>
           </div>
-        )}
-      </div>
-
-      {/* Botones MUCHO más compactos */}
-      <div className="flex gap-1">
-        <button
-          onClick={() =>
-            window.open(
-              `https://www.llantar.com.co/search?q=${encodeURIComponent(
-                ll.referencia
-              )}`,
-              "_blank"
-            )
-          }
-          className="bg-blue-500 hover:bg-blue-600 text-white px-1 py-1 rounded transition-all flex items-center justify-center gap-0.5"
-          style={{ flex: "0 0 45%" }}
-        >
-          <span className="text-xs">🔍</span>
-          <span className="text-[9px] font-medium">Llantar</span>
-        </button>
-        <button
-          onClick={() => handleAgregarComparador(ll)}
-          className="bg-purple-500 hover:bg-purple-600 text-white px-1 py-1 rounded transition-all flex items-center justify-center gap-0.5"
-          style={{ flex: "0 0 40%" }}
-        >
-          <span className="text-xs">⚖️</span>
-          <span className="text-[9px] font-medium">Web</span>
-        </button>
-
-        {/* Menú de 3 puntos */}
-        <div className="relative" style={{ flex: "0 0 auto" }}>
-          <button
-            onClick={() => setMenuAbierto(!menuAbierto)}
-            className="bg-slate-200 hover:bg-slate-300 p-1 rounded transition-all flex items-center justify-center"
-            style={{ width: "28px", height: "28px" }}
-          >
-            <span className="text-base font-bold text-slate-700">⋮</span>
-          </button>
-
-          {menuAbierto && (
-            <>
-              <div
-                className="fixed inset-0 z-10"
-                onClick={() => setMenuAbierto(false)}
-              ></div>
-
-              <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 overflow-hidden min-w-[140px]">
-                <button
-                  onClick={() => {
-                    iniciarEdicion(ll.id);
-                    setMenuAbierto(false);
-                  }}
-                  className="w-full px-3 py-2 text-left text-xs hover:bg-slate-50 flex items-center gap-2"
-                >
-                  <span>✏️</span>
-                  <span className="font-medium">Editar</span>
-                </button>
-                <button
-                  onClick={async () => {
-                    setMenuAbierto(false);
-                    const texto = prompt("Comentario:", ll.comentario || "");
-                    if (texto !== null) {
-                      await guardarComentario(ll, texto);
-                    }
-                  }}
-                  className="w-full px-3 py-2 text-left text-xs hover:bg-slate-50 flex items-center gap-2 border-t border-gray-100"
-                >
-                  <span>💬</span>
-                  <span className="font-medium">Comentario</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setMenuAbierto(false);
-                    handleEliminar(ll.id);
-                  }}
-                  className="w-full px-3 py-2 text-left text-xs hover:bg-red-50 text-red-600 flex items-center gap-2 border-t border-gray-100"
-                >
-                  <span>🗑️</span>
-                  <span className="font-medium">Eliminar</span>
-                </button>
-              </div>
-            </>
+          <div className="flex justify-between items-center">
+            <span className="text-gray-500 font-medium">Stock:</span>
+            <span
+              className={`font-bold text-sm ${
+                ll.stock === 0
+                  ? "text-red-600"
+                  : ll.stock % 2 !== 0
+                  ? "text-orange-600"
+                  : "text-green-600"
+              }`}
+            >
+              {ll.stock === 0 ? "Sin stock" : ll.stock}
+            </span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-gray-500 font-medium">Precio:</span>
+            <span className="font-bold text-sm text-green-600">
+              ${Number(ll.precio_cliente || 0).toLocaleString("es-CO")}
+            </span>
+          </div>
+          {mostrarCosto && (
+            <div className="flex justify-between items-center">
+              <span className="text-gray-500 font-medium">Costo:</span>
+              <span className="font-bold text-sm text-blue-600">
+                ${Number(ll.costo_empresa || 0).toLocaleString("es-CO")}
+              </span>
+            </div>
           )}
         </div>
+
+        {/* Botones MUCHO más compactos */}
+        <div className="flex gap-1">
+          <button
+            onClick={() =>
+              window.open(
+                `https://www.llantar.com.co/search?q=${encodeURIComponent(
+                  ll.referencia
+                )}`,
+                "_blank"
+              )
+            }
+            className="bg-blue-500 hover:bg-blue-600 text-white px-1 py-1 rounded transition-all flex items-center justify-center gap-0.5"
+            style={{ flex: "0 0 45%" }}
+          >
+            <span className="text-xs">🔍</span>
+            <span className="text-[9px] font-medium">Llantar</span>
+          </button>
+          <button
+            onClick={() => handleAgregarComparador(ll)}
+            className="bg-purple-500 hover:bg-purple-600 text-white px-1 py-1 rounded transition-all flex items-center justify-center gap-0.5"
+            style={{ flex: "0 0 40%" }}
+          >
+            <span className="text-xs">⚖️</span>
+            <span className="text-[9px] font-medium">Web</span>
+          </button>
+
+          {/* Menú de 3 puntos */}
+          <div className="relative" style={{ flex: "0 0 auto" }}>
+            <button
+              onClick={() => setMenuAbierto(!menuAbierto)}
+              className="bg-slate-200 hover:bg-slate-300 p-1 rounded transition-all flex items-center justify-center"
+              style={{ width: "28px", height: "28px" }}
+            >
+              <span className="text-base font-bold text-slate-700">⋮</span>
+            </button>
+
+            {menuAbierto && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setMenuAbierto(false)}
+                ></div>
+
+                <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 overflow-hidden min-w-[140px]">
+                  <button
+                    onClick={() => {
+                      iniciarEdicion(ll.id);
+                      setMenuAbierto(false);
+                    }}
+                    className="w-full px-3 py-2 text-left text-xs hover:bg-slate-50 flex items-center gap-2"
+                  >
+                    <span>✏️</span>
+                    <span className="font-medium">Editar</span>
+                  </button>
+                  <button
+                    onClick={async () => {
+                      setMenuAbierto(false);
+                      const texto = prompt("Comentario:", ll.comentario || "");
+                      if (texto !== null) {
+                        await guardarComentario(ll, texto);
+                      }
+                    }}
+                    className="w-full px-3 py-2 text-left text-xs hover:bg-slate-50 flex items-center gap-2 border-t border-gray-100"
+                  >
+                    <span>💬</span>
+                    <span className="font-medium">Comentario</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setMenuAbierto(false);
+                      handleEliminar(ll.id);
+                    }}
+                    className="w-full px-3 py-2 text-left text-xs hover:bg-red-50 text-red-600 flex items-center gap-2 border-t border-gray-100"
+                  >
+                    <span>🗑️</span>
+                    <span className="font-medium">Eliminar</span>
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       </div>
-    </div>
+
+      {/* Modal de Alerta */}
+      {mostrarAlerta && ll.alerta_margen && (
+        <ModalAlertaMargen
+          alerta={ll.alerta_margen}
+          llanta={ll}
+          onCerrar={() => setMostrarAlerta(false)}
+        />
+      )}
+    </>
   );
 };
 
@@ -346,6 +536,7 @@ function App() {
   const [filtroTipoLog, setFiltroTipoLog] = useState("");
   const [llantaOriginalEdicion, setLlantaOriginalEdicion] = useState(null);
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const [alertaSeleccionada, setAlertaSeleccionada] = useState(null);
 
   const navigate = useNavigate();
 
@@ -954,13 +1145,23 @@ function App() {
                   <span>Historial</span>
                 </button>
 
-                <button
-                  onClick={() => window.open("/lista_llantar.pdf", "_blank")}
-                  className="flex items-center justify-center gap-1 bg-slate-600 text-white px-3 py-2 rounded-lg hover:bg-slate-700 transition-all text-xs"
-                >
-                  <span>📄</span>
-                  <span>Lista</span>
-                </button>
+                {/* Botón Lista Llantar con input oculto */}
+                <div className="relative">
+                  <input
+                    type="file"
+                    id="lista-llantar-input"
+                    accept="application/pdf"
+                    onChange={cargarListaLlantar}
+                    className="hidden"
+                  />
+                  <label
+                    htmlFor="lista-llantar-input"
+                    className="flex items-center justify-center gap-1 bg-slate-600 text-white px-3 py-2 rounded-lg hover:bg-slate-700 transition-all text-xs cursor-pointer"
+                  >
+                    <span>📄</span>
+                    <span>Lista</span>
+                  </label>
+                </div>
 
                 <button
                   onClick={() => setMostrarComparador(true)}
@@ -1167,6 +1368,7 @@ function App() {
                         >
                           Stock
                         </th>
+                        <th className="p-2 text-center">Estado</th>
                         <th className="p-2 text-center">Acciones</th>
                       </tr>
                     </thead>
@@ -1285,6 +1487,27 @@ function App() {
                                 />
                               </td>
                               <td className="p-2">
+                                {ll.alerta_margen ? (
+                                  <button
+                                    onClick={() => setAlertaSeleccionada(ll)}
+                                    className={`px-2 py-1 rounded text-xs font-bold flex items-center gap-1 ${
+                                      ll.alerta_margen.tipo === "critico"
+                                        ? "bg-red-100 text-red-700 border border-red-300"
+                                        : "bg-yellow-100 text-yellow-700 border border-yellow-300"
+                                    }`}
+                                  >
+                                    {ll.alerta_margen.tipo === "critico"
+                                      ? "🔴"
+                                      : "⚠️"}
+                                    MARGEN
+                                  </button>
+                                ) : (
+                                  <span className="text-green-600 font-semibold">
+                                    ✅ OK
+                                  </span>
+                                )}
+                              </td>
+                              <td className="p-2">
                                 <div className="flex flex-col gap-1">
                                   <button
                                     onClick={() =>
@@ -1396,6 +1619,27 @@ function App() {
                                 {ll.stock === 0 ? "❌" : ll.stock}
                               </td>
                               <td className="p-2">
+                                {ll.alerta_margen ? (
+                                  <button
+                                    onClick={() => setAlertaSeleccionada(ll)}
+                                    className={`px-2 py-1 rounded text-xs font-bold flex items-center gap-1 ${
+                                      ll.alerta_margen.tipo === "critico"
+                                        ? "bg-red-100 text-red-700 border border-red-300"
+                                        : "bg-yellow-100 text-yellow-700 border border-yellow-300"
+                                    }`}
+                                  >
+                                    {ll.alerta_margen.tipo === "critico"
+                                      ? "🔴"
+                                      : "⚠️"}
+                                    MARGEN
+                                  </button>
+                                ) : (
+                                  <span className="text-green-600 font-semibold">
+                                    ✅ OK
+                                  </span>
+                                )}
+                              </td>
+                              <td className="p-2">
                                 <div className="flex gap-1 justify-center">
                                   <button
                                     onClick={() => iniciarEdicion(ll.id)}
@@ -1437,6 +1681,15 @@ function App() {
           )}
         </main>
       </div>
+
+      {/* Modal de Alerta (para tabla desktop) */}
+      {alertaSeleccionada && alertaSeleccionada.alerta_margen && (
+        <ModalAlertaMargen
+          alerta={alertaSeleccionada.alerta_margen}
+          llanta={alertaSeleccionada}
+          onCerrar={() => setAlertaSeleccionada(null)}
+        />
+      )}
 
       {/* Modal Agregar CON CÁLCULO AUTOMÁTICO */}
       {mostrarModal && (

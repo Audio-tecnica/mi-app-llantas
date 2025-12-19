@@ -92,11 +92,22 @@ function Rines() {
     const coincideBusqueda = r.referencia
       ?.toLowerCase()
       .includes(busqueda.toLowerCase());
+
     const coincideMarca = !marcaSeleccionada || r.marca === marcaSeleccionada;
+
+    // 🔥 CORRECCIÓN: Buscar medida al inicio de la cadena
     const coincideMedida =
-      !medidaSeleccionada || r.medida === medidaSeleccionada;
+      !medidaSeleccionada ||
+      r.medida?.toString().startsWith(medidaSeleccionada);
+
+    // 🔥 CORRECCIÓN: Buscar submedida dentro de la cadena
     const coincideSubmedida =
-      !submedidaSeleccionada || r.submedida === submedidaSeleccionada;
+      !submedidaSeleccionada ||
+      r.medida
+        ?.toString()
+        .toUpperCase()
+        .includes(submedidaSeleccionada.toUpperCase());
+
     return (
       coincideBusqueda && coincideMarca && coincideMedida && coincideSubmedida
     );

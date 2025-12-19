@@ -1320,70 +1320,61 @@ async function extraerDatosPDFLlantar(buffer) {
 // ============================================
 // ENDPOINT: PROCESAR LISTA LLANTAR
 // ============================================
-app.post(
-  "/api/procesar-lista-llantar",
-  uploadPDF.single("pdf"),
-  async (req, res) => {
-    try {
-      console.log("📄 Recibiendo PDF de Llantar...");
+app.post('/api/procesar-lista-llantar', uploadPDF.single('pdf'), async (req, res) => {
+  try {
+    console.log('📄 Recibiendo PDF de Llantar...');
+    
+    if (!req.file) {
+      return res.status(400).json({ error: 'No se recibió ningún archivo' });
+    }
 
-      if (!req.file) {
-        return res.status(400).json({ error: "No se recibió ningún archivo" });
-      }
+    const datosLlantar = await extraerDatosPDFLlantar(req.file.buffer);
+    
+    // 🔍 LOG 1: Ver qué extrajo del PDF
+    console.log('🔍 PRIMERAS 10 LLANTAS EXTRAÍDAS:');
+    console.log(JSON.stringify(datosLlantar.slice(0, 10), null, 2));
+    
+    if (datosLlantar.length === 0) {
+      return res.status(400).json({ error: 'No se pudieron extraer datos del PDF' });
+    }
 
-      const datosLlantar = await extraerDatosPDFLlantar(req.file.buffer);
+    const { rows: inventario } = await pool.query('SELECT * FROM llantas');
+    
+    // 🔍 LOG 2: Ver qué hay en tu inventario
+    console.log('🔍 PRIMERAS 5 LLANTAS EN INVENTARIO:');
+    console.log(JSON.stringify(inventario.slice(0, 5).map(l => ({
+      id: l.id,
+      marca: l.marca,
+      referencia: l.referencia,
+      costo: l.costo_empresa
+    })), null, 2));
 
-      if (datosLlantar.length === 0) {
-        return res
-          .status(400)
-          .json({ error: "No se pudieron extraer datos del PDF" });
-      }
+    const resultado = {
+      actualizadas: 0,
+      margenBajo: 0,
+      bloqueadas: 0,
+      detalles: []
+    };
 
-      console.log(`📊 Procesando ${datosLlantar.length} llantas de Llantar...`);
-      console.log(
-        "🔍 PRIMERAS 10 LLANTAS EXTRAÍDAS:",
-        JSON.stringify(datosLlantar.slice(0, 10), null, 2)
-      );
+    for (const itemLlantar of datosLlantar) {
+      const llantaDB = inventario.find(l => {
+        const coincideMarca = l.marca?.toUpperCase() === itemLlantar.marca?.toUpperCase();
+        const coincideMedida = l.referencia?.includes(itemLlantar.medida);
+        
+        // 🔍 LOG 3: Ver intentos de coincidencia
+        if (coincideMarca) {
+          console.log(`🔍 Coincide marca ${itemLlantar.marca}, buscando medida ${itemLlantar.medida} en ${l.referencia}`);
+        }
+        
+        if (itemLlantar.referencia && l.referencia) {
+          const coincideRef = l.referencia?.toUpperCase().includes(itemLlantar.referencia?.toUpperCase());
+          return coincideMarca && (coincideMedida || coincideRef);
+        }
+        
+        return coincideMarca && coincideMedida;
+      });
 
-      const { rows: inventario } = await pool.query("SELECT * FROM llantas");
-      console.log(`💾 Inventario actual: ${inventario.length} llantas`);
-      console.log(
-        "🔍 PRIMERAS 5 LLANTAS EN BD:",
-        JSON.stringify(
-          inventario.slice(0, 5).map((l) => ({
-            marca: l.marca,
-            referencia: l.referencia,
-            costo: l.costo_empresa,
-          })),
-          null,
-          2
-        )
-      );
-
-      const resultado = {
-        actualizadas: 0,
-        margenBajo: 0,
-        bloqueadas: 0,
-        detalles: [],
-      };
-
-      for (const itemLlantar of datosLlantar) {
-        const llantaDB = inventario.find((l) => {
-          const coincideMarca =
-            l.marca?.toUpperCase() === itemLlantar.marca?.toUpperCase();
-          const coincideMedida = l.referencia?.includes(itemLlantar.medida);
-
-          if (itemLlantar.referencia && l.referencia) {
-            const coincideRef = l.referencia
-              ?.toUpperCase()
-              .includes(itemLlantar.referencia?.toUpperCase());
-            return coincideMarca && (coincideMedida || coincideRef);
-          }
-
-          return coincideMarca && coincideMedida;
-        });
-
-        if (!llantaDB) continue;
+      if (!llantaDB) continue;
 
         const divisor =
           itemLlantar.marca?.toUpperCase() === "TOYO" ? 1.15 : 1.2;

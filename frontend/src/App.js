@@ -4,6 +4,162 @@ import { Eye, EyeOff, Menu, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ComparadorLlantas from "./ComparadorLlantas";
 
+// ============================================
+// COMPONENTE MODAL ALERTA MARGEN
+// ============================================
+const ModalAlertaMargen = ({ alerta, llanta, onCerrar }) => {
+  if (!alerta) return null;
+
+  const {
+    tipo,
+    costoReal,
+    precioEsperado,
+    precioPublico,
+    margenDisponible,
+    porcentajeReal,
+  } = alerta;
+
+  const divisor = llanta.marca === "TOYO" ? 1.15 : 1.2;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-lg">
+        {/* Header */}
+        <div
+          className={`${
+            tipo === "critico" ? "bg-red-600" : "bg-yellow-600"
+          } text-white px-6 py-4 rounded-t-lg`}
+        >
+          <h2 className="text-xl font-bold flex items-center gap-2">
+            {tipo === "critico" ? "🔴" : "⚠️"}
+            ALERTA DE MARGEN {tipo.toUpperCase()}
+          </h2>
+        </div>
+
+        {/* Body */}
+        <div className="px-6 py-4 space-y-4">
+          {/* Info de la llanta */}
+          <div className="bg-gray-50 p-3 rounded">
+            <p className="font-bold text-gray-800">
+              {llanta.marca} {llanta.referencia}
+            </p>
+          </div>
+
+          {/* Proveedor */}
+          <div className="text-sm">
+            <p className="text-gray-600">
+              Proveedor:{" "}
+              <span className="font-semibold text-gray-800">
+                {llanta.proveedor || "N/A"}
+              </span>{" "}
+              (margen mínimo: costo/{divisor})
+            </p>
+          </div>
+
+          {/* Cálculos */}
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-gray-600">Tu costo:</span>
+              <span className="font-semibold">
+                ${costoReal?.toLocaleString("es-CO")}
+              </span>
+            </div>
+
+            <div className="flex justify-between">
+              <span className="text-gray-600">
+                Precio esperado (costo/{divisor}):
+              </span>
+              <span className="font-semibold text-blue-600">
+                ${Math.round(precioEsperado).toLocaleString("es-CO")}
+              </span>
+            </div>
+
+            <div className="flex justify-between">
+              <span className="text-gray-600">Precio público Llantar:</span>
+              <span className="font-semibold text-green-600">
+                ${precioPublico?.toLocaleString("es-CO")}
+              </span>
+            </div>
+
+            <div className="border-t pt-2 mt-2">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Margen disponible:</span>
+                <span
+                  className={`font-bold ${
+                    tipo === "critico" ? "text-red-600" : "text-yellow-600"
+                  }`}
+                >
+                  ${margenDisponible?.toLocaleString("es-CO")} (
+                  {porcentajeReal?.toFixed(1)}%)
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Explicación del problema */}
+          <div
+            className={`p-3 rounded border-l-4 ${
+              tipo === "critico"
+                ? "bg-red-50 border-red-500"
+                : "bg-yellow-50 border-yellow-500"
+            }`}
+          >
+            <p className="font-semibold text-gray-800 mb-2">
+              {tipo === "critico" ? "⛔" : "⚠️"} PROBLEMA:
+            </p>
+            <p className="text-sm text-gray-700">
+              El precio público de Llantar ($
+              {precioPublico?.toLocaleString("es-CO")}) está{" "}
+              <strong>DEMASIADO CERCANO</strong> a tu costo real ($
+              {costoReal?.toLocaleString("es-CO")}).
+            </p>
+            <p className="text-sm text-gray-700 mt-2">
+              Tu margen real es solo $
+              {margenDisponible?.toLocaleString("es-CO")} (
+              {porcentajeReal?.toFixed(1)}%), insuficiente para cubrir gastos
+              operativos.
+            </p>
+          </div>
+
+          {/* Recomendación */}
+          <div className="bg-blue-50 p-3 rounded border-l-4 border-blue-500">
+            <p className="font-semibold text-gray-800 mb-2">
+              💡 RECOMENDACIÓN:
+            </p>
+            <ul className="text-sm text-gray-700 list-disc list-inside space-y-1">
+              {tipo === "critico" ? (
+                <>
+                  <li>
+                    <strong>NO comprar</strong> esta referencia en este momento
+                  </li>
+                  <li>Negociar mejor precio con tu proveedor</li>
+                  <li>Considerar proveedores alternativos</li>
+                </>
+              ) : (
+                <>
+                  <li>Evaluar si la rotación justifica el margen bajo</li>
+                  <li>Intentar negociar descuento con proveedor</li>
+                  <li>Monitorear competencia antes de comprar</li>
+                </>
+              )}
+            </ul>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 bg-gray-50 flex justify-end rounded-b-lg">
+          <button
+            onClick={onCerrar}
+            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Componente para cada tarjeta de llanta
 const TarjetaLlanta = ({
   ll,
@@ -23,6 +179,7 @@ const TarjetaLlanta = ({
   setLlantas,
 }) => {
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const [mostrarAlerta, setMostrarAlerta] = useState(false);
 
   // Si está en modo edición, mostrar formulario
   if (modoEdicion === ll.id) {
@@ -181,13 +338,30 @@ const TarjetaLlanta = ({
       </div>
 
       {/* Badges de consignación */}
-      {ll.consignacion && (
-        <div className="mb-2">
+      {/* Badges de consignación y alerta */}
+      <div className="mb-2 flex items-center gap-1 flex-wrap">
+        {ll.consignacion && (
           <span className="inline-block bg-orange-100 text-orange-700 text-[10px] px-2 py-0.5 rounded-full font-medium">
             Consignación
           </span>
-        </div>
-      )}
+        )}
+        {ll.alerta_margen && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setMostrarAlerta(true);
+            }}
+            className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+              ll.alerta_margen.tipo === "critico"
+                ? "bg-red-100 text-red-700 border border-red-300"
+                : "bg-yellow-100 text-yellow-700 border border-yellow-300"
+            }`}
+          >
+            {ll.alerta_margen.tipo === "critico" ? "🔴" : "⚠️"}
+            <span>MARGEN</span>
+          </button>
+        )}
+      </div>
 
       {/* Info grid */}
       <div className="space-y-1 text-xs mb-2.5">
@@ -309,6 +483,15 @@ const TarjetaLlanta = ({
           )}
         </div>
       </div>
+
+      {/* Modal de Alerta */}
+      {mostrarAlerta && ll.alerta_margen && (
+        <ModalAlertaMargen
+          alerta={ll.alerta_margen}
+          llanta={ll}
+          onCerrar={() => setMostrarAlerta(false)}
+        />
+      )}
     </div>
   );
 };

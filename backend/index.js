@@ -17,71 +17,101 @@ async function extraerDatosPDFLlantar(buffer) {
   try {
     const data = await pdfParse(buffer);
     const texto = data.text;
-    const lineas = texto.split("\n");
-
+    const lineas = texto.split('\n');
+    
     const llantas = [];
-
-    // Regex para capturar: MARCA REFERENCIA DISEÑO MEDIDA PRECIO
-    // Ejemplo: "TOYO TY114020 PXTM1 195/55R15 451,973"
+    
+    console.log('📄 Primeras 20 líneas del PDF:');
+    console.log(lineas.slice(0, 20).join('\n'));
+    
     for (let linea of lineas) {
       linea = linea.trim();
-
-      // Ignorar headers y líneas vacías
-      if (
-        !linea ||
-        linea.includes("MARCA") ||
-        linea.includes("DISEÑO") ||
-        linea.includes("MEDIDA")
-      ) {
+      
+      // Ignorar headers, líneas vacías, y líneas que no tengan números
+      if (!linea || 
+          linea.includes('MARCA') || 
+          linea.includes('DISEÑO') || 
+          linea.includes('MEDIDA') ||
+          linea.includes('CODIGO') ||
+          linea.includes('VENTA') ||
+          linea.length < 10) {
         continue;
       }
-
-      // Buscar patrón de medida (195/55R15)
-      const medidaMatch = linea.match(/(\d{3}\/\d{2}[A-Z]\d{2}[A-Z]?)/);
-
-      if (medidaMatch) {
-        const medida = medidaMatch[1];
-        const partes = linea.split(/\s+/);
-
-        // Precio siempre está al final
-        const precioTexto = partes[partes.length - 1].replace(/[,$]/g, "");
-        const precio = parseInt(precioTexto);
-
-        if (isNaN(precio) || precio === 0) continue;
-
-        // Marca generalmente es la primera palabra
-        const marca = partes[0];
-
-        // Referencia generalmente es la segunda
-        const referencia = partes[1] || "";
-
-        // Diseño es todo lo que está entre referencia y medida
-        const medidaIndex = partes.findIndex((p) => p === medida);
-        const diseno = partes.slice(2, medidaIndex).join(" ");
-
-        llantas.push({
-          marca,
-          referencia,
-          diseno,
-          medida,
-          precio,
-        });
+      
+      // Buscar patrón de medida (195/55R15, 225/60R18, etc)
+      const medidaRegex = /(\d{3}\/\d{2}[A-Z]\d{2}[A-Z]?)/;
+      const medidaMatch = linea.match(medidaRegex);
+      
+      if (!medidaMatch) continue;
+      
+      const medida = medidaMatch[1];
+      
+      // Buscar precio al final (puede tener comas o puntos)
+      const precioRegex = /([\d,\.]+)$/;
+      const precioMatch = linea.match(precioRegex);
+      
+      if (!precioMatch) continue;
+      
+      const precioTexto = precioMatch[1].replace(/[,\.]/g, '');
+      const precio = parseInt(precioTexto);
+      
+      // El precio debe ser mayor a 100,000 (para filtrar errores)
+      if (isNaN(precio) || precio < 100000) continue;
+      
+      // Extraer marca (primera palabra antes de espacios o números)
+      const marcaRegex = /^([A-Z][A-Z\s]+?)(?=\s+[A-Z0-9]|\s+\d)/;
+      const marcaMatch = linea.match(marcaRegex);
+      
+      let marca = 'DESCONOCIDA';
+      if (marcaMatch) {
+        marca = marcaMatch[1].trim();
+      } else {
+        // Si no coincide, tomar la primera palabra
+        const primeraPalabra = linea.split(/\s+/)[0];
+        if (primeraPalabra && /^[A-Z]+$/.test(primeraPalabra)) {
+          marca = primeraPalabra;
+        }
       }
+      
+      // Extraer referencia (código alfanumérico después de la marca)
+      const posicionMarca = linea.indexOf(marca);
+      const despuesMarca = linea.substring(posicionMarca + marca.length).trim();
+      const refRegex = /^([A-Z0-9]+)/;
+      const refMatch = despuesMarca.match(refRegex);
+      const referencia = refMatch ? refMatch[1] : '';
+      
+      // Diseño es todo lo que está entre referencia y medida
+      const posicionMedida = linea.indexOf(medida);
+      let diseno = '';
+      if (referencia) {
+        const posicionRef = linea.indexOf(referencia);
+        diseno = linea.substring(posicionRef + referencia.length, posicionMedida).trim();
+      } else {
+        diseno = linea.substring(posicionMarca + marca.length, posicionMedida).trim();
+      }
+      
+      // Limpiar diseño de caracteres extraños
+      diseno = diseno.replace(/\s+/g, ' ').trim();
+      
+      llantas.push({
+        marca: marca.trim(),
+        referencia: referencia.trim(),
+        diseno: diseno,
+        medida: medida,
+        precio: precio
+      });
+      
+      console.log(`✅ Extraída: ${marca} | ${referencia} | ${medida} | $${precio.toLocaleString()}`);
     }
-
+    
     console.log(`✅ PDF procesado: ${llantas.length} llantas encontradas`);
     return llantas;
+    
   } catch (error) {
-    console.error("❌ Error procesando PDF:", error);
+    console.error('❌ Error procesando PDF:', error);
     throw error;
   }
 }
-
-const app = express();
-const PORT = process.env.PORT || 10000;
-
-const cloudinary = require("cloudinary").v2;
-const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
 // ===========================
 // CONFIGURAR CLOUDINARY

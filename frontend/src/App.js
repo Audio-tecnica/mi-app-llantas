@@ -238,17 +238,19 @@ const TarjetaLlanta = ({
               "_blank"
             )
           }
-          className="flex-1 bg-blue-500 active:bg-blue-600 text-white px-1.5 py-1 rounded flex items-center justify-center gap-0.5 text-[9px]"
+          className="bg-blue-500 hover:bg-blue-600 text-white px-1 py-1 rounded transition-all flex items-center justify-center gap-0.5"
+          style={{ flex: "0 0 45%" }}
         >
-          <span className="text-[10px]">🔍</span>
-          <span className="font-medium">Llantar</span>
+          <span className="text-xs">🔍</span>
+          <span className="text-[9px] font-medium">Llantar</span>
         </button>
         <button
           onClick={() => handleAgregarComparador(ll)}
-          className="flex-1 bg-purple-500 active:bg-purple-600 text-white px-1.5 py-1 rounded flex items-center justify-center gap-0.5 text-[9px]"
+          className="bg-purple-500 hover:bg-purple-600 text-white px-1 py-1 rounded transition-all flex items-center justify-center gap-0.5"
+          style={{ flex: "0 0 40%" }}
         >
-          <span className="text-[10px]">⚖️</span>
-          <span className="font-medium">Web</span>
+          <span className="text-xs">⚖️</span>
+          <span className="text-[9px] font-medium">Web</span>
         </button>
 
         {/* Menú de 3 puntos */}
@@ -444,26 +446,26 @@ function App() {
   const marcasUnicas = [...new Set(llantas.map((l) => l.marca))];
 
   const filtradas = llantas.filter((l) => {
-  // Si la llanta está en modo edición, siempre mostrarla
-  if (modoEdicion === l.id) {
-    return true;
-  }
-  
-  const coincideBusqueda = l.referencia
-    ?.toLowerCase()
-    .includes(busqueda.toLowerCase());
-  const coincideMarca = !marcaSeleccionada || l.marca === marcaSeleccionada;
-  const coincideAncho = !ancho || l.referencia.includes(ancho);
-  const coincidePerfil = !perfil || l.referencia.includes(perfil);
-  const coincideRin = !rin || l.referencia.includes(rin);
-  return (
-    coincideBusqueda &&
-    coincideMarca &&
-    coincideAncho &&
-    coincidePerfil &&
-    coincideRin
-  );
-});
+    // Si la llanta está en modo edición, siempre mostrarla
+    if (modoEdicion === l.id) {
+      return true;
+    }
+
+    const coincideBusqueda = l.referencia
+      ?.toLowerCase()
+      .includes(busqueda.toLowerCase());
+    const coincideMarca = !marcaSeleccionada || l.marca === marcaSeleccionada;
+    const coincideAncho = !ancho || l.referencia.includes(ancho);
+    const coincidePerfil = !perfil || l.referencia.includes(perfil);
+    const coincideRin = !rin || l.referencia.includes(rin);
+    return (
+      coincideBusqueda &&
+      coincideMarca &&
+      coincideAncho &&
+      coincidePerfil &&
+      coincideRin
+    );
+  });
 
   const logsFiltrados = logs.filter((log) => {
     const coincideBusqueda =
@@ -489,8 +491,23 @@ function App() {
   };
 
   const actualizarCampo = (id, campo, valor) => {
-    setLlantas(
-      llantas.map((ll) => (ll.id === id ? { ...ll, [campo]: valor } : ll))
+    setLlantas((prevLlantas) =>
+      prevLlantas.map((ll) => {
+        if (ll.id === id) {
+          // Si se actualiza el costo, calcular nuevo precio automáticamente
+          if (campo === "costo_empresa") {
+            const costo = parseFloat(valor) || 0;
+            const precioCalculado = Math.round(costo / 0.8);
+            return {
+              ...ll,
+              [campo]: valor,
+              precio_cliente: precioCalculado,
+            };
+          }
+          return { ...ll, [campo]: valor };
+        }
+        return ll;
+      })
     );
   };
 
@@ -729,7 +746,7 @@ function App() {
       >
         <div className="p-6">
           <div className="flex items-center justify-between mb-8">
-            <img src="/logowp.PNG" className="h-16 w-auto" alt="Logo" />
+            <img src="/logowp.PNG" className="h-10 w-auto" alt="Logo" />
             <button
               onClick={() => setMenuAbierto(false)}
               className="lg:hidden text-white hover:bg-slate-700 p-2 rounded"
@@ -934,7 +951,7 @@ function App() {
                   className="flex items-center justify-center gap-1 bg-slate-700 text-white px-3 py-2 rounded-lg hover:bg-slate-800 transition-all text-xs"
                 >
                   <span>📋</span>
-                  <span>Update</span>
+                  <span>Historial</span>
                 </button>
 
                 <button
@@ -1353,7 +1370,7 @@ function App() {
                                     }
                                     className="bg-purple-600 text-white px-2 py-1 rounded text-xs hover:bg-purple-700"
                                   >
-                                    Web
+                                    Comp
                                   </button>
                                 </div>
                               </td>
@@ -1421,7 +1438,7 @@ function App() {
         </main>
       </div>
 
-      {/* Modal Agregar */}
+      {/* Modal Agregar CON CÁLCULO AUTOMÁTICO */}
       {mostrarModal && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
@@ -1429,31 +1446,122 @@ function App() {
               ➕ Agregar Nueva Llanta
             </h2>
             <div className="space-y-3">
-              {[
-                { key: "referencia", label: "Referencia" },
-                { key: "marca", label: "Marca" },
-                { key: "proveedor", label: "Proveedor" },
-                { key: "costo_empresa", label: "Costo Empresa" },
-                { key: "precio_cliente", label: "Precio Cliente" },
-                { key: "stock", label: "Stock" },
-              ].map((campo) => (
-                <div key={campo.key}>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    {campo.label}
-                  </label>
-                  <input
-                    placeholder={`Ingrese ${campo.label.toLowerCase()}`}
-                    value={nuevoItem[campo.key]}
-                    onChange={(e) =>
-                      setNuevoItem({
-                        ...nuevoItem,
-                        [campo.key]: e.target.value,
-                      })
-                    }
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 outline-none"
-                  />
-                </div>
-              ))}
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Referencia
+                </label>
+                <input
+                  placeholder="Ingrese referencia"
+                  value={nuevoItem.referencia}
+                  onChange={(e) =>
+                    setNuevoItem({
+                      ...nuevoItem,
+                      referencia: e.target.value,
+                    })
+                  }
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Marca
+                </label>
+                <input
+                  placeholder="Ingrese marca"
+                  value={nuevoItem.marca}
+                  onChange={(e) =>
+                    setNuevoItem({
+                      ...nuevoItem,
+                      marca: e.target.value,
+                    })
+                  }
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Proveedor
+                </label>
+                <input
+                  placeholder="Ingrese proveedor"
+                  value={nuevoItem.proveedor}
+                  onChange={(e) =>
+                    setNuevoItem({
+                      ...nuevoItem,
+                      proveedor: e.target.value,
+                    })
+                  }
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Costo Empresa
+                </label>
+                <input
+                  type="number"
+                  placeholder="Ingrese costo empresa"
+                  value={nuevoItem.costo_empresa}
+                  onChange={(e) => {
+                    const costo = parseFloat(e.target.value) || 0;
+                    const precioCalculado = Math.round(costo / 0.8);
+                    setNuevoItem({
+                      ...nuevoItem,
+                      costo_empresa: e.target.value,
+                      precio_cliente: precioCalculado.toString(),
+                    });
+                  }}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Precio Cliente
+                  <span className="text-xs text-gray-500 ml-1">(editable)</span>
+                </label>
+                <input
+                  type="number"
+                  placeholder="Ingrese precio cliente"
+                  value={nuevoItem.precio_cliente}
+                  onChange={(e) =>
+                    setNuevoItem({
+                      ...nuevoItem,
+                      precio_cliente: e.target.value,
+                    })
+                  }
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 outline-none"
+                />
+                {nuevoItem.costo_empresa && (
+                  <p className="text-xs text-green-600 mt-1">
+                    💡 Sugerido: $
+                    {Math.round(
+                      parseFloat(nuevoItem.costo_empresa) / 0.8
+                    ).toLocaleString("es-CO")}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Stock
+                </label>
+                <input
+                  type="number"
+                  placeholder="Ingrese stock"
+                  value={nuevoItem.stock}
+                  onChange={(e) =>
+                    setNuevoItem({
+                      ...nuevoItem,
+                      stock: e.target.value,
+                    })
+                  }
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 outline-none"
+                />
+              </div>
             </div>
             <div className="flex gap-2 mt-4">
               <button

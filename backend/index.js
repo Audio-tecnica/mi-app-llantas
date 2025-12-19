@@ -10,6 +10,69 @@ const FormData = require("form-data");
 const multer = require("multer");
 const pdfParse = require("pdf-parse");
 
+// ============================================
+// FUNCIÓN PARA EXTRAER DATOS DEL PDF DE LLANTAR
+// ============================================
+async function extraerDatosPDFLlantar(buffer) {
+  try {
+    const data = await pdfParse(buffer);
+    const texto = data.text;
+    const lineas = texto.split('\n');
+    
+    const llantas = [];
+    
+    // Regex para capturar: MARCA REFERENCIA DISEÑO MEDIDA PRECIO
+    // Ejemplo: "TOYO TY114020 PXTM1 195/55R15 451,973"
+    for (let linea of lineas) {
+      linea = linea.trim();
+      
+      // Ignorar headers y líneas vacías
+      if (!linea || linea.includes('MARCA') || linea.includes('DISEÑO') || linea.includes('MEDIDA')) {
+        continue;
+      }
+      
+      // Buscar patrón de medida (195/55R15)
+      const medidaMatch = linea.match(/(\d{3}\/\d{2}[A-Z]\d{2}[A-Z]?)/);
+      
+      if (medidaMatch) {
+        const medida = medidaMatch[1];
+        const partes = linea.split(/\s+/);
+        
+        // Precio siempre está al final
+        const precioTexto = partes[partes.length - 1].replace(/[,$]/g, '');
+        const precio = parseInt(precioTexto);
+        
+        if (isNaN(precio) || precio === 0) continue;
+        
+        // Marca generalmente es la primera palabra
+        const marca = partes[0];
+        
+        // Referencia generalmente es la segunda
+        const referencia = partes[1] || '';
+        
+        // Diseño es todo lo que está entre referencia y medida
+        const medidaIndex = partes.findIndex(p => p === medida);
+        const diseno = partes.slice(2, medidaIndex).join(' ');
+        
+        llantas.push({
+          marca,
+          referencia,
+          diseno,
+          medida,
+          precio
+        });
+      }
+    }
+    
+    console.log(`✅ PDF procesado: ${llantas.length} llantas encontradas`);
+    return llantas;
+    
+  } catch (error) {
+    console.error('❌ Error procesando PDF:', error);
+    throw error;
+  }
+}
+
 const app = express();
 const PORT = process.env.PORT || 10000;
 
@@ -1186,6 +1249,131 @@ app.post("/api/limpiar-promociones-inactivas", async (req, res) => {
   } catch (e) {
     console.error("Error limpiando promociones:", e);
     res.status(500).json({ error: "Error limpiando promociones" });
+  }
+});
+
+// ============================================
+// ENDPOINT: PROCESAR LISTA LLANTAR
+// ============================================
+app.post('/api/procesar-lista-llantar', uploadPDF.single('pdf'), async (req, res) => {
+  try {
+    console.log('📄 Recibiendo PDF de Llantar...');
+    
+    if (!req.file) {
+      return res.status(400).json({ error: 'No se recibió ningún archivo' });
+    }
+
+    // 1. Extraer datos del PDF
+    const datosLlantar = await extraerDatosPDFLlantar(req.file.buffer);
+    
+    if (datosLlantar.length === 0) {
+      return res.status(400).json({ 
+        error: 'No se pudieron extraer datos del PDF' 
+      });
+    }
+
+    console.log(`📊 Procesando ${datosLlantar.length} llantas de Llantar...`);
+
+    // 2. Obtener inventario actual
+    const { rows: inventario } = await pool.query('SELECT * FROM llantas');
+
+    console.log(`💾 Inventario actual: ${inventario.length} llantas`);
+
+    // 3. Procesar actualizaciones
+    const resultado = {
+      actualizadas: 0,
+      margenBajo: 0,
+      bloqueadas: 0,
+      detalles: []
+    };
+
+    for (const itemLlantar of datosLlantar) {
+      // Buscar coincidencia por marca + medida
+      const llantaDB = inventario.find(l => {
+        const coincideMarca = l.marca?.toUpperCase() === itemLlantar.marca?.toUpperCase();
+        const coincideMedida = l.referencia?.includes(itemLlantar.medida);
+        
+        if (itemLlantar.referencia && l.referencia) {
+          const coincideRef = l.referencia?.toUpperCase().includes(itemLlantar.referencia?.toUpperCase());
+          return coincideMarca && (coincideMedida || coincideRef);
+        }
+        
+        return coincideMarca && coincideMedida;
+      });
+
+      if (!llantaDB) continue;
+
+      // Calcular margen según marca
+      const divisor = itemLlantar.marca?.toUpperCase() === 'TOYO' ? 1.15 : 1.20;
+      const precioEsperado = llantaDB.costo_empresa / divisor;
+      const margenReal = itemLlantar.precio - llantaDB.costo_empresa;
+      const porcentajeReal = (margenReal / llantaDB.costo_empresa) * 100;
+
+      // Determinar tipo de alerta
+      let alertaMargen = null;
+      let estadoActualizacion = 'actualizada';
+
+      if (porcentajeReal < 15) {
+        const tipo = porcentajeReal < 10 ? 'critico' : 'bajo';
+        
+        alertaMargen = {
+          tipo,
+          costoReal: llantaDB.costo_empresa,
+          precioEsperado: Math.round(precioEsperado),
+          precioPublico: itemLlantar.precio,
+          margenDisponible: Math.round(margenReal),
+          porcentajeReal: parseFloat(porcentajeReal.toFixed(1))
+        };
+
+        estadoActualizacion = tipo === 'critico' ? 'critico' : 'margen_bajo';
+        
+        if (tipo === 'critico') {
+          resultado.bloqueadas++;
+        } else {
+          resultado.margenBajo++;
+        }
+      }
+
+      // Actualizar precio en BD
+      const precioAnterior = llantaDB.precio_cliente;
+      const cambio = ((itemLlantar.precio - precioAnterior) / precioAnterior) * 100;
+
+      await pool.query(
+        `UPDATE llantas 
+         SET precio_cliente = $1, 
+             alerta_margen = $2, 
+             fecha_ultima_actualizacion = NOW()
+         WHERE id = $3`,
+        [itemLlantar.precio, JSON.stringify(alertaMargen), llantaDB.id]
+      );
+
+      resultado.actualizadas++;
+
+      resultado.detalles.push({
+        marca: itemLlantar.marca,
+        medida: itemLlantar.medida,
+        diseno: itemLlantar.diseno,
+        referencia: llantaDB.referencia,
+        estado: estadoActualizacion,
+        precioAnterior,
+        precioNuevo: itemLlantar.precio,
+        cambio: parseFloat(cambio.toFixed(1)),
+        margen: alertaMargen ? parseFloat(porcentajeReal.toFixed(1)) : null
+      });
+    }
+
+    console.log(`✅ Actualizadas: ${resultado.actualizadas}`);
+    console.log(`⚠️ Margen Bajo: ${resultado.margenBajo}`);
+    console.log(`🔴 Bloqueadas: ${resultado.bloqueadas}`);
+
+    res.json(resultado);
+
+  } catch (error) {
+    console.error('❌ Error:', error);
+    res.status(500).json({ 
+      error: 'Error procesando lista de Llantar',
+      detalles: error.message 
+    });
   }
 });
 

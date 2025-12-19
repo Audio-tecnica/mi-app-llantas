@@ -313,7 +313,6 @@ const TarjetaLlanta = ({
   );
 };
 
-
 function App() {
   const [mostrarCosto, setMostrarCosto] = useState(false);
   const [llantas, setLlantas] = useState([]);
@@ -955,13 +954,61 @@ function App() {
                   <span>Historial</span>
                 </button>
 
-                <button
-                  onClick={() => window.open("/lista_llantar.pdf", "_blank")}
-                  className="flex items-center justify-center gap-1 bg-slate-600 text-white px-3 py-2 rounded-lg hover:bg-slate-700 transition-all text-xs"
-                >
-                  <span>📄</span>
-                  <span>Lista</span>
-                </button>
+                <div className="relative">
+                  <input
+                    type="file"
+                    id="lista-llantar-input"
+                    accept="application/pdf"
+                    onChange={async (e) => {
+                      const archivo = e.target.files[0];
+                      if (!archivo) return;
+
+                      try {
+                        setMensaje("⏳ Procesando lista de Llantar...");
+
+                        const formData = new FormData();
+                        formData.append("pdf", archivo);
+
+                        const response = await axios.post(
+                          "https://mi-app-llantas.onrender.com/api/procesar-lista-llantar",
+                          formData,
+                          {
+                            headers: {
+                              "Content-Type": "multipart/form-data",
+                            },
+                          }
+                        );
+
+                        const resultado = response.data;
+
+                        setMensaje(
+                          `✅ Procesado: ${resultado.actualizadas} actualizadas, ${resultado.margenBajo} con margen bajo`
+                        );
+
+                        // Recargar llantas
+                        const { data } = await axios.get(
+                          "https://mi-app-llantas.onrender.com/api/llantas"
+                        );
+                        setLlantas(data);
+
+                        e.target.value = "";
+                        setTimeout(() => setMensaje(""), 3000);
+                      } catch (error) {
+                        console.error("Error:", error);
+                        setMensaje("❌ Error al procesar la lista");
+                        setTimeout(() => setMensaje(""), 3000);
+                      }
+                    }}
+                    className="hidden"
+                  />
+                  <label
+                    htmlFor="lista-llantar-input"
+                    className="flex items-center justify-center gap-1 bg-slate-600 text-white px-3 py-2 rounded-lg hover:bg-slate-700 transition-all text-xs cursor-pointer"
+                  >
+                    <span>📄</span>
+                    <span>Lista</span>
+                  </label>
+                </div>
 
                 <button
                   onClick={() => setMostrarComparador(true)}

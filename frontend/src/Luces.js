@@ -52,6 +52,11 @@ function Luces() {
   const marcasUnicas = [...new Set(luces.map((l) => l.marca))];
 
   const filtradas = luces.filter((l) => {
+    // Si la luz está en modo edición, siempre mostrarla
+    if (modoEdicion === l.id) {
+      return true;
+    }
+
     const coincideBusqueda = l.referencia
       ?.toLowerCase()
       .includes(busqueda.toLowerCase());
@@ -525,7 +530,9 @@ function Luces() {
                             <div className="font-bold text-slate-800">
                               {l.referencia}
                             </div>
-                            <div className="text-xs text-gray-500">{l.marca}</div>
+                            <div className="text-xs text-gray-500">
+                              {l.marca}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -535,7 +542,9 @@ function Luces() {
                           <span className="text-gray-500 text-xs">
                             Proveedor:
                           </span>
-                          <div className="font-medium">{l.proveedor || "—"}</div>
+                          <div className="font-medium">
+                            {l.proveedor || "—"}
+                          </div>
                         </div>
                         <div>
                           <span className="text-gray-500 text-xs">Stock:</span>
@@ -555,7 +564,9 @@ function Luces() {
                         </div>
                         {mostrarCosto && (
                           <div>
-                            <span className="text-gray-500 text-xs">Costo:</span>
+                            <span className="text-gray-500 text-xs">
+                              Costo:
+                            </span>
                             <div className="font-medium text-blue-600">
                               ${Number(l.costo).toLocaleString("es-CO")}
                             </div>
@@ -797,7 +808,8 @@ function Luces() {
                                     : "•••"}
                                 </td>
                                 <td className="p-2 text-right text-green-600 font-semibold">
-                                  ${Number(l.precio || 0).toLocaleString(
+                                  $
+                                  {Number(l.precio || 0).toLocaleString(
                                     "es-CO"
                                   )}
                                 </td>

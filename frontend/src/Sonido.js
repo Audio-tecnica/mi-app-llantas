@@ -51,11 +51,16 @@ function Sonido() {
 
   const marcasUnicas = [...new Set(productos.map((p) => p.marca))];
 
-  const filtradas = productos.filter((p) => {
-    const coincideBusqueda = p.referencia
+  const filtradas = sonido.filter((s) => {
+    // Si el producto está en modo edición, siempre mostrarlo
+    if (modoEdicion === s.id) {
+      return true;
+    }
+
+    const coincideBusqueda = s.referencia
       ?.toLowerCase()
       .includes(busqueda.toLowerCase());
-    const coincideMarca = !marcaSeleccionada || p.marca === marcaSeleccionada;
+    const coincideMarca = !marcaSeleccionada || s.marca === marcaSeleccionada;
     return coincideBusqueda && coincideMarca;
   });
 
@@ -537,7 +542,9 @@ function Sonido() {
                             <div className="font-bold text-slate-800">
                               {p.referencia}
                             </div>
-                            <div className="text-xs text-gray-500">{p.marca}</div>
+                            <div className="text-xs text-gray-500">
+                              {p.marca}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -547,7 +554,9 @@ function Sonido() {
                           <span className="text-gray-500 text-xs">
                             Proveedor:
                           </span>
-                          <div className="font-medium">{p.proveedor || "—"}</div>
+                          <div className="font-medium">
+                            {p.proveedor || "—"}
+                          </div>
                         </div>
                         <div>
                           <span className="text-gray-500 text-xs">Stock:</span>
@@ -567,7 +576,9 @@ function Sonido() {
                         </div>
                         {mostrarCosto && (
                           <div>
-                            <span className="text-gray-500 text-xs">Costo:</span>
+                            <span className="text-gray-500 text-xs">
+                              Costo:
+                            </span>
                             <div className="font-medium text-blue-600">
                               ${Number(p.costo).toLocaleString("es-CO")}
                             </div>
@@ -783,7 +794,9 @@ function Sonido() {
                                         setProductoOriginalEdicion(null);
                                         axios
                                           .get(`${API_URL}/api/sonido`)
-                                          .then((res) => setProductos(res.data));
+                                          .then((res) =>
+                                            setProductos(res.data)
+                                          );
                                       }}
                                       className="bg-gray-400 text-white px-2 py-1 text-xs rounded hover:bg-gray-500"
                                     >
@@ -809,7 +822,8 @@ function Sonido() {
                                     : "•••"}
                                 </td>
                                 <td className="p-2 text-right text-green-600 font-semibold">
-                                  ${Number(p.precio || 0).toLocaleString(
+                                  $
+                                  {Number(p.precio || 0).toLocaleString(
                                     "es-CO"
                                   )}
                                 </td>

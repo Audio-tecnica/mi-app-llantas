@@ -51,13 +51,18 @@ function Tapetes() {
 
   const marcasUnicas = [...new Set(tapetes.map((t) => t.marca))];
 
-  const filtradas = tapetes.filter((t) => {
-    const coincideBusqueda = t.referencia
-      ?.toLowerCase()
-      .includes(busqueda.toLowerCase());
-    const coincideMarca = !marcaSeleccionada || t.marca === marcaSeleccionada;
-    return coincideBusqueda && coincideMarca;
-  });
+ const filtradas = tapetes.filter((t) => {
+  // Si el tapete está en modo edición, siempre mostrarlo
+  if (modoEdicion === t.id) {
+    return true;
+  }
+  
+  const coincideBusqueda = t.referencia
+    ?.toLowerCase()
+    .includes(busqueda.toLowerCase());
+  const coincideMarca = !marcaSeleccionada || t.marca === marcaSeleccionada;
+  return coincideBusqueda && coincideMarca;
+});
 
   const ordenarPor = (campo) => {
     const asc = orden.campo === campo ? !orden.asc : true;

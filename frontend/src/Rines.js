@@ -84,16 +84,19 @@ function Rines() {
     : [];
 
   const filtradas = rines.filter((r) => {
+    // Si el rin está en modo edición, siempre mostrarlo
+    if (modoEdicion === r.id) {
+      return true;
+    }
+
     const coincideBusqueda = r.referencia
       ?.toLowerCase()
       .includes(busqueda.toLowerCase());
     const coincideMarca = !marcaSeleccionada || r.marca === marcaSeleccionada;
     const coincideMedida =
-      !medidaSeleccionada ||
-      r.medida?.toString().startsWith(medidaSeleccionada);
+      !medidaSeleccionada || r.medida === medidaSeleccionada;
     const coincideSubmedida =
-      !submedidaSeleccionada ||
-      r.medida?.toUpperCase().includes(submedidaSeleccionada);
+      !submedidaSeleccionada || r.submedida === submedidaSeleccionada;
     return (
       coincideBusqueda && coincideMarca && coincideMedida && coincideSubmedida
     );
@@ -610,9 +613,7 @@ function Rines() {
                   <div className="text-2xl font-bold text-slate-700">
                     {filtradas.length}
                   </div>
-                  <div className="text-slate-500 text-xs mt-1">
-                    Total Rines
-                  </div>
+                  <div className="text-slate-500 text-xs mt-1">Total Rines</div>
                 </div>
 
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -762,9 +763,7 @@ function Rines() {
                         {submedidasDisponibles.map((submedida) => (
                           <button
                             key={submedida}
-                            onClick={() =>
-                              setSubmedidaSeleccionada(submedida)
-                            }
+                            onClick={() => setSubmedidaSeleccionada(submedida)}
                             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                               submedidaSeleccionada === submedida
                                 ? "bg-green-600 text-white"
@@ -794,7 +793,7 @@ function Rines() {
                         onChange={() => toggleSeleccion(r.id)}
                         className="cursor-pointer mt-1"
                       />
-                      
+
                       {/* Foto */}
                       {r.foto ? (
                         <img
@@ -805,7 +804,9 @@ function Rines() {
                         />
                       ) : (
                         <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center border">
-                          <span className="text-gray-400 text-xs">Sin foto</span>
+                          <span className="text-gray-400 text-xs">
+                            Sin foto
+                          </span>
                         </div>
                       )}
 
@@ -1206,9 +1207,7 @@ function Rines() {
                                   : "•••"}
                               </td>
                               <td className="p-2 text-right text-green-600 font-semibold">
-                                ${Number(r.precio || 0).toLocaleString(
-                                  "es-CO"
-                                )}
+                                ${Number(r.precio || 0).toLocaleString("es-CO")}
                               </td>
                               <td
                                 className={`p-2 text-center font-semibold ${
@@ -1454,4 +1453,4 @@ function Rines() {
   );
 }
 
-export default Rines; 
+export default Rines;

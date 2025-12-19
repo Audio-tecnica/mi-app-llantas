@@ -51,14 +51,18 @@ function TirosArrastre() {
 
   const marcasUnicas = [...new Set(tiros.map((t) => t.marca))];
 
-  const filtradas = tiros.filter((t) => {
+  const filtradas = tirosArrastre.filter((t) => {
+    // Si el tiro está en modo edición, siempre mostrarlo
+    if (modoEdicion === t.id) {
+      return true;
+    }
+
     const coincideBusqueda = t.referencia
       ?.toLowerCase()
       .includes(busqueda.toLowerCase());
     const coincideMarca = !marcaSeleccionada || t.marca === marcaSeleccionada;
     return coincideBusqueda && coincideMarca;
   });
-
   const ordenarPor = (campo) => {
     const asc = orden.campo === campo ? !orden.asc : true;
     const ordenadas = [...filtradas].sort((a, b) => {
@@ -529,7 +533,9 @@ function TirosArrastre() {
                             <div className="font-bold text-slate-800">
                               {t.referencia}
                             </div>
-                            <div className="text-xs text-gray-500">{t.marca}</div>
+                            <div className="text-xs text-gray-500">
+                              {t.marca}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -539,7 +545,9 @@ function TirosArrastre() {
                           <span className="text-gray-500 text-xs">
                             Proveedor:
                           </span>
-                          <div className="font-medium">{t.proveedor || "—"}</div>
+                          <div className="font-medium">
+                            {t.proveedor || "—"}
+                          </div>
                         </div>
                         <div>
                           <span className="text-gray-500 text-xs">Stock:</span>
@@ -559,7 +567,9 @@ function TirosArrastre() {
                         </div>
                         {mostrarCosto && (
                           <div>
-                            <span className="text-gray-500 text-xs">Costo:</span>
+                            <span className="text-gray-500 text-xs">
+                              Costo:
+                            </span>
                             <div className="font-medium text-blue-600">
                               ${Number(t.costo).toLocaleString("es-CO")}
                             </div>
@@ -801,7 +811,8 @@ function TirosArrastre() {
                                     : "•••"}
                                 </td>
                                 <td className="p-2 text-right text-green-600 font-semibold">
-                                  ${Number(t.precio || 0).toLocaleString(
+                                  $
+                                  {Number(t.precio || 0).toLocaleString(
                                     "es-CO"
                                   )}
                                 </td>

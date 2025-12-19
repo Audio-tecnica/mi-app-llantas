@@ -444,21 +444,26 @@ function App() {
   const marcasUnicas = [...new Set(llantas.map((l) => l.marca))];
 
   const filtradas = llantas.filter((l) => {
-    const coincideBusqueda = l.referencia
-      ?.toLowerCase()
-      .includes(busqueda.toLowerCase());
-    const coincideMarca = !marcaSeleccionada || l.marca === marcaSeleccionada;
-    const coincideAncho = !ancho || l.referencia.includes(ancho);
-    const coincidePerfil = !perfil || l.referencia.includes(perfil);
-    const coincideRin = !rin || l.referencia.includes(rin);
-    return (
-      coincideBusqueda &&
-      coincideMarca &&
-      coincideAncho &&
-      coincidePerfil &&
-      coincideRin
-    );
-  });
+  // Si la llanta está en modo edición, siempre mostrarla
+  if (modoEdicion === l.id) {
+    return true;
+  }
+  
+  const coincideBusqueda = l.referencia
+    ?.toLowerCase()
+    .includes(busqueda.toLowerCase());
+  const coincideMarca = !marcaSeleccionada || l.marca === marcaSeleccionada;
+  const coincideAncho = !ancho || l.referencia.includes(ancho);
+  const coincidePerfil = !perfil || l.referencia.includes(perfil);
+  const coincideRin = !rin || l.referencia.includes(rin);
+  return (
+    coincideBusqueda &&
+    coincideMarca &&
+    coincideAncho &&
+    coincidePerfil &&
+    coincideRin
+  );
+});
 
   const logsFiltrados = logs.filter((log) => {
     const coincideBusqueda =

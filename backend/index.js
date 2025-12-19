@@ -10,6 +10,63 @@ const FormData = require("form-data");
 const multer = require("multer");
 const pdfParse = require("pdf-parse");
 
+const app = express();
+const PORT = process.env.PORT || 10000;
+
+// ===========================
+// CONFIGURAR CLOUDINARY
+// ===========================
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+
+cloudinary.config({
+  cloud_name: "dlgub1vaf",
+  api_key: "971754543599966",
+  api_secret: "q8N34PNwLpnmBSvfhGYuk6jmYR4",
+});
+
+// ⬇️⬇️⬇️ NUEVO: API KEY DE REMOVE.BG ⬇️⬇️⬇️
+const REMOVE_BG_API_KEY =
+  process.env.REMOVE_BG_API_KEY || "BFz2WwvkwPfh33YAbnMiD7Ke";
+
+// Configuración de Cloudinary para imágenes
+const cloudinaryStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "llantas",
+    allowed_formats: ["jpg", "png", "jpeg", "webp"],
+  },
+});
+
+// ⬅️ Para subir imágenes a Cloudinary
+const uploadImage = multer({ storage: cloudinaryStorage });
+
+// ⬅️ Para subir PDFs (se guardan en memoria)
+const uploadPDF = multer({ storage: multer.memoryStorage() });
+
+// PostgreSQL
+const pool = new Pool({
+  connectionString:
+    "postgresql://postgres.xihejxjynnsxcrdxvtng:Audio.2025*ñ@aws-0-us-east-1.pooler.supabase.com:5432/postgres",
+  ssl: { rejectUnauthorized: false },
+});
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// ===========================
+//  CREAR CARPETA PARA FOTOS (legacy)
+// ===========================
+const FILES_PATH = path.join(__dirname, "files");
+if (!fs.existsSync(FILES_PATH)) {
+  fs.mkdirSync(FILES_PATH, { recursive: true });
+}
+
+// Servir archivos estáticos
+app.use("/files", express.static(FILES_PATH));
+
 // ============================================
 // FUNCIÓN PARA EXTRAER DATOS DEL PDF DE LLANTAR
 // ============================================
@@ -128,57 +185,6 @@ async function extraerDatosPDFLlantar(buffer) {
   }
 }
 
-// ===========================
-// CONFIGURAR CLOUDINARY
-// ===========================
-cloudinary.config({
-  cloud_name: "dlgub1vaf",
-  api_key: "971754543599966",
-  api_secret: "q8N34PNwLpnmBSvfhGYuk6jmYR4",
-});
-
-// ⬇️⬇️⬇️ NUEVO: API KEY DE REMOVE.BG ⬇️⬇️⬇️
-const REMOVE_BG_API_KEY =
-  process.env.REMOVE_BG_API_KEY || "BFz2WwvkwPfh33YAbnMiD7Ke";
-
-// Configuración de Cloudinary para imágenes
-const cloudinaryStorage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: "llantas",
-    allowed_formats: ["jpg", "png", "jpeg", "webp"],
-  },
-});
-
-// ⬅️ Para subir imágenes a Cloudinary
-const uploadImage = multer({ storage: cloudinaryStorage });
-
-// ⬅️ Para subir PDFs (se guardan en memoria)
-const uploadPDF = multer({ storage: multer.memoryStorage() });
-
-// PostgreSQL
-const pool = new Pool({
-  connectionString:
-    "postgresql://postgres.xihejxjynnsxcrdxvtng:Audio.2025*ñ@aws-0-us-east-1.pooler.supabase.com:5432/postgres",
-  ssl: { rejectUnauthorized: false },
-});
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// ===========================
-//  CREAR CARPETA PARA FOTOS (legacy)
-// ===========================
-const FILES_PATH = path.join(__dirname, "files");
-if (!fs.existsSync(FILES_PATH)) {
-  fs.mkdirSync(FILES_PATH, { recursive: true });
-}
-
-// Servir archivos estáticos
-app.use("/files", express.static(FILES_PATH));
-
 // Crear tabla llantas si no existe
 async function crearTabla() {
   try {
@@ -217,120 +223,6 @@ async function crearTabla() {
   }
 }
 crearTabla();
-
-// ⬇️⬇️⬇️ NUEVAS FUNCIONES PARA REMOVE.BG ⬇️⬇️⬇️
-
-/**
- * Función para remover el fondo de una imagen usando remove.bg
- */
-async function removerFondoRin(imageUrl) {
-  try {
-    console.log("🔄 Procesando imagen con remove.bg:", imageUrl);
-
-    const imageResponse = await axios.get(imageUrl, {
-      responseType: "arraybuffer",
-    });
-
-    const formData = new FormData();
-    formData.append(
-      "image_file_b64",
-      Buffer.from(imageResponse.data).toString("base64")
-    );
-    formData.append("size", "auto");
-
-    const response = await axios({
-      method: "post",
-      url: "https://api.remove.bg/v1.0/removebg",
-      data: formData,
-      responseType: "arraybuffer",
-      headers: {
-        ...formData.getHeaders(),
-        "X-Api-Key": REMOVE_BG_API_KEY,
-      },
-    });
-
-    if (response.status !== 200) {
-      throw new Error(`remove.bg retornó status ${response.status}`);
-    }
-
-    console.log("✅ Fondo removido exitosamente");
-
-    return new Promise((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
-        {
-          folder: "rines",
-          format: "png",
-          public_id: `sin-fondo-${Date.now()}`,
-        },
-        (error, result) => {
-          if (error) {
-            console.error("❌ Error subiendo a Cloudinary:", error);
-            reject(error);
-          } else {
-            console.log(
-              "✅ Imagen sin fondo subida a Cloudinary:",
-              result.secure_url
-            );
-            resolve(result.secure_url);
-          }
-        }
-      );
-
-      uploadStream.end(Buffer.from(response.data));
-    });
-  } catch (error) {
-    console.error("❌ Error al remover fondo:", error.message);
-
-    if (error.response?.status === 403) {
-      console.error("❌ API Key inválida o límite de remove.bg alcanzado");
-    }
-
-    return imageUrl;
-  }
-}
-
-/**
- * Endpoint para procesar un rin específico y remover su fondo
- */
-app.post("/api/rines/:id/procesar-fondo", async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    console.log(`🔄 Procesando fondo del rin ID: ${id}`);
-
-    const result = await pool.query("SELECT * FROM rines WHERE id = $1", [id]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Rin no encontrado" });
-    }
-
-    const rin = result.rows[0];
-
-    if (!rin.foto) {
-      return res.status(400).json({ error: "El rin no tiene foto" });
-    }
-
-    const urlSinFondo = await removerFondoRin(rin.foto);
-
-    await pool.query(
-      "UPDATE rines SET foto = $1, foto_original = $2 WHERE id = $3",
-      [urlSinFondo, rin.foto, id]
-    );
-
-    res.json({
-      success: true,
-      message: "Fondo removido correctamente",
-      foto_nueva: urlSinFondo,
-      foto_original: rin.foto,
-    });
-  } catch (error) {
-    console.error("❌ Error procesando fondo:", error);
-    res.status(500).json({
-      error: "Error al procesar imagen",
-      detalle: error.message,
-    });
-  }
-});
 
 /**
  * Endpoint para procesar TODOS los rines en lote

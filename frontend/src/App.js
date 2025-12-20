@@ -363,30 +363,6 @@ const ModalAlertaMargen = ({ alerta, llanta, onCerrar }) => {
               operativos.
             </p>
           </div>
-
-          {/* Recomendación */}
-          <div className="bg-blue-50 p-3 rounded border-l-4 border-blue-500">
-            <p className="font-semibold text-gray-800 mb-2">
-              💡 RECOMENDACIÓN:
-            </p>
-            <ul className="text-sm text-gray-700 list-disc list-inside space-y-1">
-              {tipo === "critico" ? (
-                <>
-                  <li>
-                    <strong>NO comprar</strong> esta referencia en este momento
-                  </li>
-                  <li>Negociar mejor precio con tu proveedor</li>
-                  <li>Considerar proveedores alternativos</li>
-                </>
-              ) : (
-                <>
-                  <li>Evaluar si la rotación justifica el margen bajo</li>
-                  <li>Intentar negociar descuento con proveedor</li>
-                  <li>Monitorear competencia antes de comprar</li>
-                </>
-              )}
-            </ul>
-          </div>
         </div>
 
         {/* Footer */}

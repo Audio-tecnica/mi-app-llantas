@@ -546,9 +546,15 @@ const TarjetaLlanta = ({
           <div className="font-bold text-slate-800 text-sm leading-tight flex items-center gap-1">
             <span className="truncate">{ll.referencia}</span>
             {ll.comentario && (
-              <span className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center text-white flex-shrink-0 text-[8px]">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setComentarioModal(ll);
+                }}
+                className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center text-white flex-shrink-0 text-[8px] hover:bg-blue-600 active:bg-blue-700 transition-all"
+              >
                 💬
-              </span>
+              </button>
             )}
           </div>
           <div className="text-xs text-gray-600 truncate font-medium mt-0.5">

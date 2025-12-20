@@ -73,7 +73,9 @@ app.use("/files", express.static(FILES_PATH));
 // ============================================
 app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
   try {
-    console.log("📊 Recibiendo Excel de Llantar...");
+    console.log("📊 ========================================");
+    console.log("📊 INICIO - Recibiendo Excel de Llantar");
+    console.log("📊 ========================================");
 
     if (!req.files || !req.files.excel) {
       return res.status(400).json({ error: "No se recibió ningún archivo" });
@@ -85,6 +87,12 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
     const datos = xlsx.utils.sheet_to_json(hoja);
 
     console.log(`📊 Excel tiene ${datos.length} filas`);
+    
+    // 🔍 Ver primeras 3 filas
+    console.log("\n🔍 PRIMERAS 3 FILAS DEL EXCEL:");
+    datos.slice(0, 3).forEach((fila, i) => {
+      console.log(`Fila ${i + 1}:`, JSON.stringify(fila, null, 2));
+    });
 
     const datosLlantar = [];
 
@@ -95,15 +103,19 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
       const medida = fila["MEDIDA"]?.toString().trim();
       const diseno = fila["DISEÑO"]?.toString().trim();
 
-      // Limpiar precio (puede venir como "296,979" o "296.979" o 296979)
-      let precioTexto =
-        fila["VENTA\nMINIMA"] || fila["BLICO"] || fila["PUBLICO"] || "";
+      // ✅ CORRECCIÓN: La columna se llama "MINIMA" no "VENTA\nMINIMA"
+      let precioTexto = fila["MINIMA"] || "";
+      
+      // Limpiar precio (viene como número o string)
+      if (typeof precioTexto === 'number') {
+        precioTexto = precioTexto.toString();
+      }
+      
       precioTexto = precioTexto.toString().replace(/[,\.]/g, "").trim();
       const precio = parseInt(precioTexto);
 
       // Validaciones
       if (!marca || !medida || isNaN(precio) || precio < 100000) {
-        console.log(`⚠️ Fila inválida: ${JSON.stringify(fila)}`);
         continue;
       }
 
@@ -116,35 +128,109 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
       });
     }
 
-    console.log(`✅ Extraídas ${datosLlantar.length} llantas del Excel`);
+    console.log(`\n✅ Extraídas ${datosLlantar.length} llantas del Excel`);
+    
+    // 🔍 Ver primeras 3 llantas procesadas
+    console.log("\n🔍 PRIMERAS 3 LLANTAS PROCESADAS:");
+    datosLlantar.slice(0, 3).forEach((item, i) => {
+      console.log(`${i + 1}. ${item.marca} ${item.medida} ${item.diseno} - $${item.precio.toLocaleString('es-CO')}`);
+    });
 
     // Obtener inventario actual
     const { rows: inventario } = await pool.query("SELECT * FROM llantas");
+    
+    console.log(`\n📦 Inventario tiene ${inventario.length} llantas`);
+    
+    // 🔍 Ver primeras 3 del inventario
+    console.log("\n🔍 PRIMERAS 3 LLANTAS DEL INVENTARIO:");
+    inventario.slice(0, 3).forEach((item, i) => {
+      console.log(`${i + 1}. ${item.marca} - ${item.referencia} (Costo: $${item.costo_empresa?.toLocaleString('es-CO')})`);
+    });
 
     const resultado = {
       actualizadas: 0,
       margenBajo: 0,
       bloqueadas: 0,
+      noEncontradas: 0,
       detalles: [],
+      noEncontradasLista: []
     };
 
+    console.log("\n🔄 ========================================");
+    console.log("🔄 INICIANDO PROCESO DE COINCIDENCIAS");
+    console.log("🔄 ========================================\n");
+
+    let intentos = 0;
     for (const itemLlantar of datosLlantar) {
-      // Buscar coincidencia por marca + medida
+      intentos++;
+      
+      // 🎯 ESTRATEGIA DE COINCIDENCIA MEJORADA
       const llantaDB = inventario.find((l) => {
-        const coincideMarca =
-          l.marca?.toUpperCase() === itemLlantar.marca?.toUpperCase();
-        const coincideMedida = l.referencia?.includes(itemLlantar.medida);
-        return coincideMarca && coincideMedida;
+        // 1. Coincidencia de marca (obligatoria)
+        const marcaInv = (l.marca || "").toUpperCase().trim();
+        const marcaLlantar = itemLlantar.marca.toUpperCase().trim();
+        
+        if (marcaInv !== marcaLlantar) {
+          return false;
+        }
+        
+        // 2. Preparar strings para comparación
+        const refInventario = (l.referencia || "").toUpperCase().trim();
+        const medidaLlantar = itemLlantar.medida.toUpperCase().trim();
+        const disenoLlantar = (itemLlantar.diseno || "").toUpperCase().trim();
+        
+        // 3. Verificar si la medida está en la referencia
+        // Ej: Inventario tiene "LT265/70R17 MUD TERRAIN KM3"
+        //     Llantar tiene medida "265/70R17" y diseño "MUD TERRAIN KM3"
+        
+        // Limpiar la medida para comparar (quitar LT, P, etc al inicio)
+        const medidaLimpia = medidaLlantar.replace(/^(LT|P|)/g, '');
+        const refLimpia = refInventario.replace(/^(LT|P|)/g, '');
+        
+        const coincideMedida = refLimpia.includes(medidaLimpia);
+        
+        if (!coincideMedida) {
+          return false;
+        }
+        
+        // 4. Si hay diseño, verificar que coincida también
+        if (disenoLlantar && disenoLlantar.length > 3) {
+          // Buscar palabras clave del diseño en la referencia
+          const palabrasDiseno = disenoLlantar.split(/\s+/).filter(p => p.length > 2);
+          const coincideAlgunapPalabra = palabrasDiseno.some(palabra => 
+            refInventario.includes(palabra)
+          );
+          
+          if (!coincideAlgunapPalabra) {
+            return false;
+          }
+        }
+        
+        return true;
       });
 
       if (!llantaDB) {
-        console.log(
-          `⚠️ No encontrada en inventario: ${itemLlantar.marca} ${itemLlantar.medida}`
-        );
+        resultado.noEncontradas++;
+        resultado.noEncontradasLista.push({
+          marca: itemLlantar.marca,
+          medida: itemLlantar.medida,
+          diseno: itemLlantar.diseno,
+          precio: itemLlantar.precio
+        });
+        
+        // Solo mostrar las primeras 10 no encontradas para no saturar logs
+        if (intentos <= 10) {
+          console.log(`⚠️ No encontrada: ${itemLlantar.marca} ${itemLlantar.medida} ${itemLlantar.diseno}`);
+        }
         continue;
       }
 
-      // Calcular margen
+      // ✅ COINCIDENCIA ENCONTRADA
+      if (intentos <= 10) {
+        console.log(`✅ MATCH: "${llantaDB.referencia}" ↔ "${itemLlantar.medida} ${itemLlantar.diseno}"`);
+      }
+
+      // 📊 Calcular margen según la marca
       const divisor = itemLlantar.marca === "TOYO" ? 1.15 : 1.2;
       const precioEsperado = llantaDB.costo_empresa / divisor;
       const margenReal = itemLlantar.precio - llantaDB.costo_empresa;
@@ -153,6 +239,7 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
       let alertaMargen = null;
       let estadoActualizacion = "actualizada";
 
+      // 🚨 VALIDAR MARGEN (menor a 15% es preocupante, menor a 10% es crítico)
       if (porcentajeReal < 15) {
         const tipo = porcentajeReal < 10 ? "critico" : "bajo";
 
@@ -169,20 +256,23 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
 
         if (tipo === "critico") {
           resultado.bloqueadas++;
+          console.log(`🔴 MARGEN CRÍTICO: ${llantaDB.referencia} - Margen: ${porcentajeReal.toFixed(1)}%`);
         } else {
           resultado.margenBajo++;
+          console.log(`⚠️ MARGEN BAJO: ${llantaDB.referencia} - Margen: ${porcentajeReal.toFixed(1)}%`);
         }
       }
 
-      // Actualizar precio en BD
+      // 💾 Actualizar precio en BD
       const precioAnterior = llantaDB.precio_cliente;
-      const cambio =
-        ((itemLlantar.precio - precioAnterior) / precioAnterior) * 100;
+      const cambio = precioAnterior > 0 
+        ? ((itemLlantar.precio - precioAnterior) / precioAnterior) * 100
+        : 0;
 
       await pool.query(
         `UPDATE llantas 
          SET precio_cliente = $1, 
-             alerta_margen = $2, 
+             alerta_margen = $2,
              fecha_ultima_actualizacion = NOW()
          WHERE id = $3`,
         [itemLlantar.precio, JSON.stringify(alertaMargen), llantaDB.id]
@@ -190,17 +280,10 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
 
       resultado.actualizadas++;
 
-      console.log(
-        `✅ Actualizada: ${itemLlantar.marca} ${
-          itemLlantar.medida
-        } → $${itemLlantar.precio.toLocaleString(
-          "es-CO"
-        )} (margen: ${porcentajeReal.toFixed(1)}%)`
-      );
-
       resultado.detalles.push({
         marca: itemLlantar.marca,
         medida: itemLlantar.medida,
+        diseno: itemLlantar.diseno,
         referencia: llantaDB.referencia,
         estado: estadoActualizacion,
         precioAnterior,
@@ -210,13 +293,24 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
       });
     }
 
-    console.log(
-      `✅ Actualizadas: ${resultado.actualizadas}, ⚠️ Bajo: ${resultado.margenBajo}, 🔴 Bloq: ${resultado.bloqueadas}`
-    );
+    console.log("\n📊 ========================================");
+    console.log("📊 RESULTADO FINAL");
+    console.log("📊 ========================================");
+    console.log(`✅ Actualizadas: ${resultado.actualizadas}`);
+    console.log(`⚠️ Margen Bajo: ${resultado.margenBajo}`);
+    console.log(`🔴 Críticas: ${resultado.bloqueadas}`);
+    console.log(`❌ No encontradas: ${resultado.noEncontradas}`);
+    console.log("========================================\n");
 
     res.json(resultado);
   } catch (error) {
-    console.error("❌ Error:", error);
+    console.error("❌ ========================================");
+    console.error("❌ ERROR FATAL");
+    console.error("❌ ========================================");
+    console.error("Error:", error.message);
+    console.error("Stack:", error.stack);
+    console.error("========================================\n");
+    
     res.status(500).json({
       error: "Error procesando Excel de Llantar",
       detalles: error.message,

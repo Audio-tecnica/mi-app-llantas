@@ -4,6 +4,248 @@ import { Eye, EyeOff, Menu, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ComparadorLlantas from "./ComparadorLlantas";
 
+const ModalResultadoActualizacion = ({ resultado, onCerrar }) => {
+  if (!resultado) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl">
+        {/* Header */}
+        <div className="bg-slate-800 p-6 text-white">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-bold">
+                📊 Resultado de Actualización
+              </h2>
+              <p className="text-slate-300 text-sm mt-1">
+                Lista de precios Llantar procesada
+              </p>
+            </div>
+            <button
+              onClick={onCerrar}
+              className="text-white hover:bg-slate-700 rounded-full p-2 text-2xl leading-none"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 p-4 bg-gray-50 border-b">
+          <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <div className="text-2xl font-bold text-green-600">
+              {resultado.actualizadas}
+            </div>
+            <div className="text-slate-500 text-xs mt-1">✅ Actualizadas</div>
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <div className="text-2xl font-bold text-yellow-600">
+              {resultado.margenBajo}
+            </div>
+            <div className="text-slate-500 text-xs mt-1">⚠️ Margen Bajo</div>
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <div className="text-2xl font-bold text-red-600">
+              {resultado.bloqueadas}
+            </div>
+            <div className="text-slate-500 text-xs mt-1">🔴 Críticas</div>
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <div className="text-2xl font-bold text-gray-600">
+              {resultado.noEncontradas || 0}
+            </div>
+            <div className="text-slate-500 text-xs mt-1">❌ No Encontradas</div>
+          </div>
+        </div>
+
+        {/* Detalles */}
+        <div
+          className="p-4 overflow-y-auto"
+          style={{ maxHeight: "calc(90vh - 300px)" }}
+        >
+          {/* Alertas Críticas */}
+          {resultado.detalles?.filter((d) => d.estado === "critico").length >
+            0 && (
+            <div className="mb-6">
+              <h3 className="text-lg font-bold text-red-600 mb-3 flex items-center gap-2">
+                <span>🔴</span>
+                <span>MÁRGENES CRÍTICOS - ¡NO COMPRAR!</span>
+              </h3>
+              <div className="space-y-2">
+                {resultado.detalles
+                  .filter((d) => d.estado === "critico")
+                  .map((item, i) => (
+                    <div
+                      key={i}
+                      className="bg-red-50 border-l-4 border-red-500 p-3 rounded-lg"
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="font-bold text-gray-800 text-sm">
+                            {item.referencia}
+                          </div>
+                          <div className="text-xs text-gray-600 mt-1">
+                            {item.marca} {item.medida} {item.diseno}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-bold text-red-600">
+                            Margen: {item.margen}%
+                          </div>
+                          <div className="text-xs text-gray-600">
+                            ${item.precioNuevo.toLocaleString("es-CO")}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {/* Alertas de Margen Bajo */}
+          {resultado.detalles?.filter((d) => d.estado === "margen_bajo")
+            .length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-lg font-bold text-yellow-600 mb-3 flex items-center gap-2">
+                <span>⚠️</span>
+                <span>MÁRGENES BAJOS - Evaluar antes de comprar</span>
+              </h3>
+              <div className="space-y-2">
+                {resultado.detalles
+                  .filter((d) => d.estado === "margen_bajo")
+                  .map((item, i) => (
+                    <div
+                      key={i}
+                      className="bg-yellow-50 border-l-4 border-yellow-500 p-3 rounded-lg"
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="font-bold text-gray-800 text-sm">
+                            {item.referencia}
+                          </div>
+                          <div className="text-xs text-gray-600 mt-1">
+                            {item.marca} {item.medida} {item.diseno}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-bold text-yellow-600">
+                            Margen: {item.margen}%
+                          </div>
+                          <div className="text-xs text-gray-600">
+                            ${item.precioNuevo.toLocaleString("es-CO")}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {/* No Encontradas */}
+          {resultado.noEncontradasLista &&
+            resultado.noEncontradasLista.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-lg font-bold text-gray-600 mb-3 flex items-center gap-2">
+                  <span>❌</span>
+                  <span>No Encontradas en Inventario (primeras 20)</span>
+                </h3>
+                <div className="space-y-2">
+                  {resultado.noEncontradasLista.slice(0, 20).map((item, i) => (
+                    <div
+                      key={i}
+                      className="bg-gray-50 border-l-4 border-gray-400 p-3 rounded-lg"
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="font-semibold text-gray-700 text-sm">
+                            {item.marca} {item.medida}
+                          </div>
+                          <div className="text-xs text-gray-600 mt-1">
+                            {item.diseno}
+                          </div>
+                        </div>
+                        <div className="text-xs text-gray-600">
+                          ${item.precio.toLocaleString("es-CO")}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {resultado.noEncontradasLista.length > 20 && (
+                    <div className="text-center text-xs text-gray-500 mt-2">
+                      ... y {resultado.noEncontradasLista.length - 20} más
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+          {/* Actualizaciones Exitosas (solo primeras 10) */}
+          {resultado.detalles?.filter((d) => d.estado === "actualizada")
+            .length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-lg font-bold text-green-600 mb-3 flex items-center gap-2">
+                <span>✅</span>
+                <span>Actualizaciones Exitosas (primeras 10)</span>
+              </h3>
+              <div className="space-y-2">
+                {resultado.detalles
+                  .filter((d) => d.estado === "actualizada")
+                  .slice(0, 10)
+                  .map((item, i) => (
+                    <div
+                      key={i}
+                      className="bg-green-50 border-l-4 border-green-500 p-3 rounded-lg"
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="font-bold text-gray-800 text-sm">
+                            {item.referencia}
+                          </div>
+                          <div className="text-xs text-gray-600 mt-1">
+                            ${item.precioAnterior.toLocaleString("es-CO")} → $
+                            {item.precioNuevo.toLocaleString("es-CO")}
+                            <span
+                              className={`ml-2 ${
+                                item.cambio > 0
+                                  ? "text-red-600"
+                                  : "text-green-600"
+                              }`}
+                            >
+                              ({item.cambio > 0 ? "+" : ""}
+                              {item.cambio}%)
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-xs font-semibold text-green-600">
+                          Margen: {item.margen}%
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="p-4 bg-gray-50 border-t flex justify-end">
+          <button
+            onClick={onCerrar}
+            className="px-6 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 font-semibold"
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ============================================
 // COMPONENTE MODAL ALERTA MARGEN
 // ============================================
@@ -20,6 +262,7 @@ const ModalAlertaMargen = ({ alerta, llanta, onCerrar }) => {
   } = alerta;
 
   const divisor = llanta.marca === "TOYO" ? 1.15 : 1.2;
+  const [resultadoActualizacion, setResultadoActualizacion] = useState(null);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -180,6 +423,7 @@ const TarjetaLlanta = ({
 }) => {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [mostrarAlerta, setMostrarAlerta] = useState(false);
+  const [resultadoActualizacion, setResultadoActualizacion] = useState(null);
 
   // Si está en modo edición, mostrar formulario
   if (modoEdicion === ll.id) {
@@ -1164,6 +1408,9 @@ function App() {
 
                         const resultado = response.data;
 
+                        // ✅ MOSTRAR MODAL CON RESULTADOS
+                        setResultadoActualizacion(resultado);
+
                         setMensaje(
                           `✅ Procesado: ${resultado.actualizadas} actualizadas, ${resultado.margenBajo} con margen bajo, ${resultado.bloqueadas} críticas`
                         );
@@ -2004,6 +2251,13 @@ function App() {
         <ComparadorLlantas
           llantas={llantas}
           onClose={() => setMostrarComparador(false)}
+        />
+      )}
+      {/* Modal Resultado Actualización */}
+      {resultadoActualizacion && (
+        <ModalResultadoActualizacion
+          resultado={resultadoActualizacion}
+          onCerrar={() => setResultadoActualizacion(null)}
         />
       )}
     </div>

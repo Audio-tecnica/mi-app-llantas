@@ -55,7 +55,7 @@ const pool = new Pool({
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors())
+app.use(cors());
 
 // ===========================
 //  CREAR CARPETA PARA FOTOS (legacy)
@@ -102,11 +102,11 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
 
       // ✅ COLUMNA CORRECTA: "MINIMA"
       let precioTexto = fila["MINIMA"] || "";
-      
-      if (typeof precioTexto === 'number') {
+
+      if (typeof precioTexto === "number") {
         precioTexto = precioTexto.toString();
       }
-      
+
       precioTexto = precioTexto.toString().replace(/[,\.]/g, "").trim();
       const precio = parseInt(precioTexto);
 
@@ -128,7 +128,7 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
 
     // Obtener inventario actual
     const { rows: inventario } = await pool.query("SELECT * FROM llantas");
-    
+
     console.log(`\n📦 Inventario tiene ${inventario.length} llantas`);
 
     const resultado = {
@@ -137,7 +137,7 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
       bloqueadas: 0,
       noEncontradas: 0,
       detalles: [],
-      noEncontradasLista: []
+      noEncontradasLista: [],
     };
 
     console.log("\n🔄 ========================================");
@@ -147,65 +147,84 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
     let intentos = 0;
     for (const itemLlantar of datosLlantar) {
       intentos++;
-      
+
       // 🎯 ESTRATEGIA DE COINCIDENCIA MEJORADA
       const llantaDB = inventario.find((l) => {
         // 1. Coincidencia de marca (obligatoria)
         const marcaInv = (l.marca || "").toUpperCase().trim();
         const marcaLlantar = itemLlantar.marca.toUpperCase().trim();
-        
+
         if (marcaInv !== marcaLlantar) {
           return false;
         }
-        
+
         // 2. Preparar strings para comparación
         const refInventario = (l.referencia || "").toUpperCase().trim();
         const medidaLlantar = itemLlantar.medida.toUpperCase().trim();
         const disenoLlantar = (itemLlantar.diseno || "").toUpperCase().trim();
-        
-        // 3. Limpiar prefijos LT/P
-        const medidaLimpia = medidaLlantar.replace(/^(LT|P|)/g, '');
-        const refLimpia = refInventario.replace(/^(LT|P|)/g, '');
-        
-        const coincideMedida = refLimpia.includes(medidaLimpia);
-        
+
+        // 3. Limpiar la medida (quitar LT, P, espacios)
+        const medidaLimpia = medidaLlantar
+          .replace(/^(LT|P)\s*/g, "")
+          .replace(/\s+/g, "");
+
+        // 4. Verificar si la medida está en la referencia
+        const coincideMedida = refInventario
+          .replace(/\s+/g, "")
+          .includes(medidaLimpia);
+
         if (!coincideMedida) {
           return false;
         }
-        
-        // 4. Si hay diseño, verificar que coincida
-        if (disenoLlantar && disenoLlantar.length > 3) {
-          const palabrasDiseno = disenoLlantar.split(/\s+/).filter(p => p.length > 2);
-          const coincideAlgunaPalabra = palabrasDiseno.some(palabra => 
-            refInventario.includes(palabra)
-          );
-          
-          if (!coincideAlgunaPalabra) {
+
+        // 5. ✅ NUEVO: Verificar diseño de forma más flexible
+        if (disenoLlantar && disenoLlantar.length > 2) {
+          // Dividir el diseño en palabras significativas
+          const palabrasDiseno = disenoLlantar
+            .split(/\s+/)
+            .filter((p) => p.length > 2);
+
+          // Contar cuántas palabras coinciden
+          let palabrasCoinciden = 0;
+          for (const palabra of palabrasDiseno) {
+            if (refInventario.includes(palabra)) {
+              palabrasCoinciden++;
+            }
+          }
+
+          // ✅ Si al menos el 60% de las palabras coinciden, es válido
+          const porcentajeCoincidencia =
+            palabrasCoinciden / palabrasDiseno.length;
+
+          if (porcentajeCoincidencia < 0.6) {
             return false;
           }
         }
-        
+
         return true;
       });
-
       if (!llantaDB) {
         resultado.noEncontradas++;
         resultado.noEncontradasLista.push({
           marca: itemLlantar.marca,
           medida: itemLlantar.medida,
           diseno: itemLlantar.diseno,
-          precio: itemLlantar.precio
+          precio: itemLlantar.precio,
         });
-        
+
         if (intentos <= 10) {
-          console.log(`⚠️ No encontrada: ${itemLlantar.marca} ${itemLlantar.medida} ${itemLlantar.diseno}`);
+          console.log(
+            `⚠️ No encontrada: ${itemLlantar.marca} ${itemLlantar.medida} ${itemLlantar.diseno}`
+          );
         }
         continue;
       }
 
       // ✅ COINCIDENCIA ENCONTRADA
       if (intentos <= 10) {
-        console.log(`✅ MATCH: "${llantaDB.referencia}" ↔ "${itemLlantar.medida} ${itemLlantar.diseno}"`);
+        console.log(
+          `✅ MATCH: "${llantaDB.referencia}" ↔ "${itemLlantar.medida} ${itemLlantar.diseno}"`
+        );
       }
 
       // 📊 Calcular margen según la marca
@@ -235,18 +254,27 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
 
         if (tipo === "critico") {
           resultado.bloqueadas++;
-          console.log(`🔴 MARGEN CRÍTICO: ${llantaDB.referencia} - Margen: ${porcentajeReal.toFixed(1)}%`);
+          console.log(
+            `🔴 MARGEN CRÍTICO: ${
+              llantaDB.referencia
+            } - Margen: ${porcentajeReal.toFixed(1)}%`
+          );
         } else {
           resultado.margenBajo++;
-          console.log(`⚠️ MARGEN BAJO: ${llantaDB.referencia} - Margen: ${porcentajeReal.toFixed(1)}%`);
+          console.log(
+            `⚠️ MARGEN BAJO: ${
+              llantaDB.referencia
+            } - Margen: ${porcentajeReal.toFixed(1)}%`
+          );
         }
       }
 
       // 💾 ACTUALIZAR PRECIO EN BD (SIEMPRE, sin importar el margen)
       const precioAnterior = llantaDB.precio_cliente;
-      const cambio = precioAnterior > 0 
-        ? ((itemLlantar.precio - precioAnterior) / precioAnterior) * 100
-        : 0;
+      const cambio =
+        precioAnterior > 0
+          ? ((itemLlantar.precio - precioAnterior) / precioAnterior) * 100
+          : 0;
 
       // ✅ ACTUALIZAR SIEMPRE (incluso si es crítico)
       await pool.query(
@@ -292,30 +320,50 @@ ACTUALIZACIÓN DE PRECIOS LLANTAR
 🔴 Críticas (<10%): ${resultado.bloqueadas}
 ❌ No encontradas: ${resultado.noEncontradas}
 
-${resultado.bloqueadas > 0 ? `
+${
+  resultado.bloqueadas > 0
+    ? `
 🔴 LLANTAS CRÍTICAS (NO COMPRAR):
 ${resultado.detalles
-  .filter(d => d.estado === 'critico')
+  .filter((d) => d.estado === "critico")
   .slice(0, 5)
-  .map(d => `   • ${d.referencia} - Margen: ${d.margen}%`)
-  .join('\n')}
-${resultado.detalles.filter(d => d.estado === 'critico').length > 5 ? `   ... y ${resultado.detalles.filter(d => d.estado === 'critico').length - 5} más` : ''}
-` : ''}
+  .map((d) => `   • ${d.referencia} - Margen: ${d.margen}%`)
+  .join("\n")}
+${
+  resultado.detalles.filter((d) => d.estado === "critico").length > 5
+    ? `   ... y ${
+        resultado.detalles.filter((d) => d.estado === "critico").length - 5
+      } más`
+    : ""
+}
+`
+    : ""
+}
 
-${resultado.margenBajo > 0 ? `
+${
+  resultado.margenBajo > 0
+    ? `
 ⚠️ LLANTAS MARGEN BAJO (EVALUAR):
 ${resultado.detalles
-  .filter(d => d.estado === 'margen_bajo')
+  .filter((d) => d.estado === "margen_bajo")
   .slice(0, 5)
-  .map(d => `   • ${d.referencia} - Margen: ${d.margen}%`)
-  .join('\n')}
-${resultado.detalles.filter(d => d.estado === 'margen_bajo').length > 5 ? `   ... y ${resultado.detalles.filter(d => d.estado === 'margen_bajo').length - 5} más` : ''}
-` : ''}
+  .map((d) => `   • ${d.referencia} - Margen: ${d.margen}%`)
+  .join("\n")}
+${
+  resultado.detalles.filter((d) => d.estado === "margen_bajo").length > 5
+    ? `   ... y ${
+        resultado.detalles.filter((d) => d.estado === "margen_bajo").length - 5
+      } más`
+    : ""
+}
+`
+    : ""
+}
       `.trim();
 
       await pool.query(
         "INSERT INTO logs_actividad (tipo, detalles, fecha) VALUES ($1, $2, NOW())",
-        ['ACTUALIZACIÓN PRECIOS LLANTAR', resumenLog]
+        ["ACTUALIZACIÓN PRECIOS LLANTAR", resumenLog]
       );
 
       console.log("✅ Reporte guardado en log de actividades");
@@ -331,7 +379,7 @@ ${resultado.detalles.filter(d => d.estado === 'margen_bajo').length > 5 ? `   ..
     console.error("Error:", error.message);
     console.error("Stack:", error.stack);
     console.error("========================================\n");
-    
+
     res.status(500).json({
       error: "Error procesando Excel de Llantar",
       detalles: error.message,

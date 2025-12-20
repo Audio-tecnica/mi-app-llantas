@@ -1825,6 +1825,45 @@ function App() {
                                       C
                                     </span>
                                   )}
+                                  {/* ✅ NUEVO: Badge de alerta de margen */}
+                                  {ll.alerta_margen && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        // Abrir modal con la alerta
+                                        const ModalAlertaMargen = ({
+                                          alerta,
+                                          llanta,
+                                          onCerrar,
+                                        }) => {
+                                          // ... el mismo componente que ya tienes
+                                        };
+                                        // Por ahora, mostrar un alert simple
+                                        alert(
+                                          `⚠️ ALERTA DE MARGEN ${ll.alerta_margen.tipo.toUpperCase()}\n\n` +
+                                            `Costo: $${ll.alerta_margen.costoReal?.toLocaleString(
+                                              "es-CO"
+                                            )}\n` +
+                                            `Precio público: $${ll.alerta_margen.precioPublico?.toLocaleString(
+                                              "es-CO"
+                                            )}\n` +
+                                            `Margen disponible: ${ll.alerta_margen.porcentajeReal}%\n\n` +
+                                            (ll.alerta_margen.tipo === "critico"
+                                              ? "🔴 NO COMPRAR esta referencia"
+                                              : "⚠️ Evaluar antes de comprar")
+                                        );
+                                      }}
+                                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                        ll.alerta_margen.tipo === "critico"
+                                          ? "bg-red-100 text-red-700 border border-red-300"
+                                          : "bg-yellow-100 text-yellow-700 border border-yellow-300"
+                                      }`}
+                                    >
+                                      {ll.alerta_margen.tipo === "critico"
+                                        ? "🔴"
+                                        : "⚠️"}
+                                    </button>
+                                  )}
                                 </div>
                               </td>
                               <td className="p-2">

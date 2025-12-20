@@ -71,8 +71,6 @@ app.use("/files", express.static(FILES_PATH));
 // ============================================
 // ENDPOINT FINAL: PROCESAR EXCEL DE LLANTAR
 // ============================================
-// REEMPLAZA TODO el endpoint app.post("/api/procesar-excel-llantar"...)
-// en tu index.js con este código:
 
 app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
   try {
@@ -163,26 +161,28 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
         const medidaLlantar = itemLlantar.medida.toUpperCase().trim();
         const disenoLlantar = (itemLlantar.diseno || "").toUpperCase().trim();
 
-        // 3. Limpiar la medida (quitar LT, P, espacios)
-        const medidaLimpia = medidaLlantar
-          .replace(/^(LT|P)\s*/g, "")
-          .replace(/\s+/g, "");
+        // 3. ✅ NUEVO: Verificar EXACTAMENTE la medida (incluyendo LT/P)
+        // Quitar solo espacios extras, MANTENER el prefijo LT/P
+        const medidaLimpia = medidaLlantar.replace(/\s+/g, "");
+        const refLimpia = refInventario.replace(/\s+/g, "");
 
-        // 4. Verificar si la medida está en la referencia
-        const coincideMedida = refInventario
-          .replace(/\s+/g, "")
-          .includes(medidaLimpia);
+        // 4. Verificar si la medida EXACTA está en la referencia
+        const coincideMedida = refLimpia.includes(medidaLimpia);
 
         if (!coincideMedida) {
           return false;
         }
 
-        // 5. ✅ NUEVO: Verificar diseño de forma más flexible
+        // 5. Verificar diseño de forma flexible (60% de palabras)
         if (disenoLlantar && disenoLlantar.length > 2) {
           // Dividir el diseño en palabras significativas
           const palabrasDiseno = disenoLlantar
             .split(/\s+/)
             .filter((p) => p.length > 2);
+
+          if (palabrasDiseno.length === 0) {
+            return true; // No hay diseño que validar
+          }
 
           // Contar cuántas palabras coinciden
           let palabrasCoinciden = 0;

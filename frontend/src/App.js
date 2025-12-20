@@ -396,6 +396,7 @@ const TarjetaLlanta = ({
   setLlantaOriginalEdicion,
   API_URL,
   setLlantas,
+  setComentarioModal,
 }) => {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [mostrarAlerta, setMostrarAlerta] = useState(false);
@@ -1542,6 +1543,7 @@ function App() {
                     setLlantaOriginalEdicion={setLlantaOriginalEdicion}
                     API_URL="https://mi-app-llantas.onrender.com"
                     setLlantas={setLlantas}
+                    setComentarioModal={setComentarioModal}
                   />
                 ))}
               </div>
@@ -1790,8 +1792,11 @@ function App() {
                                   </span>
                                   {ll.comentario && (
                                     <button
-                                      onClick={() => setComentarioModal(ll)}
-                                      className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs hover:bg-blue-600"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setComentarioModal(ll);
+                                      }}
+                                      className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center text-white flex-shrink-0 text-[8px]"
                                     >
                                       💬
                                     </button>

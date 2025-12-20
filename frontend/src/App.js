@@ -262,11 +262,16 @@ const ModalAlertaMargen = ({ alerta, llanta, onCerrar }) => {
   } = alerta;
 
   const divisor = llanta.marca === "TOYO" ? 1.15 : 1.2;
-  const [resultadoActualizacion, setResultadoActualizacion] = useState(null);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-lg">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      onClick={onCerrar}  // ← AGREGAR ESTO
+    >
+      <div 
+        className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto"  // ← AGREGAR max-h y overflow
+        onClick={(e) => e.stopPropagation()}  // ← AGREGAR ESTO
+      >
         {/* Header */}
         <div
           className={`${
@@ -366,7 +371,7 @@ const ModalAlertaMargen = ({ alerta, llanta, onCerrar }) => {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-gray-50 flex justify-end rounded-b-lg">
+        <div className="px-6 py-4 bg-gray-50 flex justify-end rounded-b-lg sticky bottom-0">
           <button
             onClick={onCerrar}
             className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"

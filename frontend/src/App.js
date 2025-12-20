@@ -423,7 +423,6 @@ const TarjetaLlanta = ({
 }) => {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [mostrarAlerta, setMostrarAlerta] = useState(false);
-  const [resultadoActualizacion, setResultadoActualizacion] = useState(null);
 
   // Si está en modo edición, mostrar formulario
   if (modoEdicion === ll.id) {
@@ -773,6 +772,7 @@ function App() {
   const [filtroTipoLog, setFiltroTipoLog] = useState("");
   const [llantaOriginalEdicion, setLlantaOriginalEdicion] = useState(null);
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const [resultadoActualizacion, setResultadoActualizacion] = useState(null);
 
   const navigate = useNavigate();
 

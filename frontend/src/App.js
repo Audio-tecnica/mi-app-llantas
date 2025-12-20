@@ -1796,7 +1796,7 @@ function App() {
                                         e.stopPropagation();
                                         setComentarioModal(ll);
                                       }}
-                                      className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center text-white flex-shrink-0 text-[8px]"
+                                      className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center text-white flex-shrink-0 text-[8px] hover:bg-blue-600"
                                     >
                                       💬
                                     </button>

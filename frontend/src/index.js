@@ -13,7 +13,7 @@ import Sonido from './Sonido';
 import Luces from './Luces';
 import VisorStock from './VisorStock'; 
 import GestionPromociones from './GestionPromociones';
-import Home from './Home';  // ← AGREGAR ESTA LÍNEA
+import Home from './Home';
 import './index.css';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 
@@ -22,8 +22,8 @@ root.render(
   <BrowserRouter>
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/home" element={<Protegido><Home /></Protegido>} />  {/* ← AGREGAR ESTA LÍNEA */}
-      <Route path="/" element={<Protegido><App /></Protegido>} />
+      <Route path="/" element={<Protegido><Home /></Protegido>} />
+      <Route path="/llantas" element={<Protegido><App /></Protegido>} />
       <Route path="/subir" element={<Protegido><SubirArchivo /></Protegido>} />
       <Route path="/tapetes" element={<Protegido><Tapetes /></Protegido>} />
       <Route path="/rines" element={<Protegido><Rines /></Protegido>} />

@@ -749,6 +749,26 @@ const TarjetaLlanta = ({
 const MARCAS_PRIORITARIAS = ["MICKEY THOMPSON", "YOKOHAMA", "TOYO", "NITTO"];
 
 function App() {
+  // 🔥 AGREGAR AQUÍ - Función para formatear referencia automáticamente
+  const formatearReferencia = (texto) => {
+    // Eliminar espacios y caracteres especiales
+    const limpio = texto.replace(/[\/\s-]/g, "");
+
+    // Detectar patrones comunes: 2755520, 275 55 20, 275-55-20, etc.
+    // Formato esperado: 3 dígitos + 2 dígitos + R + 2 dígitos
+    const patron = /^(\d{3})(\d{2})R?(\d{2})$/i;
+    const match = limpio.match(patron);
+
+    if (match) {
+      // Si coincide con el patrón, formatear como 275/55R20
+      return `${match[1]}/${match[2]}R${match[3]}`;
+    }
+
+    // Si no coincide, devolver el texto original
+    return texto;
+  };
+  // 🔥 FIN DE LA FUNCIÓN
+
   const [mostrarCosto, setMostrarCosto] = useState(false);
   const [llantas, setLlantas] = useState([]);
   const [busqueda, setBusqueda] = useState("");
@@ -1522,8 +1542,18 @@ function App() {
                       placeholder="Buscar..."
                       value={busqueda}
                       onChange={(e) => setBusqueda(e.target.value)}
+                      onBlur={(e) => {
+                        // Formatear automáticamente al salir del campo
+                        const formateado = formatearReferencia(e.target.value);
+                        if (formateado !== e.target.value) {
+                          setBusqueda(formateado);
+                        }
+                      }}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" && busqueda.trim() !== "") {
+                          // Formatear antes de guardar en búsquedas recientes
+                          const formateado = formatearReferencia(busqueda);
+                          setBusqueda(formateado);
                           let nuevas = [
                             busqueda,
                             ...busquedasRecientes.filter((v) => v !== busqueda),

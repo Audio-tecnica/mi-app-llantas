@@ -503,23 +503,6 @@ function Carpas() {
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">
-                      Marca
-                    </label>
-                    <select
-                      value={marcaSeleccionada}
-                      onChange={(e) => setMarcaSeleccionada(e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none"
-                    >
-                      <option value="">Todas</option>
-                      {marcasUnicas.map((m) => (
-                        <option key={m} value={m}>
-                          {m}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
                 </div>
               </div>
 

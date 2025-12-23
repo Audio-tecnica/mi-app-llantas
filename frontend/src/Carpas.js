@@ -50,7 +50,6 @@ function Carpas() {
       .finally(() => setCargando(false));
   }, []);
 
-
   const filtradas = carpas.filter((c) => {
     // Si el item está en modo edición, siempre mostrarlo
     if (modoEdicion === c.id) {
@@ -433,9 +432,9 @@ function Carpas() {
 
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
                   <div className="text-2xl font-bold text-slate-700">
-                    {marcasUnicas.length}
+                    {filtradas.filter((c) => c.stock > 0).length}
                   </div>
-                  <div className="text-slate-500 text-xs mt-1">Descripción</div>
+                  <div className="text-slate-500 text-xs mt-1">Con Stock</div>
                 </div>
               </div>
 

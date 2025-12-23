@@ -745,6 +745,9 @@ const TarjetaLlanta = ({
   );
 };
 
+// Orden de prioridad de marcas
+const MARCAS_PRIORITARIAS = ["MICKEY THOMPSON", "YOKOHAMA", "TOYO", "NITTO"];
+
 function App() {
   const [mostrarCosto, setMostrarCosto] = useState(false);
   const [llantas, setLlantas] = useState([]);
@@ -876,29 +879,64 @@ function App() {
     abrirComparador(llanta.referencia);
   };
 
-  const marcasUnicas = [...new Set(llantas.map((l) => l.marca))];
+  const marcasUnicas = [...new Set(llantas.map((l) => l.marca))].sort(
+    (a, b) => {
+      const indexA = MARCAS_PRIORITARIAS.indexOf(a?.toUpperCase());
+      const indexB = MARCAS_PRIORITARIAS.indexOf(b?.toUpperCase());
 
-  const filtradas = llantas.filter((l) => {
-    // Si la llanta está en modo edición, siempre mostrarla
-    if (modoEdicion === l.id) {
-      return true;
+      // Si ambas están en la lista prioritaria, ordenar por índice
+      if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+
+      // Si solo A está en la lista, A va primero
+      if (indexA !== -1) return -1;
+
+      // Si solo B está en la lista, B va primero
+      if (indexB !== -1) return 1;
+
+      // Si ninguna está en la lista, orden alfabético
+      return a.localeCompare(b);
     }
+  );
 
-    const coincideBusqueda = l.referencia
-      ?.toLowerCase()
-      .includes(busqueda.toLowerCase());
-    const coincideMarca = !marcaSeleccionada || l.marca === marcaSeleccionada;
-    const coincideAncho = !ancho || l.referencia.includes(ancho);
-    const coincidePerfil = !perfil || l.referencia.includes(perfil);
-    const coincideRin = !rin || l.referencia.includes(rin);
-    return (
-      coincideBusqueda &&
-      coincideMarca &&
-      coincideAncho &&
-      coincidePerfil &&
-      coincideRin
-    );
-  });
+  const filtradas = llantas
+    .filter((l) => {
+      // Si la llanta está en modo edición, siempre mostrarla
+      if (modoEdicion === l.id) {
+        return true;
+      }
+
+      const coincideBusqueda = l.referencia
+        ?.toLowerCase()
+        .includes(busqueda.toLowerCase());
+      const coincideMarca = !marcaSeleccionada || l.marca === marcaSeleccionada;
+      const coincideAncho = !ancho || l.referencia.includes(ancho);
+      const coincidePerfil = !perfil || l.referencia.includes(perfil);
+      const coincideRin = !rin || l.referencia.includes(rin);
+      return (
+        coincideBusqueda &&
+        coincideMarca &&
+        coincideAncho &&
+        coincidePerfil &&
+        coincideRin
+      );
+    })
+    .sort((a, b) => {
+      // Ordenar por prioridad de marca
+      const indexA = MARCAS_PRIORITARIAS.indexOf(a.marca?.toUpperCase());
+      const indexB = MARCAS_PRIORITARIAS.indexOf(b.marca?.toUpperCase());
+
+      // Si ambas están en la lista prioritaria, ordenar por índice
+      if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+
+      // Si solo A está en la lista, A va primero
+      if (indexA !== -1) return -1;
+
+      // Si solo B está en la lista, B va primero
+      if (indexB !== -1) return 1;
+
+      // Si ninguna está en la lista, mantener orden original
+      return 0;
+    });
 
   const logsFiltrados = logs.filter((log) => {
     const coincideBusqueda =

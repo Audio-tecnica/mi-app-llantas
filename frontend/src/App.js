@@ -404,7 +404,7 @@ const TarjetaLlanta = ({
   setLlantas,
   setComentarioModal,
 }) => {
-  const [menuAbierto, setMenuAbierto] = useState(false);
+  //const [menuAbierto, setMenuAbierto] = useState(false);
   const [mostrarAlerta, setMostrarAlerta] = useState(false);
 
   // Si está en modo edición, mostrar formulario
@@ -1169,13 +1169,6 @@ function App() {
         {/* Top bar */}
         <header className="bg-white shadow-sm px-4 py-3 sticky top-0 z-30">
           <div className="flex items-center justify-between">
-            <button
-              onClick={() => setMenuAbierto(true)}
-              className="lg:hidden text-slate-800 hover:bg-slate-100 p-2 rounded"
-            >
-              <Menu size={24} />
-            </button>
-
             <h1 className="text-lg font-bold text-slate-800">
               Inventario de Llantas
             </h1>

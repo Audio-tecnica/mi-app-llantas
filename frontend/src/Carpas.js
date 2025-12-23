@@ -65,7 +65,7 @@ function Carpas() {
     const coincideMarca = !marcaSeleccionada || c.marca === marcaSeleccionada;
     const coincideVehiculo =
       !busquedaVehiculo ||
-      c.descripcion?.toLowerCase().includes(busquedaVehiculo.toLowerCase());
+      c.marca?.toLowerCase().includes(busquedaVehiculo.toLowerCase());
 
     return coincideBusqueda && coincideMarca && coincideVehiculo;
   });

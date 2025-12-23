@@ -10,6 +10,9 @@ import {
 } from "lucide-react";
 import "./index.css";
 
+// Orden de prioridad de marcas
+const MARCAS_PRIORITARIAS = ["MICKEY THOMPSON", "YOKOHAMA", "TOYO", "NITTO"];
+
 function VisorStock() {
   const navigate = useNavigate();
   const [llantas, setLlantas] = useState([]);
@@ -88,7 +91,24 @@ function VisorStock() {
     return promo;
   };
 
-  const marcasUnicas = [...new Set(llantas.map((l) => l.marca))].sort();
+  const marcasUnicas = [...new Set(llantas.map((l) => l.marca))].sort(
+    (a, b) => {
+      const indexA = MARCAS_PRIORITARIAS.indexOf(a?.toUpperCase());
+      const indexB = MARCAS_PRIORITARIAS.indexOf(b?.toUpperCase());
+
+      // Si ambas están en la lista prioritaria, ordenar por índice
+      if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+
+      // Si solo A está en la lista, A va primero
+      if (indexA !== -1) return -1;
+
+      // Si solo B está en la lista, B va primero
+      if (indexB !== -1) return 1;
+
+      // Si ninguna está en la lista, orden alfabético
+      return a.localeCompare(b);
+    }
+  );
   let llantasFiltradas = llantas.filter((l) => l.marca === marcaSeleccionada);
 
   const extraerRin = (referencia) => {

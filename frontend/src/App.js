@@ -4,7 +4,6 @@ import { Eye, EyeOff, Menu, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ComparadorLlantas from "./ComparadorLlantas";
 
-
 const ModalResultadoActualizacion = ({ resultado, onCerrar }) => {
   if (!resultado) return null;
 
@@ -265,13 +264,13 @@ const ModalAlertaMargen = ({ alerta, llanta, onCerrar }) => {
   const divisor = llanta.marca === "TOYO" ? 1.15 : 1.2;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-      onClick={onCerrar}  // ← AGREGAR ESTO
+      onClick={onCerrar} // ← AGREGAR ESTO
     >
-      <div 
-        className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto"  // ← AGREGAR max-h y overflow
-        onClick={(e) => e.stopPropagation()}  // ← AGREGAR ESTO
+      <div
+        className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto" // ← AGREGAR max-h y overflow
+        onClick={(e) => e.stopPropagation()} // ← AGREGAR ESTO
       >
         {/* Header */}
         <div

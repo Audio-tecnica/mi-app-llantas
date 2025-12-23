@@ -487,7 +487,7 @@ function Rines() {
             </div>
 
             <button
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/llantas")}
               className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-slate-700 transition-all text-sm"
             >
               <span>🏠</span>

@@ -384,6 +384,7 @@ const ModalAlertaMargen = ({ alerta, llanta, onCerrar }) => {
   );
 };
 
+
 // Componente para cada tarjeta de llanta
 const TarjetaLlanta = ({
   ll,
@@ -405,6 +406,7 @@ const TarjetaLlanta = ({
 }) => {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [mostrarAlerta, setMostrarAlerta] = useState(false);
+  const [mostrarCostoLocal, setMostrarCostoLocal] = useState(false);
 
   // Si está en modo edición, mostrar formulario
   if (modoEdicion === ll.id) {
@@ -595,6 +597,7 @@ const TarjetaLlanta = ({
       </div>
 
       {/* Info grid */}
+      {/* Info grid */}
       <div className="space-y-1 text-xs mb-2.5">
         <div className="flex justify-between items-center">
           <span className="text-gray-500 font-medium">Proveedor:</span>
@@ -622,14 +625,30 @@ const TarjetaLlanta = ({
             ${Number(ll.precio_cliente || 0).toLocaleString("es-CO")}
           </span>
         </div>
-        {mostrarCosto && (
-          <div className="flex justify-between items-center">
-            <span className="text-gray-500 font-medium">Costo:</span>
+        <div className="flex justify-between items-center">
+          <span className="text-gray-500 font-medium">Costo:</span>
+          <div className="flex items-center gap-2">
             <span className="font-bold text-sm text-blue-600">
-              ${Number(ll.costo_empresa || 0).toLocaleString("es-CO")}
+              {mostrarCostoLocal
+                ? `$${Number(ll.costo_empresa || 0).toLocaleString("es-CO")}`
+                : "•••"}
             </span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setMostrarCostoLocal(!mostrarCostoLocal);
+              }}
+              className="p-1 hover:bg-gray-100 rounded transition-all"
+              title={mostrarCostoLocal ? "Ocultar costo" : "Mostrar costo"}
+            >
+              {mostrarCostoLocal ? (
+                <EyeOff size={14} className="text-gray-600" />
+              ) : (
+                <Eye size={14} className="text-gray-600" />
+              )}
+            </button>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Botones MUCHO más compactos */}

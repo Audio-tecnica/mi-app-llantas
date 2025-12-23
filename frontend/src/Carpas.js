@@ -9,7 +9,6 @@ function Carpas() {
   const navigate = useNavigate();
   const [carpas, setCarpas] = useState([]);
   const [busqueda, setBusqueda] = useState("");
-  const [marcaSeleccionada, setMarcaSeleccionada] = useState("");
   const [busquedaVehiculo, setBusquedaVehiculo] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [modoEdicion, setModoEdicion] = useState(null);
@@ -51,7 +50,6 @@ function Carpas() {
       .finally(() => setCargando(false));
   }, []);
 
-  const marcasUnicas = [...new Set(carpas.map((c) => c.marca))];
 
   const filtradas = carpas.filter((c) => {
     // Si el item está en modo edición, siempre mostrarlo
@@ -62,12 +60,11 @@ function Carpas() {
     const coincideBusqueda = c.referencia
       ?.toLowerCase()
       .includes(busqueda.toLowerCase());
-    const coincideMarca = !marcaSeleccionada || c.marca === marcaSeleccionada;
     const coincideVehiculo =
       !busquedaVehiculo ||
       c.marca?.toLowerCase().includes(busquedaVehiculo.toLowerCase());
 
-    return coincideBusqueda && coincideMarca && coincideVehiculo;
+    return coincideBusqueda && coincideVehiculo;
   });
 
   const ordenarPor = (campo) => {
@@ -465,7 +462,6 @@ function Carpas() {
                   onClick={() => {
                     setBusqueda("");
                     setBusquedaVehiculo("");
-                    setMarcaSeleccionada("");
                   }}
                   className="flex items-center justify-center gap-1 bg-slate-600 text-white px-3 py-2 rounded-lg hover:bg-slate-700 transition-all text-xs"
                 >
@@ -502,7 +498,6 @@ function Carpas() {
                       className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                     />
                   </div>
-
                 </div>
               </div>
 

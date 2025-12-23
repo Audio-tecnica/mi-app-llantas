@@ -10,6 +10,7 @@ function Carpas() {
   const [carpas, setCarpas] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [marcaSeleccionada, setMarcaSeleccionada] = useState("");
+  const [busquedaVehiculo, setBusquedaVehiculo] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [modoEdicion, setModoEdicion] = useState(null);
   const [mostrarModal, setMostrarModal] = useState(false);
@@ -53,7 +54,7 @@ function Carpas() {
   const marcasUnicas = [...new Set(carpas.map((c) => c.marca))];
 
   const filtradas = carpas.filter((c) => {
-    // Si la carpa está en modo edición, siempre mostrarla
+    // Si el item está en modo edición, siempre mostrarlo
     if (modoEdicion === c.id) {
       return true;
     }
@@ -62,7 +63,11 @@ function Carpas() {
       ?.toLowerCase()
       .includes(busqueda.toLowerCase());
     const coincideMarca = !marcaSeleccionada || c.marca === marcaSeleccionada;
-    return coincideBusqueda && coincideMarca;
+    const coincideVehiculo =
+      !busquedaVehiculo ||
+      c.descripcion?.toLowerCase().includes(busquedaVehiculo.toLowerCase());
+
+    return coincideBusqueda && coincideMarca && coincideVehiculo;
   });
 
   const ordenarPor = (campo) => {
@@ -459,6 +464,7 @@ function Carpas() {
                 <button
                   onClick={() => {
                     setBusqueda("");
+                    setBusquedaVehiculo("");
                     setMarcaSeleccionada("");
                   }}
                   className="flex items-center justify-center gap-1 bg-slate-600 text-white px-3 py-2 rounded-lg hover:bg-slate-700 transition-all text-xs"
@@ -470,17 +476,30 @@ function Carpas() {
 
               {/* Panel de búsqueda */}
               <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-3">
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1">
                       Referencia
                     </label>
                     <input
                       type="text"
-                      placeholder="Buscar..."
+                      placeholder="Buscar referencia..."
                       value={busqueda}
                       onChange={(e) => setBusqueda(e.target.value)}
                       className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      🚗 Buscar Vehículo
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ej: FORD, NISSAN, RANGER, HILUX..."
+                      value={busquedaVehiculo}
+                      onChange={(e) => setBusquedaVehiculo(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                     />
                   </div>
 

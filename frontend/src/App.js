@@ -1541,12 +1541,19 @@ function App() {
                       type="text"
                       placeholder="Buscar..."
                       value={busqueda}
-                      onChange={(e) => setBusqueda(e.target.value)}
-                      onBlur={(e) => {
-                        // Formatear automáticamente al salir del campo
-                        const formateado = formatearReferencia(e.target.value);
-                        if (formateado !== e.target.value) {
+                      onChange={(e) => {
+                        const valor = e.target.value;
+                        const formateado = formatearReferencia(valor);
+
+                        // Si el formateo cambió el valor Y es un patrón válido completo, aplicarlo
+                        // Solo formatear si tiene al menos 7 caracteres (2755520)
+                        if (
+                          formateado !== valor &&
+                          valor.replace(/[\/\s-]/g, "").length >= 7
+                        ) {
                           setBusqueda(formateado);
+                        } else {
+                          setBusqueda(valor);
                         }
                       }}
                       onKeyDown={(e) => {

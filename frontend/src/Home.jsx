@@ -166,7 +166,7 @@ const Home = () => {
         <main className="flex-1 p-4">
           <div className="home-container">
             <div className="home-header">
-              <h1>Bienvenido a Mi App Llantas</h1>
+              <h1>Bienvenido a Mi App Audio Tecnica</h1>
               <p>Selecciona una categoría para comenzar</p>
             </div>
 

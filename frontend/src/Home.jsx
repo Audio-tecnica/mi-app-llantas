@@ -21,6 +21,70 @@ const Home = () => {
   const [alerts, setAlerts] = useState([]);
   const [currentAlert, setCurrentAlert] = useState(0);
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const [fraseDelDia, setFraseDelDia] = useState("");
+
+  const frases = [
+    "El éxito es la suma de pequeños esfuerzos repetidos día tras día.",
+    "No importa lo lento que vayas, siempre y cuando no te detengas.",
+    "La disciplina es el puente entre metas y logros.",
+    "Cada día es una nueva oportunidad para mejorar.",
+    "El trabajo duro supera al talento cuando el talento no trabaja duro.",
+    "Tu única limitación eres tú mismo.",
+    "Los sueños no funcionan a menos que tú lo hagas.",
+    "El momento perfecto es ahora.",
+    "La constancia es la clave del éxito.",
+    "Cree en ti mismo y todo será posible.",
+    "Las oportunidades no pasan, las creas tú.",
+    "Haz hoy lo que otros no quieren, para tener mañana lo que otros no tienen.",
+    "El único modo de hacer un gran trabajo es amar lo que haces.",
+    "No cuentes los días, haz que los días cuenten.",
+    "La actitud lo es todo, elige una buena.",
+    "Pequeños pasos todos los días llevan a grandes logros.",
+    "Tu futuro se crea con lo que haces hoy, no mañana.",
+    "Persiste, insiste, resiste y nunca desistas.",
+    "El fracaso es solo la oportunidad de comenzar de nuevo con más inteligencia.",
+    "La motivación te pone en marcha, el hábito te mantiene en movimiento.",
+    "No esperes el momento perfecto, toma el momento y hazlo perfecto.",
+    "El éxito no es el final, el fracaso no es fatal: es el coraje para continuar lo que cuenta.",
+    "La diferencia entre lo ordinario y lo extraordinario es ese pequeño extra.",
+    "No te rindas, el comienzo siempre es lo más difícil.",
+    "La mejor inversión que puedes hacer es en ti mismo.",
+    "Cada experto fue una vez un principiante.",
+    "No busques excusas, busca resultados.",
+    "La acción es la clave fundamental de todo éxito.",
+    "Haz de cada día tu obra maestra.",
+    "El fracaso es el condimento que da sabor al éxito.",
+    "Cree que puedes y ya estás a medio camino.",
+    "La vida es 10% lo que te pasa y 90% cómo reaccionas a ello.",
+    "No dejes que el miedo al fracaso te impida intentarlo.",
+    "El éxito es aprender a ir de fracaso en fracaso sin desesperarse.",
+    "La perseverancia es el trabajo duro que haces después de cansarte del trabajo duro que ya hiciste.",
+    "Tu tiempo es limitado, no lo desperdicies viviendo la vida de otro.",
+    "La única forma de hacer un gran trabajo es amar lo que haces.",
+    "No te compares con otros, compárate con quien eras ayer.",
+    "El progreso no es automático, requiere compromiso.",
+    "La excelencia no es un acto, es un hábito.",
+    "Enfócate en ser productivo en lugar de estar ocupado.",
+    "Los ganadores nunca se rinden, los que se rinden nunca ganan.",
+    "La vida comienza donde termina tu zona de confort.",
+    "No esperes oportunidades, créalas.",
+    "La mejor manera de predecir el futuro es crearlo.",
+    "Cada día trae nuevas oportunidades, nuevas bendiciones.",
+    "Sé la razón por la que alguien sonríe hoy.",
+    "La gratitud convierte lo que tenemos en suficiente.",
+    "Elige la felicidad todos los días.",
+    "Tu actitud determina tu dirección.",
+    "Confía en el Señor de todo corazón, y no en tu propia inteligencia.",
+    "Todo lo puedo en Cristo que me fortalece.",
+    "Dios tiene un plan perfecto para tu vida, confía en Él.",
+    "Encomienda a Dios tus obras, y tus pensamientos serán afirmados.",
+    "Con Dios todo es posible.",
+    "La fe mueve montañas, confía en el poder de Dios.",
+    "Dios nunca llega tarde, su tiempo es perfecto.",
+    "Cada nuevo día es una bendición del Señor.",
+    "El Señor es mi pastor, nada me faltará.",
+    "Camina por fe, no por vista.",
+  ];
 
   const categories = [
     {
@@ -76,6 +140,7 @@ const Home = () => {
 
   useEffect(() => {
     loadAlerts();
+    cargarFraseDelDia();
   }, []);
 
   useEffect(() => {
@@ -86,6 +151,21 @@ const Home = () => {
       return () => clearInterval(timer);
     }
   }, [alerts.length]);
+
+  const cargarFraseDelDia = () => {
+    const hoy = new Date().toDateString();
+    const fraseGuardada = localStorage.getItem("fraseDelDia");
+    const fechaGuardada = localStorage.getItem("fechaFrase");
+
+    if (fechaGuardada === hoy && fraseGuardada) {
+      setFraseDelDia(fraseGuardada);
+    } else {
+      const fraseAleatoria = frases[Math.floor(Math.random() * frases.length)];
+      setFraseDelDia(fraseAleatoria);
+      localStorage.setItem("fraseDelDia", fraseAleatoria);
+      localStorage.setItem("fechaFrase", hoy);
+    }
+  };
 
   const loadAlerts = async () => {
     try {
@@ -333,6 +413,23 @@ const Home = () => {
                 </div>
               </div>
             )}
+
+            {/* Frase del día - Debajo de las alertas */}
+            <div className="mt-6">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 shadow-md border border-blue-100">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="bg-blue-500 rounded-full p-3">
+                    <span className="text-2xl">💡</span>
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-800">
+                    Frase del Día
+                  </h3>
+                </div>
+                <p className="text-slate-700 text-base leading-relaxed italic font-medium">
+                  "{fraseDelDia}"
+                </p>
+              </div>
+            </div>
           </div>
         </main>
       </div>

@@ -33,6 +33,7 @@ function Rines() {
   const [comentarioModal, setComentarioModal] = useState(null);
   const [rinOriginalEdicion, setRinOriginalEdicion] = useState(null);
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const [costosVisibles, setCostosVisibles] = useState({});
 
   const API_URL = "https://mi-app-llantas.onrender.com";
 
@@ -790,106 +791,142 @@ function Rines() {
                 </div>
               </div>
 
-              {/* Vista móvil - tarjetas */}
-              <div className="lg:hidden space-y-3">
+              {/* Vista móvil - tarjetas 2x2 */}
+              <div className="lg:hidden grid grid-cols-2 gap-2 mb-4">
                 {filtradas.map((r) => (
                   <div
                     key={r.id}
-                    className="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
+                    className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 relative"
                   >
-                    <div className="flex items-start gap-3 mb-3">
+                    {/* Header con checkbox y referencia */}
+                    <div className="flex items-start gap-2 mb-2">
                       <input
                         type="checkbox"
                         checked={seleccionadas.includes(r.id)}
                         onChange={() => toggleSeleccion(r.id)}
-                        className="cursor-pointer mt-1"
+                        className="cursor-pointer mt-0.5 flex-shrink-0"
                       />
-
-                      {/* Foto */}
-                      {r.foto ? (
-                        <img
-                          src={r.foto}
-                          alt={r.referencia}
-                          onClick={() => setFotoModal(r.foto)}
-                          className="w-16 h-16 object-cover rounded-lg cursor-pointer border"
-                        />
-                      ) : (
-                        <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center border">
-                          <span className="text-gray-400 text-xs">
-                            Sin foto
-                          </span>
-                        </div>
-                      )}
-
-                      <div className="flex-1">
-                        <div className="font-bold text-slate-800 flex items-center gap-2">
-                          {r.referencia}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold text-slate-800 text-sm leading-tight flex items-center gap-1">
+                          <span className="truncate">{r.referencia}</span>
                           {r.comentario && (
                             <button
-                              onClick={() => setComentarioModal(r)}
-                              className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setComentarioModal(r);
+                              }}
+                              className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center text-white flex-shrink-0 text-[8px] hover:bg-blue-600 active:bg-blue-700 transition-all"
                             >
                               💬
                             </button>
                           )}
                           {r.remision && (
-                            <span className="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                            <span className="w-4 h-4 bg-red-600 rounded-full flex items-center justify-center text-white flex-shrink-0 text-[8px] font-bold">
                               R
                             </span>
                           )}
                         </div>
-                        <div className="text-xs text-gray-500">{r.marca}</div>
+                        <div className="text-xs text-gray-600 truncate font-medium mt-0.5">
+                          {r.marca}
+                        </div>
                         {r.medida && (
-                          <div className="text-xs text-gray-500 mt-1">
-                            Medida: {r.medida}
+                          <div className="text-[10px] text-gray-500 truncate">
+                            {r.medida}
                           </div>
                         )}
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 text-sm mb-3">
-                      <div>
-                        <span className="text-gray-500 text-xs">
+                    {/* Foto */}
+                    {r.foto ? (
+                      <img
+                        src={r.foto}
+                        alt={r.referencia}
+                        onClick={() => setFotoModal(r.foto)}
+                        className="w-full h-20 object-cover rounded-lg cursor-pointer border mb-2"
+                      />
+                    ) : (
+                      <div className="w-full h-20 bg-gray-100 rounded-lg flex items-center justify-center border mb-2">
+                        <span className="text-gray-400 text-xs">Sin foto</span>
+                      </div>
+                    )}
+
+                    {/* Info grid */}
+                    <div className="space-y-1 text-xs mb-2.5">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-500 font-medium">
                           Proveedor:
                         </span>
-                        <div className="font-medium">{r.proveedor || "—"}</div>
+                        <span className="font-semibold truncate ml-2 max-w-[55%] text-right text-slate-800">
+                          {r.proveedor || "—"}
+                        </span>
                       </div>
-                      <div>
-                        <span className="text-gray-500 text-xs">Stock:</span>
-                        <div
-                          className={`font-bold ${
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-500 font-medium">
+                          Stock:
+                        </span>
+                        <span
+                          className={`font-bold text-sm ${
                             r.stock === 0 ? "text-red-600" : "text-green-600"
                           }`}
                         >
                           {r.stock === 0 ? "Sin stock" : r.stock}
-                        </div>
+                        </span>
                       </div>
-                      <div>
-                        <span className="text-gray-500 text-xs">Precio:</span>
-                        <div className="font-medium text-green-600">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-500 font-medium">
+                          Precio:
+                        </span>
+                        <span className="font-bold text-sm text-green-600">
                           ${Number(r.precio || 0).toLocaleString("es-CO")}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-500 font-medium">
+                          Costo:
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-sm text-blue-600">
+                            {costosVisibles[r.id]
+                              ? `$${Number(r.costo).toLocaleString("es-CO")}`
+                              : "•••"}
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCostosVisibles((prev) => ({
+                                ...prev,
+                                [r.id]: !prev[r.id],
+                              }));
+                            }}
+                            className="p-1 hover:bg-gray-100 rounded transition-all"
+                            title={
+                              costosVisibles[r.id]
+                                ? "Ocultar costo"
+                                : "Mostrar costo"
+                            }
+                          >
+                            {costosVisibles[r.id] ? (
+                              <EyeOff size={14} className="text-gray-600" />
+                            ) : (
+                              <Eye size={14} className="text-gray-600" />
+                            )}
+                          </button>
                         </div>
                       </div>
-                      {mostrarCosto && (
-                        <div>
-                          <span className="text-gray-500 text-xs">Costo:</span>
-                          <div className="font-medium text-blue-600">
-                            ${Number(r.costo).toLocaleString("es-CO")}
-                          </div>
-                        </div>
-                      )}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2">
+                    {/* Botones compactos */}
+                    <div className="grid grid-cols-2 gap-1">
                       <button
                         onClick={() => iniciarEdicion(r.id)}
-                        className="bg-slate-100 hover:bg-slate-200 px-3 py-1.5 text-xs rounded transition-all"
+                        className="bg-slate-100 hover:bg-slate-200 px-2 py-1 text-[10px] rounded transition-all"
                       >
                         ✏️ Editar
                       </button>
                       <button
                         onClick={() => setSubirFotoId(r.id)}
-                        className="bg-green-100 hover:bg-green-200 text-green-700 px-3 py-1.5 text-xs rounded transition-all"
+                        className="bg-green-100 hover:bg-green-200 text-green-700 px-2 py-1 text-[10px] rounded transition-all"
                       >
                         📷 Foto
                       </button>
@@ -903,13 +940,13 @@ function Rines() {
                             await guardarComentario(r, texto);
                           }
                         }}
-                        className="bg-yellow-100 hover:bg-yellow-200 px-3 py-1.5 text-xs rounded transition-all"
+                        className="bg-yellow-100 hover:bg-yellow-200 px-2 py-1 text-[10px] rounded transition-all"
                       >
                         💬
                       </button>
                       <button
                         onClick={() => handleEliminar(r.id)}
-                        className="bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 text-xs rounded transition-all"
+                        className="bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 text-[10px] rounded transition-all"
                       >
                         🗑️
                       </button>

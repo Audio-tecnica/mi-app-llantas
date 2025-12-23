@@ -404,7 +404,7 @@ const TarjetaLlanta = ({
   setLlantas,
   setComentarioModal,
 }) => {
-  const [menuAbierto, setMenuAbierto] = useState(false);
+  //const [menuAbierto, setMenuAbierto] = useState(false);
   const [mostrarAlerta, setMostrarAlerta] = useState(false);
 
   // Si está en modo edición, mostrar formulario
@@ -661,13 +661,6 @@ const TarjetaLlanta = ({
 
         {/* Menú de 3 puntos */}
         <div className="relative" style={{ flex: "0 0 auto" }}>
-          <button
-            onClick={() => setMenuAbierto(!menuAbierto)}
-            className="bg-slate-200 hover:bg-slate-300 p-1 rounded transition-all flex items-center justify-center"
-            style={{ width: "28px", height: "28px" }}
-          >
-            <span className="text-base font-bold text-slate-700">⋮</span>
-          </button>
 
           {menuAbierto && (
             <>
@@ -1169,13 +1162,6 @@ function App() {
         {/* Top bar */}
         <header className="bg-white shadow-sm px-4 py-3 sticky top-0 z-30">
           <div className="flex items-center justify-between">
-            <button
-              onClick={() => setMenuAbierto(true)}
-              className="lg:hidden text-slate-800 hover:bg-slate-100 p-2 rounded"
-            >
-              <Menu size={24} />
-            </button>
-
             <h1 className="text-lg font-bold text-slate-800">
               Inventario de Llantas
             </h1>

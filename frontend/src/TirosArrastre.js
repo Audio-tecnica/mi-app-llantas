@@ -51,7 +51,7 @@ function TirosArrastre() {
 
   const marcasUnicas = [...new Set(tiros.map((t) => t.marca))];
 
-  const filtradas = tirosArrastre.filter((t) => {
+  const filtradas = tiros.filter((t) => {
     // Si el tiro está en modo edición, siempre mostrarlo
     if (modoEdicion === t.id) {
       return true;

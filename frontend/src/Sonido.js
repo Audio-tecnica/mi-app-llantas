@@ -51,7 +51,7 @@ function Sonido() {
 
   const marcasUnicas = [...new Set(productos.map((p) => p.marca))];
 
-  const filtradas = sonido.filter((s) => {
+ const filtradas = productos.filter((p) => {
     // Si el producto está en modo edición, siempre mostrarlo
     if (modoEdicion === s.id) {
       return true;

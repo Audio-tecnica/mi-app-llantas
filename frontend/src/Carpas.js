@@ -442,7 +442,7 @@ function Carpas() {
                   <div className="text-2xl font-bold text-slate-700">
                     {marcasUnicas.length}
                   </div>
-                  <div className="text-slate-500 text-xs mt-1">Marcas</div>
+                  <div className="text-slate-500 text-xs mt-1">Descripción</div>
                 </div>
               </div>
 
@@ -629,7 +629,7 @@ function Carpas() {
                             onClick={() => ordenarPor("marca")}
                             className="cursor-pointer p-2 text-left hover:bg-slate-600"
                           >
-                            Marca
+                            Descripción
                           </th>
                           <th
                             onClick={() => ordenarPor("proveedor")}

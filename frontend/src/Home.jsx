@@ -54,7 +54,6 @@ const Home = () => {
     "La acción es la clave fundamental de todo éxito.",
     "Haz de cada día tu obra maestra.",
     "El fracaso es el condimento que da sabor al éxito.",
-    "Cree que puedes y ya estás a medio camino.",
     "La vida es 10% lo que te pasa y 90% cómo reaccionas a ello.",
     "No dejes que el miedo al fracaso te impida intentarlo.",
     "El éxito es aprender a ir de fracaso en fracaso sin desesperarse.",

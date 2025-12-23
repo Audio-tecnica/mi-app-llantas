@@ -5,18 +5,16 @@ import {
   FaCarSide,
   FaCompactDisc,
   FaRulerCombined,
-  FaShoppingBag,
   FaCaravan,
   FaMusic,
   FaLightbulb,
   FaLink,
   FaExclamationTriangle,
   FaChartLine,
-  FaBoxOpen,
-  FaSignOutAlt,
-  FaHome
+  FaBoxOpen
 } from 'react-icons/fa';
 import './Home.css';
+import Layout from './Layout';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -27,7 +25,7 @@ const Home = () => {
     {
       name: 'Llantas',
       icon: <FaCarSide />,
-      path: '/',
+      path: '/llantas',
       color: '#3b82f6',
       bgColor: '#eff6ff'
     },
@@ -93,7 +91,6 @@ const Home = () => {
     try {
       const alertsData = [];
 
-      // Alerta 1: Productos sin stock
       const { data: sinStock } = await axios.get(
         'https://mi-app-llantas.onrender.com/api/llantas'
       );
@@ -111,7 +108,6 @@ const Home = () => {
         });
       }
 
-      // Alerta 2: Stock bajo
       const stockBajoItems = sinStock.filter(l => l.stock > 0 && l.stock < 3).slice(0, 20);
       
       if (stockBajoItems.length > 0) {
@@ -125,7 +121,6 @@ const Home = () => {
         });
       }
 
-      // Alerta 3: Promociones activas
       const { data: promociones } = await axios.get(
         'https://mi-app-llantas.onrender.com/api/promociones'
       );
@@ -156,130 +151,74 @@ const Home = () => {
     setCurrentAlert(index);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('acceso');
-    navigate('/login');
-  };
-
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <aside className="w-64 bg-slate-800 text-white min-h-screen sticky top-0">
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-8">
-            <img src="/logowp.PNG" className="h-16 w-auto" alt="Logo" />
-          </div>
-
-          <nav className="space-y-1">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-3">
-              Principal
-            </div>
-
-            <button
-              onClick={() => navigate('/home')}
-              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg bg-slate-700 hover:bg-slate-600 transition-all text-sm"
-            >
-              <span><FaHome /></span>
-              <span>Home</span>
-            </button>
-
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-3 mt-6">
-              Categorías
-            </div>
-
-            {categories.map((category, index) => (
-              <button
-                key={index}
-                onClick={() => handleCategoryClick(category.path)}
-                className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-slate-700 transition-all text-sm"
-              >
-                <span>{category.icon}</span>
-                <span>{category.name}</span>
-              </button>
-            ))}
-
-            <div className="border-t border-slate-700 my-4"></div>
-
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-red-600 transition-all text-sm"
-            >
-              <span><FaSignOutAlt /></span>
-              <span>Cerrar Sesión</span>
-            </button>
-          </nav>
+    <Layout>
+      <div className="home-container">
+        <div className="home-header">
+          <h1>Bienvenido a Mi App Llantas</h1>
+          <p>Selecciona una categoría para comenzar</p>
         </div>
-      </aside>
 
-      {/* Main Content */}
-      <div className="flex-1">
-        <div className="home-container">
-          <div className="home-header">
-            <h1>Bienvenido a Mi App Llantas</h1>
-            <p>Selecciona una categoría para comenzar</p>
-          </div>
-
-          <div className="categories-grid">
-            {categories.map((category, index) => (
-              <div
-                key={index}
-                className="category-card"
-                onClick={() => handleCategoryClick(category.path)}
-                style={{
-                  '--category-color': category.color,
-                  '--category-bg': category.bgColor
-                }}
-              >
-                <div className="category-icon" style={{ color: category.color }}>
-                  {category.icon}
-                </div>
-                <h3>{category.name}</h3>
+        <div className="categories-grid">
+          {categories.map((category, index) => (
+            <div
+              key={index}
+              className="category-card"
+              onClick={() => handleCategoryClick(category.path)}
+              style={{
+                '--category-color': category.color,
+                '--category-bg': category.bgColor
+              }}
+            >
+              <div className="category-icon" style={{ color: category.color }}>
+                {category.icon}
               </div>
-            ))}
-          </div>
+              <h3>{category.name}</h3>
+            </div>
+          ))}
+        </div>
 
-          {alerts.length > 0 && (
-            <div className="alerts-section">
-              <h2>Alertas del Sistema</h2>
-              <div className="alerts-carousel">
-                <div className="alerts-track" style={{ transform: `translateX(-${currentAlert * 100}%)` }}>
-                  {alerts.map((alert, index) => (
-                    <div
-                      key={index}
-                      className="alert-card"
-                      style={{ borderLeftColor: alert.color }}
-                    >
-                      <div className="alert-header">
-                        <div className="alert-icon" style={{ color: alert.color }}>
-                          {alert.icon}
-                        </div>
-                        <h3>{alert.title}</h3>
+        {alerts.length > 0 && (
+          <div className="alerts-section">
+            <h2>Alertas del Sistema</h2>
+            <div className="alerts-carousel">
+              <div className="alerts-track" style={{ transform: `translateX(-${currentAlert * 100}%)` }}>
+                {alerts.map((alert, index) => (
+                  <div
+                    key={index}
+                    className="alert-card"
+                    style={{ borderLeftColor: alert.color }}
+                  >
+                    <div className="alert-header">
+                      <div className="alert-icon" style={{ color: alert.color }}>
+                        {alert.icon}
                       </div>
-                      <ul className="alert-items">
-                        {alert.items.map((item, i) => (
-                          <li key={i}>{item}</li>
-                        ))}
-                      </ul>
+                      <h3>{alert.title}</h3>
                     </div>
-                  ))}
-                </div>
+                    <ul className="alert-items">
+                      {alert.items.map((item, i) => (
+                        <li key={i}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
 
-                <div className="carousel-indicators">
-                  {alerts.map((_, index) => (
-                    <button
-                      key={index}
-                      className={`indicator ${index === currentAlert ? 'active' : ''}`}
-                      onClick={() => goToAlert(index)}
-                      aria-label={`Ir a alerta ${index + 1}`}
-                    />
-                  ))}
-                </div>
+              <div className="carousel-indicators">
+                {alerts.map((_, index) => (
+                  <button
+                    key={index}
+                    className={`indicator ${index === currentAlert ? 'active' : ''}`}
+                    onClick={() => goToAlert(index)}
+                    aria-label={`Ir a alerta ${index + 1}`}
+                  />
+                ))}
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
-    </div>
+    </Layout>
   );
 };
 

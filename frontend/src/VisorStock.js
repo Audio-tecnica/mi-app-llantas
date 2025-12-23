@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { ChevronUp, ChevronDown, ChevronRight, X, ShoppingCart } from "lucide-react";
+import {
+  ChevronUp,
+  ChevronDown,
+  ChevronRight,
+  X,
+  ShoppingCart,
+} from "lucide-react";
 import "./index.css";
 
 function VisorStock() {
@@ -29,12 +35,7 @@ function VisorStock() {
       setLlantas(llantasData);
 
       const { data: promoData } = await axios.get(`${API_URL}/api/promociones`);
-      setPromociones(promoData.filter(p => p.activa));
-
-      const marcas = [...new Set(llantasData.map((l) => l.marca))].sort();
-      if (marcas.length > 0) {
-        setMarcaSeleccionada(marcas[0]);
-      }
+      setPromociones(promoData.filter((p) => p.activa));
     } catch (err) {
       console.error("Error cargando datos:", err);
     } finally {
@@ -44,44 +45,46 @@ function VisorStock() {
 
   // ⭐ FUNCIÓN NUEVA: Extraer el diseño de la referencia
   const extraerDiseno = (referencia) => {
-    if (!referencia) return '';
+    if (!referencia) return "";
     // La referencia viene como "265/65R17 G056"
     // Queremos obtener solo "G056"
     const partes = referencia.trim().split(/\s+/);
     if (partes.length > 1) {
       return partes[1];
     }
-    return '';
+    return "";
   };
 
   // ⭐ FUNCIÓN CORREGIDA: Validar promociones con diseño incluido en referencia
   const obtenerPromocion = (marca, referenciaCompleta) => {
     const normalizarRef = (ref) => {
-      if (!ref) return '';
-      let normalizada = ref.replace(/^(LT|P)\s*/i, '');
-      normalizada = normalizada.split(' ')[0];
+      if (!ref) return "";
+      let normalizada = ref.replace(/^(LT|P)\s*/i, "");
+      normalizada = normalizada.split(" ")[0];
       return normalizada.trim().toUpperCase();
     };
 
     const normalizarDiseno = (dis) => {
-      if (!dis) return '';
+      if (!dis) return "";
       return dis.trim().toUpperCase();
     };
 
     const refNormalizada = normalizarRef(referenciaCompleta);
     const disenoLlanta = extraerDiseno(referenciaCompleta);
     const disenoNormalizado = normalizarDiseno(disenoLlanta);
-    
-    const promo = promociones.find(p => {
+
+    const promo = promociones.find((p) => {
       const promoRefNormalizada = normalizarRef(p.referencia);
       const promoDisenoNormalizado = normalizarDiseno(p.diseno);
-      
-      return p.marca === marca && 
-             promoRefNormalizada === refNormalizada && 
-             promoDisenoNormalizado === disenoNormalizado &&
-             p.activa;
+
+      return (
+        p.marca === marca &&
+        promoRefNormalizada === refNormalizada &&
+        promoDisenoNormalizado === disenoNormalizado &&
+        p.activa
+      );
     });
-    
+
     return promo;
   };
 
@@ -137,11 +140,20 @@ function VisorStock() {
     }));
   };
 
-  const totalUnidades = llantasFiltradas.reduce((sum, l) => sum + (l.stock || 0), 0);
+  const totalUnidades = llantasFiltradas.reduce(
+    (sum, l) => sum + (l.stock || 0),
+    0
+  );
   const totalReferencias = llantasFiltradas.length;
-  const stockImpares = llantasFiltradas.filter((l) => l.stock > 0 && l.stock % 2 !== 0).length;
-  const stockCriticos = llantasFiltradas.filter((l) => l.stock > 0 && l.stock <= 3).length;
-  const totalEnPromocion = llantasFiltradas.filter((l) => obtenerPromocion(l.marca, l.referencia)).length;
+  const stockImpares = llantasFiltradas.filter(
+    (l) => l.stock > 0 && l.stock % 2 !== 0
+  ).length;
+  const stockCriticos = llantasFiltradas.filter(
+    (l) => l.stock > 0 && l.stock <= 3
+  ).length;
+  const totalEnPromocion = llantasFiltradas.filter((l) =>
+    obtenerPromocion(l.marca, l.referencia)
+  ).length;
 
   const handleOrdenar = (campo) => {
     if (ordenPor === campo) {
@@ -369,6 +381,7 @@ function VisorStock() {
                 }}
                 className="w-full px-4 py-3 text-xl font-bold border-2 border-slate-300 rounded-xl shadow-sm focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-all duration-200"
               >
+                <option value="">-- Selecciona una marca --</option>
                 {marcasUnicas.map((marca) => (
                   <option key={marca} value={marca}>
                     {marca}
@@ -538,7 +551,10 @@ function VisorStock() {
                               const estaEnCarrito = carritoPedido.some(
                                 (item) => item.id === llanta.id
                               );
-                              const promocion = obtenerPromocion(llanta.marca, llanta.referencia);
+                              const promocion = obtenerPromocion(
+                                llanta.marca,
+                                llanta.referencia
+                              );
 
                               return (
                                 <tr

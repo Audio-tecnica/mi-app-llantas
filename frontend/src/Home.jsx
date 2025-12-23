@@ -158,7 +158,7 @@ const Home = () => {
             <button onClick={() => setMenuAbierto(true)} className="lg:hidden text-slate-800 hover:bg-slate-100 p-2 rounded">
               <Menu size={24} />
             </button>
-            <h1 className="text-lg font-bold text-slate-800">Mi App Llantas</h1>
+            <h1 className="text-lg font-bold text-slate-800">Carlos Deleon</h1>
           </div>
         </header>
 

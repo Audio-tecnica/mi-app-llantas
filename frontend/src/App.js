@@ -384,7 +384,6 @@ const ModalAlertaMargen = ({ alerta, llanta, onCerrar }) => {
   );
 };
 
-
 // Componente para cada tarjeta de llanta
 const TarjetaLlanta = ({
   ll,
@@ -1294,18 +1293,8 @@ function App() {
               Inventario de Llantas
             </h1>
 
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setMostrarCosto(!mostrarCosto)}
-                className="lg:hidden bg-slate-100 hover:bg-slate-200 p-2 rounded transition-all"
-                title={mostrarCosto ? "Ocultar costos" : "Mostrar costos"}
-              >
-                {mostrarCosto ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-
-              <div className="text-sm text-slate-600 bg-slate-100 px-3 py-1 rounded-full">
-                {filtradas.length}
-              </div>
+            <div className="text-sm text-slate-600 bg-slate-100 px-3 py-1 rounded-full">
+              {filtradas.length}
             </div>
           </div>
         </header>

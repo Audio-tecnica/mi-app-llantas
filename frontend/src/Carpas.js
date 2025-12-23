@@ -26,6 +26,7 @@ function Carpas() {
   const [seleccionadas, setSeleccionadas] = useState([]);
   const [carpaOriginalEdicion, setCarpaOriginalEdicion] = useState(null);
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const [costosVisibles, setCostosVisibles] = useState({});
 
   const API_URL = "https://mi-app-llantas.onrender.com";
 
@@ -379,18 +380,8 @@ function Carpas() {
               Inventario de Carpas
             </h1>
 
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setMostrarCosto(!mostrarCosto)}
-                className="lg:hidden bg-slate-100 hover:bg-slate-200 p-2 rounded transition-all"
-                title={mostrarCosto ? "Ocultar costos" : "Mostrar costos"}
-              >
-                {mostrarCosto ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-
-              <div className="text-sm text-slate-600 bg-slate-100 px-3 py-1 rounded-full">
-                {filtradas.length}
-              </div>
+            <div className="text-sm text-slate-600 bg-slate-100 px-3 py-1 rounded-full">
+              {filtradas.length}
             </div>
           </div>
         </header>
@@ -515,79 +506,107 @@ function Carpas() {
 
               {/* Tabla - Vista de tarjetas en móvil */}
               <div className="space-y-3">
-                {/* Vista móvil - tarjetas */}
-                <div className="lg:hidden space-y-3">
+                {/* Vista móvil - tarjetas 2x2 */}
+                <div className="lg:hidden grid grid-cols-2 gap-2 mb-4">
                   {filtradas.map((c) => (
                     <div
                       key={c.id}
-                      className="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
+                      className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 relative"
                     >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            checked={seleccionadas.includes(c.id)}
-                            onChange={() => toggleSeleccion(c.id)}
-                            className="cursor-pointer"
-                          />
-                          <div>
-                            <div className="font-bold text-slate-800">
-                              {c.referencia}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {c.marca}
-                            </div>
+                      {/* Header con checkbox y referencia */}
+                      <div className="flex items-start gap-2 mb-2">
+                        <input
+                          type="checkbox"
+                          checked={seleccionadas.includes(c.id)}
+                          onChange={() => toggleSeleccion(c.id)}
+                          className="cursor-pointer mt-0.5 flex-shrink-0"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-bold text-slate-800 text-sm leading-tight">
+                            <span className="truncate">{c.referencia}</span>
+                          </div>
+                          <div className="text-xs text-gray-600 truncate font-medium mt-0.5">
+                            {c.marca}
                           </div>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-2 text-sm mb-3">
-                        <div>
-                          <span className="text-gray-500 text-xs">
+                      {/* Info grid */}
+                      <div className="space-y-1 text-xs mb-2.5">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500 font-medium">
                             Proveedor:
                           </span>
-                          <div className="font-medium">
+                          <span className="font-semibold truncate ml-2 max-w-[55%] text-right text-slate-800">
                             {c.proveedor || "—"}
-                          </div>
+                          </span>
                         </div>
-                        <div>
-                          <span className="text-gray-500 text-xs">Stock:</span>
-                          <div
-                            className={`font-bold ${
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500 font-medium">
+                            Stock:
+                          </span>
+                          <span
+                            className={`font-bold text-sm ${
                               c.stock === 0 ? "text-red-600" : "text-green-600"
                             }`}
                           >
                             {c.stock === 0 ? "Sin stock" : c.stock}
-                          </div>
+                          </span>
                         </div>
-                        <div>
-                          <span className="text-gray-500 text-xs">Precio:</span>
-                          <div className="font-medium text-green-600">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500 font-medium">
+                            Precio:
+                          </span>
+                          <span className="font-bold text-sm text-green-600">
                             ${Number(c.precio || 0).toLocaleString("es-CO")}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500 font-medium">
+                            Costo:
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-sm text-blue-600">
+                              {costosVisibles[c.id]
+                                ? `$${Number(c.costo).toLocaleString("es-CO")}`
+                                : "•••"}
+                            </span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setCostosVisibles((prev) => ({
+                                  ...prev,
+                                  [c.id]: !prev[c.id],
+                                }));
+                              }}
+                              className="p-1 hover:bg-gray-100 rounded transition-all"
+                              title={
+                                costosVisibles[c.id]
+                                  ? "Ocultar costo"
+                                  : "Mostrar costo"
+                              }
+                            >
+                              {costosVisibles[c.id] ? (
+                                <EyeOff size={14} className="text-gray-600" />
+                              ) : (
+                                <Eye size={14} className="text-gray-600" />
+                              )}
+                            </button>
                           </div>
                         </div>
-                        {mostrarCosto && (
-                          <div>
-                            <span className="text-gray-500 text-xs">
-                              Costo:
-                            </span>
-                            <div className="font-medium text-blue-600">
-                              ${Number(c.costo).toLocaleString("es-CO")}
-                            </div>
-                          </div>
-                        )}
                       </div>
 
-                      <div className="flex gap-2 flex-wrap">
+                      {/* Botones compactos */}
+                      <div className="grid grid-cols-2 gap-1">
                         <button
                           onClick={() => iniciarEdicion(c.id)}
-                          className="flex-1 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 text-xs rounded transition-all"
+                          className="bg-slate-100 hover:bg-slate-200 px-2 py-1 text-[10px] rounded transition-all"
                         >
                           ✏️ Editar
                         </button>
                         <button
                           onClick={() => handleEliminar(c.id)}
-                          className="flex-1 bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 text-xs rounded transition-all"
+                          className="bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 text-[10px] rounded transition-all"
                         >
                           🗑️
                         </button>

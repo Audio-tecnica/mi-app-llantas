@@ -51,18 +51,18 @@ function Tapetes() {
 
   const marcasUnicas = [...new Set(tapetes.map((t) => t.marca))];
 
- const filtradas = tapetes.filter((t) => {
-  // Si el tapete está en modo edición, siempre mostrarlo
-  if (modoEdicion === t.id) {
-    return true;
-  }
-  
-  const coincideBusqueda = t.referencia
-    ?.toLowerCase()
-    .includes(busqueda.toLowerCase());
-  const coincideMarca = !marcaSeleccionada || t.marca === marcaSeleccionada;
-  return coincideBusqueda && coincideMarca;
-});
+  const filtradas = tapetes.filter((t) => {
+    // Si el tapete está en modo edición, siempre mostrarlo
+    if (modoEdicion === t.id) {
+      return true;
+    }
+
+    const coincideBusqueda = t.referencia
+      ?.toLowerCase()
+      .includes(busqueda.toLowerCase());
+    const coincideMarca = !marcaSeleccionada || t.marca === marcaSeleccionada;
+    return coincideBusqueda && coincideMarca;
+  });
 
   const ordenarPor = (campo) => {
     const asc = orden.campo === campo ? !orden.asc : true;
@@ -522,78 +522,206 @@ function Tapetes() {
                       key={t.id}
                       className="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
                     >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            checked={seleccionadas.includes(t.id)}
-                            onChange={() => toggleSeleccion(t.id)}
-                            className="cursor-pointer"
-                          />
-                          <div>
-                            <div className="font-bold text-slate-800">
-                              {t.referencia}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {t.marca}
-                            </div>
+                      {modoEdicion === t.id ? (
+                        // MODO EDICIÓN
+                        <>
+                          <div className="mb-3">
+                            <label className="block text-xs font-medium text-gray-600 mb-1">
+                              Referencia
+                            </label>
+                            <input
+                              value={t.referencia}
+                              onChange={(e) =>
+                                actualizarCampo(
+                                  t.id,
+                                  "referencia",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full px-3 py-2 text-sm border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                            />
                           </div>
-                        </div>
-                      </div>
 
-                      <div className="grid grid-cols-2 gap-2 text-sm mb-3">
-                        <div>
-                          <span className="text-gray-500 text-xs">
-                            Proveedor:
-                          </span>
-                          <div className="font-medium">
-                            {t.proveedor || "—"}
+                          <div className="mb-3">
+                            <label className="block text-xs font-medium text-gray-600 mb-1">
+                              Marca
+                            </label>
+                            <input
+                              value={t.marca}
+                              onChange={(e) =>
+                                actualizarCampo(t.id, "marca", e.target.value)
+                              }
+                              className="w-full px-3 py-2 text-sm border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                            />
                           </div>
-                        </div>
-                        <div>
-                          <span className="text-gray-500 text-xs">Stock:</span>
-                          <div
-                            className={`font-bold ${
-                              t.stock === 0
-                                ? "text-red-600"
-                                : "text-green-600"
-                            }`}
-                          >
-                            {t.stock === 0 ? "Sin stock" : t.stock}
+
+                          <div className="mb-3">
+                            <label className="block text-xs font-medium text-gray-600 mb-1">
+                              Proveedor
+                            </label>
+                            <input
+                              value={t.proveedor}
+                              onChange={(e) =>
+                                actualizarCampo(
+                                  t.id,
+                                  "proveedor",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full px-3 py-2 text-sm border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                            />
                           </div>
-                        </div>
-                        <div>
-                          <span className="text-gray-500 text-xs">Precio:</span>
-                          <div className="font-medium text-green-600">
-                            ${Number(t.precio || 0).toLocaleString("es-CO")}
-                          </div>
-                        </div>
-                        {mostrarCosto && (
-                          <div>
-                            <span className="text-gray-500 text-xs">
-                              Costo:
-                            </span>
-                            <div className="font-medium text-blue-600">
-                              ${Number(t.costo).toLocaleString("es-CO")}
+
+                          <div className="grid grid-cols-2 gap-3 mb-3">
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">
+                                Costo
+                              </label>
+                              <input
+                                type="number"
+                                value={t.costo}
+                                onChange={(e) =>
+                                  actualizarCampo(t.id, "costo", e.target.value)
+                                }
+                                className="w-full px-3 py-2 text-sm border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">
+                                Precio
+                              </label>
+                              <input
+                                type="number"
+                                value={t.precio}
+                                onChange={(e) =>
+                                  actualizarCampo(
+                                    t.id,
+                                    "precio",
+                                    e.target.value
+                                  )
+                                }
+                                className="w-full px-3 py-2 text-sm border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                              />
                             </div>
                           </div>
-                        )}
-                      </div>
 
-                      <div className="flex gap-2 flex-wrap">
-                        <button
-                          onClick={() => iniciarEdicion(t.id)}
-                          className="flex-1 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 text-xs rounded transition-all"
-                        >
-                          ✏️ Editar
-                        </button>
-                        <button
-                          onClick={() => handleEliminar(t.id)}
-                          className="flex-1 bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 text-xs rounded transition-all"
-                        >
-                          🗑️
-                        </button>
-                      </div>
+                          <div className="mb-3">
+                            <label className="block text-xs font-medium text-gray-600 mb-1">
+                              Stock
+                            </label>
+                            <input
+                              type="number"
+                              value={t.stock}
+                              onChange={(e) =>
+                                actualizarCampo(t.id, "stock", e.target.value)
+                              }
+                              className="w-full px-3 py-2 text-sm border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                            />
+                          </div>
+
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleGuardar(t)}
+                              className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition-all"
+                            >
+                              💾 Guardar
+                            </button>
+                            <button
+                              onClick={() => {
+                                setModoEdicion(null);
+                                setTapeteOriginalEdicion(null);
+                                axios
+                                  .get(`${API_URL}/api/tapetes`)
+                                  .then((res) => setTapetes(res.data));
+                              }}
+                              className="flex-1 bg-gray-400 text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-500 transition-all"
+                            >
+                              ✖ Cancelar
+                            </button>
+                          </div>
+                        </>
+                      ) : (
+                        // MODO VISTA NORMAL
+                        <>
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                checked={seleccionadas.includes(t.id)}
+                                onChange={() => toggleSeleccion(t.id)}
+                                className="cursor-pointer"
+                              />
+                              <div>
+                                <div className="font-bold text-slate-800">
+                                  {t.referencia}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  {t.marca}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+                            <div>
+                              <span className="text-gray-500 text-xs">
+                                Proveedor:
+                              </span>
+                              <div className="font-medium">
+                                {t.proveedor || "—"}
+                              </div>
+                            </div>
+                            <div>
+                              <span className="text-gray-500 text-xs">
+                                Stock:
+                              </span>
+                              <div
+                                className={`font-bold ${
+                                  t.stock === 0
+                                    ? "text-red-600"
+                                    : "text-green-600"
+                                }`}
+                              >
+                                {t.stock === 0 ? "Sin stock" : t.stock}
+                              </div>
+                            </div>
+                            <div>
+                              <span className="text-gray-500 text-xs">
+                                Precio:
+                              </span>
+                              <div className="font-medium text-green-600">
+                                ${Number(t.precio || 0).toLocaleString("es-CO")}
+                              </div>
+                            </div>
+                            {mostrarCosto && (
+                              <div>
+                                <span className="text-gray-500 text-xs">
+                                  Costo:
+                                </span>
+                                <div className="font-medium text-blue-600">
+                                  ${Number(t.costo).toLocaleString("es-CO")}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex gap-2 flex-wrap">
+                            <button
+                              onClick={() => iniciarEdicion(t.id)}
+                              className="flex-1 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 text-xs rounded transition-all"
+                            >
+                              ✏️ Editar
+                            </button>
+                            <button
+                              onClick={() => handleEliminar(t.id)}
+                              className="flex-1 bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 text-xs rounded transition-all"
+                            >
+                              🗑️
+                            </button>
+                          </div>
+                        </>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -814,7 +942,8 @@ function Tapetes() {
                                     : "•••"}
                                 </td>
                                 <td className="p-2 text-right text-green-600 font-semibold">
-                                  ${Number(t.precio || 0).toLocaleString(
+                                  $
+                                  {Number(t.precio || 0).toLocaleString(
                                     "es-CO"
                                   )}
                                 </td>

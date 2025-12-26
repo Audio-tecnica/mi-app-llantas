@@ -402,6 +402,7 @@ const TarjetaLlanta = ({
   API_URL,
   setLlantas,
   setComentarioModal,
+  normalizarReferenciaParaLlantar, // ← AGREGAR ESTA LÍNEA
 }) => {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [mostrarAlerta, setMostrarAlerta] = useState(false);
@@ -1678,6 +1679,9 @@ function App() {
                     API_URL="https://mi-app-llantas.onrender.com"
                     setLlantas={setLlantas}
                     setComentarioModal={setComentarioModal}
+                    normalizarReferenciaParaLlantar={
+                      normalizarReferenciaParaLlantar
+                    } // ← AGREGAR ESTA LÍNEA
                   />
                 ))}
               </div>
@@ -1994,7 +1998,8 @@ function App() {
                                     onClick={() => {
                                       const refNormalizada =
                                         normalizarReferenciaParaLlantar(
-                                          ll.referencia
+                                          ll.referencia,
+                                          ll.marca
                                         );
                                       window.open(
                                         `https://www.llantar.com.co/search?q=${encodeURIComponent(

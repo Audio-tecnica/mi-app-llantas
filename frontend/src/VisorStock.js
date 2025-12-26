@@ -540,7 +540,7 @@ function VisorStock() {
                         </div>
                       </div>
                     </div>
-              
+
                     {/* Tabla del grupo */}
                     {estaExpandido && (
                       <div className="overflow-x-auto">
@@ -551,7 +551,7 @@ function VisorStock() {
                                 Referencia
                               </EncabezadoOrdenable>
                               <EncabezadoOrdenable campo="proveedor">
-                                Proveedor
+                                Prov.
                               </EncabezadoOrdenable>
                               <EncabezadoOrdenable campo="costo_empresa">
                                 Costo
@@ -559,10 +559,10 @@ function VisorStock() {
                               <EncabezadoOrdenable campo="stock">
                                 Stock
                               </EncabezadoOrdenable>
-                              <th className="p-2 text-center text-xs font-bold text-gray-700">
-                                Búsqueda
+                              <th className="p-2 text-center text-xs font-bold text-gray-700 w-20">
+                                Buscar
                               </th>
-                              <th className="p-2 text-center text-xs font-bold text-gray-700">
+                              <th className="p-2 text-center text-xs font-bold text-gray-700 w-24">
                                 Acción
                               </th>
                             </tr>
@@ -599,7 +599,7 @@ function VisorStock() {
                                       {promocion && (
                                         <div className="mt-1">
                                           <span className="inline-flex items-center gap-1 bg-amber-500 text-amber-900 px-2 py-0.5 rounded-full text-xs font-bold">
-                                            🎉 PROMO $
+                                            🎉 $
                                             {Number(
                                               promocion.precio_promo
                                             ).toLocaleString("es-CO")}
@@ -609,38 +609,41 @@ function VisorStock() {
                                     </div>
                                   </td>
                                   <td className="p-2">
-                                    <span className="text-xs text-gray-600">
+                                    <span
+                                      className="text-xs text-gray-600 truncate block max-w-[80px]"
+                                      title={llanta.proveedor || "—"}
+                                    >
                                       {llanta.proveedor || "—"}
                                     </span>
                                   </td>
-                                  <td className="p-2">
-                                    <span className="text-sm font-bold text-blue-600">
+                                  <td className="p-2 text-right">
+                                    <span className="text-xs font-bold text-blue-600">
                                       $
                                       {Number(
                                         llanta.costo_empresa || 0
                                       ).toLocaleString("es-CO")}
                                     </span>
                                   </td>
-                                  <td className="p-2">
-                                    <div className="flex items-center gap-2">
+                                  <td className="p-2 text-center">
+                                    <div className="flex items-center justify-center gap-1">
                                       {estaAgotado ? (
-                                        <span className="text-xl font-bold text-red-600 flex items-center gap-1">
+                                        <span className="text-lg font-bold text-red-600">
                                           ❌
                                         </span>
                                       ) : esCritico && esImpar ? (
-                                        <span className="text-xl font-bold text-red-600 flex items-center gap-1">
+                                        <span className="text-lg font-bold text-red-600">
                                           {llanta.stock} 🔴⚠️
                                         </span>
                                       ) : esCritico ? (
-                                        <span className="text-xl font-bold text-red-600 flex items-center gap-1">
+                                        <span className="text-lg font-bold text-red-600">
                                           {llanta.stock} 🔴
                                         </span>
                                       ) : esImpar ? (
-                                        <span className="text-xl font-bold text-yellow-600 flex items-center gap-1">
+                                        <span className="text-lg font-bold text-yellow-600">
                                           {llanta.stock} ⚠️
                                         </span>
                                       ) : (
-                                        <span className="text-xl font-bold text-green-600">
+                                        <span className="text-lg font-bold text-green-600">
                                           {llanta.stock}
                                         </span>
                                       )}
@@ -656,23 +659,21 @@ function VisorStock() {
                                           "_blank"
                                         )
                                       }
-                                      className="bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm hover:shadow-md hover:bg-blue-600"
+                                      className="bg-blue-500 text-white px-2 py-1 rounded text-xs font-bold hover:bg-blue-600 transition-all w-full"
                                     >
-                                      🔍 Llantar
+                                      🔍
                                     </button>
                                   </td>
                                   <td className="p-2 text-center">
                                     <button
                                       onClick={() => agregarAlCarrito(llanta)}
-                                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm hover:shadow-md ${
+                                      className={`px-2 py-1 rounded text-xs font-bold transition-all w-full ${
                                         estaEnCarrito
                                           ? "bg-purple-200 text-purple-800 hover:bg-purple-300"
-                                          : "bg-blue-500 text-white hover:bg-blue-600"
+                                          : "bg-green-500 text-white hover:bg-green-600"
                                       }`}
                                     >
-                                      {estaEnCarrito
-                                        ? "✓ Agregado"
-                                        : "+ Agregar"}
+                                      {estaEnCarrito ? "✓" : "+"}
                                     </button>
                                   </td>
                                 </tr>

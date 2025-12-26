@@ -653,14 +653,17 @@ const TarjetaLlanta = ({
       {/* Botones MUCHO más compactos */}
       <div className="flex gap-1">
         <button
-          onClick={() =>
+          onClick={() => {
+            const refNormalizada = normalizarReferenciaParaLlantar(
+              ll.referencia
+            );
             window.open(
               `https://www.llantar.com.co/search?q=${encodeURIComponent(
-                ll.referencia
+                refNormalizada
               )}`,
               "_blank"
-            )
-          }
+            );
+          }}
           className="bg-blue-500 hover:bg-blue-600 text-white px-1 py-1 rounded transition-all flex items-center justify-center gap-0.5"
           style={{ flex: "0 0 45%" }}
         >
@@ -768,6 +771,24 @@ function App() {
     return texto;
   };
   // 🔥 FIN DE LA FUNCIÓN
+
+  // Función para normalizar referencia para búsqueda en Llantar
+  const normalizarReferenciaParaLlantar = (referencia) => {
+    if (!referencia) return "";
+
+    // Convertir a minúsculas y eliminar espacios
+    let normalizada = referencia.toLowerCase().trim();
+
+    // Reemplazar el punto decimal por guión
+    // 31X10.50R15LT -> 31x10-50r15lt
+    normalizada = normalizada.replace(/(\d+)\.(\d+)/, "$1-$2");
+
+    // Eliminar LT, P al final si existe
+    normalizada = normalizada.replace(/lt$/i, "");
+    normalizada = normalizada.replace(/p$/i, "");
+
+    return normalizada;
+  };
 
   const [mostrarCosto, setMostrarCosto] = useState(false);
   const [llantas, setLlantas] = useState([]);
@@ -1752,19 +1773,25 @@ function App() {
                                 />
                               </td>
                               <td className="p-2">
-                                <button
-                                  onClick={() =>
-                                    window.open(
-                                      `https://www.llantar.com.co/search?q=${encodeURIComponent(
-                                        ll.referencia
-                                      )}`,
-                                      "_blank"
-                                    )
-                                  }
-                                  className="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600"
-                                >
-                                  Llantar
-                                </button>
+                                <td className="p-2">
+                                  <button
+                                    onClick={() => {
+                                      const refNormalizada =
+                                        normalizarReferenciaParaLlantar(
+                                          ll.referencia
+                                        );
+                                      window.open(
+                                        `https://www.llantar.com.co/search?q=${encodeURIComponent(
+                                          refNormalizada
+                                        )}`,
+                                        "_blank"
+                                      );
+                                    }}
+                                    className="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600"
+                                  >
+                                    Llantar
+                                  </button>
+                                </td>
                               </td>
                               <td className="p-2">
                                 <input
@@ -1944,14 +1971,18 @@ function App() {
                               <td className="p-2">
                                 <div className="flex gap-1">
                                   <button
-                                    onClick={() =>
+                                    onClick={() => {
+                                      const refNormalizada =
+                                        normalizarReferenciaParaLlantar(
+                                          ll.referencia
+                                        );
                                       window.open(
                                         `https://www.llantar.com.co/search?q=${encodeURIComponent(
-                                          ll.referencia
+                                          refNormalizada
                                         )}`,
                                         "_blank"
-                                      )
-                                    }
+                                      );
+                                    }}
                                     className="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600"
                                   >
                                     Llantar

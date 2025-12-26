@@ -10,6 +10,24 @@ import {
 } from "lucide-react";
 import "./index.css";
 
+// Función para normalizar referencia para búsqueda en Llantar
+const normalizarReferenciaParaLlantar = (referencia) => {
+  if (!referencia) return "";
+
+  // Convertir a minúsculas y eliminar espacios
+  let normalizada = referencia.toLowerCase().trim();
+
+  // Reemplazar el punto decimal por guión
+  // 31X10.50R15LT -> 31x10-50r15lt
+  normalizada = normalizada.replace(/(\d+)\.(\d+)/, "$1-$2");
+
+  // Eliminar LT, P al final si existe
+  normalizada = normalizada.replace(/lt$/i, "");
+  normalizada = normalizada.replace(/p$/i, "");
+
+  return normalizada;
+};
+
 // Orden de prioridad de marcas
 const MARCAS_PRIORITARIAS = ["MICKEY THOMPSON", "YOKOHAMA", "TOYO", "NITTO"];
 
@@ -651,14 +669,18 @@ function VisorStock() {
                                   </td>
                                   <td className="p-2 text-center">
                                     <button
-                                      onClick={() =>
+                                      onClick={() => {
+                                        const refNormalizada =
+                                          normalizarReferenciaParaLlantar(
+                                            llanta.referencia
+                                          );
                                         window.open(
                                           `https://www.llantar.com.co/search?q=${encodeURIComponent(
-                                            llanta.referencia
+                                            refNormalizada
                                           )}`,
                                           "_blank"
-                                        )
-                                      }
+                                        );
+                                      }}
                                       className="bg-blue-500 text-white px-2 py-1 rounded text-xs font-bold hover:bg-blue-600 transition-all w-full"
                                     >
                                       🔍

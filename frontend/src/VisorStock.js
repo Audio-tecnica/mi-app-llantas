@@ -11,27 +11,30 @@ import {
 import "./index.css";
 
 // Función para normalizar referencia para búsqueda en Llantar
-const normalizarReferenciaParaLlantar = (referencia) => {
+const normalizarReferenciaParaLlantar = (referencia, marca) => {
   if (!referencia) return "";
-  
+
   // Convertir a minúsculas
   let normalizada = referencia.toLowerCase().trim();
-  
-  // IMPORTANTE: Extraer SOLO la parte numérica de la referencia
-  // Eliminar todo después del primer espacio (diseño, modelo, etc.)
-  normalizada = normalizada.split(' ')[0];
-  
+
+  // Extraer SOLO la parte numérica de la referencia
+  normalizada = normalizada.split(" ")[0];
+
   // Reemplazar el punto decimal por guión
-  // 31X10.50R15LT -> 31x10-50r15lt
-  normalizada = normalizada.replace(/(\d+)\.(\d+)/, '$1-$2');
-  
+  normalizada = normalizada.replace(/(\d+)\.(\d+)/, "$1-$2");
+
   // Eliminar LT, P al final si existe
-  normalizada = normalizada.replace(/lt$/i, '');
-  normalizada = normalizada.replace(/p$/i, '');
-  
+  normalizada = normalizada.replace(/lt$/i, "");
+  normalizada = normalizada.replace(/p$/i, "");
+
   // Eliminar caracteres especiales adicionales
-  normalizada = normalizada.replace(/[\/\s]/g, '');
-  
+  normalizada = normalizada.replace(/[\/\s]/g, "");
+
+  // Agregar la marca al inicio
+  if (marca) {
+    normalizada = `${marca.toLowerCase()} ${normalizada}`;
+  }
+
   return normalizada;
 };
 
@@ -679,7 +682,8 @@ function VisorStock() {
                                       onClick={() => {
                                         const refNormalizada =
                                           normalizarReferenciaParaLlantar(
-                                            llanta.referencia
+                                            llanta.referencia,
+                                            llanta.marca
                                           );
                                         window.open(
                                           `https://www.llantar.com.co/search?q=${encodeURIComponent(

@@ -651,11 +651,13 @@ const TarjetaLlanta = ({
       </div>
 
       {/* Botones MUCHO más compactos */}
+      {/* Botones MUCHO más compactos */}
       <div className="flex gap-1">
         <button
           onClick={() => {
             const refNormalizada = normalizarReferenciaParaLlantar(
-              ll.referencia
+              ll.referencia,
+              ll.marca // ← AGREGAR ESTE PARÁMETRO
             );
             window.open(
               `https://www.llantar.com.co/search?q=${encodeURIComponent(
@@ -772,30 +774,33 @@ function App() {
   };
   // 🔥 FIN DE LA FUNCIÓN
 
- // Función para normalizar referencia para búsqueda en Llantar
-const normalizarReferenciaParaLlantar = (referencia) => {
-  if (!referencia) return "";
-  
-  // Convertir a minúsculas
-  let normalizada = referencia.toLowerCase().trim();
-  
-  // IMPORTANTE: Extraer SOLO la parte numérica de la referencia
-  // Eliminar todo después del primer espacio (diseño, modelo, etc.)
-  normalizada = normalizada.split(' ')[0];
-  
-  // Reemplazar el punto decimal por guión
-  // 31X10.50R15LT -> 31x10-50r15lt
-  normalizada = normalizada.replace(/(\d+)\.(\d+)/, '$1-$2');
-  
-  // Eliminar LT, P al final si existe
-  normalizada = normalizada.replace(/lt$/i, '');
-  normalizada = normalizada.replace(/p$/i, '');
-  
-  // Eliminar caracteres especiales adicionales
-  normalizada = normalizada.replace(/[\/\s]/g, '');
-  
-  return normalizada;
-};
+  // Función para normalizar referencia para búsqueda en Llantar
+  const normalizarReferenciaParaLlantar = (referencia, marca) => {
+    if (!referencia) return "";
+
+    // Convertir a minúsculas
+    let normalizada = referencia.toLowerCase().trim();
+
+    // Extraer SOLO la parte numérica de la referencia
+    normalizada = normalizada.split(" ")[0];
+
+    // Reemplazar el punto decimal por guión
+    normalizada = normalizada.replace(/(\d+)\.(\d+)/, "$1-$2");
+
+    // Eliminar LT, P al final si existe
+    normalizada = normalizada.replace(/lt$/i, "");
+    normalizada = normalizada.replace(/p$/i, "");
+
+    // Eliminar caracteres especiales adicionales
+    normalizada = normalizada.replace(/[\/\s]/g, "");
+
+    // Agregar la marca al inicio
+    if (marca) {
+      normalizada = `${marca.toLowerCase()} ${normalizada}`;
+    }
+
+    return normalizada;
+  };
 
   const [mostrarCosto, setMostrarCosto] = useState(false);
   const [llantas, setLlantas] = useState([]);
@@ -1785,7 +1790,8 @@ const normalizarReferenciaParaLlantar = (referencia) => {
                                     onClick={() => {
                                       const refNormalizada =
                                         normalizarReferenciaParaLlantar(
-                                          ll.referencia
+                                          ll.referencia,
+                                          ll.marca
                                         );
                                       window.open(
                                         `https://www.llantar.com.co/search?q=${encodeURIComponent(

@@ -607,7 +607,7 @@ function VisorStock() {
                               </th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-gray-100">
+                          <tbody className="divide-y-4 divide-gray-100">
                             {llantasGrupo.map((llanta, idx) => {
                               const esImpar =
                                 llanta.stock > 0 && llanta.stock % 2 !== 0;
@@ -629,10 +629,11 @@ function VisorStock() {
                                     idx % 2 === 0 ? "bg-white" : "bg-gray-50"
                                   } hover:bg-blue-50 transition-colors ${
                                     estaEnCarrito ? "bg-purple-50" : ""
-                                  } ${
-                                    promocion ? "bg-amber-50" : ""
-                                  } border-b-2 border-gray-200`}
-                                  style={{ borderBottom: "8px solid #f3f4f6" }}
+                                  } ${promocion ? "bg-amber-50" : ""}`}
+                                  style={{
+                                    borderBottom: "6px solid #e5e7eb",
+                                    boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+                                  }}
                                 >
                                   <td className="p-2">
                                     <div>

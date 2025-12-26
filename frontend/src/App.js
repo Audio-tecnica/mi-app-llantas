@@ -657,7 +657,7 @@ const TarjetaLlanta = ({
           onClick={() => {
             const refNormalizada = normalizarReferenciaParaLlantar(
               ll.referencia,
-              ll.marca // ← AGREGAR ESTE PARÁMETRO
+              ll.marca
             );
             window.open(
               `https://www.llantar.com.co/search?q=${encodeURIComponent(
@@ -779,27 +779,34 @@ function App() {
     if (!referencia) return "";
 
     // Convertir a minúsculas
-    let normalizada = referencia.toLowerCase().trim();
+    let refCompleta = referencia.toLowerCase().trim();
 
-    // Extraer SOLO la parte numérica de la referencia
-    normalizada = normalizada.split(" ")[0];
+    // Separar la referencia del diseño
+    const partes = refCompleta.split(" ");
 
-    // Reemplazar el punto decimal por guión
-    normalizada = normalizada.replace(/(\d+)\.(\d+)/, "$1-$2");
+    // Primera parte es la medida (33X12.50R15LT)
+    let medida = partes[0];
 
-    // Eliminar LT, P al final si existe
-    normalizada = normalizada.replace(/lt$/i, "");
-    normalizada = normalizada.replace(/p$/i, "");
+    // El resto es el diseño (BAJA LEGEND, G056, etc.)
+    const diseno = partes.slice(1).join(" ");
 
-    // Eliminar caracteres especiales adicionales
-    normalizada = normalizada.replace(/[\/\s]/g, "");
+    // Reemplazar el punto decimal por guión en la medida
+    medida = medida.replace(/(\d+)\.(\d+)/, "$1-$2");
 
-    // Agregar la marca al inicio
-    if (marca) {
-      normalizada = `${marca.toLowerCase()} ${normalizada}`;
+    // Eliminar LT, P al final de la medida
+    medida = medida.replace(/lt$/i, "");
+    medida = medida.replace(/p$/i, "");
+
+    // Eliminar barras y espacios de la medida
+    medida = medida.replace(/[\/]/g, "");
+
+    // Construir búsqueda: medida + diseño (sin marca, porque Llantar no siempre la necesita)
+    let busqueda = medida;
+    if (diseno) {
+      busqueda = `${medida} ${diseno}`;
     }
 
-    return normalizada;
+    return busqueda;
   };
 
   const [mostrarCosto, setMostrarCosto] = useState(false);

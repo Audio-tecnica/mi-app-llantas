@@ -13,29 +13,36 @@ import "./index.css";
 // Función para normalizar referencia para búsqueda en Llantar
 const normalizarReferenciaParaLlantar = (referencia, marca) => {
   if (!referencia) return "";
-
+  
   // Convertir a minúsculas
-  let normalizada = referencia.toLowerCase().trim();
-
-  // Extraer SOLO la parte numérica de la referencia
-  normalizada = normalizada.split(" ")[0];
-
-  // Reemplazar el punto decimal por guión
-  normalizada = normalizada.replace(/(\d+)\.(\d+)/, "$1-$2");
-
-  // Eliminar LT, P al final si existe
-  normalizada = normalizada.replace(/lt$/i, "");
-  normalizada = normalizada.replace(/p$/i, "");
-
-  // Eliminar caracteres especiales adicionales
-  normalizada = normalizada.replace(/[\/\s]/g, "");
-
-  // Agregar la marca al inicio
-  if (marca) {
-    normalizada = `${marca.toLowerCase()} ${normalizada}`;
+  let refCompleta = referencia.toLowerCase().trim();
+  
+  // Separar la referencia del diseño
+  const partes = refCompleta.split(' ');
+  
+  // Primera parte es la medida (33X12.50R15LT)
+  let medida = partes[0];
+  
+  // El resto es el diseño (BAJA LEGEND, G056, etc.)
+  const diseno = partes.slice(1).join(' ');
+  
+  // Reemplazar el punto decimal por guión en la medida
+  medida = medida.replace(/(\d+)\.(\d+)/, '$1-$2');
+  
+  // Eliminar LT, P al final de la medida
+  medida = medida.replace(/lt$/i, '');
+  medida = medida.replace(/p$/i, '');
+  
+  // Eliminar barras y espacios de la medida
+  medida = medida.replace(/[\/]/g, '');
+  
+  // Construir búsqueda: medida + diseño (sin marca, porque Llantar no siempre la necesita)
+  let busqueda = medida;
+  if (diseno) {
+    busqueda = `${medida} ${diseno}`;
   }
-
-  return normalizada;
+  
+  return busqueda;
 };
 
 // Orden de prioridad de marcas

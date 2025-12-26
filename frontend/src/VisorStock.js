@@ -13,35 +13,35 @@ import "./index.css";
 // Función para normalizar referencia para búsqueda en Llantar
 const normalizarReferenciaParaLlantar = (referencia, marca) => {
   if (!referencia) return "";
-  
+
   // Convertir a minúsculas
   let refCompleta = referencia.toLowerCase().trim();
-  
+
   // Separar la referencia del diseño
-  const partes = refCompleta.split(' ');
-  
+  const partes = refCompleta.split(" ");
+
   // Primera parte es la medida (33X12.50R15LT)
   let medida = partes[0];
-  
+
   // El resto es el diseño (BAJA LEGEND, G056, etc.)
-  const diseno = partes.slice(1).join(' ');
-  
+  const diseno = partes.slice(1).join(" ");
+
   // Reemplazar el punto decimal por guión en la medida
-  medida = medida.replace(/(\d+)\.(\d+)/, '$1-$2');
-  
+  medida = medida.replace(/(\d+)\.(\d+)/, "$1-$2");
+
   // Eliminar LT, P al final de la medida
-  medida = medida.replace(/lt$/i, '');
-  medida = medida.replace(/p$/i, '');
-  
+  medida = medida.replace(/lt$/i, "");
+  medida = medida.replace(/p$/i, "");
+
   // Eliminar barras y espacios de la medida
-  medida = medida.replace(/[\/]/g, '');
-  
+  medida = medida.replace(/[\/]/g, "");
+
   // Construir búsqueda: medida + diseño (sin marca, porque Llantar no siempre la necesita)
   let busqueda = medida;
   if (diseno) {
     busqueda = `${medida} ${diseno}`;
   }
-  
+
   return busqueda;
 };
 
@@ -594,11 +594,16 @@ function VisorStock() {
                               <EncabezadoOrdenable campo="stock">
                                 Stock
                               </EncabezadoOrdenable>
-                              <th className="p-2 text-center text-xs font-bold text-gray-700 w-20">
+                              {/* Desktop: Dos columnas separadas */}
+                              <th className="hidden md:table-cell p-2 text-center text-xs font-bold text-gray-700 w-20">
                                 Buscar
                               </th>
-                              <th className="p-2 text-center text-xs font-bold text-gray-700 w-24">
+                              <th className="hidden md:table-cell p-2 text-center text-xs font-bold text-gray-700 w-24">
                                 Acción
+                              </th>
+                              {/* Móvil: Una sola columna */}
+                              <th className="md:hidden p-2 text-center text-xs font-bold text-gray-700 w-24">
+                                Acciones
                               </th>
                             </tr>
                           </thead>
@@ -684,7 +689,9 @@ function VisorStock() {
                                       )}
                                     </div>
                                   </td>
-                                  <td className="p-2 text-center">
+
+                                  {/* Desktop: Dos celdas separadas */}
+                                  <td className="hidden md:table-cell p-2 text-center">
                                     <button
                                       onClick={() => {
                                         const refNormalizada =
@@ -704,7 +711,7 @@ function VisorStock() {
                                       🔍
                                     </button>
                                   </td>
-                                  <td className="p-2 text-center">
+                                  <td className="hidden md:table-cell p-2 text-center">
                                     <button
                                       onClick={() => agregarAlCarrito(llanta)}
                                       className={`px-2 py-1 rounded text-xs font-bold transition-all w-full ${
@@ -715,6 +722,40 @@ function VisorStock() {
                                     >
                                       {estaEnCarrito ? "✓" : "+"}
                                     </button>
+                                  </td>
+
+                                  {/* Móvil: Una sola celda con botones apilados */}
+                                  <td className="md:hidden p-2">
+                                    <div className="flex flex-col gap-1.5">
+                                      <button
+                                        onClick={() => {
+                                          const refNormalizada =
+                                            normalizarReferenciaParaLlantar(
+                                              llanta.referencia,
+                                              llanta.marca
+                                            );
+                                          window.open(
+                                            `https://www.llantar.com.co/search?q=${encodeURIComponent(
+                                              refNormalizada
+                                            )}`,
+                                            "_blank"
+                                          );
+                                        }}
+                                        className="w-full bg-blue-500 text-white px-2 py-1.5 rounded-lg text-xs font-semibold hover:bg-blue-600 transition-all shadow-sm flex items-center justify-center gap-1"
+                                      >
+                                        <span>🔍</span>
+                                      </button>
+                                      <button
+                                        onClick={() => agregarAlCarrito(llanta)}
+                                        className={`w-full px-2 py-1.5 rounded-lg text-xs font-semibold transition-all shadow-sm flex items-center justify-center gap-1 ${
+                                          estaEnCarrito
+                                            ? "bg-purple-500 text-white hover:bg-purple-600"
+                                            : "bg-green-500 text-white hover:bg-green-600"
+                                        }`}
+                                      >
+                                        <span>{estaEnCarrito ? "✓" : "+"}</span>
+                                      </button>
+                                    </div>
                                   </td>
                                 </tr>
                               );

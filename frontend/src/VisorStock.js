@@ -540,8 +540,7 @@ function VisorStock() {
                         </div>
                       </div>
                     </div>
-                    // Dentro de la tabla del grupo (línea ~373), modifica la
-                    sección de encabezados y filas:
+              
                     {/* Tabla del grupo */}
                     {estaExpandido && (
                       <div className="overflow-x-auto">

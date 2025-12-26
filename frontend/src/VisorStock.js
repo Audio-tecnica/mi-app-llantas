@@ -726,7 +726,7 @@ function VisorStock() {
 
                                   {/* Móvil: Una sola celda con botones apilados */}
                                   <td className="md:hidden p-2">
-                                    <div className="flex flex-col gap-1.5">
+                                    <div className="flex flex-col gap-1.5 bg-gray-50 p-2 rounded-lg border border-gray-200">
                                       <button
                                         onClick={() => {
                                           const refNormalizada =
@@ -741,13 +741,13 @@ function VisorStock() {
                                             "_blank"
                                           );
                                         }}
-                                        className="w-full bg-blue-500 text-white px-2 py-1.5 rounded-lg text-xs font-semibold hover:bg-blue-600 transition-all shadow-sm flex items-center justify-center gap-1"
+                                        className="w-full bg-blue-500 text-white px-2 py-2 rounded-lg text-xs font-semibold hover:bg-blue-600 transition-all shadow-md flex items-center justify-center gap-1"
                                       >
                                         <span>🔍</span>
                                       </button>
                                       <button
                                         onClick={() => agregarAlCarrito(llanta)}
-                                        className={`w-full px-2 py-1.5 rounded-lg text-xs font-semibold transition-all shadow-sm flex items-center justify-center gap-1 ${
+                                        className={`w-full px-2 py-2 rounded-lg text-xs font-semibold transition-all shadow-md flex items-center justify-center gap-1 ${
                                           estaEnCarrito
                                             ? "bg-purple-500 text-white hover:bg-purple-600"
                                             : "bg-green-500 text-white hover:bg-green-600"

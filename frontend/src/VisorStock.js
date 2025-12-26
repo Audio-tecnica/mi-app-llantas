@@ -629,7 +629,10 @@ function VisorStock() {
                                     idx % 2 === 0 ? "bg-white" : "bg-gray-50"
                                   } hover:bg-blue-50 transition-colors ${
                                     estaEnCarrito ? "bg-purple-50" : ""
-                                  } ${promocion ? "bg-amber-50" : ""}`}
+                                  } ${
+                                    promocion ? "bg-amber-50" : ""
+                                  } border-b-2 border-gray-200`}
+                                  style={{ borderBottom: "8px solid #f3f4f6" }}
                                 >
                                   <td className="p-2">
                                     <div>

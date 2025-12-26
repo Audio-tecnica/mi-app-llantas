@@ -540,7 +540,8 @@ function VisorStock() {
                         </div>
                       </div>
                     </div>
-
+                    // Dentro de la tabla del grupo (línea ~373), modifica la
+                    sección de encabezados y filas:
                     {/* Tabla del grupo */}
                     {estaExpandido && (
                       <div className="overflow-x-auto">
@@ -553,9 +554,15 @@ function VisorStock() {
                               <EncabezadoOrdenable campo="proveedor">
                                 Proveedor
                               </EncabezadoOrdenable>
+                              <EncabezadoOrdenable campo="costo_empresa">
+                                Costo
+                              </EncabezadoOrdenable>
                               <EncabezadoOrdenable campo="stock">
                                 Stock
                               </EncabezadoOrdenable>
+                              <th className="p-2 text-center text-xs font-bold text-gray-700">
+                                Búsqueda
+                              </th>
                               <th className="p-2 text-center text-xs font-bold text-gray-700">
                                 Acción
                               </th>
@@ -608,6 +615,14 @@ function VisorStock() {
                                     </span>
                                   </td>
                                   <td className="p-2">
+                                    <span className="text-sm font-bold text-blue-600">
+                                      $
+                                      {Number(
+                                        llanta.costo_empresa || 0
+                                      ).toLocaleString("es-CO")}
+                                    </span>
+                                  </td>
+                                  <td className="p-2">
                                     <div className="flex items-center gap-2">
                                       {estaAgotado ? (
                                         <span className="text-xl font-bold text-red-600 flex items-center gap-1">
@@ -631,6 +646,21 @@ function VisorStock() {
                                         </span>
                                       )}
                                     </div>
+                                  </td>
+                                  <td className="p-2 text-center">
+                                    <button
+                                      onClick={() =>
+                                        window.open(
+                                          `https://www.llantar.com.co/search?q=${encodeURIComponent(
+                                            llanta.referencia
+                                          )}`,
+                                          "_blank"
+                                        )
+                                      }
+                                      className="bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm hover:shadow-md hover:bg-blue-600"
+                                    >
+                                      🔍 Llantar
+                                    </button>
                                   </td>
                                   <td className="p-2 text-center">
                                     <button

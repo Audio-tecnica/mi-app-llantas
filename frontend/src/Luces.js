@@ -217,7 +217,7 @@ function Luces() {
         proveedor: nuevoItem.proveedor || "",
         costo: parseFloat(nuevoItem.costo) || 0,
         precio: parseFloat(nuevoItem.precio) || 0,
-        stock: parseInt(nuevoItem.stock) || 0,
+        stock: parseFloatt(nuevoItem.stock) || 0,
       };
 
       await axios.post(`${API_URL}/api/agregar-luz`, nuevaLuzFormateada);
@@ -757,6 +757,7 @@ function Luces() {
                                 <td className="p-2">
                                   <input
                                     type="number"
+                                    step="0.5"
                                     value={l.stock}
                                     onChange={(e) =>
                                       actualizarCampo(
@@ -866,13 +867,15 @@ function Luces() {
                 { key: "proveedor", label: "Proveedor" },
                 { key: "costo", label: "Costo" },
                 { key: "precio", label: "Precio" },
-                { key: "stock", label: "Stock" },
+                { key: "stock", label: "Stock", type: "number", step: "0.5" },
               ].map((campo) => (
                 <div key={campo.key}>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
                     {campo.label}
                   </label>
                   <input
+                    type={campo.type || "text"} // ✅ Agregar esta línea
+                    step={campo.step} // ✅ Agregar esta línea
                     placeholder={`Ingrese ${campo.label.toLowerCase()}`}
                     value={nuevoItem[campo.key]}
                     onChange={(e) =>

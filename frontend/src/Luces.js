@@ -217,7 +217,7 @@ function Luces() {
         proveedor: nuevoItem.proveedor || "",
         costo: parseFloat(nuevoItem.costo) || 0,
         precio: parseFloat(nuevoItem.precio) || 0,
-        stock: parseFloatt(nuevoItem.stock) || 0,
+        stock: parseFloat(nuevoItem.stock) || 0,
       };
 
       await axios.post(`${API_URL}/api/agregar-luz`, nuevaLuzFormateada);

@@ -1224,7 +1224,7 @@ app.post("/api/agregar-luz", async (req, res) => {
         proveedor || "",
         parseFloat(costo) || 0,
         parseFloat(precio) || 0,
-        parseInt(stock) || 0,
+        parseFloat(stock) || 0,
       ]
     );
     res.json({ success: true });

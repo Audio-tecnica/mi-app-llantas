@@ -763,7 +763,7 @@ function Luces() {
                                       actualizarCampo(
                                         l.id,
                                         "stock",
-                                        e.target.value
+                                        parseFloat(e.target.value)
                                       )
                                     }
                                     className="w-full border-2 border-blue-300 rounded text-sm p-1"

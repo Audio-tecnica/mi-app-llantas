@@ -1249,7 +1249,7 @@ app.post("/api/editar-luz", async (req, res) => {
         proveedor || "",
         parseFloat(costo),
         parseFloat(precio),
-        parseInt(stock),
+        parseFloat(stock),
         id,
       ]
     );

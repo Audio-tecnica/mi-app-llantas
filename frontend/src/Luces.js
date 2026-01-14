@@ -553,7 +553,7 @@ function Luces() {
                               l.stock === 0 ? "text-red-600" : "text-green-600"
                             }`}
                           >
-                            {l.stock === 0 ? "Sin stock" : l.stock}
+                           {l.stock === 0 ? "Sin stock" : parseFloat(l.stock).toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 1 })}
                           </div>
                         </div>
                         <div>
@@ -821,7 +821,7 @@ function Luces() {
                                       : "text-gray-700"
                                   }`}
                                 >
-                                  {l.stock === 0 ? "❌" : l.stock}
+                                 {l.stock === 0 ? "❌" : parseFloat(l.stock).toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 1 })}
                                 </td>
                                 <td className="p-2">
                                   <div className="flex gap-1 justify-center">

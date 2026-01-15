@@ -18,29 +18,20 @@ const NominaGenerator = ({ onClose }) => {
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-      // Extraer información del encabezado
       const empresa = json[0]?.[1] || "EMPRESA";
       const nit = json[1]?.[1] || "";
       const periodo = json[2]?.[1] || "Período";
 
-      // Extraer empleados - SOLO hasta encontrar "Total"
       const empleados = [];
-      const cedulasProcesadas = new Set(); // Para evitar duplicados
+      const cedulasProcesadas = new Set();
       
       for (let i = 6; i < json.length; i++) {
         const fila = json[i];
         
-        // Si encontramos la fila de "Total", dejamos de procesar empleados
         if (fila[1] === "Total") {
           break;
         }
         
-        // Verificar que sea una fila de empleado válida:
-        // - Tiene nombre (columna 1)
-        // - Tiene cédula numérica (columna 2)
-        // - Tiene cargo (columna 3)
-        // - Tiene sueldo básico numérico (columna 4) - esto diferencia de las filas de horas extras
-        // - No es un duplicado
         if (
           fila[1] && 
           typeof fila[2] === "number" && 
@@ -69,7 +60,6 @@ const NominaGenerator = ({ onClose }) => {
         }
       }
 
-      // Extraer totales
       const filaTotales = json.find(
         (f) => f[1] === "Total" && typeof f[4] === "number"
       );
@@ -153,7 +143,7 @@ const NominaGenerator = ({ onClose }) => {
             body {
               font-family: 'Segoe UI', Tahoma, sans-serif;
               font-size: 9px;
-              color: #1e293b;
+              color: #000;
               background: white;
             }
             .nomina-container {
@@ -166,25 +156,25 @@ const NominaGenerator = ({ onClose }) => {
               text-align: center;
               margin-bottom: 12px;
               padding-bottom: 10px;
-              border-bottom: 3px solid #1e40af;
+              border-bottom: 2px solid #000;
             }
             .logo-empresa {
               font-size: 22px;
               font-weight: 800;
-              color: #1e40af;
+              color: #000;
               letter-spacing: 2px;
               margin-bottom: 2px;
             }
             .nit {
               font-size: 10px;
-              color: #64748b;
+              color: #444;
               margin-bottom: 6px;
             }
             .periodo {
-              background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-              color: white;
+              border: 2px solid #000;
+              color: #000;
               padding: 6px 16px;
-              border-radius: 20px;
+              border-radius: 4px;
               font-size: 9px;
               font-weight: 600;
               display: inline-block;
@@ -196,19 +186,20 @@ const NominaGenerator = ({ onClose }) => {
               font-size: 7.5px;
             }
             .tabla-nomina th {
-              background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-              color: white;
+              background: #f0f0f0;
+              color: #000;
               padding: 6px 3px;
               text-align: center;
-              font-weight: 600;
+              font-weight: 700;
               font-size: 7px;
               text-transform: uppercase;
               letter-spacing: 0.3px;
+              border: 1px solid #000;
             }
             .tabla-nomina td {
               padding: 5px 3px;
               text-align: right;
-              border-bottom: 1px solid #e2e8f0;
+              border: 1px solid #ccc;
             }
             .tabla-nomina td:first-child,
             .tabla-nomina td:nth-child(2),
@@ -216,35 +207,29 @@ const NominaGenerator = ({ onClose }) => {
               text-align: left;
             }
             .tabla-nomina tr:nth-child(even) {
-              background-color: #f8fafc;
-            }
-            .nombre-empleado {
-              font-weight: 600;
-              color: #1e293b;
-              font-size: 8px;
+              background-color: #f9f9f9;
             }
             .fila-total {
-              background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important;
-              color: white !important;
+              background: #e8e8e8 !important;
               font-weight: 700;
             }
             .fila-total td {
-              color: white !important;
-              border-bottom: none;
+              border: 1px solid #000;
               padding: 8px 3px;
+              font-weight: 700;
             }
             .resumen-box {
-              background: #f1f5f9;
-              border-radius: 8px;
+              border: 1px solid #000;
+              border-radius: 4px;
               padding: 10px;
               margin-top: 12px;
             }
             .resumen-titulo {
               font-size: 10px;
               font-weight: 700;
-              color: #1e293b;
+              color: #000;
               margin-bottom: 8px;
-              border-bottom: 2px solid #1e40af;
+              border-bottom: 1px solid #000;
               padding-bottom: 4px;
             }
             .resumen-grid {
@@ -254,25 +239,22 @@ const NominaGenerator = ({ onClose }) => {
             }
             .resumen-item {
               text-align: center;
-              background: white;
+              border: 1px solid #ccc;
               padding: 8px;
-              border-radius: 6px;
+              border-radius: 4px;
+            }
+            .resumen-item.destacado {
+              border: 2px solid #000;
             }
             .resumen-label {
               font-size: 7px;
-              color: #64748b;
+              color: #444;
               text-transform: uppercase;
             }
             .resumen-valor {
               font-size: 11px;
               font-weight: 700;
-              color: #1e40af;
-            }
-            .resumen-valor.verde {
-              color: #059669;
-            }
-            .resumen-valor.rojo {
-              color: #dc2626;
+              color: #000;
             }
             .firmas-container {
               margin-top: 30px;
@@ -283,17 +265,17 @@ const NominaGenerator = ({ onClose }) => {
             .firma-box {
               text-align: center;
               padding-top: 8px;
-              border-top: 2px solid #1e293b;
+              border-top: 1px solid #000;
             }
             .firma-label {
               font-size: 8px;
-              color: #64748b;
+              color: #444;
               font-weight: 500;
             }
             .fecha-generacion {
               text-align: right;
               font-size: 7px;
-              color: #94a3b8;
+              color: #666;
               margin-top: 15px;
             }
             @media print {
@@ -325,20 +307,20 @@ const NominaGenerator = ({ onClose }) => {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-800 to-blue-600 p-4 text-white">
+        <div className="bg-gradient-to-r from-gray-800 to-gray-700 p-4 text-white">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
               <span className="text-3xl">📋</span>
               <div>
                 <h2 className="text-xl font-bold">Generador de Nómina</h2>
-                <p className="text-blue-200 text-sm">
+                <p className="text-gray-300 text-sm">
                   Convierte tu Excel en un diseño profesional para imprimir
                 </p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="text-white hover:bg-blue-700 rounded-full p-2 text-2xl leading-none w-10 h-10 flex items-center justify-center"
+              className="text-white hover:bg-gray-600 rounded-full p-2 text-2xl leading-none w-10 h-10 flex items-center justify-center"
             >
               ×
             </button>
@@ -348,8 +330,7 @@ const NominaGenerator = ({ onClose }) => {
         {/* Content */}
         <div className="p-4 overflow-y-auto" style={{ maxHeight: "calc(95vh - 120px)" }}>
           {!datosNomina ? (
-            /* Zona de carga */
-            <div className="border-2 border-dashed border-blue-300 rounded-xl p-12 text-center bg-blue-50">
+            <div className="border-2 border-dashed border-gray-300 rounded-xl p-12 text-center bg-gray-50">
               <input
                 ref={fileInputRef}
                 type="file"
@@ -359,7 +340,7 @@ const NominaGenerator = ({ onClose }) => {
               />
               
               <div className="flex flex-col items-center gap-4">
-                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center text-4xl">
+                <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center text-4xl">
                   📤
                 </div>
                 <div>
@@ -373,7 +354,7 @@ const NominaGenerator = ({ onClose }) => {
                 <button 
                   type="button"
                   onClick={handleSelectFile}
-                  className="mt-4 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-all font-semibold text-lg cursor-pointer"
+                  className="mt-4 bg-gray-700 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-all font-semibold text-lg cursor-pointer"
                 >
                   📂 Seleccionar Archivo
                 </button>
@@ -381,7 +362,7 @@ const NominaGenerator = ({ onClose }) => {
 
               {cargando && (
                 <div className="mt-6">
-                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600"></div>
                   <p className="text-gray-600 mt-2">Procesando archivo...</p>
                 </div>
               )}
@@ -393,7 +374,6 @@ const NominaGenerator = ({ onClose }) => {
               )}
             </div>
           ) : (
-            /* Vista previa de la nómina */
             <div>
               {/* Botones de acción */}
               <div className="flex gap-3 mb-4 justify-end">
@@ -407,51 +387,49 @@ const NominaGenerator = ({ onClose }) => {
                 <button
                   type="button"
                   onClick={handlePrint}
-                  className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-semibold"
+                  className="flex items-center gap-2 px-6 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-all font-semibold"
                 >
                   🖨️ Imprimir Nómina
                 </button>
               </div>
 
-              {/* Vista previa imprimible */}
+              {/* Vista previa imprimible - DISEÑO PARA AHORRO DE TINTA */}
               <div
                 ref={printRef}
-                className="bg-white border border-gray-200 rounded-lg shadow-lg p-6"
+                className="bg-white border border-gray-300 rounded-lg shadow-lg p-6"
                 style={{ minHeight: "600px" }}
               >
                 <div className="nomina-container">
                   {/* Header */}
-                  <div className="header text-center mb-4 pb-3 border-b-4 border-blue-800">
-                    <div className="logo-empresa text-2xl font-extrabold text-blue-800 tracking-wide">
+                  <div className="header text-center mb-4 pb-3 border-b-2 border-black">
+                    <div className="logo-empresa text-2xl font-extrabold text-black tracking-wide">
                       {datosNomina.empresa}
                     </div>
-                    <div className="nit text-gray-500 text-sm mb-2">
+                    <div className="nit text-gray-600 text-sm mb-2">
                       {datosNomina.nit}
                     </div>
-                    <div className="periodo inline-block bg-gradient-to-r from-blue-800 to-blue-600 text-white px-5 py-2 rounded-full text-sm font-semibold">
+                    <div className="periodo inline-block border-2 border-black text-black px-5 py-2 rounded text-sm font-semibold">
                       {datosNomina.periodo}
                     </div>
                   </div>
 
                   {/* Tabla de empleados */}
                   <div className="overflow-x-auto">
-                    <table className="tabla-nomina w-full text-xs border-collapse">
+                    <table className="tabla-nomina w-full text-xs border-collapse border border-gray-400">
                       <thead>
-                        <tr style={{ background: "linear-gradient(135deg, #1e293b 0%, #334155 100%)" }}>
-                          <th className="p-2 text-left text-white font-semibold">Empleado</th>
-                          <th className="p-2 text-left text-white font-semibold">Cédula</th>
-                          <th className="p-2 text-left text-white font-semibold">Cargo</th>
-                          <th className="p-2 text-right text-white font-semibold">Días</th>
-                          <th className="p-2 text-right text-white font-semibold">Sueldo</th>
-                          <th className="p-2 text-right text-white font-semibold">H. Extra</th>
-                          <th className="p-2 text-right text-white font-semibold">Aux. Tpte</th>
-                          <th className="p-2 text-right text-white font-semibold">Devengado</th>
-                          <th className="p-2 text-right text-white font-semibold">Salud</th>
-                          <th className="p-2 text-right text-white font-semibold">Pensión</th>
-                          <th className="p-2 text-right text-white font-semibold">Deducido</th>
-                          <th className="p-2 text-right font-semibold" style={{ color: "#86efac" }}>
-                            Neto a Pagar
-                          </th>
+                        <tr className="bg-gray-200">
+                          <th className="p-2 text-left font-bold border border-gray-400">Empleado</th>
+                          <th className="p-2 text-left font-bold border border-gray-400">Cédula</th>
+                          <th className="p-2 text-left font-bold border border-gray-400">Cargo</th>
+                          <th className="p-2 text-right font-bold border border-gray-400">Días</th>
+                          <th className="p-2 text-right font-bold border border-gray-400">Sueldo</th>
+                          <th className="p-2 text-right font-bold border border-gray-400">H. Extra</th>
+                          <th className="p-2 text-right font-bold border border-gray-400">Aux. Tpte</th>
+                          <th className="p-2 text-right font-bold border border-gray-400">Devengado</th>
+                          <th className="p-2 text-right font-bold border border-gray-400">Salud</th>
+                          <th className="p-2 text-right font-bold border border-gray-400">Pensión</th>
+                          <th className="p-2 text-right font-bold border border-gray-400">Deducido</th>
+                          <th className="p-2 text-right font-bold border border-gray-400">Neto a Pagar</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -460,67 +438,67 @@ const NominaGenerator = ({ onClose }) => {
                             key={idx}
                             className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
                           >
-                            <td className="p-2 font-semibold text-slate-800 text-left">
+                            <td className="p-2 font-semibold text-left border border-gray-300">
                               {emp.nombre}
                             </td>
-                            <td className="p-2 text-gray-600 text-left">{emp.cedula}</td>
-                            <td className="p-2 text-gray-600 text-xs text-left">{emp.cargo}</td>
-                            <td className="p-2 text-right">{emp.diasTrabajados}</td>
-                            <td className="p-2 text-right">
+                            <td className="p-2 text-left border border-gray-300">{emp.cedula}</td>
+                            <td className="p-2 text-xs text-left border border-gray-300">{emp.cargo}</td>
+                            <td className="p-2 text-right border border-gray-300">{emp.diasTrabajados}</td>
+                            <td className="p-2 text-right border border-gray-300">
                               {formatearMoneda(emp.sueldoDias)}
                             </td>
-                            <td className="p-2 text-right text-blue-600">
+                            <td className="p-2 text-right border border-gray-300">
                               {formatearMoneda(emp.horasExtra)}
                             </td>
-                            <td className="p-2 text-right">
+                            <td className="p-2 text-right border border-gray-300">
                               {formatearMoneda(emp.auxTransporte)}
                             </td>
-                            <td className="p-2 text-right font-semibold">
+                            <td className="p-2 text-right font-semibold border border-gray-300">
                               {formatearMoneda(emp.totalDevengado)}
                             </td>
-                            <td className="p-2 text-right text-red-500">
+                            <td className="p-2 text-right border border-gray-300">
                               {formatearMoneda(emp.salud)}
                             </td>
-                            <td className="p-2 text-right text-red-500">
+                            <td className="p-2 text-right border border-gray-300">
                               {formatearMoneda(emp.pension)}
                             </td>
-                            <td className="p-2 text-right text-red-600 font-semibold">
+                            <td className="p-2 text-right border border-gray-300">
                               {formatearMoneda(emp.totalDeducido)}
                             </td>
-                            <td className="p-2 text-right font-bold text-green-600 text-sm">
+                            <td className="p-2 text-right font-bold text-sm border border-gray-300">
                               {formatearMoneda(emp.netoAPagar)}
                             </td>
                           </tr>
                         ))}
                         {/* Fila de totales */}
                         {datosNomina.totales && (
-                          <tr className="fila-total" style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}>
-                            <td className="p-3 text-white font-bold text-left" colSpan="3">
+                          <tr className="bg-gray-200 font-bold">
+                            <td className="p-3 font-bold text-left border border-gray-400" colSpan="3">
                               TOTALES
                             </td>
-                            <td className="p-3 text-right text-white">—</td>
-                            <td className="p-3 text-right text-white">
+                            <td className="p-3 text-right border border-gray-400">—</td>
+                            <td className="p-3 text-right border border-gray-400">
                               {formatearMoneda(datosNomina.totales.sueldoDias)}
                             </td>
-                            <td className="p-3 text-right text-white">
+                            <td className="p-3 text-right border border-gray-400">
                               {formatearMoneda(datosNomina.totales.horasExtra)}
                             </td>
-                            <td className="p-3 text-right text-white">
+                            <td className="p-3 text-right border border-gray-400">
                               {formatearMoneda(datosNomina.totales.auxTransporte)}
                             </td>
-                            <td className="p-3 text-right text-white">
+                            <td className="p-3 text-right border border-gray-400">
                               {formatearMoneda(datosNomina.totales.totalDevengado)}
                             </td>
-                            <td className="p-3 text-right text-white">
+                            <td className="p-3 text-right border border-gray-400">
                               {formatearMoneda(datosNomina.totales.salud)}
                             </td>
-                            <td className="p-3 text-right text-white">
+                            <td className="p-3 text-right border border-gray-400">
                               {formatearMoneda(datosNomina.totales.pension)}
                             </td>
-                            <td className="p-3 text-right text-white">
+                            <td className="p-3 text-right border border-gray-400">
                               {formatearMoneda(datosNomina.totales.totalDeducido)}
                             </td>
-                            <td className="p-3 text-right text-white text-lg font-bold">
+                            <td className="p-3 text-right text-lg font-bold border-2 border-black">
                               {formatearMoneda(datosNomina.totales.netoAPagar)}
                             </td>
                           </tr>
@@ -530,34 +508,34 @@ const NominaGenerator = ({ onClose }) => {
                   </div>
 
                   {/* Resumen */}
-                  <div className="resumen-box mt-6 bg-gray-100 rounded-lg p-4">
-                    <h3 className="resumen-titulo text-sm font-bold text-slate-800 mb-3 border-b-2 border-blue-800 pb-2">
+                  <div className="resumen-box mt-6 border border-gray-400 rounded-lg p-4">
+                    <h3 className="resumen-titulo text-sm font-bold mb-3 border-b border-gray-400 pb-2">
                       📊 RESUMEN DE NÓMINA
                     </h3>
                     <div className="resumen-grid grid grid-cols-4 gap-4">
-                      <div className="resumen-item text-center bg-white p-3 rounded-lg shadow-sm">
+                      <div className="resumen-item text-center border border-gray-300 p-3 rounded">
                         <div className="resumen-label text-xs text-gray-500 uppercase">Empleados</div>
-                        <div className="resumen-valor text-xl font-bold text-blue-800">
+                        <div className="resumen-valor text-xl font-bold">
                           {datosNomina.empleados.length}
                         </div>
                       </div>
-                      <div className="resumen-item text-center bg-white p-3 rounded-lg shadow-sm">
+                      <div className="resumen-item text-center border border-gray-300 p-3 rounded">
                         <div className="resumen-label text-xs text-gray-500 uppercase">Total Devengado</div>
-                        <div className="resumen-valor text-lg font-bold text-slate-800">
+                        <div className="resumen-valor text-lg font-bold">
                           {formatearMoneda(datosNomina.totales?.totalDevengado)}
                         </div>
                       </div>
-                      <div className="resumen-item text-center bg-white p-3 rounded-lg shadow-sm">
+                      <div className="resumen-item text-center border border-gray-300 p-3 rounded">
                         <div className="resumen-label text-xs text-gray-500 uppercase">Total Deducido</div>
-                        <div className="resumen-valor rojo text-lg font-bold text-red-600">
+                        <div className="resumen-valor text-lg font-bold">
                           {formatearMoneda(datosNomina.totales?.totalDeducido)}
                         </div>
                       </div>
-                      <div className="resumen-item text-center bg-green-50 p-3 rounded-lg shadow-sm border-2 border-green-200">
-                        <div className="resumen-label text-xs text-green-700 uppercase font-semibold">
+                      <div className="resumen-item destacado text-center border-2 border-black p-3 rounded bg-gray-100">
+                        <div className="resumen-label text-xs uppercase font-semibold">
                           Total Neto a Pagar
                         </div>
-                        <div className="resumen-valor verde text-xl font-bold text-green-600">
+                        <div className="resumen-valor text-xl font-bold">
                           {formatearMoneda(datosNomina.totales?.netoAPagar)}
                         </div>
                       </div>
@@ -567,21 +545,21 @@ const NominaGenerator = ({ onClose }) => {
                   {/* Firmas */}
                   <div className="firmas-container mt-8 grid grid-cols-3 gap-8">
                     <div className="firma-box text-center">
-                      <div className="border-t-2 border-slate-800 pt-2 mt-12">
+                      <div className="border-t border-black pt-2 mt-12">
                         <p className="firma-label text-xs text-gray-600 font-medium">
                           Elaborado por
                         </p>
                       </div>
                     </div>
                     <div className="firma-box text-center">
-                      <div className="border-t-2 border-slate-800 pt-2 mt-12">
+                      <div className="border-t border-black pt-2 mt-12">
                         <p className="firma-label text-xs text-gray-600 font-medium">
                           Revisado por
                         </p>
                       </div>
                     </div>
                     <div className="firma-box text-center">
-                      <div className="border-t-2 border-slate-800 pt-2 mt-12">
+                      <div className="border-t border-black pt-2 mt-12">
                         <p className="firma-label text-xs text-gray-600 font-medium">
                           Aprobado por
                         </p>
@@ -590,7 +568,7 @@ const NominaGenerator = ({ onClose }) => {
                   </div>
 
                   {/* Fecha de generación */}
-                  <div className="fecha-generacion text-right text-xs text-gray-400 mt-6">
+                  <div className="fecha-generacion text-right text-xs text-gray-500 mt-6">
                     Generado el {datosNomina.fechaGeneracion}
                   </div>
                 </div>

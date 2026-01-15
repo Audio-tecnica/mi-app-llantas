@@ -23,31 +23,49 @@ const NominaGenerator = ({ onClose }) => {
       const nit = json[1]?.[1] || "";
       const periodo = json[2]?.[1] || "Período";
 
-      // Extraer empleados (filas 6 en adelante)
+      // Extraer empleados - SOLO hasta encontrar "Total"
       const empleados = [];
+      const cedulasProcesadas = new Set(); // Para evitar duplicados
+      
       for (let i = 6; i < json.length; i++) {
         const fila = json[i];
-        // Verificar que sea una fila de empleado (tiene nombre y cédula numérica)
-        if (fila[1] && fila[2] && fila[1] !== "Total" && !String(fila[1]).includes("Valor hora")) {
-          if (typeof fila[2] === "number" && fila[3]) {
-            empleados.push({
-              nombre: fila[1],
-              cedula: fila[2],
-              cargo: fila[3],
-              sueldoBasico: fila[4] || 0,
-              diasTrabajados: fila[5] || 0,
-              sueldoDias: fila[6] || 0,
-              horasExtra: fila[7] || 0,
-              totalSueldoHoras: fila[8] || 0,
-              auxTransporte: fila[9] || 0,
-              totalDevengado: fila[10] || 0,
-              salud: fila[11] || 0,
-              pension: fila[12] || 0,
-              fondoSolidaridad: fila[13] || 0,
-              totalDeducido: fila[14] || 0,
-              netoAPagar: fila[15] || 0,
-            });
-          }
+        
+        // Si encontramos la fila de "Total", dejamos de procesar empleados
+        if (fila[1] === "Total") {
+          break;
+        }
+        
+        // Verificar que sea una fila de empleado válida:
+        // - Tiene nombre (columna 1)
+        // - Tiene cédula numérica (columna 2)
+        // - Tiene cargo (columna 3)
+        // - Tiene sueldo básico numérico (columna 4) - esto diferencia de las filas de horas extras
+        // - No es un duplicado
+        if (
+          fila[1] && 
+          typeof fila[2] === "number" && 
+          fila[3] && 
+          typeof fila[4] === "number" &&
+          !cedulasProcesadas.has(fila[2])
+        ) {
+          cedulasProcesadas.add(fila[2]);
+          empleados.push({
+            nombre: fila[1],
+            cedula: fila[2],
+            cargo: fila[3],
+            sueldoBasico: fila[4] || 0,
+            diasTrabajados: fila[5] || 0,
+            sueldoDias: fila[6] || 0,
+            horasExtra: fila[7] || 0,
+            totalSueldoHoras: fila[8] || 0,
+            auxTransporte: fila[9] || 0,
+            totalDevengado: fila[10] || 0,
+            salud: fila[11] || 0,
+            pension: fila[12] || 0,
+            fondoSolidaridad: fila[13] || 0,
+            totalDeducido: fila[14] || 0,
+            netoAPagar: fila[15] || 0,
+          });
         }
       }
 

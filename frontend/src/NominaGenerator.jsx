@@ -1,12 +1,12 @@
 import React, { useState, useRef } from "react";
 import * as XLSX from "xlsx";
-import { X, Upload, Printer, FileSpreadsheet } from "lucide-react";
 
 const NominaGenerator = ({ onClose }) => {
   const [datosNomina, setDatosNomina] = useState(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
   const printRef = useRef();
+  const fileInputRef = useRef();
 
   const procesarExcel = async (file) => {
     setCargando(true);
@@ -95,6 +95,12 @@ const NominaGenerator = ({ onClose }) => {
     const file = e.target.files[0];
     if (file) {
       procesarExcel(file);
+    }
+  };
+
+  const handleSelectFile = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
     }
   };
 
@@ -304,7 +310,7 @@ const NominaGenerator = ({ onClose }) => {
         <div className="bg-gradient-to-r from-blue-800 to-blue-600 p-4 text-white">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <FileSpreadsheet size={28} />
+              <span className="text-3xl">📋</span>
               <div>
                 <h2 className="text-xl font-bold">Generador de Nómina</h2>
                 <p className="text-blue-200 text-sm">
@@ -314,9 +320,9 @@ const NominaGenerator = ({ onClose }) => {
             </div>
             <button
               onClick={onClose}
-              className="text-white hover:bg-blue-700 rounded-full p-2"
+              className="text-white hover:bg-blue-700 rounded-full p-2 text-2xl leading-none w-10 h-10 flex items-center justify-center"
             >
-              <X size={24} />
+              ×
             </button>
           </div>
         </div>
@@ -327,31 +333,33 @@ const NominaGenerator = ({ onClose }) => {
             /* Zona de carga */
             <div className="border-2 border-dashed border-blue-300 rounded-xl p-12 text-center bg-blue-50">
               <input
+                ref={fileInputRef}
                 type="file"
                 accept=".xlsx,.xls"
                 onChange={handleFileChange}
-                className="hidden"
-                id="nomina-upload"
+                style={{ display: "none" }}
               />
-              <label
-                htmlFor="nomina-upload"
-                className="cursor-pointer flex flex-col items-center gap-4"
-              >
-                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Upload size={40} className="text-blue-600" />
+              
+              <div className="flex flex-col items-center gap-4">
+                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center text-4xl">
+                  📤
                 </div>
                 <div>
                   <p className="text-lg font-semibold text-gray-700">
-                    Arrastra o haz clic para subir tu archivo Excel
+                    Haz clic para subir tu archivo Excel de Nómina
                   </p>
                   <p className="text-sm text-gray-500 mt-1">
                     Formatos soportados: .xlsx, .xls
                   </p>
                 </div>
-                <button className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-all font-semibold">
-                  Seleccionar Archivo
+                <button 
+                  type="button"
+                  onClick={handleSelectFile}
+                  className="mt-4 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-all font-semibold text-lg cursor-pointer"
+                >
+                  📂 Seleccionar Archivo
                 </button>
-              </label>
+              </div>
 
               {cargando && (
                 <div className="mt-6">
@@ -372,18 +380,18 @@ const NominaGenerator = ({ onClose }) => {
               {/* Botones de acción */}
               <div className="flex gap-3 mb-4 justify-end">
                 <button
+                  type="button"
                   onClick={() => setDatosNomina(null)}
                   className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all"
                 >
-                  <Upload size={18} />
-                  Cargar otro archivo
+                  📤 Cargar otro archivo
                 </button>
                 <button
+                  type="button"
                   onClick={handlePrint}
                   className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-semibold"
                 >
-                  <Printer size={18} />
-                  Imprimir Nómina
+                  🖨️ Imprimir Nómina
                 </button>
               </div>
 

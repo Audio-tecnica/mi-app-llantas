@@ -53,14 +53,14 @@ function Sonido() {
 
   const filtradas = productos.filter((p) => {
     // Si el producto está en modo edición, siempre mostrarlo
-    if (modoEdicion === s.id) {
+    if (modoEdicion === p.id) {
       return true;
     }
 
-    const coincideBusqueda = s.referencia
+    const coincideBusqueda = p.referencia
       ?.toLowerCase()
       .includes(busqueda.toLowerCase());
-    const coincideMarca = !marcaSeleccionada || s.marca === marcaSeleccionada;
+    const coincideMarca = !marcaSeleccionada || p.marca === marcaSeleccionada;
     return coincideBusqueda && coincideMarca;
   });
 

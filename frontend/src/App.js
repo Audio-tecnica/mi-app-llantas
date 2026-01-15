@@ -408,7 +408,7 @@ const TarjetaLlanta = ({
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [mostrarAlerta, setMostrarAlerta] = useState(false);
   const [mostrarCostoLocal, setMostrarCostoLocal] = useState(false);
-  const [mostrarNomina, setMostrarNomina] = useState(false);
+  
 
   // Si está en modo edición, mostrar formulario
   if (modoEdicion === ll.id) {
@@ -838,6 +838,7 @@ function App() {
   const [seleccionadas, setSeleccionadas] = useState([]);
   const [mostrarComparador, setMostrarComparador] = useState(false);
   const [mostrarLogModal, setMostrarLogModal] = useState(false);
+  const [mostrarNomina, setMostrarNomina] = useState(false);
   const [logs, setLogs] = useState([]);
   const [cargandoLogs, setCargandoLogs] = useState(false);
   const [busquedaLog, setBusquedaLog] = useState("");

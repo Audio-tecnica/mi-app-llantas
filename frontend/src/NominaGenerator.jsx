@@ -114,12 +114,7 @@ const NominaGenerator = ({ onClose }) => {
 
   const formatearMoneda = (valor) => {
     const num = Number(valor) || 0;
-    return num.toLocaleString("es-CO", {
-      style: "currency",
-      currency: "COP",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    });
+    return "$ " + num.toLocaleString("es-CO");
   };
 
   const handlePrint = () => {
@@ -133,7 +128,7 @@ const NominaGenerator = ({ onClose }) => {
           <style>
             @page {
               size: letter landscape;
-              margin: 0.4cm;
+              margin: 0.3cm;
             }
             * {
               margin: 0;
@@ -141,139 +136,127 @@ const NominaGenerator = ({ onClose }) => {
               box-sizing: border-box;
             }
             body {
-              font-family: 'Segoe UI', Tahoma, sans-serif;
-              font-size: 8px;
+              font-family: Arial, sans-serif;
+              font-size: 11px;
               color: #000;
               background: white;
             }
             .nomina-container {
               width: 100%;
-              margin: 0 auto;
-              padding: 0.3cm;
+              height: 100%;
+              padding: 0.2cm;
             }
             .header {
               text-align: center;
-              margin-bottom: 8px;
-              padding-bottom: 6px;
+              margin-bottom: 10px;
+              padding-bottom: 8px;
               border-bottom: 2px solid #000;
             }
             .logo-empresa {
-              font-size: 18px;
+              font-size: 24px;
               font-weight: 800;
               color: #000;
-              letter-spacing: 2px;
+              letter-spacing: 1px;
               margin-bottom: 2px;
             }
             .nit {
-              font-size: 9px;
-              color: #444;
-              margin-bottom: 4px;
+              font-size: 12px;
+              color: #333;
+              margin-bottom: 5px;
             }
             .periodo {
               border: 2px solid #000;
               color: #000;
-              padding: 4px 12px;
-              border-radius: 4px;
-              font-size: 8px;
-              font-weight: 600;
+              padding: 5px 15px;
+              font-size: 11px;
+              font-weight: 700;
               display: inline-block;
             }
             .tabla-nomina {
               width: 100%;
               border-collapse: collapse;
-              margin-bottom: 8px;
-              font-size: 7px;
+              font-size: 10px;
             }
             .tabla-nomina th {
-              background: #f0f0f0;
+              background: #e0e0e0;
               color: #000;
-              padding: 4px 2px;
+              padding: 8px 4px;
               text-align: center;
               font-weight: 700;
-              font-size: 6.5px;
+              font-size: 9px;
               text-transform: uppercase;
               border: 1px solid #000;
             }
             .tabla-nomina td {
-              padding: 3px 2px;
+              padding: 7px 4px;
               text-align: right;
-              border: 1px solid #ccc;
-              font-size: 7px;
+              border: 1px solid #888;
+              font-size: 10px;
             }
-            .tabla-nomina td:first-child,
-            .tabla-nomina td:nth-child(2),
-            .tabla-nomina td:nth-child(3) {
+            .tabla-nomina td.texto {
               text-align: left;
             }
             .tabla-nomina tr:nth-child(even) {
-              background-color: #f9f9f9;
-            }
-            .fila-total {
-              background: #e8e8e8 !important;
-              font-weight: 700;
+              background-color: #f5f5f5;
             }
             .fila-total td {
+              background: #d0d0d0;
               border: 1px solid #000;
-              padding: 5px 2px;
+              padding: 10px 4px;
               font-weight: 700;
+              font-size: 11px;
+            }
+            .neto-final {
+              font-size: 13px !important;
+              font-weight: 900 !important;
+            }
+            .resumen-container {
+              margin-top: 15px;
+              display: flex;
+              justify-content: space-between;
+              align-items: stretch;
+              gap: 15px;
             }
             .resumen-box {
+              flex: 1;
               border: 1px solid #000;
-              border-radius: 4px;
-              padding: 8px;
-              margin-top: 8px;
-            }
-            .resumen-titulo {
-              font-size: 9px;
-              font-weight: 700;
-              color: #000;
-              margin-bottom: 6px;
-              border-bottom: 1px solid #000;
-              padding-bottom: 3px;
-            }
-            .resumen-grid {
-              display: grid;
-              grid-template-columns: repeat(4, 1fr);
-              gap: 8px;
-            }
-            .resumen-item {
+              padding: 10px;
               text-align: center;
-              border: 1px solid #ccc;
-              padding: 6px;
-              border-radius: 4px;
             }
-            .resumen-item.destacado {
+            .resumen-box.destacado {
               border: 2px solid #000;
+              background: #f0f0f0;
             }
             .resumen-label {
-              font-size: 6px;
-              color: #444;
+              font-size: 10px;
+              color: #333;
               text-transform: uppercase;
+              margin-bottom: 5px;
             }
             .resumen-valor {
-              font-size: 10px;
+              font-size: 16px;
               font-weight: 700;
-              color: #000;
             }
             .firmas-container {
-              margin-top: 20px;
-              display: grid;
-              grid-template-columns: repeat(3, 1fr);
-              gap: 20px;
+              margin-top: 25px;
+              display: flex;
+              justify-content: space-between;
+              gap: 40px;
             }
             .firma-box {
+              flex: 1;
               text-align: center;
-              padding-top: 6px;
               border-top: 1px solid #000;
+              padding-top: 8px;
+              margin-top: 40px;
             }
             .firma-label {
-              font-size: 7px;
-              color: #444;
-              font-weight: 500;
+              font-size: 11px;
+              color: #333;
             }
             .fecha-generacion {
               text-align: right;
-              font-size: 6px;
+              font-size: 9px;
               color: #666;
               margin-top: 10px;
             }
@@ -313,7 +296,7 @@ const NominaGenerator = ({ onClose }) => {
               <div>
                 <h2 className="text-xl font-bold">Generador de Nómina</h2>
                 <p className="text-gray-300 text-sm">
-                  Convierte tu Excel en un diseño profesional para imprimir (Horizontal)
+                  Diseño horizontal optimizado para impresión
                 </p>
               </div>
             </div>
@@ -392,119 +375,125 @@ const NominaGenerator = ({ onClose }) => {
                 </button>
               </div>
 
-              {/* Vista previa imprimible - HORIZONTAL */}
+              {/* Vista previa imprimible */}
               <div
                 ref={printRef}
                 className="bg-white border border-gray-300 rounded-lg shadow-lg p-4"
-                style={{ minHeight: "500px" }}
               >
                 <div className="nomina-container">
                   {/* Header */}
                   <div className="header text-center mb-3 pb-2 border-b-2 border-black">
-                    <div className="logo-empresa text-xl font-extrabold text-black tracking-wide">
+                    <div className="logo-empresa text-2xl font-extrabold text-black">
                       {datosNomina.empresa}
                     </div>
-                    <div className="nit text-gray-600 text-sm mb-1">
+                    <div className="nit text-gray-700 text-sm mb-2">
                       {datosNomina.nit}
                     </div>
-                    <div className="periodo inline-block border-2 border-black text-black px-4 py-1 rounded text-xs font-semibold">
+                    <div className="periodo inline-block border-2 border-black text-black px-4 py-1 text-sm font-bold">
                       {datosNomina.periodo}
                     </div>
                   </div>
 
-                  {/* Tabla de empleados - CON FONDO SOLIDARIDAD */}
+                  {/* Tabla de empleados */}
                   <div className="overflow-x-auto">
-                    <table className="tabla-nomina w-full text-xs border-collapse border border-gray-400">
+                    <table className="tabla-nomina w-full border-collapse">
                       <thead>
-                        <tr className="bg-gray-200">
-                          <th className="p-1 text-left font-bold border border-gray-400 text-[10px]">Empleado</th>
-                          <th className="p-1 text-left font-bold border border-gray-400 text-[10px]">Cédula</th>
-                          <th className="p-1 text-left font-bold border border-gray-400 text-[10px]">Cargo</th>
-                          <th className="p-1 text-right font-bold border border-gray-400 text-[10px]">Días</th>
-                          <th className="p-1 text-right font-bold border border-gray-400 text-[10px]">Sueldo</th>
-                          <th className="p-1 text-right font-bold border border-gray-400 text-[10px]">H. Extra</th>
-                          <th className="p-1 text-right font-bold border border-gray-400 text-[10px]">Aux. Tpte</th>
-                          <th className="p-1 text-right font-bold border border-gray-400 text-[10px]">Devengado</th>
-                          <th className="p-1 text-right font-bold border border-gray-400 text-[10px]">Salud 4%</th>
-                          <th className="p-1 text-right font-bold border border-gray-400 text-[10px]">Pensión 4%</th>
-                          <th className="p-1 text-right font-bold border border-gray-400 text-[10px]">Fdo. Solidaridad</th>
-                          <th className="p-1 text-right font-bold border border-gray-400 text-[10px]">Deducido</th>
-                          <th className="p-1 text-right font-bold border border-gray-400 text-[10px]">Neto a Pagar</th>
+                        <tr className="bg-gray-300">
+                          <th className="p-2 text-left border border-black">Empleado</th>
+                          <th className="p-2 text-left border border-black">Cédula</th>
+                          <th className="p-2 text-left border border-black">Cargo</th>
+                          <th className="p-2 text-right border border-black">Sueldo Básico</th>
+                          <th className="p-2 text-center border border-black">Días</th>
+                          <th className="p-2 text-right border border-black">Sueldo</th>
+                          <th className="p-2 text-right border border-black">H. Extra</th>
+                          <th className="p-2 text-right border border-black">Aux. Tpte</th>
+                          <th className="p-2 text-right border border-black">Devengado</th>
+                          <th className="p-2 text-right border border-black">Salud 4%</th>
+                          <th className="p-2 text-right border border-black">Pensión 4%</th>
+                          <th className="p-2 text-right border border-black">Fdo. Solid.</th>
+                          <th className="p-2 text-right border border-black">Deducido</th>
+                          <th className="p-2 text-right border border-black">Neto a Pagar</th>
                         </tr>
                       </thead>
                       <tbody>
                         {datosNomina.empleados.map((emp, idx) => (
                           <tr
                             key={idx}
-                            className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                            className={idx % 2 === 0 ? "bg-white" : "bg-gray-100"}
                           >
-                            <td className="p-1 font-semibold text-left border border-gray-300 text-[10px]">
+                            <td className="p-2 font-semibold text-left border border-gray-400 texto">
                               {emp.nombre}
                             </td>
-                            <td className="p-1 text-left border border-gray-300 text-[10px]">{emp.cedula}</td>
-                            <td className="p-1 text-left border border-gray-300 text-[9px]">{emp.cargo}</td>
-                            <td className="p-1 text-right border border-gray-300 text-[10px]">{emp.diasTrabajados}</td>
-                            <td className="p-1 text-right border border-gray-300 text-[10px]">
+                            <td className="p-2 text-left border border-gray-400 texto">{emp.cedula}</td>
+                            <td className="p-2 text-left border border-gray-400 texto text-xs">{emp.cargo}</td>
+                            <td className="p-2 text-right border border-gray-400">
+                              {formatearMoneda(emp.sueldoBasico)}
+                            </td>
+                            <td className="p-2 text-center border border-gray-400">{emp.diasTrabajados}</td>
+                            <td className="p-2 text-right border border-gray-400">
                               {formatearMoneda(emp.sueldoDias)}
                             </td>
-                            <td className="p-1 text-right border border-gray-300 text-[10px]">
+                            <td className="p-2 text-right border border-gray-400">
                               {formatearMoneda(emp.horasExtra)}
                             </td>
-                            <td className="p-1 text-right border border-gray-300 text-[10px]">
+                            <td className="p-2 text-right border border-gray-400">
                               {formatearMoneda(emp.auxTransporte)}
                             </td>
-                            <td className="p-1 text-right font-semibold border border-gray-300 text-[10px]">
+                            <td className="p-2 text-right border border-gray-400 font-semibold">
                               {formatearMoneda(emp.totalDevengado)}
                             </td>
-                            <td className="p-1 text-right border border-gray-300 text-[10px]">
+                            <td className="p-2 text-right border border-gray-400">
                               {formatearMoneda(emp.salud)}
                             </td>
-                            <td className="p-1 text-right border border-gray-300 text-[10px]">
+                            <td className="p-2 text-right border border-gray-400">
                               {formatearMoneda(emp.pension)}
                             </td>
-                            <td className="p-1 text-right border border-gray-300 text-[10px]">
+                            <td className="p-2 text-right border border-gray-400">
                               {formatearMoneda(emp.fondoSolidaridad)}
                             </td>
-                            <td className="p-1 text-right border border-gray-300 text-[10px]">
+                            <td className="p-2 text-right border border-gray-400">
                               {formatearMoneda(emp.totalDeducido)}
                             </td>
-                            <td className="p-1 text-right font-bold border border-gray-300 text-[11px]">
+                            <td className="p-2 text-right border border-gray-400 font-bold">
                               {formatearMoneda(emp.netoAPagar)}
                             </td>
                           </tr>
                         ))}
                         {/* Fila de totales */}
                         {datosNomina.totales && (
-                          <tr className="bg-gray-200 font-bold">
-                            <td className="p-2 font-bold text-left border border-gray-400 text-[10px]" colSpan="3">
+                          <tr className="fila-total bg-gray-300">
+                            <td className="p-2 font-bold text-left border border-black" colSpan="3">
                               TOTALES
                             </td>
-                            <td className="p-2 text-right border border-gray-400 text-[10px]">—</td>
-                            <td className="p-2 text-right border border-gray-400 text-[10px]">
+                            <td className="p-2 text-right border border-black font-bold">
+                              {formatearMoneda(datosNomina.totales.sueldoBasico)}
+                            </td>
+                            <td className="p-2 text-center border border-black">—</td>
+                            <td className="p-2 text-right border border-black font-bold">
                               {formatearMoneda(datosNomina.totales.sueldoDias)}
                             </td>
-                            <td className="p-2 text-right border border-gray-400 text-[10px]">
+                            <td className="p-2 text-right border border-black font-bold">
                               {formatearMoneda(datosNomina.totales.horasExtra)}
                             </td>
-                            <td className="p-2 text-right border border-gray-400 text-[10px]">
+                            <td className="p-2 text-right border border-black font-bold">
                               {formatearMoneda(datosNomina.totales.auxTransporte)}
                             </td>
-                            <td className="p-2 text-right border border-gray-400 text-[10px]">
+                            <td className="p-2 text-right border border-black font-bold">
                               {formatearMoneda(datosNomina.totales.totalDevengado)}
                             </td>
-                            <td className="p-2 text-right border border-gray-400 text-[10px]">
+                            <td className="p-2 text-right border border-black font-bold">
                               {formatearMoneda(datosNomina.totales.salud)}
                             </td>
-                            <td className="p-2 text-right border border-gray-400 text-[10px]">
+                            <td className="p-2 text-right border border-black font-bold">
                               {formatearMoneda(datosNomina.totales.pension)}
                             </td>
-                            <td className="p-2 text-right border border-gray-400 text-[10px]">
+                            <td className="p-2 text-right border border-black font-bold">
                               {formatearMoneda(datosNomina.totales.fondoSolidaridad)}
                             </td>
-                            <td className="p-2 text-right border border-gray-400 text-[10px]">
+                            <td className="p-2 text-right border border-black font-bold">
                               {formatearMoneda(datosNomina.totales.totalDeducido)}
                             </td>
-                            <td className="p-2 text-right text-sm font-bold border-2 border-black">
+                            <td className="p-2 text-right border-2 border-black font-bold neto-final text-base">
                               {formatearMoneda(datosNomina.totales.netoAPagar)}
                             </td>
                           </tr>
@@ -513,68 +502,41 @@ const NominaGenerator = ({ onClose }) => {
                     </table>
                   </div>
 
-                  {/* Resumen */}
-                  <div className="resumen-box mt-4 border border-gray-400 rounded-lg p-3">
-                    <h3 className="resumen-titulo text-xs font-bold mb-2 border-b border-gray-400 pb-1">
-                      📊 RESUMEN DE NÓMINA
-                    </h3>
-                    <div className="resumen-grid grid grid-cols-4 gap-3">
-                      <div className="resumen-item text-center border border-gray-300 p-2 rounded">
-                        <div className="resumen-label text-[9px] text-gray-500 uppercase">Empleados</div>
-                        <div className="resumen-valor text-lg font-bold">
-                          {datosNomina.empleados.length}
-                        </div>
-                      </div>
-                      <div className="resumen-item text-center border border-gray-300 p-2 rounded">
-                        <div className="resumen-label text-[9px] text-gray-500 uppercase">Total Devengado</div>
-                        <div className="resumen-valor text-sm font-bold">
-                          {formatearMoneda(datosNomina.totales?.totalDevengado)}
-                        </div>
-                      </div>
-                      <div className="resumen-item text-center border border-gray-300 p-2 rounded">
-                        <div className="resumen-label text-[9px] text-gray-500 uppercase">Total Deducido</div>
-                        <div className="resumen-valor text-sm font-bold">
-                          {formatearMoneda(datosNomina.totales?.totalDeducido)}
-                        </div>
-                      </div>
-                      <div className="resumen-item destacado text-center border-2 border-black p-2 rounded bg-gray-100">
-                        <div className="resumen-label text-[9px] uppercase font-semibold">
-                          Total Neto a Pagar
-                        </div>
-                        <div className="resumen-valor text-lg font-bold">
-                          {formatearMoneda(datosNomina.totales?.netoAPagar)}
-                        </div>
-                      </div>
+                  {/* Resumen en línea */}
+                  <div className="resumen-container flex justify-between mt-4 gap-4">
+                    <div className="resumen-box flex-1 border border-black p-3 text-center">
+                      <div className="resumen-label text-xs text-gray-600 uppercase">Empleados</div>
+                      <div className="resumen-valor text-2xl font-bold">{datosNomina.empleados.length}</div>
+                    </div>
+                    <div className="resumen-box flex-1 border border-black p-3 text-center">
+                      <div className="resumen-label text-xs text-gray-600 uppercase">Total Devengado</div>
+                      <div className="resumen-valor text-lg font-bold">{formatearMoneda(datosNomina.totales?.totalDevengado)}</div>
+                    </div>
+                    <div className="resumen-box flex-1 border border-black p-3 text-center">
+                      <div className="resumen-label text-xs text-gray-600 uppercase">Total Deducido</div>
+                      <div className="resumen-valor text-lg font-bold">{formatearMoneda(datosNomina.totales?.totalDeducido)}</div>
+                    </div>
+                    <div className="resumen-box destacado flex-1 border-2 border-black p-3 text-center bg-gray-200">
+                      <div className="resumen-label text-xs uppercase font-bold">Total Neto a Pagar</div>
+                      <div className="resumen-valor text-xl font-bold">{formatearMoneda(datosNomina.totales?.netoAPagar)}</div>
                     </div>
                   </div>
 
                   {/* Firmas */}
-                  <div className="firmas-container mt-6 grid grid-cols-3 gap-6">
-                    <div className="firma-box text-center">
-                      <div className="border-t border-black pt-2 mt-8">
-                        <p className="firma-label text-[10px] text-gray-600 font-medium">
-                          Elaborado por
-                        </p>
-                      </div>
+                  <div className="firmas-container flex justify-between mt-6 gap-8">
+                    <div className="firma-box flex-1 text-center border-t border-black pt-2 mt-10">
+                      <p className="firma-label text-sm text-gray-700">Elaborado por</p>
                     </div>
-                    <div className="firma-box text-center">
-                      <div className="border-t border-black pt-2 mt-8">
-                        <p className="firma-label text-[10px] text-gray-600 font-medium">
-                          Revisado por
-                        </p>
-                      </div>
+                    <div className="firma-box flex-1 text-center border-t border-black pt-2 mt-10">
+                      <p className="firma-label text-sm text-gray-700">Revisado por</p>
                     </div>
-                    <div className="firma-box text-center">
-                      <div className="border-t border-black pt-2 mt-8">
-                        <p className="firma-label text-[10px] text-gray-600 font-medium">
-                          Aprobado por
-                        </p>
-                      </div>
+                    <div className="firma-box flex-1 text-center border-t border-black pt-2 mt-10">
+                      <p className="firma-label text-sm text-gray-700">Aprobado por</p>
                     </div>
                   </div>
 
                   {/* Fecha de generación */}
-                  <div className="fecha-generacion text-right text-[9px] text-gray-500 mt-4">
+                  <div className="fecha-generacion text-right text-xs text-gray-500 mt-3">
                     Generado el {datosNomina.fechaGeneracion}
                   </div>
                 </div>

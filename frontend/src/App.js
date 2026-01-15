@@ -3,6 +3,7 @@ import axios from "axios";
 import { Eye, EyeOff, Menu, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ComparadorLlantas from "./ComparadorLlantas";
+import NominaGenerator from "./NominaGenerator";
 
 const ModalResultadoActualizacion = ({ resultado, onCerrar }) => {
   if (!resultado) return null;
@@ -407,6 +408,7 @@ const TarjetaLlanta = ({
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [mostrarAlerta, setMostrarAlerta] = useState(false);
   const [mostrarCostoLocal, setMostrarCostoLocal] = useState(false);
+  const [mostrarNomina, setMostrarNomina] = useState(false);
 
   // Si está en modo edición, mostrar formulario
   if (modoEdicion === ll.id) {
@@ -1363,6 +1365,19 @@ function App() {
             >
               <span>🚪</span>
               <span>Cerrar Sesión</span>
+            </button>
+            <div className="border-t border-slate-700 my-4"></div>
+
+            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-3">
+              Herramientas
+            </div>
+
+            <button
+              onClick={() => setMostrarNomina(true)}
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-green-700 transition-all text-sm bg-green-800"
+            >
+              <span>📋</span>
+              <span>Nómina</span>
             </button>
           </nav>
         </div>
@@ -2429,6 +2444,9 @@ function App() {
           resultado={resultadoActualizacion}
           onCerrar={() => setResultadoActualizacion(null)}
         />
+      )}
+      {mostrarNomina && (
+        <NominaGenerator onClose={() => setMostrarNomina(false)} />
       )}
     </div>
   );

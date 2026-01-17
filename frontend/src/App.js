@@ -838,7 +838,6 @@ function App() {
   const [seleccionadas, setSeleccionadas] = useState([]);
   const [mostrarComparador, setMostrarComparador] = useState(false);
   const [mostrarLogModal, setMostrarLogModal] = useState(false);
-  const [mostrarNomina, setMostrarNomina] = useState(false);
   const [logs, setLogs] = useState([]);
   const [cargandoLogs, setCargandoLogs] = useState(false);
   const [busquedaLog, setBusquedaLog] = useState("");
@@ -1368,18 +1367,6 @@ function App() {
               <span>Cerrar Sesión</span>
             </button>
             <div className="border-t border-slate-700 my-4"></div>
-
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-3">
-              Herramientas
-            </div>
-
-            <button
-              onClick={() => setMostrarNomina(true)}
-              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-green-700 transition-all text-sm bg-green-800"
-            >
-              <span>📋</span>
-              <span>Nómina</span>
-            </button>
           </nav>
         </div>
       </aside>

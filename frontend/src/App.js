@@ -3,7 +3,6 @@ import axios from "axios";
 import { Eye, EyeOff, Menu, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ComparadorLlantas from "./ComparadorLlantas";
-import NominaGenerator from "./NominaGenerator";
 
 const ModalResultadoActualizacion = ({ resultado, onCerrar }) => {
   if (!resultado) return null;
@@ -2432,9 +2431,6 @@ function App() {
           resultado={resultadoActualizacion}
           onCerrar={() => setResultadoActualizacion(null)}
         />
-      )}
-      {mostrarNomina && (
-        <NominaGenerator onClose={() => setMostrarNomina(false)} />
       )}
     </div>
   );

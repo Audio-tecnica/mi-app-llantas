@@ -143,18 +143,18 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
     // 🔥 FUNCIÓN PARA NORMALIZAR MEDIDA
     function normalizarMedida(texto) {
       if (!texto) return "";
-      
+
       let normalizado = texto.toUpperCase().trim();
-      
+
       // Quitar espacios internos
       normalizado = normalizado.replace(/\s+/g, "");
-      
+
       // Normalizar separadores: convertir guiones a barras
       normalizado = normalizado.replace(/-/g, "/");
-      
+
       // Asegurar que tenga R si falta
       normalizado = normalizado.replace(/(\d{3}\/\d{2})(\d{2})/, "$1R$2");
-      
+
       return normalizado;
     }
 
@@ -163,145 +163,145 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
       // Normalizar ambas
       const m1 = normalizarMedida(medida1);
       const m2 = normalizarMedida(medida2);
-      
+
       // Si son exactamente iguales → coinciden
       if (m1 === m2) return true;
-      
+
       // Si una tiene LT y la otra no → NO coinciden (LT es específico)
       const m1_tieneLT = m1.startsWith("LT");
       const m2_tieneLT = m2.startsWith("LT");
-      
+
       if (m1_tieneLT !== m2_tieneLT) {
         return false; // ❌ Una tiene LT, otra no
       }
-      
+
       // Si una tiene P y la otra no → SÍ coinciden (P es opcional)
       const m1_sinP = m1.startsWith("P") ? m1.substring(1) : m1;
       const m2_sinP = m2.startsWith("P") ? m2.substring(1) : m2;
-      
+
       return m1_sinP === m2_sinP;
     }
 
     // 🔥 FUNCIÓN PARA EXTRAER PALABRAS CLAVE DEL DISEÑO
     function extraerPalabrasClave(texto) {
       if (!texto) return [];
-      
+
       const palabras = texto
         .toUpperCase()
         .split(/[\s\-\/\.,]+/)
-        .filter(p => {
+        .filter((p) => {
           return (
-            p.length >= 3 && 
+            p.length >= 3 &&
             !/^\d+$/.test(p) &&
             !["THE", "AND", "FOR"].includes(p)
           );
         });
-      
+
       return palabras;
     }
 
-    // 🔥 LÓGICA DE COINCIDENCIA
+    // 🔥 LÓGICA DE COINCIDENCIA MEJORADA
     let intentos = 0;
+
+    // ✅ NUEVO: Agrupar llantas de Llantar por marca + diseño
+    // Esto permite encontrar TODAS las variantes de medida de una misma llanta
+    const llantasPorDiseno = new Map();
+
     for (const itemLlantar of datosLlantar) {
+      const clave = `${itemLlantar.marca}|${itemLlantar.diseno}`.toUpperCase();
+      if (!llantasPorDiseno.has(clave)) {
+        llantasPorDiseno.set(clave, []);
+      }
+      llantasPorDiseno.get(clave).push(itemLlantar);
+    }
+
+    for (const llantaInv of inventario) {
       intentos++;
 
-      const medidaLlantar = itemLlantar.medida;
-      const marcaLlantar = itemLlantar.marca.toUpperCase().trim();
+      const marcaInv = (llantaInv.marca || "").toUpperCase().trim();
+      const refInv = (llantaInv.referencia || "").toUpperCase().trim();
 
-      // Buscar en inventario
-      const llantaDB = inventario.find((l) => {
-        // 1️⃣ VALIDAR MARCA (obligatorio - debe ser EXACTA)
-        const marcaInv = (l.marca || "").toUpperCase().trim();
-        if (marcaInv !== marcaLlantar) {
-          return false;
-        }
+      // Extraer medida de la referencia del inventario
+      const patronMedida = /(?:LT|P)?(\d{2,3}[\/\-]?\d{2}R?\d{2}(?:\.5)?)/gi;
+      const medidasEnInv = refInv.match(patronMedida);
 
-        // 2️⃣ VALIDAR MEDIDA (con reglas especiales para LT/P)
-        const refInventario = (l.referencia || "").toUpperCase().trim();
-        
-        // Buscar la medida en la referencia
-        // Ejemplo: "LT 275/60R20 BAJA BOSS" contiene la medida "LT275/60R20"
-        
-        // Extraer posible medida de la referencia
-        const patronMedida = /(?:LT|P)?(\d{2,3}[\/\-]?\d{2}R?\d{2}(?:\.5)?)/gi;
-        const medidasEnRef = refInventario.match(patronMedida);
-        
-        if (!medidasEnRef || medidasEnRef.length === 0) {
-          return false;
-        }
-        
-        // Verificar si alguna medida de la referencia coincide
-        let hayCoincidencia = false;
-        for (const medidaRef of medidasEnRef) {
-          if (medidasCoinciden(medidaRef, medidaLlantar)) {
-            hayCoincidencia = true;
-            break;
-          }
-        }
-        
-        if (!hayCoincidencia) {
-          return false;
-        }
-
-        // 3️⃣ VALIDAR DISEÑO (FLEXIBLE - opcional)
-        const disenoLlantar = itemLlantar.diseno || "";
-        
-        if (disenoLlantar && disenoLlantar.length > 3) {
-          const palabrasDiseno = extraerPalabrasClave(disenoLlantar);
-          
-          if (palabrasDiseno.length > 0) {
-            let coincidencias = 0;
-            for (const palabra of palabrasDiseno) {
-              if (refInventario.includes(palabra)) {
-                coincidencias++;
-              }
-            }
-
-            // Si hay más de 2 palabras pero ninguna coincide
-            if (palabrasDiseno.length > 2 && coincidencias === 0) {
-              return false;
-            }
-
-            // Si hay 1-2 palabras, al menos una debe coincidir
-            if (palabrasDiseno.length <= 2 && coincidencias === 0) {
-              return false;
-            }
-          }
-        }
-
-        // 4️⃣ ✅ MATCH EXITOSO
-        return true;
-      });
-
-      if (!llantaDB) {
-        resultado.noEncontradas++;
-        resultado.noEncontradasLista.push({
-          marca: itemLlantar.marca,
-          medida: itemLlantar.medida,
-          diseno: itemLlantar.diseno,
-          precio: itemLlantar.precio,
-        });
-
-        if (intentos <= 20 || resultado.noEncontradas <= 20) {
-          console.log(
-            `❌ No encontrada: ${itemLlantar.marca} ${itemLlantar.medida} ${itemLlantar.diseno}`
-          );
-        }
-        continue;
+      if (!medidasEnInv || medidasEnInv.length === 0) {
+        continue; // No tiene medida válida
       }
+
+      const medidaInv = medidasEnInv[0]; // Primera medida encontrada
+
+      // Extraer palabras clave del diseño de la referencia
+      const palabrasInv = extraerPalabrasClave(refInv);
+
+      // Buscar en datosLlantar una coincidencia EXACTA
+      let mejorCoincidencia = null;
+      let mejorPuntaje = 0;
+
+      for (const itemLlantar of datosLlantar) {
+        // 1️⃣ Validar marca
+        if (itemLlantar.marca.toUpperCase().trim() !== marcaInv) {
+          continue;
+        }
+
+        // 2️⃣ Validar medida con reglas LT/P
+        if (!medidasCoinciden(medidaInv, itemLlantar.medida)) {
+          continue;
+        }
+
+        // 3️⃣ Calcular puntaje de diseño
+        const palabrasLlantar = extraerPalabrasClave(itemLlantar.diseno);
+
+        if (palabrasLlantar.length === 0) {
+          // No hay diseño, solo coincidir por marca y medida
+          mejorCoincidencia = itemLlantar;
+          break;
+        }
+
+        let coincidencias = 0;
+        for (const palabra of palabrasLlantar) {
+          if (refInv.includes(palabra)) {
+            coincidencias++;
+          }
+        }
+
+        const puntaje = coincidencias / palabrasLlantar.length;
+
+        // Si hay más de 2 palabras en diseño pero ninguna coincide → descartar
+        if (palabrasLlantar.length > 2 && coincidencias === 0) {
+          continue;
+        }
+
+        // Si hay 1-2 palabras pero ninguna coincide → descartar
+        if (palabrasLlantar.length <= 2 && coincidencias === 0) {
+          continue;
+        }
+
+        // Actualizar mejor coincidencia
+        if (puntaje > mejorPuntaje) {
+          mejorPuntaje = puntaje;
+          mejorCoincidencia = itemLlantar;
+        }
+      }
+
+      if (!mejorCoincidencia) {
+        continue; // No se encontró coincidencia para esta llanta del inventario
+      }
+
+      const itemLlantar = mejorCoincidencia;
 
       // ✅ COINCIDENCIA ENCONTRADA
       if (resultado.actualizadas < 20) {
         console.log(
-          `✅ MATCH #${resultado.actualizadas + 1}: "${llantaDB.referencia}" ↔ "${itemLlantar.medida} ${itemLlantar.diseno}"`
+          `✅ MATCH #${resultado.actualizadas + 1}: "${llantaInv.referencia}" ↔ "${itemLlantar.medida} ${itemLlantar.diseno}"`,
         );
       }
 
       // 📊 Calcular margen según la marca
       const divisor = itemLlantar.marca === "TOYO" ? 1.15 : 1.2;
-      const precioEsperado = llantaDB.costo_empresa / divisor;
-      const margenReal = itemLlantar.precio - llantaDB.costo_empresa;
-      const porcentajeReal = (margenReal / llantaDB.costo_empresa) * 100;
+      const precioEsperado = llantaInv.costo_empresa / divisor;
+      const margenReal = itemLlantar.precio - llantaInv.costo_empresa;
+      const porcentajeReal = (margenReal / llantaInv.costo_empresa) * 100;
 
       let alertaMargen = null;
       let estadoActualizacion = "actualizada";
@@ -312,7 +312,7 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
 
         alertaMargen = {
           tipo,
-          costoReal: llantaDB.costo_empresa,
+          costoReal: llantaInv.costo_empresa,
           precioEsperado: Math.round(precioEsperado),
           precioPublico: itemLlantar.precio,
           margenDisponible: Math.round(margenReal),
@@ -325,21 +325,21 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
           resultado.bloqueadas++;
           if (resultado.bloqueadas <= 10) {
             console.log(
-              `🔴 MARGEN CRÍTICO: ${llantaDB.referencia} - Margen: ${porcentajeReal.toFixed(1)}%`
+              `🔴 MARGEN CRÍTICO: ${llantaInv.referencia} - Margen: ${porcentajeReal.toFixed(1)}%`,
             );
           }
         } else {
           resultado.margenBajo++;
           if (resultado.margenBajo <= 10) {
             console.log(
-              `⚠️ MARGEN BAJO: ${llantaDB.referencia} - Margen: ${porcentajeReal.toFixed(1)}%`
+              `⚠️ MARGEN BAJO: ${llantaInv.referencia} - Margen: ${porcentajeReal.toFixed(1)}%`,
             );
           }
         }
       }
 
       // 💾 ACTUALIZAR PRECIO EN BD
-      const precioAnterior = llantaDB.precio_cliente;
+      const precioAnterior = llantaInv.precio_cliente;
       const cambio =
         precioAnterior > 0
           ? ((itemLlantar.precio - precioAnterior) / precioAnterior) * 100
@@ -351,7 +351,7 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
              alerta_margen = $2,
              fecha_ultima_actualizacion = NOW()
          WHERE id = $3`,
-        [itemLlantar.precio, JSON.stringify(alertaMargen), llantaDB.id]
+        [itemLlantar.precio, JSON.stringify(alertaMargen), llantaInv.id],
       );
 
       resultado.actualizadas++;
@@ -360,7 +360,7 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
         marca: itemLlantar.marca,
         medida: itemLlantar.medida,
         diseno: itemLlantar.diseno,
-        referencia: llantaDB.referencia,
+        referencia: llantaInv.referencia,
         estado: estadoActualizacion,
         precioAnterior,
         precioNuevo: itemLlantar.precio,
@@ -391,7 +391,7 @@ ACTUALIZACIÓN DE PRECIOS LLANTAR
 
       await pool.query(
         "INSERT INTO logs_actividad (tipo, detalles, fecha) VALUES ($1, $2, NOW())",
-        ["ACTUALIZACIÓN PRECIOS LLANTAR", resumenLog]
+        ["ACTUALIZACIÓN PRECIOS LLANTAR", resumenLog],
       );
 
       console.log("✅ Reporte guardado en log de actividades");
@@ -415,7 +415,6 @@ ACTUALIZACIÓN DE PRECIOS LLANTAR
   }
 });
 
-
 /**
  * Endpoint para procesar TODOS los rines en lote
  */
@@ -424,7 +423,7 @@ app.post("/api/rines/procesar-todos", async (req, res) => {
     console.log("🔄 Iniciando procesamiento en lote...");
 
     const result = await pool.query(
-      "SELECT * FROM rines WHERE foto IS NOT NULL"
+      "SELECT * FROM rines WHERE foto IS NOT NULL",
     );
     const rines = result.rows;
 
@@ -449,7 +448,7 @@ app.post("/api/rines/procesar-todos", async (req, res) => {
         if (urlSinFondo !== rin.foto) {
           await pool.query(
             "UPDATE rines SET foto = $1, foto_original = $2 WHERE id = $3",
-            [urlSinFondo, rin.foto, rin.id]
+            [urlSinFondo, rin.foto, rin.id],
           );
 
           resultados.exitosos++;
@@ -585,7 +584,7 @@ app.post("/api/editar-llanta", async (req, res) => {
         consignacion || false,
         comentario || "",
         id,
-      ]
+      ],
     );
     res.json({ success: true });
   } catch (error) {
@@ -620,7 +619,7 @@ app.post("/api/agregar-llanta", async (req, res) => {
         parseInt(stock),
         consignacion || false,
         comentario || "",
-      ]
+      ],
     );
     res.json({ success: true });
   } catch (e) {
@@ -668,7 +667,7 @@ app.post("/api/agregar-tapete", async (req, res) => {
         parseFloat(costo) || 0,
         parseFloat(precio) || 0,
         parseInt(stock) || 0,
-      ]
+      ],
     );
     res.json({ success: true });
   } catch (e) {
@@ -696,7 +695,7 @@ app.post("/api/editar-tapete", async (req, res) => {
         parseFloat(precio),
         parseInt(stock),
         id,
-      ]
+      ],
     );
     res.json({ success: true });
   } catch (e) {
@@ -749,7 +748,7 @@ app.post("/api/agregar-rin", async (req, res) => {
         parseFloat(costo) || 0,
         parseFloat(precio) || 0,
         parseInt(stock) || 0,
-      ]
+      ],
     );
 
     res.json(result.rows[0]);
@@ -801,7 +800,7 @@ app.post("/api/editar-rin", async (req, res) => {
         remision === true || remision === "true",
         comentario || "",
         id,
-      ]
+      ],
     );
 
     console.log("✅ Rin actualizado:", result.rows[0]);
@@ -860,7 +859,7 @@ app.post(
         if (urlSinFondo !== urlFoto) {
           await pool.query(
             "UPDATE rines SET foto = $1, foto_original = $2 WHERE id = $3",
-            [urlSinFondo, urlFoto, id]
+            [urlSinFondo, urlFoto, id],
           );
 
           console.log("✅ Foto procesada y guardada");
@@ -888,7 +887,7 @@ app.post(
         details: error.toString(),
       });
     }
-  }
+  },
 );
 
 // ===========================
@@ -902,7 +901,7 @@ app.post("/api/log-actividad", async (req, res) => {
   try {
     const result = await pool.query(
       "INSERT INTO logs_actividad (tipo, detalles, fecha) VALUES ($1, $2, COALESCE($3, NOW())) RETURNING id",
-      [tipo, detalles, fecha]
+      [tipo, detalles, fecha],
     );
 
     res.json({ success: true, id: result.rows[0].id });
@@ -918,7 +917,7 @@ app.post("/api/log-actividad", async (req, res) => {
 app.get("/api/logs", async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT * FROM logs_actividad ORDER BY fecha DESC LIMIT 500"
+      "SELECT * FROM logs_actividad ORDER BY fecha DESC LIMIT 500",
     );
 
     res.json(result.rows);
@@ -960,7 +959,7 @@ app.post("/api/agregar-carpa", async (req, res) => {
         parseFloat(costo) || 0,
         parseFloat(precio) || 0,
         parseInt(stock) || 0,
-      ]
+      ],
     );
     res.json({ success: true });
   } catch (e) {
@@ -988,7 +987,7 @@ app.post("/api/editar-carpa", async (req, res) => {
         parseFloat(precio),
         parseInt(stock),
         id,
-      ]
+      ],
     );
     res.json({ success: true });
   } catch (e) {
@@ -1014,7 +1013,7 @@ app.post("/api/eliminar-carpa", async (req, res) => {
 app.get("/api/tiros-arrastre", async (req, res) => {
   try {
     const { rows } = await pool.query(
-      "SELECT * FROM tiros_arrastre ORDER BY id ASC"
+      "SELECT * FROM tiros_arrastre ORDER BY id ASC",
     );
     res.json(rows);
   } catch (e) {
@@ -1038,7 +1037,7 @@ app.post("/api/agregar-tiro-arrastre", async (req, res) => {
         parseFloat(costo) || 0,
         parseFloat(precio) || 0,
         parseInt(stock) || 0,
-      ]
+      ],
     );
     res.json({ success: true });
   } catch (e) {
@@ -1064,7 +1063,7 @@ app.post("/api/editar-tiro-arrastre", async (req, res) => {
         parseFloat(precio),
         parseInt(stock),
         id,
-      ]
+      ],
     );
     res.json({ success: true });
   } catch (e) {
@@ -1112,7 +1111,7 @@ app.post("/api/agregar-sonido", async (req, res) => {
         parseFloat(costo) || 0,
         parseFloat(precio) || 0,
         parseInt(stock) || 0,
-      ]
+      ],
     );
     res.json({ success: true });
   } catch (e) {
@@ -1138,7 +1137,7 @@ app.post("/api/editar-sonido", async (req, res) => {
         parseFloat(precio),
         parseInt(stock),
         id,
-      ]
+      ],
     );
     res.json({ success: true });
   } catch (e) {
@@ -1186,7 +1185,7 @@ app.post("/api/agregar-luz", async (req, res) => {
         parseFloat(costo) || 0,
         parseFloat(precio) || 0,
         parseFloat(stock) || 0,
-      ]
+      ],
     );
     res.json({ success: true });
   } catch (e) {
@@ -1212,7 +1211,7 @@ app.post("/api/editar-luz", async (req, res) => {
         parseFloat(precio),
         parseFloat(stock),
         id,
-      ]
+      ],
     );
     res.json({ success: true });
   } catch (e) {
@@ -1238,7 +1237,7 @@ app.post("/api/eliminar-luz", async (req, res) => {
 app.get("/api/promociones", async (req, res) => {
   try {
     const { rows } = await pool.query(
-      "SELECT * FROM promociones ORDER BY marca, referencia"
+      "SELECT * FROM promociones ORDER BY marca, referencia",
     );
     res.json(rows);
   } catch (e) {
@@ -1270,7 +1269,7 @@ app.post(
         console.log("✅ Texto extraído con pdf-parse");
       } catch (err) {
         console.log(
-          "⚠️ No se pudo extraer texto (probablemente es una imagen)"
+          "⚠️ No se pudo extraer texto (probablemente es una imagen)",
         );
         return res.json({
           success: false,
@@ -1370,7 +1369,7 @@ app.post(
         detalle: e.message,
       });
     }
-  }
+  },
 );
 
 // Desactivar promoción
@@ -1485,8 +1484,8 @@ app.post(
             costo: l.costo_empresa,
           })),
           null,
-          2
-        )
+          2,
+        ),
       );
 
       const resultado = {
@@ -1505,7 +1504,7 @@ app.post(
           // 🔍 LOG 3: Ver intentos de coincidencia
           if (coincideMarca) {
             console.log(
-              `🔍 Coincide marca ${itemLlantar.marca}, buscando medida ${itemLlantar.medida} en ${l.referencia}`
+              `🔍 Coincide marca ${itemLlantar.marca}, buscando medida ${itemLlantar.medida} en ${l.referencia}`,
             );
           }
 
@@ -1561,7 +1560,7 @@ app.post(
              alerta_margen = $2, 
              fecha_ultima_actualizacion = NOW()
          WHERE id = $3`,
-          [itemLlantar.precio, JSON.stringify(alertaMargen), llantaDB.id]
+          [itemLlantar.precio, JSON.stringify(alertaMargen), llantaDB.id],
         );
 
         resultado.actualizadas++;
@@ -1580,7 +1579,7 @@ app.post(
       }
 
       console.log(
-        `✅ Actualizadas: ${resultado.actualizadas}, ⚠️ Bajo: ${resultado.margenBajo}, 🔴 Bloq: ${resultado.bloqueadas}`
+        `✅ Actualizadas: ${resultado.actualizadas}, ⚠️ Bajo: ${resultado.margenBajo}, 🔴 Bloq: ${resultado.bloqueadas}`,
       );
 
       res.json(resultado);
@@ -1591,7 +1590,7 @@ app.post(
         detalles: error.message,
       });
     }
-  }
+  },
 );
 // Verificar si una llanta tiene promoción
 app.get("/api/verificar-promocion/:marca/:referencia", async (req, res) => {
@@ -1599,7 +1598,7 @@ app.get("/api/verificar-promocion/:marca/:referencia", async (req, res) => {
   try {
     const { rows } = await pool.query(
       "SELECT * FROM promociones WHERE marca=$1 AND referencia=$2 AND activa=true LIMIT 1",
-      [marca, referencia]
+      [marca, referencia],
     );
     res.json(rows[0] || null);
   } catch (e) {
@@ -1656,6 +1655,6 @@ app.listen(PORT, () => {
       REMOVE_BG_API_KEY !== "TU_API_KEY_AQUI"
         ? "ACTIVADO ✅"
         : "PENDIENTE (configura tu API key)"
-    }`
+    }`,
   );
 });

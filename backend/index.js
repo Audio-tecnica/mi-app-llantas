@@ -158,7 +158,7 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
       return normalizado;
     }
 
-    // 🔥 FUNCIÓN PARA COMPARAR MEDIDAS (considera que P es opcional)
+    // 🔥 FUNCIÓN PARA COMPARAR MEDIDAS (VERSIÓN CORREGIDA)
     function medidasCoinciden(medida1, medida2) {
       // Normalizar ambas
       const m1 = normalizarMedida(medida1);
@@ -167,19 +167,21 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
       // Si son exactamente iguales → coinciden
       if (m1 === m2) return true;
 
-      // Si una tiene LT y la otra no → NO coinciden (LT es específico)
-      const m1_tieneLT = m1.startsWith("LT");
-      const m2_tieneLT = m2.startsWith("LT");
+      // ⚠️ CRÍTICO: Verificar si una tiene LT y la otra no
+      const m1TieneLT = m1.startsWith("LT");
+      const m2TieneLT = m2.startsWith("LT");
 
-      if (m1_tieneLT !== m2_tieneLT) {
-        return false; // ❌ Una tiene LT, otra no
+      // Si UNA tiene LT y la OTRA NO → SON DIFERENTES
+      if (m1TieneLT !== m2TieneLT) {
+        return false;
       }
 
-      // Si una tiene P y la otra no → SÍ coinciden (P es opcional)
-      const m1_sinP = m1.startsWith("P") ? m1.substring(1) : m1;
-      const m2_sinP = m2.startsWith("P") ? m2.substring(1) : m2;
+      // Si ambas tienen LT o ninguna tiene LT, continuar
+      // Ahora verificar P (que es opcional)
+      const m1SinP = m1.startsWith("P") ? m1.substring(1) : m1;
+      const m2SinP = m2.startsWith("P") ? m2.substring(1) : m2;
 
-      return m1_sinP === m2_sinP;
+      return m1SinP === m2SinP;
     }
 
     // 🔥 FUNCIÓN PARA EXTRAER PALABRAS CLAVE DEL DISEÑO

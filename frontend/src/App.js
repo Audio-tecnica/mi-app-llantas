@@ -184,18 +184,24 @@ const ModalResultadoActualizacion = ({ resultado, onCerrar }) => {
               </div>
             )}
 
-          {/* Actualizaciones Exitosas (solo primeras 10) */}
+          {/* Actualizaciones Exitosas (TODAS) */}
           {resultado.detalles?.filter((d) => d.estado === "actualizada")
             .length > 0 && (
             <div className="mb-6">
               <h3 className="text-lg font-bold text-green-600 mb-3 flex items-center gap-2">
                 <span>✅</span>
-                <span>Actualizaciones Exitosas (primeras 10)</span>
+                <span>
+                  Actualizaciones Exitosas (
+                  {
+                    resultado.detalles.filter((d) => d.estado === "actualizada")
+                      .length
+                  }{" "}
+                  items)
+                </span>
               </h3>
-              <div className="space-y-2">
+              <div className="space-y-2 max-h-96 overflow-y-auto border border-green-200 rounded-lg p-2 bg-white">
                 {resultado.detalles
                   .filter((d) => d.estado === "actualizada")
-                  .slice(0, 10)
                   .map((item, i) => (
                     <div
                       key={i}
@@ -407,7 +413,6 @@ const TarjetaLlanta = ({
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [mostrarAlerta, setMostrarAlerta] = useState(false);
   const [mostrarCostoLocal, setMostrarCostoLocal] = useState(false);
-  
 
   // Si está en modo edición, mostrar formulario
   if (modoEdicion === ll.id) {
@@ -613,8 +618,8 @@ const TarjetaLlanta = ({
               ll.stock === 0
                 ? "text-red-600"
                 : ll.stock % 2 !== 0
-                ? "text-orange-600"
-                : "text-green-600"
+                  ? "text-orange-600"
+                  : "text-green-600"
             }`}
           >
             {ll.stock === 0 ? "Sin stock" : ll.stock}
@@ -659,13 +664,13 @@ const TarjetaLlanta = ({
           onClick={() => {
             const refNormalizada = normalizarReferenciaParaLlantar(
               ll.referencia,
-              ll.marca
+              ll.marca,
             );
             window.open(
               `https://www.llantar.com.co/search?q=${encodeURIComponent(
-                refNormalizada
+                refNormalizada,
               )}`,
-              "_blank"
+              "_blank",
             );
           }}
           className="bg-blue-500 hover:bg-blue-600 text-white px-1 py-1 rounded transition-all flex items-center justify-center gap-0.5"
@@ -891,7 +896,7 @@ function App() {
           tipo,
           detalles,
           fecha: new Date().toISOString(),
-        }
+        },
       );
     } catch (error) {
       console.error("Error registrando actividad:", error);
@@ -900,7 +905,7 @@ function App() {
 
   const abrirLogActividades = () => {
     const password = prompt(
-      "Ingrese la contraseña para ver el log de actividades:"
+      "Ingrese la contraseña para ver el log de actividades:",
     );
 
     const PASSWORD_CORRECTA = "Cmd2025";
@@ -917,7 +922,7 @@ function App() {
     setCargandoLogs(true);
     try {
       const { data } = await axios.get(
-        "https://mi-app-llantas.onrender.com/api/logs"
+        "https://mi-app-llantas.onrender.com/api/logs",
       );
       setLogs(data);
     } catch (error) {
@@ -932,7 +937,7 @@ function App() {
   const abrirComparador = (referencia) => {
     const url = `https://www.google.com/search?q=${encodeURIComponent(
       referencia +
-        " site:llantar.com.co OR site:virtualllantas.com OR site:tullanta.com"
+        " site:llantar.com.co OR site:virtualllantas.com OR site:tullanta.com",
     )}`;
     window.open(url, "_blank");
   };
@@ -957,7 +962,7 @@ function App() {
 
       // Si ninguna está en la lista, orden alfabético
       return a.localeCompare(b);
-    }
+    },
   );
 
   const filtradas = llantas
@@ -1040,7 +1045,7 @@ function App() {
           return { ...ll, [campo]: valor };
         }
         return ll;
-      })
+      }),
     );
   };
 
@@ -1051,18 +1056,18 @@ function App() {
         {
           ...llanta,
           comentario: texto,
-        }
+        },
       );
 
       await registrarActividad(
         "COMENTARIO",
         `${llanta.referencia}: ${
           texto ? "Comentario agregado/editado" : "Comentario eliminado"
-        }`
+        }`,
       );
 
       const { data } = await axios.get(
-        "https://mi-app-llantas.onrender.com/api/llantas"
+        "https://mi-app-llantas.onrender.com/api/llantas",
       );
       setLlantas(data);
       setComentarioModal(null);
@@ -1077,7 +1082,7 @@ function App() {
 
   const toggleSeleccion = (id) => {
     setSeleccionadas((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
   };
 
@@ -1092,17 +1097,17 @@ function App() {
       for (let id of seleccionadas) {
         await axios.post(
           "https://mi-app-llantas.onrender.com/api/eliminar-llanta",
-          { id }
+          { id },
         );
       }
 
       await registrarActividad(
         "ELIMINACIÓN MÚLTIPLE",
-        `Se eliminaron ${seleccionadas.length} llantas: ${referencias}`
+        `Se eliminaron ${seleccionadas.length} llantas: ${referencias}`,
       );
 
       const { data } = await axios.get(
-        "https://mi-app-llantas.onrender.com/api/llantas"
+        "https://mi-app-llantas.onrender.com/api/llantas",
       );
       setLlantas(data);
       setSeleccionadas([]);
@@ -1135,7 +1140,7 @@ function App() {
         String(llantaOriginalEdicion.referencia) !== String(llanta.referencia)
       ) {
         cambios.push(
-          `Referencia: ${llantaOriginalEdicion.referencia} → ${llanta.referencia}`
+          `Referencia: ${llantaOriginalEdicion.referencia} → ${llanta.referencia}`,
         );
       }
 
@@ -1147,7 +1152,7 @@ function App() {
         String(llantaOriginalEdicion.proveedor) !== String(llanta.proveedor)
       ) {
         cambios.push(
-          `Proveedor: ${llantaOriginalEdicion.proveedor} → ${llanta.proveedor}`
+          `Proveedor: ${llantaOriginalEdicion.proveedor} → ${llanta.proveedor}`,
         );
       }
 
@@ -1156,7 +1161,7 @@ function App() {
         Number(llanta.costo_empresa)
       ) {
         cambios.push(
-          `Costo: ${llantaOriginalEdicion.costo_empresa} → ${llanta.costo_empresa}`
+          `Costo: ${llantaOriginalEdicion.costo_empresa} → ${llanta.costo_empresa}`,
         );
       }
 
@@ -1165,7 +1170,7 @@ function App() {
         Number(llanta.precio_cliente)
       ) {
         cambios.push(
-          `Precio: ${llantaOriginalEdicion.precio_cliente} → ${llanta.precio_cliente}`
+          `Precio: ${llantaOriginalEdicion.precio_cliente} → ${llanta.precio_cliente}`,
         );
       }
 
@@ -1177,24 +1182,24 @@ function App() {
         cambios.push(
           `Consignación: ${
             llantaOriginalEdicion.consignacion ? "Sí" : "No"
-          } → ${llanta.consignacion ? "Sí" : "No"}`
+          } → ${llanta.consignacion ? "Sí" : "No"}`,
         );
       }
 
       await axios.post(
         "https://mi-app-llantas.onrender.com/api/editar-llanta",
-        llanta
+        llanta,
       );
 
       if (cambios.length > 0) {
         await registrarActividad(
           "EDICIÓN",
-          `Llanta ${llanta.referencia}: ${cambios.join(", ")}`
+          `Llanta ${llanta.referencia}: ${cambios.join(", ")}`,
         );
       }
 
       const { data } = await axios.get(
-        "https://mi-app-llantas.onrender.com/api/llantas"
+        "https://mi-app-llantas.onrender.com/api/llantas",
       );
       setLlantas(data);
 
@@ -1213,16 +1218,16 @@ function App() {
     try {
       await axios.post(
         "https://mi-app-llantas.onrender.com/api/agregar-llanta",
-        nuevoItem
+        nuevoItem,
       );
 
       await registrarActividad(
         "NUEVA LLANTA",
-        `Se agregó: ${nuevoItem.referencia} - ${nuevoItem.marca} (Stock: ${nuevoItem.stock})`
+        `Se agregó: ${nuevoItem.referencia} - ${nuevoItem.marca} (Stock: ${nuevoItem.stock})`,
       );
 
       const { data } = await axios.get(
-        "https://mi-app-llantas.onrender.com/api/llantas"
+        "https://mi-app-llantas.onrender.com/api/llantas",
       );
       setLlantas(data);
       setMostrarModal(false);
@@ -1249,16 +1254,16 @@ function App() {
 
       await axios.post(
         "https://mi-app-llantas.onrender.com/api/eliminar-llanta",
-        { id }
+        { id },
       );
 
       await registrarActividad(
         "ELIMINACIÓN",
-        `Se eliminó: ${llanta.referencia} - ${llanta.marca}`
+        `Se eliminó: ${llanta.referencia} - ${llanta.marca}`,
       );
 
       const { data } = await axios.get(
-        "https://mi-app-llantas.onrender.com/api/llantas"
+        "https://mi-app-llantas.onrender.com/api/llantas",
       );
       setLlantas(data);
       setMensaje("Llanta eliminada ✅");
@@ -1500,7 +1505,7 @@ function App() {
                             headers: {
                               "Content-Type": "multipart/form-data",
                             },
-                          }
+                          },
                         );
 
                         const resultado = response.data;
@@ -1509,12 +1514,12 @@ function App() {
                         setResultadoActualizacion(resultado);
 
                         setMensaje(
-                          `✅ Procesado: ${resultado.actualizadas} actualizadas, ${resultado.margenBajo} con margen bajo, ${resultado.bloqueadas} críticas`
+                          `✅ Procesado: ${resultado.actualizadas} actualizadas, ${resultado.margenBajo} con margen bajo, ${resultado.bloqueadas} críticas`,
                         );
 
                         // Recargar llantas
                         const { data } = await axios.get(
-                          "https://mi-app-llantas.onrender.com/api/llantas"
+                          "https://mi-app-llantas.onrender.com/api/llantas",
                         );
                         setLlantas(data);
 
@@ -1612,7 +1617,7 @@ function App() {
                           setBusquedasRecientes(nuevas);
                           localStorage.setItem(
                             "busquedasRecientes",
-                            JSON.stringify(nuevas)
+                            JSON.stringify(nuevas),
                           );
                         }
                       }}
@@ -1791,7 +1796,7 @@ function App() {
                                     actualizarCampo(
                                       ll.id,
                                       "referencia",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   className="w-full border-2 border-blue-300 rounded text-sm p-1"
@@ -1804,13 +1809,13 @@ function App() {
                                       const refNormalizada =
                                         normalizarReferenciaParaLlantar(
                                           ll.referencia,
-                                          ll.marca
+                                          ll.marca,
                                         );
                                       window.open(
                                         `https://www.llantar.com.co/search?q=${encodeURIComponent(
-                                          refNormalizada
+                                          refNormalizada,
                                         )}`,
-                                        "_blank"
+                                        "_blank",
                                       );
                                     }}
                                     className="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600"
@@ -1826,7 +1831,7 @@ function App() {
                                     actualizarCampo(
                                       ll.id,
                                       "marca",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   className="w-full border-2 border-blue-300 rounded text-sm p-1"
@@ -1839,7 +1844,7 @@ function App() {
                                     actualizarCampo(
                                       ll.id,
                                       "proveedor",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   className="w-full border-2 border-blue-300 rounded text-sm p-1"
@@ -1853,7 +1858,7 @@ function App() {
                                     actualizarCampo(
                                       ll.id,
                                       "costo_empresa",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   className="w-full border-2 border-blue-300 rounded text-sm p-1"
@@ -1867,7 +1872,7 @@ function App() {
                                     actualizarCampo(
                                       ll.id,
                                       "precio_cliente",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   className="w-full border-2 border-blue-300 rounded text-sm p-1"
@@ -1881,7 +1886,7 @@ function App() {
                                     actualizarCampo(
                                       ll.id,
                                       "stock",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   className="w-full border-2 border-blue-300 rounded text-sm p-1"
@@ -1894,7 +1899,7 @@ function App() {
                                       actualizarCampo(
                                         ll.id,
                                         "consignacion",
-                                        !ll.consignacion
+                                        !ll.consignacion,
                                       )
                                     }
                                     className={`px-2 py-1 text-xs rounded ${
@@ -1918,7 +1923,7 @@ function App() {
                                         setLlantaOriginalEdicion(null);
                                         axios
                                           .get(
-                                            "https://mi-app-llantas.onrender.com/api/llantas"
+                                            "https://mi-app-llantas.onrender.com/api/llantas",
                                           )
                                           .then((res) => setLlantas(res.data));
                                       }}
@@ -1970,15 +1975,15 @@ function App() {
                                         alert(
                                           `⚠️ ALERTA DE MARGEN ${ll.alerta_margen.tipo.toUpperCase()}\n\n` +
                                             `Costo: $${ll.alerta_margen.costoReal?.toLocaleString(
-                                              "es-CO"
+                                              "es-CO",
                                             )}\n` +
                                             `Precio público: $${ll.alerta_margen.precioPublico?.toLocaleString(
-                                              "es-CO"
+                                              "es-CO",
                                             )}\n` +
                                             `Margen disponible: ${ll.alerta_margen.porcentajeReal}%\n\n` +
                                             (ll.alerta_margen.tipo === "critico"
                                               ? "🔴 ALERTA"
-                                              : "⚠️ ALERTA")
+                                              : "⚠️ ALERTA"),
                                         );
                                       }}
                                       className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
@@ -2001,13 +2006,13 @@ function App() {
                                       const refNormalizada =
                                         normalizarReferenciaParaLlantar(
                                           ll.referencia,
-                                          ll.marca
+                                          ll.marca,
                                         );
                                       window.open(
                                         `https://www.llantar.com.co/search?q=${encodeURIComponent(
-                                          refNormalizada
+                                          refNormalizada,
                                         )}`,
-                                        "_blank"
+                                        "_blank",
                                       );
                                     }}
                                     className="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600"
@@ -2057,7 +2062,7 @@ function App() {
                                     onClick={async () => {
                                       const texto = prompt(
                                         "Comentario:",
-                                        ll.comentario || ""
+                                        ll.comentario || "",
                                       );
                                       if (texto !== null) {
                                         await guardarComentario(ll, texto);
@@ -2189,7 +2194,7 @@ function App() {
                   <p className="text-xs text-green-600 mt-1">
                     💡 Sugerido: $
                     {Math.round(
-                      parseFloat(nuevoItem.costo_empresa) / 0.8
+                      parseFloat(nuevoItem.costo_empresa) / 0.8,
                     ).toLocaleString("es-CO")}
                   </p>
                 )}
@@ -2267,7 +2272,7 @@ function App() {
                 onClick={async () => {
                   const nuevoTexto = prompt(
                     "Editar comentario:",
-                    comentarioModal.comentario
+                    comentarioModal.comentario,
                   );
                   if (nuevoTexto !== null) {
                     await guardarComentario(comentarioModal, nuevoTexto);

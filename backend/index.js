@@ -70,6 +70,8 @@ app.use("/files", express.static(FILES_PATH));
 
 // ============================================
 // ENDPOINT FINAL: PROCESAR EXCEL DE LLANTAR
+// ✅ LT es específico (LT275/60R20 ≠ 275/60R20)
+// ✅ P es opcional (P275/60R20 = 275/60R20)
 // ============================================
 
 app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
@@ -92,13 +94,11 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
     const datosLlantar = [];
 
     for (const fila of datos) {
-      // Extraer datos
       const marca = fila["MARCA"]?.toString().trim().toUpperCase();
       const referencia = fila["REF"]?.toString().trim();
       const medida = fila["MEDIDA"]?.toString().trim();
       const diseno = fila["DISEÑO"]?.toString().trim();
 
-      // ✅ COLUMNA CORRECTA: "MINIMA"
       let precioTexto = fila["MINIMA"] || "";
 
       if (typeof precioTexto === "number") {
@@ -108,7 +108,6 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
       precioTexto = precioTexto.toString().replace(/[,\.]/g, "").trim();
       const precio = parseInt(precioTexto);
 
-      // Validaciones
       if (!marca || !medida || isNaN(precio) || precio < 100000) {
         continue;
       }
@@ -124,7 +123,6 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
 
     console.log(`\n✅ Extraídas ${datosLlantar.length} llantas del Excel`);
 
-    // Obtener inventario actual
     const { rows: inventario } = await pool.query("SELECT * FROM llantas");
 
     console.log(`\n📦 Inventario tiene ${inventario.length} llantas`);
@@ -142,67 +140,139 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
     console.log("🔄 INICIANDO PROCESO DE COINCIDENCIAS");
     console.log("🔄 ========================================\n");
 
+    // 🔥 FUNCIÓN PARA NORMALIZAR MEDIDA
+    function normalizarMedida(texto) {
+      if (!texto) return "";
+      
+      let normalizado = texto.toUpperCase().trim();
+      
+      // Quitar espacios internos
+      normalizado = normalizado.replace(/\s+/g, "");
+      
+      // Normalizar separadores: convertir guiones a barras
+      normalizado = normalizado.replace(/-/g, "/");
+      
+      // Asegurar que tenga R si falta
+      normalizado = normalizado.replace(/(\d{3}\/\d{2})(\d{2})/, "$1R$2");
+      
+      return normalizado;
+    }
+
+    // 🔥 FUNCIÓN PARA COMPARAR MEDIDAS (considera que P es opcional)
+    function medidasCoinciden(medida1, medida2) {
+      // Normalizar ambas
+      const m1 = normalizarMedida(medida1);
+      const m2 = normalizarMedida(medida2);
+      
+      // Si son exactamente iguales → coinciden
+      if (m1 === m2) return true;
+      
+      // Si una tiene LT y la otra no → NO coinciden (LT es específico)
+      const m1_tieneLT = m1.startsWith("LT");
+      const m2_tieneLT = m2.startsWith("LT");
+      
+      if (m1_tieneLT !== m2_tieneLT) {
+        return false; // ❌ Una tiene LT, otra no
+      }
+      
+      // Si una tiene P y la otra no → SÍ coinciden (P es opcional)
+      const m1_sinP = m1.startsWith("P") ? m1.substring(1) : m1;
+      const m2_sinP = m2.startsWith("P") ? m2.substring(1) : m2;
+      
+      return m1_sinP === m2_sinP;
+    }
+
+    // 🔥 FUNCIÓN PARA EXTRAER PALABRAS CLAVE DEL DISEÑO
+    function extraerPalabrasClave(texto) {
+      if (!texto) return [];
+      
+      const palabras = texto
+        .toUpperCase()
+        .split(/[\s\-\/\.,]+/)
+        .filter(p => {
+          return (
+            p.length >= 3 && 
+            !/^\d+$/.test(p) &&
+            !["THE", "AND", "FOR"].includes(p)
+          );
+        });
+      
+      return palabras;
+    }
+
+    // 🔥 LÓGICA DE COINCIDENCIA
     let intentos = 0;
     for (const itemLlantar of datosLlantar) {
       intentos++;
 
-      // 🎯 ESTRATEGIA DE COINCIDENCIA MEJORADA
-      const llantaDB = inventario.find((l) => {
-        // 1. Coincidencia de marca (obligatoria)
-        const marcaInv = (l.marca || "").toUpperCase().trim();
-        const marcaLlantar = itemLlantar.marca.toUpperCase().trim();
+      const medidaLlantar = itemLlantar.medida;
+      const marcaLlantar = itemLlantar.marca.toUpperCase().trim();
 
+      // Buscar en inventario
+      const llantaDB = inventario.find((l) => {
+        // 1️⃣ VALIDAR MARCA (obligatorio - debe ser EXACTA)
+        const marcaInv = (l.marca || "").toUpperCase().trim();
         if (marcaInv !== marcaLlantar) {
           return false;
         }
 
-        // 2. Preparar strings para comparación
+        // 2️⃣ VALIDAR MEDIDA (con reglas especiales para LT/P)
         const refInventario = (l.referencia || "").toUpperCase().trim();
-        const medidaLlantar = itemLlantar.medida.toUpperCase().trim();
-        const disenoLlantar = (itemLlantar.diseno || "").toUpperCase().trim();
-
-        // 3. ✅ NUEVO: Verificar EXACTAMENTE la medida (incluyendo LT/P)
-        // Quitar solo espacios extras, MANTENER el prefijo LT/P
-        const medidaLimpia = medidaLlantar.replace(/\s+/g, "");
-        const refLimpia = refInventario.replace(/\s+/g, "");
-
-        // 4. Verificar si la medida EXACTA está en la referencia
-        const coincideMedida = refLimpia.includes(medidaLimpia);
-
-        if (!coincideMedida) {
+        
+        // Buscar la medida en la referencia
+        // Ejemplo: "LT 275/60R20 BAJA BOSS" contiene la medida "LT275/60R20"
+        
+        // Extraer posible medida de la referencia
+        const patronMedida = /(?:LT|P)?(\d{2,3}[\/\-]?\d{2}R?\d{2}(?:\.5)?)/gi;
+        const medidasEnRef = refInventario.match(patronMedida);
+        
+        if (!medidasEnRef || medidasEnRef.length === 0) {
+          return false;
+        }
+        
+        // Verificar si alguna medida de la referencia coincide
+        let hayCoincidencia = false;
+        for (const medidaRef of medidasEnRef) {
+          if (medidasCoinciden(medidaRef, medidaLlantar)) {
+            hayCoincidencia = true;
+            break;
+          }
+        }
+        
+        if (!hayCoincidencia) {
           return false;
         }
 
-        // 5. Verificar diseño de forma flexible (60% de palabras)
-        if (disenoLlantar && disenoLlantar.length > 2) {
-          // Dividir el diseño en palabras significativas
-          const palabrasDiseno = disenoLlantar
-            .split(/\s+/)
-            .filter((p) => p.length > 2);
-
-          if (palabrasDiseno.length === 0) {
-            return true; // No hay diseño que validar
-          }
-
-          // Contar cuántas palabras coinciden
-          let palabrasCoinciden = 0;
-          for (const palabra of palabrasDiseno) {
-            if (refInventario.includes(palabra)) {
-              palabrasCoinciden++;
+        // 3️⃣ VALIDAR DISEÑO (FLEXIBLE - opcional)
+        const disenoLlantar = itemLlantar.diseno || "";
+        
+        if (disenoLlantar && disenoLlantar.length > 3) {
+          const palabrasDiseno = extraerPalabrasClave(disenoLlantar);
+          
+          if (palabrasDiseno.length > 0) {
+            let coincidencias = 0;
+            for (const palabra of palabrasDiseno) {
+              if (refInventario.includes(palabra)) {
+                coincidencias++;
+              }
             }
-          }
 
-          // ✅ Si al menos el 60% de las palabras coinciden, es válido
-          const porcentajeCoincidencia =
-            palabrasCoinciden / palabrasDiseno.length;
+            // Si hay más de 2 palabras pero ninguna coincide
+            if (palabrasDiseno.length > 2 && coincidencias === 0) {
+              return false;
+            }
 
-          if (porcentajeCoincidencia < 0.6) {
-            return false;
+            // Si hay 1-2 palabras, al menos una debe coincidir
+            if (palabrasDiseno.length <= 2 && coincidencias === 0) {
+              return false;
+            }
           }
         }
 
+        // 4️⃣ ✅ MATCH EXITOSO
         return true;
       });
+
       if (!llantaDB) {
         resultado.noEncontradas++;
         resultado.noEncontradasLista.push({
@@ -212,18 +282,18 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
           precio: itemLlantar.precio,
         });
 
-        if (intentos <= 10) {
+        if (intentos <= 20 || resultado.noEncontradas <= 20) {
           console.log(
-            `⚠️ No encontrada: ${itemLlantar.marca} ${itemLlantar.medida} ${itemLlantar.diseno}`
+            `❌ No encontrada: ${itemLlantar.marca} ${itemLlantar.medida} ${itemLlantar.diseno}`
           );
         }
         continue;
       }
 
       // ✅ COINCIDENCIA ENCONTRADA
-      if (intentos <= 10) {
+      if (resultado.actualizadas < 20) {
         console.log(
-          `✅ MATCH: "${llantaDB.referencia}" ↔ "${itemLlantar.medida} ${itemLlantar.diseno}"`
+          `✅ MATCH #${resultado.actualizadas + 1}: "${llantaDB.referencia}" ↔ "${itemLlantar.medida} ${itemLlantar.diseno}"`
         );
       }
 
@@ -236,11 +306,10 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
       let alertaMargen = null;
       let estadoActualizacion = "actualizada";
 
-      // 🚨 VALIDAR MARGEN (menor a 15% es preocupante, menor a 10% es crítico)
+      // 🚨 VALIDAR MARGEN
       if (porcentajeReal < 15) {
         const tipo = porcentajeReal < 10 ? "critico" : "bajo";
 
-        // ✅ GUARDAR ALERTA EN LA LLANTA
         alertaMargen = {
           tipo,
           costoReal: llantaDB.costo_empresa,
@@ -254,29 +323,28 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
 
         if (tipo === "critico") {
           resultado.bloqueadas++;
-          console.log(
-            `🔴 MARGEN CRÍTICO: ${
-              llantaDB.referencia
-            } - Margen: ${porcentajeReal.toFixed(1)}%`
-          );
+          if (resultado.bloqueadas <= 10) {
+            console.log(
+              `🔴 MARGEN CRÍTICO: ${llantaDB.referencia} - Margen: ${porcentajeReal.toFixed(1)}%`
+            );
+          }
         } else {
           resultado.margenBajo++;
-          console.log(
-            `⚠️ MARGEN BAJO: ${
-              llantaDB.referencia
-            } - Margen: ${porcentajeReal.toFixed(1)}%`
-          );
+          if (resultado.margenBajo <= 10) {
+            console.log(
+              `⚠️ MARGEN BAJO: ${llantaDB.referencia} - Margen: ${porcentajeReal.toFixed(1)}%`
+            );
+          }
         }
       }
 
-      // 💾 ACTUALIZAR PRECIO EN BD (SIEMPRE, sin importar el margen)
+      // 💾 ACTUALIZAR PRECIO EN BD
       const precioAnterior = llantaDB.precio_cliente;
       const cambio =
         precioAnterior > 0
           ? ((itemLlantar.precio - precioAnterior) / precioAnterior) * 100
           : 0;
 
-      // ✅ ACTUALIZAR SIEMPRE (incluso si es crítico)
       await pool.query(
         `UPDATE llantas 
          SET precio_cliente = $1, 
@@ -310,7 +378,7 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
     console.log(`❌ No encontradas: ${resultado.noEncontradas}`);
     console.log("========================================\n");
 
-    // ✅ GUARDAR REPORTE EN LOG DE ACTIVIDADES
+    // Guardar log
     try {
       const resumenLog = `
 ACTUALIZACIÓN DE PRECIOS LLANTAR
@@ -319,46 +387,6 @@ ACTUALIZACIÓN DE PRECIOS LLANTAR
 ⚠️ Margen Bajo (10-15%): ${resultado.margenBajo}
 🔴 Críticas (<10%): ${resultado.bloqueadas}
 ❌ No encontradas: ${resultado.noEncontradas}
-
-${
-  resultado.bloqueadas > 0
-    ? `
-🔴 LLANTAS CRÍTICAS (NO COMPRAR):
-${resultado.detalles
-  .filter((d) => d.estado === "critico")
-  .slice(0, 5)
-  .map((d) => `   • ${d.referencia} - Margen: ${d.margen}%`)
-  .join("\n")}
-${
-  resultado.detalles.filter((d) => d.estado === "critico").length > 5
-    ? `   ... y ${
-        resultado.detalles.filter((d) => d.estado === "critico").length - 5
-      } más`
-    : ""
-}
-`
-    : ""
-}
-
-${
-  resultado.margenBajo > 0
-    ? `
-⚠️ LLANTAS MARGEN BAJO (EVALUAR):
-${resultado.detalles
-  .filter((d) => d.estado === "margen_bajo")
-  .slice(0, 5)
-  .map((d) => `   • ${d.referencia} - Margen: ${d.margen}%`)
-  .join("\n")}
-${
-  resultado.detalles.filter((d) => d.estado === "margen_bajo").length > 5
-    ? `   ... y ${
-        resultado.detalles.filter((d) => d.estado === "margen_bajo").length - 5
-      } más`
-    : ""
-}
-`
-    : ""
-}
       `.trim();
 
       await pool.query(
@@ -387,74 +415,7 @@ ${
   }
 });
 
-// ============================================
-// FUNCIÓN PARA REMOVER FONDO DE RINES
-// ============================================
-async function removerFondoRin(imageUrl) {
-  try {
-    console.log("🔄 Procesando imagen con remove.bg:", imageUrl);
 
-    const imageResponse = await axios.get(imageUrl, {
-      responseType: "arraybuffer",
-    });
-
-    const formData = new FormData();
-    formData.append(
-      "image_file_b64",
-      Buffer.from(imageResponse.data).toString("base64")
-    );
-    formData.append("size", "auto");
-
-    const response = await axios({
-      method: "post",
-      url: "https://api.remove.bg/v1.0/removebg",
-      data: formData,
-      responseType: "arraybuffer",
-      headers: {
-        ...formData.getHeaders(),
-        "X-Api-Key": REMOVE_BG_API_KEY,
-      },
-    });
-
-    if (response.status !== 200) {
-      throw new Error(`remove.bg retornó status ${response.status}`);
-    }
-
-    console.log("✅ Fondo removido exitosamente");
-
-    return new Promise((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
-        {
-          folder: "rines",
-          format: "png",
-          public_id: `sin-fondo-${Date.now()}`,
-        },
-        (error, result) => {
-          if (error) {
-            console.error("❌ Error subiendo a Cloudinary:", error);
-            reject(error);
-          } else {
-            console.log(
-              "✅ Imagen sin fondo subida a Cloudinary:",
-              result.secure_url
-            );
-            resolve(result.secure_url);
-          }
-        }
-      );
-
-      uploadStream.end(Buffer.from(response.data));
-    });
-  } catch (error) {
-    console.error("❌ Error al remover fondo:", error.message);
-
-    if (error.response?.status === 403) {
-      console.error("❌ API Key inválida o límite de remove.bg alcanzado");
-    }
-
-    return imageUrl;
-  }
-}
 /**
  * Endpoint para procesar TODOS los rines en lote
  */

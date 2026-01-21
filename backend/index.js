@@ -145,39 +145,51 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
       if (!texto) return "";
 
       let normalizado = texto.toUpperCase().trim();
-
-      // Quitar espacios internos
       normalizado = normalizado.replace(/\s+/g, "");
-
-      // Normalizar separadores: convertir guiones a barras
       normalizado = normalizado.replace(/-/g, "/");
-
-      // Asegurar que tenga R si falta
       normalizado = normalizado.replace(/(\d{3}\/\d{2})(\d{2})/, "$1R$2");
 
       return normalizado;
     }
 
-    // 🔥 FUNCIÓN PARA COMPARAR MEDIDAS (VERSIÓN CORREGIDA)
+    // 🔥 FUNCIÓN PARA EXTRAER MEDIDA (MEJORADA - captura LT con espacio)
+    function extraerMedidaDeReferencia(referencia) {
+      if (!referencia) return null;
+
+      const ref = referencia.toUpperCase().trim();
+
+      // Intentar capturar con LT/P (incluso si hay espacio)
+      // Ej: "LT 275/60R20" o "LT275/60R20"
+      const conPrefijo = ref.match(
+        /\b(LT|P)\s*(\d{2,3}[\/\-]?\d{2}R?\d{2}(?:\.5)?)/i,
+      );
+      if (conPrefijo) {
+        return conPrefijo[1] + conPrefijo[2]; // "LT" + "275/60R20"
+      }
+
+      // Si no tiene prefijo, capturar solo los números
+      const sinPrefijo = ref.match(/\b(\d{2,3}[\/\-]?\d{2}R?\d{2}(?:\.5)?)/i);
+      if (sinPrefijo) {
+        return sinPrefijo[1]; // "275/60R20"
+      }
+
+      return null;
+    }
+
+    // 🔥 FUNCIÓN PARA COMPARAR MEDIDAS
     function medidasCoinciden(medida1, medida2) {
-      // Normalizar ambas
       const m1 = normalizarMedida(medida1);
       const m2 = normalizarMedida(medida2);
 
-      // Si son exactamente iguales → coinciden
       if (m1 === m2) return true;
 
-      // ⚠️ CRÍTICO: Verificar si una tiene LT y la otra no
       const m1TieneLT = m1.startsWith("LT");
       const m2TieneLT = m2.startsWith("LT");
 
-      // Si UNA tiene LT y la OTRA NO → SON DIFERENTES
       if (m1TieneLT !== m2TieneLT) {
         return false;
       }
 
-      // Si ambas tienen LT o ninguna tiene LT, continuar
-      // Ahora verificar P (que es opcional)
       const m1SinP = m1.startsWith("P") ? m1.substring(1) : m1;
       const m2SinP = m2.startsWith("P") ? m2.substring(1) : m2;
 
@@ -201,6 +213,7 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
 
       return palabras;
     }
+
     // 🔥 LÓGICA DE COINCIDENCIA MEJORADA
     let intentos = 0;
 
@@ -210,18 +223,14 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
       const marcaInv = (llantaInv.marca || "").toUpperCase().trim();
       const refInv = (llantaInv.referencia || "").toUpperCase().trim();
 
-      // Extraer medida de la referencia del inventario
-      const patronMedida = /(?:LT|P)?(\d{2,3}[\/\-]?\d{2}R?\d{2}(?:\.5)?)/gi;
-      const medidasEnInv = refInv.match(patronMedida);
+      // ✅ USAR LA NUEVA FUNCIÓN DE EXTRACCIÓN
+      const medidaInv = extraerMedidaDeReferencia(refInv);
 
-      if (!medidasEnInv || medidasEnInv.length === 0) {
+      if (!medidaInv) {
         continue; // No tiene medida válida
       }
 
-      const medidaInv = normalizarMedida(medidasEnInv[0]); // Primera medida encontrada, normalizada
-
-      // ✅ DETECTAR SI LA LLANTA DE INVENTARIO TIENE LT
-      const inventarioTieneLT = medidaInv.startsWith("LT");
+      const medidaInvNormalizada = normalizarMedida(medidaInv);
 
       // Buscar en datosLlantar TODAS las coincidencias posibles
       let mejorCoincidencia = null;
@@ -234,7 +243,7 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
         }
 
         // 2️⃣ Validar medida con reglas LT/P
-        if (!medidasCoinciden(medidaInv, itemLlantar.medida)) {
+        if (!medidasCoinciden(medidaInvNormalizada, itemLlantar.medida)) {
           continue;
         }
 
@@ -245,15 +254,15 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
         const llantarTieneLT = normalizarMedida(itemLlantar.medida).startsWith(
           "LT",
         );
+        const inventarioTieneLT = medidaInvNormalizada.startsWith("LT");
 
         if (inventarioTieneLT && llantarTieneLT) {
-          puntaje += 1000; // ✅ Ambas tienen LT → PRIORIDAD MÁXIMA
+          puntaje += 1000; // ✅ Ambas tienen LT
         } else if (!inventarioTieneLT && !llantarTieneLT) {
-          puntaje += 500; // ✅ Ninguna tiene LT → Buena coincidencia
+          puntaje += 500; // ✅ Ninguna tiene LT
         }
-        // Si una tiene LT y otra no, el puntaje es 0 (ya fue filtrado por medidasCoinciden)
 
-        // Validar diseño (sumar puntos adicionales)
+        // Validar diseño
         const disenoLlantar = itemLlantar.diseno || "";
 
         if (disenoLlantar && disenoLlantar.length > 3) {
@@ -267,24 +276,20 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
               }
             }
 
-            // Si hay más de 2 palabras pero ninguna coincide → descartar
             if (palabrasLlantar.length > 2 && coincidenciasDiseno === 0) {
               continue;
             }
 
-            // Si hay 1-2 palabras pero ninguna coincide → descartar
             if (palabrasLlantar.length <= 2 && coincidenciasDiseno === 0) {
               continue;
             }
 
-            // Sumar puntos por coincidencia de diseño
             const porcentajeDiseno =
               coincidenciasDiseno / palabrasLlantar.length;
             puntaje += porcentajeDiseno * 100;
           }
         }
 
-        // Actualizar mejor coincidencia
         if (puntaje > mejorPuntaje) {
           mejorPuntaje = puntaje;
           mejorCoincidencia = itemLlantar;
@@ -292,7 +297,7 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
       }
 
       if (!mejorCoincidencia) {
-        continue; // No se encontró coincidencia para esta llanta del inventario
+        continue;
       }
 
       const itemLlantar = mejorCoincidencia;
@@ -304,7 +309,7 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
         );
       }
 
-      // 📊 Calcular margen según la marca
+      // 📊 Calcular margen
       const divisor = itemLlantar.marca === "TOYO" ? 1.15 : 1.2;
       const precioEsperado = llantaInv.costo_empresa / divisor;
       const margenReal = itemLlantar.precio - llantaInv.costo_empresa;
@@ -313,7 +318,6 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
       let alertaMargen = null;
       let estadoActualizacion = "actualizada";
 
-      // 🚨 VALIDAR MARGEN
       if (porcentajeReal < 15) {
         const tipo = porcentajeReal < 10 ? "critico" : "bajo";
 
@@ -345,7 +349,6 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
         }
       }
 
-      // 💾 ACTUALIZAR PRECIO EN BD
       const precioAnterior = llantaInv.precio_cliente;
       const cambio =
         precioAnterior > 0

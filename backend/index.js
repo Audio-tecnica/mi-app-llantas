@@ -199,21 +199,8 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
 
       return palabras;
     }
-
     // 🔥 LÓGICA DE COINCIDENCIA MEJORADA
     let intentos = 0;
-
-    // ✅ NUEVO: Agrupar llantas de Llantar por marca + diseño
-    // Esto permite encontrar TODAS las variantes de medida de una misma llanta
-    const llantasPorDiseno = new Map();
-
-    for (const itemLlantar of datosLlantar) {
-      const clave = `${itemLlantar.marca}|${itemLlantar.diseno}`.toUpperCase();
-      if (!llantasPorDiseno.has(clave)) {
-        llantasPorDiseno.set(clave, []);
-      }
-      llantasPorDiseno.get(clave).push(itemLlantar);
-    }
 
     for (const llantaInv of inventario) {
       intentos++;
@@ -229,17 +216,17 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
         continue; // No tiene medida válida
       }
 
-      const medidaInv = medidasEnInv[0]; // Primera medida encontrada
+      const medidaInv = normalizarMedida(medidasEnInv[0]); // Primera medida encontrada, normalizada
 
-      // Extraer palabras clave del diseño de la referencia
-      const palabrasInv = extraerPalabrasClave(refInv);
+      // ✅ DETECTAR SI LA LLANTA DE INVENTARIO TIENE LT
+      const inventarioTieneLT = medidaInv.startsWith("LT");
 
-      // Buscar en datosLlantar una coincidencia EXACTA
+      // Buscar en datosLlantar TODAS las coincidencias posibles
       let mejorCoincidencia = null;
-      let mejorPuntaje = 0;
+      let mejorPuntaje = -1;
 
       for (const itemLlantar of datosLlantar) {
-        // 1️⃣ Validar marca
+        // 1️⃣ Validar marca (obligatorio)
         if (itemLlantar.marca.toUpperCase().trim() !== marcaInv) {
           continue;
         }
@@ -249,32 +236,50 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
           continue;
         }
 
-        // 3️⃣ Calcular puntaje de diseño
-        const palabrasLlantar = extraerPalabrasClave(itemLlantar.diseno);
+        // 3️⃣ Calcular puntaje de coincidencia
+        let puntaje = 0;
 
-        if (palabrasLlantar.length === 0) {
-          // No hay diseño, solo coincidir por marca y medida
-          mejorCoincidencia = itemLlantar;
-          break;
+        // 🔥 PRIORIDAD MÁXIMA: Coincidencia EXACTA de LT
+        const llantarTieneLT = normalizarMedida(itemLlantar.medida).startsWith(
+          "LT",
+        );
+
+        if (inventarioTieneLT && llantarTieneLT) {
+          puntaje += 1000; // ✅ Ambas tienen LT → PRIORIDAD MÁXIMA
+        } else if (!inventarioTieneLT && !llantarTieneLT) {
+          puntaje += 500; // ✅ Ninguna tiene LT → Buena coincidencia
         }
+        // Si una tiene LT y otra no, el puntaje es 0 (ya fue filtrado por medidasCoinciden)
 
-        let coincidencias = 0;
-        for (const palabra of palabrasLlantar) {
-          if (refInv.includes(palabra)) {
-            coincidencias++;
+        // Validar diseño (sumar puntos adicionales)
+        const disenoLlantar = itemLlantar.diseno || "";
+
+        if (disenoLlantar && disenoLlantar.length > 3) {
+          const palabrasLlantar = extraerPalabrasClave(disenoLlantar);
+
+          if (palabrasLlantar.length > 0) {
+            let coincidenciasDiseno = 0;
+            for (const palabra of palabrasLlantar) {
+              if (refInv.includes(palabra)) {
+                coincidenciasDiseno++;
+              }
+            }
+
+            // Si hay más de 2 palabras pero ninguna coincide → descartar
+            if (palabrasLlantar.length > 2 && coincidenciasDiseno === 0) {
+              continue;
+            }
+
+            // Si hay 1-2 palabras pero ninguna coincide → descartar
+            if (palabrasLlantar.length <= 2 && coincidenciasDiseno === 0) {
+              continue;
+            }
+
+            // Sumar puntos por coincidencia de diseño
+            const porcentajeDiseno =
+              coincidenciasDiseno / palabrasLlantar.length;
+            puntaje += porcentajeDiseno * 100;
           }
-        }
-
-        const puntaje = coincidencias / palabrasLlantar.length;
-
-        // Si hay más de 2 palabras en diseño pero ninguna coincide → descartar
-        if (palabrasLlantar.length > 2 && coincidencias === 0) {
-          continue;
-        }
-
-        // Si hay 1-2 palabras pero ninguna coincide → descartar
-        if (palabrasLlantar.length <= 2 && coincidencias === 0) {
-          continue;
         }
 
         // Actualizar mejor coincidencia
@@ -293,7 +298,7 @@ app.post("/api/procesar-excel-llantar", fileUpload(), async (req, res) => {
       // ✅ COINCIDENCIA ENCONTRADA
       if (resultado.actualizadas < 20) {
         console.log(
-          `✅ MATCH #${resultado.actualizadas + 1}: "${llantaInv.referencia}" ↔ "${itemLlantar.medida} ${itemLlantar.diseno}"`,
+          `✅ MATCH #${resultado.actualizadas + 1}: "${llantaInv.referencia}" ↔ "${itemLlantar.medida} ${itemLlantar.diseno}" ($${itemLlantar.precio.toLocaleString("es-CO")})`,
         );
       }
 
